@@ -159,13 +159,13 @@ describe("resolveBetaFeedLocation", () => {
 });
 
 function fakeApp(dir: string, bundleId = "com.itshimelz.mimir.beta"): string {
-  const appPath = join(dir, "Synara Beta.app", "Contents");
+  const appPath = join(dir, "Mimir Beta.app", "Contents");
   mkdirSync(appPath, { recursive: true });
   writeFileSync(
     join(appPath, "Info.plist"),
     `<?xml version="1.0"?><plist><dict><key>CFBundleIdentifier</key><string>${bundleId}</string></dict></plist>`,
   );
-  return join(dir, "Synara Beta.app");
+  return join(dir, "Mimir Beta.app");
 }
 
 const noTeamIdReadCommand = () => ({ status: 0, stdout: "", stderr: "Executable=/tmp/x\n" });
@@ -229,7 +229,7 @@ describe("installBetaFromFeed", () => {
     const { deps, installDir } = feedDeps(root);
     const phases: string[] = [];
     const target = await installBetaFromFeed(deps, (p) => phases.push(p.phase));
-    expect(target).toBe(join(installDir, "Synara Beta.app"));
+    expect(target).toBe(join(installDir, "Mimir Beta.app"));
     expect(existsSync(target)).toBe(true);
     expect(phases).toEqual(["downloading", "verifying", "installing"]);
   });
@@ -243,7 +243,7 @@ describe("installBetaFromFeed", () => {
         `version: 0.9.3-beta.1\nfiles:\n  - url: beta.zip\n    sha512: ${"0".repeat(88)}=\n`,
     };
     await expect(installBetaFromFeed(bad, () => {})).rejects.toThrow(/checksum/);
-    expect(existsSync(join(installDir, "Synara Beta.app"))).toBe(false);
+    expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
   it("fails closed when the zip contains a non-beta bundle", async () => {
@@ -261,7 +261,7 @@ describe("installBetaFromFeed", () => {
       },
     };
     await expect(installBetaFromFeed(bad, () => {})).rejects.toThrow(/not Synara Beta/);
-    expect(existsSync(join(installDir, "Synara Beta.app"))).toBe(false);
+    expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
   it("replaces an existing install without leaving the old app behind", async () => {
@@ -269,8 +269,8 @@ describe("installBetaFromFeed", () => {
     const { deps, installDir } = feedDeps(root);
     fakeApp(installDir);
     await installBetaFromFeed(deps, () => {});
-    expect(() => verifyBetaAppBundle(join(installDir, "Synara Beta.app"))).not.toThrow();
-    expect(readdirSync(installDir)).toEqual(["Synara Beta.app"]);
+    expect(() => verifyBetaAppBundle(join(installDir, "Mimir Beta.app"))).not.toThrow();
+    expect(readdirSync(installDir)).toEqual(["Mimir Beta.app"]);
   });
 
   it("keeps the installed app when moving the new one into place fails", async () => {
@@ -290,7 +290,7 @@ describe("installBetaFromFeed", () => {
     };
     await expect(installBetaFromFeed(failingMove, () => {})).rejects.toThrow(/No space left/);
     expect(() => verifyBetaAppBundle(installed)).not.toThrow();
-    expect(readdirSync(installDir)).toEqual(["Synara Beta.app"]);
+    expect(readdirSync(installDir)).toEqual(["Mimir Beta.app"]);
   });
 
   const codesignStub = (teamId: string | null, verifyOk = true) => {
@@ -334,7 +334,7 @@ describe("installBetaFromFeed", () => {
     await expect(installBetaFromFeed(failingCopy, () => {})).rejects.toThrow(/No space left/);
     expect(revisionDuringCopy).toBe("current");
     expect(readFileSync(revisionPath, "utf8")).toBe("current");
-    expect(readdirSync(installDir)).toEqual(["Synara Beta.app"]);
+    expect(readdirSync(installDir)).toEqual(["Mimir Beta.app"]);
   });
 
   it.each(["missing", "partial"] as const)(
@@ -342,7 +342,7 @@ describe("installBetaFromFeed", () => {
     async (targetState) => {
       const root = makeRoot();
       const { deps, installDir } = feedDeps(root);
-      const targetPath = join(installDir, "Synara Beta.app");
+      const targetPath = join(installDir, "Mimir Beta.app");
       const previousPath = `${targetPath}.previous`;
       const previous = fakeApp(join(root, "previous"));
       writeFileSync(join(previous, "Contents", "revision"), "previous");
@@ -377,7 +377,7 @@ describe("installBetaFromFeed", () => {
       );
       expect(revisionAtFetch).toBe("previous");
       expect(readFileSync(revisionPath, "utf8")).toBe("previous");
-      expect(readdirSync(installDir)).toEqual(["Synara Beta.app"]);
+      expect(readdirSync(installDir)).toEqual(["Mimir Beta.app"]);
     },
   );
 
@@ -404,7 +404,7 @@ describe("installBetaFromFeed", () => {
       ),
     ).rejects.toThrow("download interrupted");
     expect(readFileSync(join(installed, "Contents", "revision"), "utf8")).toBe("current");
-    expect(readdirSync(installDir)).toEqual(["Synara Beta.app"]);
+    expect(readdirSync(installDir)).toEqual(["Mimir Beta.app"]);
   });
 
   it("restores the current install if committing the staged bundle fails", async () => {
@@ -425,7 +425,7 @@ describe("installBetaFromFeed", () => {
       ),
     ).rejects.toThrow("rename: EACCES");
     expect(readFileSync(join(installed, "Contents", "revision"), "utf8")).toBe("current");
-    expect(readdirSync(installDir)).toEqual(["Synara Beta.app"]);
+    expect(readdirSync(installDir)).toEqual(["Mimir Beta.app"]);
   });
 
   it("installs when the download is signed by the expected team", async () => {
@@ -436,7 +436,7 @@ describe("installBetaFromFeed", () => {
       { ...deps, expectedTeamId: "TEAM1234AB", readCommand },
       () => {},
     );
-    expect(target).toBe(join(installDir, "Synara Beta.app"));
+    expect(target).toBe(join(installDir, "Mimir Beta.app"));
     expect(calls).toHaveLength(2);
   });
 
@@ -447,7 +447,7 @@ describe("installBetaFromFeed", () => {
     await expect(
       installBetaFromFeed({ ...deps, expectedTeamId: "TEAM1234AB", readCommand }, () => {}),
     ).rejects.toThrow("The beta download isn't signed by Synara. It wasn't installed.");
-    expect(existsSync(join(installDir, "Synara Beta.app"))).toBe(false);
+    expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
   it("rejects a bundle whose signature fails verification", async () => {
@@ -457,7 +457,7 @@ describe("installBetaFromFeed", () => {
     await expect(
       installBetaFromFeed({ ...deps, expectedTeamId: "TEAM1234AB", readCommand }, () => {}),
     ).rejects.toThrow(/isn't signed by Synara/);
-    expect(existsSync(join(installDir, "Synara Beta.app"))).toBe(false);
+    expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
   it("rejects a bundle with no TeamIdentifier line", async () => {
@@ -469,7 +469,7 @@ describe("installBetaFromFeed", () => {
         () => {},
       ),
     ).rejects.toThrow(/isn't signed by Synara/);
-    expect(existsSync(join(installDir, "Synara Beta.app"))).toBe(false);
+    expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
   it("skips codesign entirely when the running app is unsigned", async () => {
@@ -480,7 +480,7 @@ describe("installBetaFromFeed", () => {
       { ...deps, expectedTeamId: null, readCommand },
       () => {},
     );
-    expect(target).toBe(join(installDir, "Synara Beta.app"));
+    expect(target).toBe(join(installDir, "Mimir Beta.app"));
     expect(calls).toHaveLength(0);
   });
 
@@ -494,7 +494,7 @@ describe("installBetaFromFeed", () => {
       "Couldn't check the beta download's signature. Try the download page instead.",
     );
     expect(calls).toHaveLength(0);
-    expect(existsSync(join(installDir, "Synara Beta.app"))).toBe(false);
+    expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
   it("rejects a symlinked bundle", async () => {
@@ -506,7 +506,7 @@ describe("installBetaFromFeed", () => {
         if (command === "ditto") {
           const extractDir = args[args.length - 1]!;
           const real = fakeApp(join(root, "elsewhere"));
-          symlinkSync(real, join(extractDir, "Synara Beta.app"));
+          symlinkSync(real, join(extractDir, "Mimir Beta.app"));
           return;
         }
         if (command === "mv") return;
@@ -514,7 +514,7 @@ describe("installBetaFromFeed", () => {
       },
     };
     await expect(installBetaFromFeed(bad, () => {})).rejects.toThrow(/isn't signed by Synara/);
-    expect(existsSync(join(installDir, "Synara Beta.app"))).toBe(false);
+    expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 });
 

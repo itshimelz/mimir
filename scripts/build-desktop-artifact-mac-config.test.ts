@@ -103,11 +103,11 @@ describe("createDesktopPlatformBuildConfig", () => {
     assert.equal(extendInfo.NSAudioCaptureUsageDescription, AUDIO_CAPTURE_USAGE_DESCRIPTION);
     assert.equal(
       extendInfo.NSScreenCaptureUsageDescription,
-      "Synara captures the windows you authorize for Computer use.",
+      "Mimir captures the windows you authorize for Computer use.",
     );
     assert.equal(
       extendInfo.NSAccessibilityUsageDescription,
-      "Synara controls the windows you authorize for Computer use.",
+      "Mimir controls the windows you authorize for Computer use.",
     );
   });
 
@@ -185,12 +185,12 @@ describe("createDesktopPlatformBuildConfig", () => {
     assert.deepStrictEqual(linux.asarUnpack, ["node_modules/node-pty/**"]);
     assert.deepStrictEqual(linux.linux, {
       target: ["AppImage"],
-      executableName: "synara",
+      executableName: "mimir",
       icon: "icon.png",
       category: "Development",
       desktop: {
         entry: {
-          StartupWMClass: "synara",
+          StartupWMClass: "mimir",
         },
       },
     });

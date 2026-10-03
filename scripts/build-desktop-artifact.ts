@@ -33,6 +33,7 @@ import {
 import { stageDesktopRuntimeResources } from "./lib/desktop-runtime-resources.ts";
 import {
   SYNARA_PACKAGED_DESKTOP_FLAVORS,
+  synaraDesktopInstallNames,
   type SynaraPackagedDesktopFlavor,
 } from "@synara/shared/desktopIdentity";
 import { createDesktopArtifactIdentity } from "./lib/desktop-artifact-identity.ts";
@@ -944,12 +945,13 @@ const createBuildConfig = Effect.fn("createBuildConfig")(function* (
 
   Object.assign(buildConfig, createDesktopPlatformBuildConfig(platformBuildConfigInput));
   if (platform === "linux" && artifactIdentity.identity.flavor !== "production") {
+    const flavorNames = synaraDesktopInstallNames(artifactIdentity.identity.flavor);
     const linux = buildConfig.linux as Record<string, unknown>;
     buildConfig.linux = {
       ...linux,
-      executableName: artifactIdentity.identity.userDataDirectoryName,
+      executableName: flavorNames.linuxExecutableName,
       desktop: {
-        entry: { StartupWMClass: artifactIdentity.identity.userDataDirectoryName },
+        entry: { StartupWMClass: flavorNames.linuxStartupWmClass },
       },
     };
   }

@@ -16,7 +16,7 @@ vi.mock("node:fs", async (importOriginal) => {
   return {
     ...actual,
     existsSync: (path: Parameters<typeof actual.existsSync>[0]) =>
-      String(path) === "/Applications/Synara Beta.app" ? false : actual.existsSync(path),
+      String(path) === "/Applications/Mimir Beta.app" ? false : actual.existsSync(path),
   };
 });
 
@@ -151,7 +151,7 @@ describe("DesktopBetaChannel", () => {
     // (failing) executable path.
     const desktopDir = join(root, ".local", "share", "applications");
     mkdirSync(desktopDir, { recursive: true });
-    writeFileSync(join(desktopDir, "synara-beta.desktop"), "Exec=/opt/failing-beta\n");
+    writeFileSync(join(desktopDir, "mimir-beta.desktop"), "Exec=/opt/failing-beta\n");
 
     const result = await makeChannel(root).importAndLaunch(join(root, ".mimir"));
     expect(result.ok).toBe(false);
@@ -174,8 +174,8 @@ describe("DesktopBetaChannel", () => {
       betaUserDataDir: join(root, "beta-userdata"),
       install: async (onProgress) => {
         onProgress({ phase: "downloading", percent: 42 });
-        mkdirSync(join(installDir, "Synara Beta.app"), { recursive: true });
-        return join(installDir, "Synara Beta.app");
+        mkdirSync(join(installDir, "Mimir Beta.app"), { recursive: true });
+        return join(installDir, "Mimir Beta.app");
       },
     });
 
@@ -184,7 +184,7 @@ describe("DesktopBetaChannel", () => {
     expect(existsSync(join(betaHome, BETA_IMPORT_REQUEST_FILE_NAME))).toBe(true);
     const last = spawnCalls.at(-1);
     expect(last?.command).toBe(
-      join(installDir, "Synara Beta.app", "Contents", "MacOS", "Synara Beta"),
+      join(installDir, "Mimir Beta.app", "Contents", "MacOS", "Mimir Beta"),
     );
     // Beta gets its own home; stable's overrides must not leak through.
     expect(last?.env?.[SYNARA_BETA_HOME_ENV]).toBe(betaHome);
@@ -300,12 +300,12 @@ describe("environment overrides", () => {
   it("detectBetaInstall finds the app in SYNARA_BETA_INSTALL_DIR", () => {
     const root = makeRoot();
     const installDir = join(root, "DemoApps");
-    mkdirSync(join(installDir, "Synara Beta.app"), { recursive: true });
+    mkdirSync(join(installDir, "Mimir Beta.app"), { recursive: true });
     const detection = detectBetaInstall("darwin", root, {
       [SYNARA_BETA_INSTALL_DIR_ENV]: installDir,
     });
     expect(detection.installed).toBe(true);
-    expect(detection.installPath).toBe(join(installDir, "Synara Beta.app"));
+    expect(detection.installPath).toBe(join(installDir, "Mimir Beta.app"));
   });
 
   it("betaLaunchEnvironment strips stable's data overrides and sets beta's own", () => {
@@ -341,7 +341,7 @@ describe("environment overrides", () => {
 
 describe("switching back to stable", () => {
   function fakeStableExecutable(root: string): string {
-    const executable = join(root, "DemoApps", "Synara.app", "Contents", "MacOS", "Synara");
+    const executable = join(root, "DemoApps", "Mimir.app", "Contents", "MacOS", "Mimir");
     mkdirSync(join(executable, ".."), { recursive: true });
     writeFileSync(executable, "");
     return executable;
@@ -351,10 +351,10 @@ describe("switching back to stable", () => {
     const env = betaLaunchEnvironment({
       env: {},
       betaHomeDir: "/beta-home",
-      stableExecutablePath: "/Apps/Synara.app/Contents/MacOS/Synara",
+      stableExecutablePath: "/Apps/Mimir.app/Contents/MacOS/Synara",
       stableHomeDir: "/stable-home",
     });
-    expect(env[SYNARA_STABLE_EXECUTABLE_ENV]).toBe("/Apps/Synara.app/Contents/MacOS/Synara");
+    expect(env[SYNARA_STABLE_EXECUTABLE_ENV]).toBe("/Apps/Mimir.app/Contents/MacOS/Synara");
     expect(env[SYNARA_STABLE_HOME_ENV]).toBe("/stable-home");
     expect(env.SYNARA_HOME).toBeUndefined();
   });
@@ -401,14 +401,14 @@ describe("switching back to stable", () => {
     ).toBeNull();
   });
 
-  it("detectStableExecutable finds ~/Applications/Synara.app on macOS", () => {
+  it("detectStableExecutable finds ~/Applications/Mimir.app on macOS", () => {
     const root = makeRoot();
-    const executable = join(root, "Applications", "Synara.app", "Contents", "MacOS", "Synara");
+    const executable = join(root, "Applications", "Mimir.app", "Contents", "MacOS", "Mimir");
     mkdirSync(join(executable, ".."), { recursive: true });
     writeFileSync(executable, "");
     const found = detectStableExecutable("darwin", root, {});
-    // /Applications/Synara.app wins when the machine running the test has it.
-    expect([executable, "/Applications/Synara.app/Contents/MacOS/Synara"]).toContain(found);
+    // /Applications/Mimir.app wins when the machine running the test has it.
+    expect([executable, "/Applications/Mimir.app/Contents/MacOS/Synara"]).toContain(found);
   });
 
   it("leave opens stable with its own home and reports it in state", async () => {

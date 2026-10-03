@@ -174,3 +174,36 @@ export function synaraDesktopIdentity(flavor: SynaraDesktopFlavor): SynaraDeskto
     usesScriptedUpdates: false,
   };
 }
+
+/**
+ * Installed file names, as produced by electron-builder. These used to be
+ * hand-written literals in the beta channel and the Linux build config, which
+ * is how the production Linux executable stayed `synara` after the display name
+ * changed. Derive them so a flavor rename cannot leave a stale binary behind.
+ */
+export interface SynaraDesktopInstallNames {
+  /** macOS bundle, e.g. `Mimir Beta.app`. */
+  readonly macAppName: string;
+  /** macOS `Contents/MacOS` executable, e.g. `Mimir Beta`. */
+  readonly macExecutableName: string;
+  /** Windows installer executable, e.g. `Mimir Beta.exe`. */
+  readonly windowsExecutableName: string;
+  /** Linux executable; electron-builder derives it from the storage profile. */
+  readonly linuxExecutableName: string;
+  /** Linux XDG desktop entry, e.g. `mimir-beta.desktop`. */
+  readonly linuxDesktopFileName: string;
+  /** Linux window-manager class, used for taskbar grouping and the icon. */
+  readonly linuxStartupWmClass: string;
+}
+
+export function synaraDesktopInstallNames(flavor: SynaraDesktopFlavor): SynaraDesktopInstallNames {
+  const identity = synaraDesktopIdentity(flavor);
+  return {
+    macAppName: `${identity.displayName}.app`,
+    macExecutableName: identity.displayName,
+    windowsExecutableName: `${identity.displayName}.exe`,
+    linuxExecutableName: identity.userDataDirectoryName,
+    linuxDesktopFileName: `${identity.userDataDirectoryName}.desktop`,
+    linuxStartupWmClass: identity.userDataDirectoryName,
+  };
+}

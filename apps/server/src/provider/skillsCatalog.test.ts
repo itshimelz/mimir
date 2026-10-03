@@ -79,6 +79,59 @@ disable-model-invocation: true
       "disable-model-invocation": true,
     });
   });
+
+  // Agent Skills commonly use YAML block scalars for long descriptions. Without
+  // this the indicator character renders in place of the description.
+  it("parses a literal block scalar and keeps its line breaks", () => {
+    expect(
+      parseSkillFrontmatter(`---
+description: |
+  Type-safe Compose Navigation.
+  Use when wiring nav graphs.
+---
+`).description,
+    ).toBe("Type-safe Compose Navigation.\nUse when wiring nav graphs.\n");
+  });
+
+  it("folds a folded block scalar and honours blank-line paragraph breaks", () => {
+    expect(
+      parseSkillFrontmatter(`---
+description: >
+  one two
+  three four
+---
+`).description,
+    ).toBe("one two three four\n");
+    expect(
+      parseSkillFrontmatter(`---
+description: >
+  para one
+
+  para two
+---
+`).description,
+    ).toBe("para one\npara two\n");
+  });
+
+  it("honours block scalar chomping indicators", () => {
+    expect(parseSkillFrontmatter(`---\ndescription: |-\n  stripped\n---\n`).description).toBe(
+      "stripped",
+    );
+    expect(parseSkillFrontmatter(`---\ndescription: |+\n  kept\n\n---\n`).description).toBe(
+      "kept\n",
+    );
+  });
+
+  it("resumes key parsing after a block and ignores colons inside the body", () => {
+    expect(
+      parseSkillFrontmatter(`---
+description: |
+  key: not-a-header
+name: my-skill
+---
+`),
+    ).toEqual({ description: "key: not-a-header\n", name: "my-skill" });
+  });
 });
 
 describe("pathIsWithin", () => {

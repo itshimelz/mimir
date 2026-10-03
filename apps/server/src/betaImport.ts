@@ -37,6 +37,7 @@ import {
   SYNARA_STABLE_HOME_ENV,
   type BetaImportRequest,
 } from "@synara/shared/betaChannel";
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 
 /** Entries that describe this install's live runtime, not user data. */
 const EXCLUDED_STATE_ENTRIES = new Set([
@@ -329,7 +330,9 @@ function commitStagedImport(
 /** Stable homes a beta may import from: the one stable handed over, else the default. */
 export function allowedImportSourceHomes(env: NodeJS.ProcessEnv = process.env): string[] {
   const handedOver = env[SYNARA_STABLE_HOME_ENV]?.trim();
-  return [handedOver ? resolve(handedOver) : resolve(homedir(), ".synara")];
+  return [
+    handedOver ? resolve(handedOver) : resolve(homedir(), DEFAULT_SYNARA_HOME_DIRECTORY_NAME),
+  ];
 }
 
 export async function runBetaImportIfRequested(input: {

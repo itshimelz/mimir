@@ -55,7 +55,7 @@ beforeEach(() => {
   clearSkillsCatalogCacheForTests();
   root = mkdtempSync(path.join(os.tmpdir(), "synara-skills-catalog-"));
   homeDir = path.join(root, "home");
-  synaraBaseDir = path.join(homeDir, ".synara");
+  synaraBaseDir = path.join(homeDir, ".mimir");
 });
 
 afterEach(() => {
@@ -513,11 +513,11 @@ description: Direct Pi markdown skill
     expect(reloaded.map((skill) => skill.name).sort()).toEqual(["first", "second"]);
   });
 
-  it("includes project-level .synara skills when a cwd is provided", async () => {
+  it("includes project-level .mimir skills when a cwd is provided", async () => {
     const cwd = path.join(root, "repo", "packages", "web");
     await mkdir(cwd, { recursive: true });
     await writeSkill(
-      path.join(root, "repo", ".synara", "skills", "repo-skill"),
+      path.join(root, "repo", ".mimir", "skills", "repo-skill"),
       "repo-skill",
       "Project skill",
     );

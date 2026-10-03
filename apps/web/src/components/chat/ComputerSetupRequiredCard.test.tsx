@@ -89,11 +89,11 @@ describe("ComputerSetupRequiredCard", () => {
       <ComputerSetupRequiredCard
         missing={["accessibility"]}
         buildSignature="adhoc"
-        bundleId="com.emanueledipietro.synara.dev"
+        bundleId="com.itshimelz.mimir.dev"
         onSetUp={() => undefined}
       />,
     );
-    expect(known).toContain("tccutil reset Accessibility com.emanueledipietro.synara.dev");
+    expect(known).toContain("tccutil reset Accessibility com.itshimelz.mimir.dev");
 
     // A server with no desktop shell behind it has no responsible app, and the
     // card must say nothing rather than guess.

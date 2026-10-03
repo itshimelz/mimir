@@ -93,7 +93,7 @@ const makeChannel = (
   new DesktopBetaChannel({
     platform: "linux",
     homeDir: root,
-    betaHomeDir: join(root, ".synara-beta"),
+    betaHomeDir: join(root, ".mimir-beta"),
     flavor,
     ...extra,
   });
@@ -127,7 +127,7 @@ describe("DesktopBetaChannel", () => {
 
   it("refuses the import while the beta server is running", async () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
+    const betaHome = join(root, ".mimir-beta");
     mkdirSync(join(betaHome, "userdata"), { recursive: true });
     writeFileSync(
       join(betaHome, "userdata", "server-runtime.json"),
@@ -146,14 +146,14 @@ describe("DesktopBetaChannel", () => {
 
   it("removes the import marker when launching beta throws", async () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
+    const betaHome = join(root, ".mimir-beta");
     // Fake a linux install through its desktop file so detection resolves a
     // (failing) executable path.
     const desktopDir = join(root, ".local", "share", "applications");
     mkdirSync(desktopDir, { recursive: true });
     writeFileSync(join(desktopDir, "synara-beta.desktop"), "Exec=/opt/failing-beta\n");
 
-    const result = await makeChannel(root).importAndLaunch(join(root, ".synara"));
+    const result = await makeChannel(root).importAndLaunch(join(root, ".mimir"));
     expect(result.ok).toBe(false);
     expect(result.error).toBe("internal");
     // The marker must not outlive the failed launch; a leftover would import
@@ -163,7 +163,7 @@ describe("DesktopBetaChannel", () => {
 
   it("installs via the feed, then launches the new app on macOS", async () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
+    const betaHome = join(root, ".mimir-beta");
     const installDir = join(root, "Applications");
     const channel = new DesktopBetaChannel({
       platform: "darwin",
@@ -179,7 +179,7 @@ describe("DesktopBetaChannel", () => {
       },
     });
 
-    const result = await channel.importAndLaunch(join(root, ".synara"));
+    const result = await channel.importAndLaunch(join(root, ".mimir"));
     expect(result.ok).toBe(true);
     expect(existsSync(join(betaHome, BETA_IMPORT_REQUEST_FILE_NAME))).toBe(true);
     const last = spawnCalls.at(-1);
@@ -200,7 +200,7 @@ describe("DesktopBetaChannel", () => {
     const channel = new DesktopBetaChannel({
       platform: "darwin",
       homeDir: root,
-      betaHomeDir: join(root, ".synara-beta"),
+      betaHomeDir: join(root, ".mimir-beta"),
       flavor: "production",
       installDirOverride: join(root, "Applications"),
       install: async () => {
@@ -218,12 +218,12 @@ describe("DesktopBetaChannel", () => {
 describe("isBetaServerRunning", () => {
   it("is false without a runtime file", () => {
     const root = makeRoot();
-    expect(isBetaServerRunning(join(root, ".synara-beta"))).toBe(false);
+    expect(isBetaServerRunning(join(root, ".mimir-beta"))).toBe(false);
   });
 
   it("is false when the recorded pid is stale", () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
+    const betaHome = join(root, ".mimir-beta");
     mkdirSync(join(betaHome, "userdata"), { recursive: true });
     writeFileSync(
       join(betaHome, "userdata", "server-runtime.json"),
@@ -234,7 +234,7 @@ describe("isBetaServerRunning", () => {
 
   it("is false for a malformed runtime file", () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
+    const betaHome = join(root, ".mimir-beta");
     mkdirSync(join(betaHome, "userdata"), { recursive: true });
     writeFileSync(join(betaHome, "userdata", "server-runtime.json"), "not json");
     expect(isBetaServerRunning(betaHome)).toBe(false);
@@ -244,17 +244,17 @@ describe("isBetaServerRunning", () => {
 describe("import marker files", () => {
   it("round-trips the request marker atomically", () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
-    writeBetaImportRequest({ betaHomeDir: betaHome, sourceHomeDir: join(root, ".synara") });
+    const betaHome = join(root, ".mimir-beta");
+    writeBetaImportRequest({ betaHomeDir: betaHome, sourceHomeDir: join(root, ".mimir") });
     const request = JSON.parse(readFileSync(join(betaHome, BETA_IMPORT_REQUEST_FILE_NAME), "utf8"));
     expect(request.version).toBe(1);
-    expect(request.sourceHomeDir).toBe(join(root, ".synara"));
+    expect(request.sourceHomeDir).toBe(join(root, ".mimir"));
     expect(typeof request.requestedAt).toBe("string");
   });
 
   it("reads a success result back for the settings card", () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
+    const betaHome = join(root, ".mimir-beta");
     mkdirSync(betaHome, { recursive: true });
     const completedAt = new Date().toISOString();
     writeFileSync(
@@ -266,7 +266,7 @@ describe("import marker files", () => {
 
   it("surfaces a failed import error", () => {
     const root = makeRoot();
-    const betaHome = join(root, ".synara-beta");
+    const betaHome = join(root, ".mimir-beta");
     mkdirSync(betaHome, { recursive: true });
     writeFileSync(
       join(betaHome, BETA_IMPORT_RESULT_FILE_NAME),
@@ -285,7 +285,7 @@ describe("import marker files", () => {
 
 describe("detection constants", () => {
   it("keeps the Windows beta GUID stable", () => {
-    expect(BETA_WINDOWS_UNINSTALL_GUID).toBe("a8e63b48-d4f3-4db5-9e12-368107afe65d");
+    expect(BETA_WINDOWS_UNINSTALL_GUID).toBe("b9fd3b86-b436-4d64-904e-f5693a5e6af4");
   });
 });
 
@@ -294,7 +294,7 @@ describe("environment overrides", () => {
     const root = makeRoot();
     const custom = join(root, "custom-beta-home");
     expect(resolveBetaHomeDir(root, { [SYNARA_BETA_HOME_ENV]: custom })).toBe(custom);
-    expect(resolveBetaHomeDir(root, {})).toBe(join(root, ".synara-beta"));
+    expect(resolveBetaHomeDir(root, {})).toBe(join(root, ".mimir-beta"));
   });
 
   it("detectBetaInstall finds the app in SYNARA_BETA_INSTALL_DIR", () => {

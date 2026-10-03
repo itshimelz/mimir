@@ -4,6 +4,7 @@
 // Exports: provider environment driver types, key mappings, and buildProviderProcessEnv
 
 import { defaultInstanceIdForDriver, type ProviderInstanceId } from "@synara/contracts";
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 import { chmodSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import NodePath from "node:path";
@@ -274,7 +275,11 @@ export function providerIsolatedHomePath(input: {
   const pathApi = input.platform === "win32" ? NodePath.win32 : NodePath;
   const isolationRoot =
     input.isolationRootDir?.trim() ||
-    pathApi.join(input.homeDir?.trim() || homedir(), ".synara", "userdata");
+    pathApi.join(
+      input.homeDir?.trim() || homedir(),
+      DEFAULT_SYNARA_HOME_DIRECTORY_NAME,
+      "userdata",
+    );
   return pathApi.resolve(
     isolationRoot,
     "provider-homes",

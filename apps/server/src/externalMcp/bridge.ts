@@ -12,6 +12,7 @@ import {
   type ExternalMcpPairResult,
 } from "@synara/contracts";
 
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 import type { PersistedServerRuntimeState } from "../serverRuntimeState.ts";
 import { ensurePrivateDirectorySync } from "../privatePathPermissions.ts";
 import {
@@ -133,7 +134,7 @@ export type ExternalMcpFetch = (
 
 export function resolveExternalMcpBaseDir(homeDir?: string): string {
   const configured = homeDir?.trim() || process.env.SYNARA_HOME?.trim();
-  if (!configured) return path.join(os.homedir(), ".synara");
+  if (!configured) return path.join(os.homedir(), DEFAULT_SYNARA_HOME_DIRECTORY_NAME);
   if (configured === "~") return os.homedir();
   if (configured.startsWith(`~${path.sep}`) || configured.startsWith("~/")) {
     return path.resolve(os.homedir(), configured.slice(2));

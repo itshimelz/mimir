@@ -15,7 +15,7 @@ import {
   shouldInlineSkillForProvider,
 } from "./skillPromptInjection.ts";
 
-const synaraSkillPath = "/Users/me/.synara/skills/reviewer/SKILL.md";
+const synaraSkillPath = "/Users/me/.mimir/skills/reviewer/SKILL.md";
 const codexSkillPath = "/Users/me/.codex/skills/reviewer/SKILL.md";
 const claudeSkillPath = "/Users/me/.claude/skills/reviewer/SKILL.md";
 const cursorSkillPath = "/Users/me/.cursor/skills/reviewer/SKILL.md";
@@ -38,7 +38,7 @@ describe("shouldInlineSkillForProvider", () => {
     expect(shouldInlineSkillForProvider("codex", cursorSkillPath)).toBe(true);
   });
 
-  it("inlines only Synara-owned paths for cursor", () => {
+  it("inlines only Mimir-owned paths for cursor", () => {
     expect(shouldInlineSkillForProvider("cursor", synaraSkillPath)).toBe(true);
     expect(shouldInlineSkillForProvider("cursor", cursorSkillPath)).toBe(false);
     expect(shouldInlineSkillForProvider("cursor", codexSkillPath)).toBe(false);
@@ -84,7 +84,7 @@ describe("shouldInlineSkillForProvider", () => {
 describe("buildInlineSkillInstructions", () => {
   it("inlines skill content for non-native providers and skips unreadable paths", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "skill-inline-"));
-    const skillDir = path.join(root, ".synara", "skills", "reviewer");
+    const skillDir = path.join(root, ".mimir", "skills", "reviewer");
     try {
       await mkdir(skillDir, { recursive: true });
       const skillPath = path.join(skillDir, "SKILL.md");
@@ -94,7 +94,7 @@ describe("buildInlineSkillInstructions", () => {
         provider: "antigravity",
         skills: [
           { name: "reviewer", path: skillPath },
-          { name: "missing", path: path.join(root, ".synara", "skills", "missing", "SKILL.md") },
+          { name: "missing", path: path.join(root, ".mimir", "skills", "missing", "SKILL.md") },
         ],
         maxChars: 10_000,
       });
@@ -109,7 +109,7 @@ describe("buildInlineSkillInstructions", () => {
 
   it("returns empty text when nothing fits in the budget", async () => {
     const root = mkdtempSync(path.join(os.tmpdir(), "skill-inline-budget-"));
-    const skillDir = path.join(root, ".synara", "skills", "reviewer");
+    const skillDir = path.join(root, ".mimir", "skills", "reviewer");
     try {
       await mkdir(skillDir, { recursive: true });
       const skillPath = path.join(skillDir, "SKILL.md");
@@ -127,7 +127,7 @@ describe("buildInlineSkillInstructions", () => {
     }
   });
 
-  it.each([".synara", ".agents"])(
+  it.each([".mimir", ".agents"])(
     "does not duplicate %s skill instructions loaded natively by Codex",
     async (skillRoot) => {
       const root = mkdtempSync(path.join(os.tmpdir(), "skill-native-"));

@@ -80,7 +80,7 @@ describe("source desktop launch", () => {
       env: {
         PATH: "/usr/bin",
         SYNARA_DESKTOP_FLAVOR: "development",
-        SYNARA_HOME: join("/Users/tester", ".synara-dev"),
+        SYNARA_HOME: join("/Users/tester", ".mimir-dev"),
         SYNARA_SOURCE_DESKTOP_BUILD_MARKER,
       },
       stdio: "inherit",
@@ -130,7 +130,7 @@ describe("source desktop launch", () => {
 
     expect(spawnProcess.mock.calls[0][2].env).toMatchObject({
       SYNARA_DESKTOP_FLAVOR: "canary",
-      SYNARA_HOME: join("/Users/tester", ".synara-canary"),
+      SYNARA_HOME: join("/Users/tester", ".mimir-canary"),
     });
   });
 

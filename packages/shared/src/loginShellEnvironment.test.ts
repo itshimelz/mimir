@@ -359,12 +359,12 @@ describe("createCachedLoginShellEnvironmentReader", () => {
 });
 
 describe("loginShellEnvironmentCachePath", () => {
-  it("anchors the cache in the Synara home both processes resolve", () => {
+  it("anchors the cache in the Mimir home both processes resolve", () => {
     expect(loginShellEnvironmentCachePath({ env: { SYNARA_HOME: "/tmp/synara-home" } })).toBe(
       Path.join("/tmp/synara-home", "cache", "login-shell-environment.json"),
     );
     expect(loginShellEnvironmentCachePath({ env: {}, homeDirectory: "/users/test" })).toBe(
-      Path.join("/users/test", ".synara", "cache", "login-shell-environment.json"),
+      Path.join("/users/test", ".mimir", "cache", "login-shell-environment.json"),
     );
   });
 });

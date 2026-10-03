@@ -8,6 +8,10 @@
       "types": "./src/betaFeatures.ts",
       "import": "./src/betaFeatures.ts"
     },
+    "./unavailableFeatures": {
+      "types": "./src/unavailableFeatures.ts",
+      "import": "./src/unavailableFeatures.ts"
+    },
     "./cuaActionDiagnostics": {
       "types": "./src/cuaActionDiagnostics.ts",
       "import": "./src/cuaActionDiagnostics.ts"

@@ -48,7 +48,8 @@ describe("composerSlashCommands", () => {
     expect(filterComposerSlashCommands("auto").map((entry) => entry.command)).toEqual([
       "automation",
     ]);
-    expect(filterComposerSlashCommands("feed").map((entry) => entry.command)).toEqual(["feedback"]);
+    // /feedback is hidden: it posts to Synara's endpoint. See unavailableFeatures.ts.
+    expect(filterComposerSlashCommands("feed").map((entry) => entry.command)).toEqual([]);
     expect(filterComposerSlashCommands("debug").map((entry) => entry.command)).toEqual(["debug"]);
   });
 
@@ -420,7 +421,6 @@ describe("composerSlashCommands", () => {
       "debug",
       "computer-use",
       "default",
-      "feedback",
       "automation",
     ]);
   });

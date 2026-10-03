@@ -346,7 +346,7 @@ export function AppSnapSettingsPanel({
   return (
     <div className="space-y-6">
       <SettingsCard divided={false} className="flex items-start gap-3 px-4 py-3.5">
-        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-[color:var(--color-border)] text-muted-foreground">
+        <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg border border-(--color-border) text-muted-foreground">
           <CentralIcon name="screen-capture" className="size-4" />
         </span>
         <div className="min-w-0 space-y-1">
@@ -736,7 +736,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2">
             <p className={SETTINGS_CARD_ROW_TITLE_CLASS_NAME}>Mimir Beta</p>
-            <span className="inline-flex items-center rounded-full bg-[var(--beta-pill)] px-1.5 py-0.5 text-ui-xs font-semibold leading-none text-[var(--beta-pill-ink)]">
+            <span className="inline-flex items-center rounded-full bg-(--beta-pill) px-1.5 py-0.5 text-ui-xs font-semibold leading-none text-(--beta-pill-ink)">
               Beta
             </span>
             {state.installed && state.version ? (

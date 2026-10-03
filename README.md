@@ -1,10 +1,10 @@
 <div align="center">
-  <img src="./assets/prod/logo.svg" width="112" alt="Synara logo">
-  <h1>Synara</h1>
-  <p><strong>A focused workspace for coding agents.</strong><br>
+  <img src="./assets/prod/logo.svg" width="112" alt="Mimir logo">
+  <h1>Mimir</h1>
+  <p><strong>A desktop-first agentic co-learner for university students.</strong><br>
   Projects, provider sessions, execution surfaces, and review tools in one local-first desktop application.</p>
   <p>
-    <a href="https://github.com/Emanuele-web04/synara/releases/latest">Download</a>
+    <a href="https://github.com/itshimelz/mimir/releases/latest">Download</a>
     &nbsp;·&nbsp;
     <a href="https://www.trysynara.com/">Website</a>
     &nbsp;·&nbsp;
@@ -12,12 +12,12 @@
     &nbsp;·&nbsp;
     <a href="./docs/external-mcp.md">MCP integration</a>
     &nbsp;·&nbsp;
-    <a href="https://github.com/Emanuele-web04/synara/issues/new/choose">Report an issue</a>
+    <a href="https://github.com/itshimelz/mimir/issues/new/choose">Report an issue</a>
   </p>
 </div>
 
 <p align="center">
-  <img src="./assets/prod/readme-workspace-light.png" width="1200" alt="Synara workspace with an agent conversation and pull request review side by side">
+  <img src="./assets/prod/readme-workspace-light.png" width="1200" alt="Mimir workspace with an agent conversation and pull request review side by side">
 </p>
 
 <details open>
@@ -31,7 +31,11 @@
 | **Workspace tools**  | Changes, terminal, browser, files, editor, previews, and Git. |
 
 > [!NOTE]
-> Synara is early-stage software. APIs and interface details remain under active development.
+> Mimir is early-stage software. APIs and interface details remain under active development.
+>
+> Mimir is a fork of [Synara](https://github.com/Emanuele-web04/synara) and is being
+> reshaped into an agentic co-learner. The capabilities below describe the
+> application as it stands today; the learning-workspace reframe is still ahead.
 
 ## Capabilities
 
@@ -61,12 +65,12 @@ The tools surrounding an agent session remain available from the same task surfa
 Keep an active conversation alongside the surface it is changing. Split views, browser previews, and device previews make the result part of the working context.
 
 <p align="center">
-  <img src="./assets/prod/readme-split-view-dark.png" width="900" alt="Synara split view with an agent thread and iOS simulator preview">
+  <img src="./assets/prod/readme-split-view-dark.png" width="900" alt="Mimir split view with an agent thread and iOS simulator preview">
 </p>
 
 ### 4. Provider-native integrations
 
-Synara connects to coding-agent runtimes that are installed and authenticated locally. The current development build includes the following integrations:
+Mimir connects to coding-agent runtimes that are installed and authenticated locally. The current development build includes the following integrations:
 
 | Runtime         | Local integration                           |
 | --------------- | ------------------------------------------- |
@@ -100,7 +104,7 @@ See [External MCP integrations](./docs/external-mcp.md) for setup, pairing, proj
 Configure the shell to match the way you work with light and dark themes, typography controls, density preferences, and workspace settings.
 
 <p align="center">
-  <img src="./assets/prod/readme-appearance-dark.png" width="900" alt="Synara Appearance settings with theme, typography, and density controls">
+  <img src="./assets/prod/readme-appearance-dark.png" width="900" alt="Mimir Appearance settings with theme, typography, and density controls">
 </p>
 
 ### Additional capabilities
@@ -117,21 +121,21 @@ Configure the shell to match the way you work with light and dark themes, typogr
 
 ### Desktop application
 
-Download the latest build from [GitHub Releases](https://github.com/Emanuele-web04/synara/releases) or visit [trysynara.com](https://www.trysynara.com/).
+Download the latest build from [GitHub Releases](https://github.com/itshimelz/mimir/releases).
 
 Current native release targets are Windows x64, macOS Intel, macOS Apple Silicon, and Linux x64.
 
 ### Provider setup
 
-Synara uses the provider installations and subscriptions already configured on the local machine. Install and authenticate the runtime you intend to use before starting a session. For Codex sessions, follow the [Codex CLI setup](https://github.com/openai/codex).
+Mimir uses the provider installations and subscriptions already configured on the local machine. Install and authenticate the runtime you intend to use before starting a session. For Codex sessions, follow the [Codex CLI setup](https://github.com/openai/codex).
 
 ### Run from source
 
 The development checkout uses [Bun 1.4.2](https://bun.sh/) and [Node.js 24.13.1](https://nodejs.org/).
 
 ```console
-git clone https://github.com/Emanuele-web04/synara.git
-cd synara
+git clone git@github.com:itshimelz/mimir.git
+cd mimir
 bun install
 bun run dev
 ```
@@ -154,8 +158,13 @@ the root `typecheck` command also ensures that patch is applied before checking.
 
 Bug fixes, reliability improvements, performance work, documentation, and maintenance changes are welcome.
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request. For a reproducible problem, [open an issue](https://github.com/Emanuele-web04/synara/issues/new/choose) with the Synara version, operating system, runtime, and relevant logs.
+Read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request. For a reproducible problem, [open an issue](https://github.com/itshimelz/mimir/issues/new/choose) with the Mimir version, operating system, runtime, and relevant logs.
 
 ## License
 
-Synara is licensed under the [MIT License](./LICENSE).
+Mimir is licensed under the [MIT License](./LICENSE).
+
+Mimir is a fork of [Synara](https://github.com/Emanuele-web04/synara), which is
+MIT licensed. The original copyright and attribution are preserved in
+[LICENSE](./LICENSE); Mimir is a substantially different product with its own
+branding, packaging, release system, and product direction.

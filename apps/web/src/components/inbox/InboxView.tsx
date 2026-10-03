@@ -196,12 +196,12 @@ function SlotColumns({ slots }: { slots: readonly InboxSlotSummary[] }) {
               {pluralize(slot.prompts, "prompt")}
             </span>
           </div>
-          <div className="flex h-7 items-end justify-between gap-[3px]" aria-hidden>
+          <div className="flex h-7 items-end justify-between gap-0.75" aria-hidden>
             {slot.hours.map((hour) => (
               <span
                 key={hour.fromMs}
                 className={cn(
-                  "min-h-[3px] w-full max-w-2 rounded-[2px]",
+                  "min-h-0.75 w-full max-w-2 rounded-xs",
                   hour.future || hour.tokens === 0
                     ? "bg-foreground/8"
                     : slot.status === "now"
@@ -343,7 +343,7 @@ function CompactTile({
     >
       <span className="truncate text-ui-sm text-muted-foreground">{tile.lead}</span>
       <span className="flex min-w-0 items-center gap-2">
-        <InboxGlyph icon={tile.icon} projectById={projectById} className="size-[18px]" />
+        <InboxGlyph icon={tile.icon} projectById={projectById} className="size-4.5" />
         <span className="min-w-0 truncate text-ui-xl font-medium tracking-tight text-foreground tabular-nums">
           {tile.value}
         </span>

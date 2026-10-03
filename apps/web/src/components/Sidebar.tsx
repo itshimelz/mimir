@@ -521,6 +521,10 @@ import {
   spaceKey,
   resolveActiveSpaceId,
 } from "../lib/spaceGrouping";
+import {
+  FEEDBACK_UNAVAILABLE_FEATURE,
+  isFeatureAvailable,
+} from "@synara/shared/unavailableFeatures";
 import { isSidechatThread } from "@synara/shared/sidechatThread";
 
 // Central glyphs for the sidebar section-header buttons (expand/collapse, sort, add).
@@ -989,10 +993,12 @@ function SidebarHelpMenu({
               <SidebarContextMenuIcon icon={KeyboardIcon} />
               <span>Keybindings</span>
             </MenuItem>
-            <MenuItem className={SIDEBAR_CONTEXT_MENU_ITEM_CLASS_NAME} onClick={onOpenFeedback}>
-              <SidebarContextMenuIcon icon={ChatBubbleIcon} />
-              <span>Send feedback</span>
-            </MenuItem>
+            {isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (
+              <MenuItem className={SIDEBAR_CONTEXT_MENU_ITEM_CLASS_NAME} onClick={onOpenFeedback}>
+                <SidebarContextMenuIcon icon={ChatBubbleIcon} />
+                <span>Send feedback</span>
+              </MenuItem>
+            ) : null}
             <MenuItem
               className={SIDEBAR_CONTEXT_MENU_ITEM_CLASS_NAME}
               onClick={() => openExternalLink(SYNARA_DOCS_URL)}
@@ -6379,12 +6385,16 @@ export default function Sidebar() {
         ],
         shortcutLabel: importThreadShortcutLabel,
       },
-      {
-        id: "feedback",
-        label: "Feedback Mimir",
-        description: "Send feedback or report an issue to the Mimir team.",
-        keywords: ["feedback", "bug", "issue", "problem", "report", "support", "synara"],
-      },
+      ...(isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE)
+        ? [
+            {
+              id: "feedback",
+              label: "Feedback Mimir",
+              description: "Send feedback or report an issue to the Mimir team.",
+              keywords: ["feedback", "bug", "issue", "problem", "report", "support"],
+            },
+          ]
+        : []),
       {
         id: "settings",
         label: "Settings",

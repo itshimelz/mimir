@@ -5,6 +5,10 @@ import {
   type ProviderInteractionMode,
   type ProviderKind,
 } from "@synara/contracts";
+import {
+  FEEDBACK_UNAVAILABLE_FEATURE,
+  isFeatureAvailable,
+} from "@synara/shared/unavailableFeatures";
 import { DEFAULT_PROVIDER_ORDER } from "./providerOrdering";
 import {
   BUILT_IN_COMPOSER_SLASH_COMMANDS,
@@ -125,7 +129,9 @@ export function shouldHideProviderNativeCommandFromComposerMenu(
     normalizedCommand === "debug" ||
     normalizedCommand === "default" ||
     (normalizedCommand === "export" && appCommandIsAvailable) ||
-    (normalizedCommand === "feedback" && appCommandIsAvailable) ||
+    (normalizedCommand === "feedback" &&
+      appCommandIsAvailable &&
+      isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE)) ||
     (normalizedCommand === "fork" && appCommandIsAvailable) ||
     (normalizedCommand === "goal" && appCommandIsAvailable) ||
     (normalizedCommand === "rename" && appCommandIsAvailable) ||
@@ -298,9 +304,18 @@ export function parseComposerSlashInvocationForCommands(
   };
 }
 
+/**
+ * Built-in commands a user may pick. /feedback is withheld while it points at
+ * Synara's endpoint; the definition stays so restoring the flag is enough.
+ */
+const SELECTABLE_COMPOSER_SLASH_COMMANDS: ReadonlyArray<ComposerSlashCommand> =
+  BUILT_IN_COMPOSER_SLASH_COMMANDS.filter(
+    (command) => command !== "feedback" || isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE),
+  );
+
 export function filterComposerSlashCommands(
   query: string,
-  commands: ReadonlyArray<ComposerSlashCommand> = BUILT_IN_COMPOSER_SLASH_COMMANDS,
+  commands: ReadonlyArray<ComposerSlashCommand> = SELECTABLE_COMPOSER_SLASH_COMMANDS,
 ): ComposerSlashCommandDefinition[] {
   const matches = rankProviderDiscoveryItems(commands, query, (command) => {
     const definition = COMPOSER_SLASH_COMMAND_DEFINITIONS[command];
@@ -518,7 +533,7 @@ export function getAvailableComposerSlashCommands(input: {
           ...(input.canOfferExportCommand ? (["export"] as const) : []),
           "goal",
           "rename",
-          "feedback",
+          ...(isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (["feedback"] as const) : []),
           "automation",
         ]
       : [
@@ -536,7 +551,7 @@ export function getAvailableComposerSlashCommands(input: {
           "debug",
           "computer-use",
           "default",
-          "feedback",
+          ...(isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (["feedback"] as const) : []),
           "automation",
         ];
   return availableCommands.filter((command) => !collidingNativeCommandNames.has(command));

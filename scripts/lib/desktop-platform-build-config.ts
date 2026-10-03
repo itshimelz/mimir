@@ -44,7 +44,7 @@ export const WINDOWS_INSTALLER_GUID = SYNARA_STABLE_WINDOWS_INSTALLER_GUID;
 // Asset catalog name of the compiled Icon Composer icon. macOS 26 reads
 // CFBundleIconName out of Assets.car and renders that layered icon with the
 // Liquid Glass material; older releases ignore it and keep using the ICNS.
-export const MAC_ICON_ASSET_NAME = "Synara";
+export const MAC_ICON_ASSET_NAME = "Mimir";
 export const MAC_ICON_COMPOSER_DEPLOYMENT_TARGET = "26.0";
 export const MAC_ICON_ASSETS_CAR_STAGE_PATH = "apps/desktop/resources/Assets.car";
 export const MAC_ICON_ASSETS_CAR_BUNDLE_PATH = "Resources/Assets.car";

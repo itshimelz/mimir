@@ -525,7 +525,7 @@ function resolveSynaraMcpToolPresentation(
       return knownPresentation;
     }
     // Free-text summaries (e.g. reconciler activity lines) can begin with the
-    // word "Synara" and normalize into a fake tool identifier; only
+    // word "Mimir" and normalize into a fake tool identifier; only
     // identifier-shaped candidates may take an invented fallback presentation.
     if (/\s/.test(candidate.trim())) {
       continue;

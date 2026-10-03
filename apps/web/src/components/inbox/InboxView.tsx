@@ -738,7 +738,7 @@ export default function InboxView() {
                     {isRecapUnavailableError(recapQuery.error) ? (
                       <Tile className="p-5 @lg:px-7 @lg:py-6">
                         <span className="text-ui text-muted-foreground">
-                          The day recap needs a server running Synara Beta.
+                          The day recap needs a server running the Beta flavor.
                         </span>
                       </Tile>
                     ) : (

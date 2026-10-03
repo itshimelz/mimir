@@ -1,4 +1,4 @@
-// This file mostly exists because we want dev mode to say "Synara (Dev)" instead of "electron"
+// This file mostly exists because we want dev mode to say "Mimir (Dev)" instead of "electron"
 
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
@@ -34,12 +34,12 @@ const LAUNCHER_VERSION = 7;
 // icon constants in scripts/lib/desktop-platform-build-config.ts. The packaged
 // build compiles the same asset; this launcher does it for dev and Canary,
 // which run from a renamed Electron bundle instead of a packaged app.
-const ICON_COMPOSER_ASSET_NAME = "Synara";
+const ICON_COMPOSER_ASSET_NAME = "Mimir";
 const ICON_COMPOSER_DEPLOYMENT_TARGET = "26.0";
 const MICROPHONE_USAGE_DESCRIPTION =
-  "Synara needs microphone access so you can record voice notes and transcribe them into the chat composer, and, if you turn it on, to move the chat message trail with your voice.";
+  "Mimir needs microphone access so you can record voice notes and transcribe them into the chat composer, and, if you turn it on, to move the chat message trail with your voice.";
 const AUDIO_CAPTURE_USAGE_DESCRIPTION =
-  "Synara reads how loud your Mac's audio is to animate the chat message trail. The audio itself is never recorded.";
+  "Mimir reads how loud your Mac's audio is to animate the chat message trail. The audio itself is never recorded.";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const desktopDir = resolve(__dirname, "..");
@@ -277,7 +277,7 @@ function signMacLauncherBundle(appBundlePath, runCommand) {
         .join("\n")
         .trim();
       throw new Error(
-        `Failed to ${action} the generated Synara launcher at ${appBundlePath} (codesign exit ${result.status}). Check the codesign error and retry; the invalid bundle will not be launched. ${details}`.trim(),
+        `Failed to ${action} the generated Mimir launcher at ${appBundlePath} (codesign exit ${result.status}). Check the codesign error and retry; the invalid bundle will not be launched. ${details}`.trim(),
         result.error ? { cause: result.error } : undefined,
       );
     }
@@ -326,7 +326,7 @@ export function buildMacLauncher(
   const targetAppBundlePath = join(runtimeDir, `${APP_DISPLAY_NAME}.app`);
   const targetBinaryPath = join(targetAppBundlePath, "Contents", "MacOS", "Electron");
   const iconPath = join(desktopDirectory, "resources", "icon.icns");
-  const iconComposerPath = resolve(desktopDirectory, "../../assets/prod/Synara.icon");
+  const iconComposerPath = resolve(desktopDirectory, "../../assets/prod/Mimir.icon");
   const hasIconComposerSource = existsSync(iconComposerPath);
   const metadataPath = join(runtimeDir, "metadata.json");
   const desktopPackage = JSON.parse(readFileSync(join(desktopDirectory, "package.json"), "utf8"));

@@ -288,7 +288,7 @@ const ServerConfigLive = (input: CliInput) =>
       // A "Copy my data to Beta" request from a stable install lands as a
       // marker in this home; it must be consumed before the private state
       // directory (and its database) is created or repaired.
-      // Only Synara Beta consumes the marker, so a stray file in any other
+      // Only the Beta flavor consumes the marker, so a stray file in any other
       // home can never replace that install's database.
       if (process.env[SYNARA_DESKTOP_BUNDLE_ID_ENV] === SYNARA_BETA_BUNDLE_ID) {
         const importResult = yield* Effect.tryPromise({

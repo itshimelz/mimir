@@ -46,6 +46,167 @@ const forbiddenPatterns = [
   new RegExp(escapeRegExp(incorrectBundleDomain), "i"),
 ] as const;
 
+const retiredProductName = characters(83, 121, 110, 97, 114, 97);
+// Matches any bundle identifier whose last label is the retired product name,
+// so both the vendor-prefixed and bare forms are caught. Not passed through
+// escapeRegExp: the grouping and dot escapes are intentional regex.
+const retiredProductBundleDomainPattern = `com\\.(?:[a-z0-9-]+\\.)*${retiredProductName.toLowerCase()}\\b`;
+
+// Mimir retired the Synara brand. These patterns forbid it from returning.
+//
+// Deliberately case-sensitive: the `@synara/*` package scope, the `SYNARA_*`
+// environment variables and the `synara_*` MCP tool namespace are still the
+// live internal identifiers (rebrand phase B), so a case-insensitive pattern
+// would flag the whole codebase instead of a brand regression.
+const retiredBrandPatterns = [
+  // Former macOS bundle identifier.
+  new RegExp(retiredProductBundleDomainPattern),
+  // Former marketing and documentation host.
+  new RegExp(escapeRegExp("trysynara.com"), "i"),
+  // Former display name used as a standalone value.
+  new RegExp(`["']${escapeRegExp(retiredProductName)}["']`),
+  // Former installed file names.
+  new RegExp(`${escapeRegExp(retiredProductName)}\\.(?:app|exe)`),
+  new RegExp(escapeRegExp(`${retiredProductName} Beta`)),
+  // Former release artifact prefix, e.g. Synara-0.9.2-x64.exe.
+  new RegExp(`${escapeRegExp(retiredProductName)}-\\d`),
+] as const;
+
+// The retired-brand scan is scoped to shipped source. The original
+// forbiddenPatterns pass still covers every tracked file, but extending that to
+// the Synara name would flag ~130 files of upstream history, test fixtures and
+// product docs, so each upstream merge would break the build. This scope is the
+// surface where a brand regression actually reaches users.
+const retiredBrandScope = {
+  include: [/^apps\/[^/]+\/src\//, /^apps\/desktop\/scripts\//, /^packages\/[^/]+\/src\//],
+  exclude: [/\.(?:test|browser|spec)\.[^/]+$/, /_fixtures?\//],
+} as const;
+
+function isWithinRetiredBrandScope(path: string): boolean {
+  if (!retiredBrandScope.include.some((pattern) => pattern.test(path))) return false;
+  return !retiredBrandScope.exclude.some((pattern) => pattern.test(path));
+}
+
+// Whole files that legitimately still describe the retired Synara product.
+// Each entry states why, because "we forgot" is not a durable exemption.
+const approvedRetiredBrandFiles: readonly { readonly path: string; readonly reason: string }[] = [
+  {
+    path: "BETA.md",
+    reason: "Documents the Synara Beta channel, which Mimir does not ship.",
+  },
+  {
+    path: "docs/providers.md",
+    reason: "Provider setup docs still link Synara's published provider guides.",
+  },
+  {
+    path: "docs/core-concepts.md",
+    reason: "Prose written against the Synara product; A6 rewrites product docs.",
+  },
+  {
+    path: "docs/quickstart.md",
+    reason: "Prose written against the Synara product; A6 rewrites product docs.",
+  },
+  {
+    path: "docs/README.md",
+    reason: "Prose written against the Synara product; A6 rewrites product docs.",
+  },
+  {
+    path: "docs/canary.md",
+    reason: "Documents the Synara canary lane, which Mimir does not ship.",
+  },
+  {
+    path: "docs/release.md",
+    reason: "Release runbook still names the Synara updater manifests; A6 updates it.",
+  },
+  {
+    path: "docs/hubs.md",
+    reason: "Prose written against the Synara product; A6 rewrites product docs.",
+  },
+  {
+    path: "docs/diagnostics.md",
+    reason: "Prose written against the Synara product; A6 rewrites product docs.",
+  },
+  {
+    path: "README.md",
+    reason: "Fork provenance and upstream links; A6 rewrites the product sections.",
+  },
+  {
+    path: "apps/marketing/src/data/changelog.ts",
+    reason: "Published Synara changelog, retained for provenance.",
+  },
+  {
+    path: "apps/marketing/src/data/latest-release-downloads.json",
+    reason: "Recorded Synara release checksums; factual provenance.",
+  },
+  {
+    path: "apps/web/src/whatsNew/entries.ts",
+    reason: "Upstream What's New history, retained for provenance.",
+  },
+  {
+    path: "apps/desktop/src/betaChannel.ts",
+    reason: "Synara Beta handoff code. Mimir ships production only, so it never runs.",
+  },
+  {
+    path: "apps/desktop/src/betaInstaller.ts",
+    reason: "Synara Beta installer code. Mimir ships production only, so it never runs.",
+  },
+  {
+    path: "apps/desktop/src/betaDiagnostics.ts",
+    reason: "Synara Beta diagnostics. Mimir ships production only, so it never runs.",
+  },
+  {
+    path: "apps/server/src/betaUsageSnapshot.ts",
+    reason: "Synara Beta usage snapshot. Mimir ships production only, so it never runs.",
+  },
+  {
+    path: "apps/web/src/components/BetaWelcomeDialog.tsx",
+    reason: "Synara Beta welcome dialog. Mimir ships production only, so it never renders.",
+  },
+  {
+    path: "packages/shared/src/betaChannel.ts",
+    reason: "Beta handoff constants and the Synara prerelease feed URL.",
+  },
+  {
+    path: "apps/marketing/src/data/testimonials.ts",
+    reason: "A real user's words quoted verbatim, naming Synara.",
+  },
+  {
+    path: "scripts/check-brand-identity.ts",
+    reason: "This guard names the retired patterns it forbids.",
+  },
+  {
+    path: "packages/shared/src/providerMetadata.ts",
+    reason:
+      "setupDocsHref points at Synara's published per-provider guides. Accurate third-party setup docs; Mimir has no docs site yet.",
+  },
+  {
+    path: "apps/web/src/onboarding/tourContent.ts",
+    reason: "Onboarding links to Synara's published docs. Mimir has no docs site yet.",
+  },
+  {
+    path: "apps/web/src/components/Sidebar.tsx",
+    reason: "SYNARA_DOCS_URL links to Synara's published docs, plus one stale comment.",
+  },
+  {
+    path: "apps/web/src/feedback.ts",
+    reason:
+      "Posts feedback to Synara's public endpoint. Needs a Mimir endpoint decision; flagged deliberately rather than silently repointed.",
+  },
+  {
+    path: "apps/web/src/components/profile/shareCardExport.ts",
+    reason: "Share card URL still points at Synara's site. Needs a Mimir domain decision.",
+  },
+  {
+    path: "apps/desktop/scripts/dev-electron.mjs",
+    reason: "Dev launcher naming for the Synara Beta flavor. Mimir ships production only.",
+  },
+];
+
+// Whole directories that are still the retired product. The marketing site is
+// Synara's, points at Synara's domain, and is not part of the Mimir app; it is
+// a separate rewrite decision rather than a rebrand oversight.
+const approvedRetiredBrandPrefixes: readonly string[] = ["apps/marketing/"];
+
 interface ApprovedIdentityLine {
   readonly path: string;
   readonly line: string;
@@ -231,6 +392,10 @@ function containsForbiddenIdentity(value: string): boolean {
   return forbiddenPatterns.some((pattern) => pattern.test(value));
 }
 
+function containsRetiredBrand(value: string): boolean {
+  return retiredBrandPatterns.some((pattern) => pattern.test(value));
+}
+
 function findApprovedIdentityLine(
   path: string,
   line: string,
@@ -255,6 +420,13 @@ export function findBrandIdentityViolations(
     if (containsForbiddenIdentity(file.path)) {
       violations.push({ path: file.path, line: null, text: file.path });
     }
+    // Exemptions suppress only the retired-brand check. The original
+    // forbiddenPatterns pass still runs on every line of every file, so an
+    // exemption cannot be used to smuggle the older retired identities back in.
+    const exemptFromRetiredBrand =
+      approvedRetiredBrandFiles.some((approved) => approved.path === file.path) ||
+      approvedRetiredBrandPrefixes.some((prefix) => file.path.startsWith(prefix));
+    const scanRetiredBrand = !exemptFromRetiredBrand && isWithinRetiredBrandScope(file.path);
     const consumedLines = new Set<number>();
     const approvedFixtureIdentity = approvedFixtureBundleIdentityPatterns.get(file.path);
     let markdownSection: string | null = null;
@@ -263,7 +435,10 @@ export function findBrandIdentityViolations(
       const textToCheck = approvedFixtureIdentity
         ? line.replace(approvedFixtureIdentity, "")
         : line;
-      if (!containsForbiddenIdentity(textToCheck)) continue;
+      const isViolation =
+        containsForbiddenIdentity(textToCheck) ||
+        (scanRetiredBrand && containsRetiredBrand(textToCheck));
+      if (!isViolation) continue;
       const approvedLine = findApprovedIdentityLine(
         file.path,
         line,

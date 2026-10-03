@@ -83,7 +83,7 @@ jobs:
       - name: Verify CI contracts
         run: node --test .github/scripts/ci-contracts.test.mjs
 
-      - name: Verify Synara identity
+      - name: Verify Mimir identity
         run: bun run brand:check
 
       - name: Verify Windows runtime boundary

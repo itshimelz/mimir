@@ -240,7 +240,7 @@ export function BrowserCookieImport({
                 onChange={(event) => setConfirmed(event.target.checked)}
               />
               <span>
-                I allow Synara and its agents to use all imported signed-in sessions from this
+                I allow Mimir and its agents to use all imported signed-in sessions from this
                 profile.
               </span>
             </label>

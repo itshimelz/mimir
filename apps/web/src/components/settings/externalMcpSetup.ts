@@ -129,7 +129,7 @@ export function buildExternalMcpExamplePrompt(projectTitle: string | null): stri
 }
 
 // The one block a user pastes into any coding agent (Codex, Claude Code, or
-// another MCP-capable app). The agent pairs the machine, registers Synara in
+// another MCP-capable app). The agent pairs the machine, registers Mimir in
 // its own MCP configuration, and verifies the connection — no per-client
 // artifacts to juggle. `setupCommand` is null once pairing already happened.
 export function buildExternalMcpSetupPrompt(input: {

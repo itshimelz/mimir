@@ -142,7 +142,7 @@ export default function ProviderSignInDialog(props: {
         <DialogHeader>
           <DialogTitle>Sign in to {props.accountLabel}</DialogTitle>
           <DialogDescription>
-            {method.instructions} This runs on the Synara server machine for the selected account.
+            {method.instructions} This runs on the Mimir server machine for the selected account.
           </DialogDescription>
         </DialogHeader>
         <div className="h-[min(55vh,28rem)] min-h-48 overflow-hidden rounded-xl border border-border mx-5">

@@ -160,7 +160,7 @@ export function SafariAccessOnboarding({ children }: { children?: ReactNode }) {
                     </>
                   ) : null}
                 </Step>
-                <Step n={3}>Quit and reopen Synara.</Step>
+                <Step n={3}>Quit and reopen Mimir.</Step>
               </ol>
             ) : null}
 

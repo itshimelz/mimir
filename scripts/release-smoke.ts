@@ -396,6 +396,15 @@ function verifyReleaseWorkflowSafety(): void {
   if (betaComposerPath === undefined || prodComposerPath === undefined) {
     throw new Error("Expected brand-assets.ts to declare Icon Composer sources per flavor.");
   }
+  // actool's --app-icon must equal the .icon folder name; that is what
+  // CFBundleIconName resolves against in Assets.car.
+  const prodComposerAssetName = prodComposerPath
+    .split("/")
+    .pop()
+    ?.replace(/\.icon$/, "");
+  if (prodComposerAssetName === undefined || prodComposerAssetName.length === 0) {
+    throw new Error(`Could not derive the Icon Composer asset name from ${prodComposerPath}.`);
+  }
   assertContains(
     iconJob,
     `icon_source="${prodComposerPath}"`,
@@ -408,8 +417,8 @@ function verifyReleaseWorkflowSafety(): void {
   );
   assertContains(
     iconJob,
-    "--app-icon Synara",
-    "Expected every flavor's icon catalog to keep the Synara asset name.",
+    `--app-icon ${prodComposerAssetName}`,
+    "Expected every flavor's icon catalog to keep the production asset name.",
   );
   const collectStep = workflow.slice(
     workflow.indexOf("  - name: Collect release assets"),

@@ -37,7 +37,7 @@ env:
   AZURE_TRUSTED_SIGNING_SUBJECT_DN: ${{ secrets.AZURE_TRUSTED_SIGNING_SUBJECT_DN }}
 
 concurrency:
-  group: synara-desktop-release
+  group: mimir-desktop-release
   cancel-in-progress: false
 
 jobs:
@@ -203,7 +203,7 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile --concurrent-scripts=1
 
-      - name: Verify Synara identity
+      - name: Verify Mimir identity
         run: bun run brand:check
 
       - name: Lint
@@ -319,12 +319,12 @@ jobs:
           mkdir -p "$RUNNER_TEMP/mac-icon"
           # Same source selection as scripts/lib/brand-assets.ts
           # desktopIconAssetPaths(flavor).macIconComposer. The .icon folder
-          # must be named Synara to match CFBundleIconName in the app bundle.
-          icon_source="assets/prod/Synara.icon"
+          # must be named Mimir to match CFBundleIconName in the app bundle.
+          icon_source="assets/prod/Mimir.icon"
           if [[ "$DESKTOP_FLAVOR" == "beta" ]]; then
-            icon_source="assets/beta/Synara.icon"
+            icon_source="assets/beta/Mimir.icon"
           fi
-          xcrun actool "$icon_source" --compile "$RUNNER_TEMP/mac-icon" --platform macosx --minimum-deployment-target 26.0 --app-icon Synara --include-all-app-icons --output-partial-info-plist "$RUNNER_TEMP/icon-partial.plist" --output-format human-readable-text
+          xcrun actool "$icon_source" --compile "$RUNNER_TEMP/mac-icon" --platform macosx --minimum-deployment-target 26.0 --app-icon Mimir --include-all-app-icons --output-partial-info-plist "$RUNNER_TEMP/icon-partial.plist" --output-format human-readable-text
           test -s "$RUNNER_TEMP/mac-icon/Assets.car"
 
       - name: Upload icon catalog
@@ -626,7 +626,7 @@ jobs:
             --platform "${{ matrix.platform }}" \
             --arch "${{ matrix.arch }}" \
             --version "${{ needs.preflight.outputs.version }}" \
-            --executable-name "${{ needs.preflight.outputs.desktop_flavor == 'beta' && 'synara-beta' || 'synara' }}"
+            --executable-name "${{ needs.preflight.outputs.desktop_flavor == 'beta' && 'mimir-beta' || 'mimir' }}"
 
       - name: Upload build artifacts
         if: needs.preflight.outputs.package_artifacts == 'true'
@@ -845,7 +845,7 @@ jobs:
         with:
           tag_name: ${{ needs.preflight.outputs.tag }}
           target_commitish: ${{ needs.preflight.outputs.ref }}
-          name: Synara v${{ needs.preflight.outputs.version }}
+          name: Mimir v${{ needs.preflight.outputs.version }}
           generate_release_notes: true
           prerelease: ${{ needs.preflight.outputs.is_prerelease }}
           make_latest: ${{ needs.preflight.outputs.make_latest }}
@@ -860,7 +860,7 @@ jobs:
             release-assets/*.tar.gz
           fail_on_unmatched_files: true
 
-      - name: Mirror Synara artifacts onto the pinned updater feed
+      - name: Mirror Mimir artifacts onto the pinned updater feed
         if: ${{ needs.preflight.outputs.mirror_to_stable_channel == 'true' }}
         shell: bash
         env:

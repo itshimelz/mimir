@@ -36,6 +36,9 @@ import {
   synaraDesktopInstallNames,
   type SynaraPackagedDesktopFlavor,
 } from "@synara/shared/desktopIdentity";
+
+/** Updater owner/repo when neither override is set. */
+const DEFAULT_DESKTOP_UPDATE_REPOSITORY = "itshimelz/mimir";
 import { createDesktopArtifactIdentity } from "./lib/desktop-artifact-identity.ts";
 import { parseBooleanEnvValue } from "./lib/env-bool.ts";
 import { finalizeSignedMacDmg, rebuildUnsignedMacDmg } from "./lib/mac-dmg-finalize.ts";
@@ -715,7 +718,9 @@ function resolveGitHubPublishConfig():
   const rawRepo =
     process.env.SYNARA_DESKTOP_UPDATE_REPOSITORY?.trim() ||
     process.env.GITHUB_REPOSITORY?.trim() ||
-    "";
+    // Local and unpackaged builds have no GITHUB_REPOSITORY; without a default
+    // the updater is silently left with no provider.
+    DEFAULT_DESKTOP_UPDATE_REPOSITORY;
   if (!rawRepo) return undefined;
 
   const [owner, repo, ...rest] = rawRepo.split("/");

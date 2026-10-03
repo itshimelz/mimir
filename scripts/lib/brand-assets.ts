@@ -21,9 +21,10 @@ export const BRAND_ASSET_PATHS = {
 
 export const BETA_ASSET_PATHS = {
   betaMacIconPng: "assets/beta/beta-macos-1024.png",
-  // Icon Composer source for the beta macOS 26 bundle icon: same layered
-  // treatment as production so beta gets Liquid Glass on the dock.
-  betaMacIconComposer: "assets/beta/Mimir.icon",
+  // Mimir ships production only, so the beta lane is never built and has no
+  // artwork of its own. Point it at production rather than a dangling path so
+  // an accidental beta build still gets Mimir branding.
+  betaMacIconComposer: "assets/prod/Mimir.icon",
   betaMacLegacyIconPng: "assets/beta/beta-macos-legacy-1024.png",
   // One artwork serves both appearances: the dark dock slot reuses the rounded legacy file.
   betaMacLegacyDarkIconPng: "assets/beta/beta-macos-legacy-1024.png",

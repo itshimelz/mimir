@@ -225,4 +225,68 @@ describe("brand identity guard", () => {
     ).toHaveLength(1);
     expect(findVisualBrandAssetViolations([], approvedDigests)).toHaveLength(1);
   });
+  describe("Mimir retired-brand guard", () => {
+    const shipped = "apps/web/src/example.ts";
+
+    it("flags the retired brand in shipped source", () => {
+      expect(
+        findBrandIdentityViolations([{ path: shipped, contents: 'const a = "Synara";' }]),
+      ).toHaveLength(1);
+      expect(
+        findBrandIdentityViolations([{ path: shipped, contents: 'const a = "Synara Beta";' }]),
+      ).toHaveLength(1);
+      expect(
+        findBrandIdentityViolations([
+          { path: shipped, contents: 'const a = "/Applications/Synara.app";' },
+        ]),
+      ).toHaveLength(1);
+      expect(
+        findBrandIdentityViolations([
+          { path: shipped, contents: 'const a = "com.emanueledipietro.synara";' },
+        ]),
+      ).toHaveLength(1);
+      expect(
+        findBrandIdentityViolations([
+          { path: shipped, contents: 'const a = "https://trysynara.com/docs";' },
+        ]),
+      ).toHaveLength(1);
+    });
+
+    it("still permits the internal identifiers that phase B has not renamed", () => {
+      for (const line of [
+        'const a = "SYNARA_HOME";',
+        'const a = "@synara/cli";',
+        'const a = "synara_create_threads";',
+        'const a = "mcp__synara__synara_overview";',
+        'const a = "Mimir";',
+      ]) {
+        expect(findBrandIdentityViolations([{ path: shipped, contents: line }])).toEqual([]);
+      }
+    });
+
+    it("does not scan tests, docs or the marketing site", () => {
+      for (const path of [
+        "apps/web/src/example.test.ts",
+        "apps/web/src/example.browser.tsx",
+        "docs/release.md",
+        "README.md",
+        "apps/marketing/src/app/page.tsx",
+      ]) {
+        expect(findBrandIdentityViolations([{ path, contents: 'const a = "Synara";' }])).toEqual(
+          [],
+        );
+      }
+    });
+
+    it("keeps the older forbidden-identity check active on exempted files", () => {
+      // README.md is exempt from the retired-brand check only. The original
+      // guard must still run there.
+      const retiredFirst = String.fromCharCode(116, 51) + String.fromCharCode(67, 111, 100, 101);
+      expect(
+        findBrandIdentityViolations([
+          { path: "README.md", contents: `mentions ${retiredFirst} outright` },
+        ]).length,
+      ).toBeGreaterThan(0);
+    });
+  });
 });

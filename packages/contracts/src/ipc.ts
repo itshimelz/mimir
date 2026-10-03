@@ -467,7 +467,7 @@ export interface DesktopBetaInstallProgress {
   readonly message?: string;
 }
 
-/** Result of a stable-side probe for a parallel Synara Beta install. */
+/** Result of a stable-side probe for a parallel Beta install. */
 export interface DesktopBetaChannelState {
   /** False on web builds and unsupported probing environments. */
   readonly supported: boolean;
@@ -951,10 +951,10 @@ export interface DesktopBridge {
   /** Stable→Beta opt-in surface. Absent on builds that do not ship it. */
   beta?: {
     getState: () => Promise<DesktopBetaChannelState>;
-    /** Downloads and installs Synara Beta when missing (macOS), then opens it. */
+    /** Downloads and installs the Beta app when missing (macOS), then opens it. */
     install: () => Promise<DesktopBetaActionResult>;
     /**
-     * Installs Synara Beta when missing (macOS), writes the import marker, and
+     * Installs the Beta app when missing (macOS), writes the import marker, and
      * launches it to consume the import.
      */
     importAndLaunch: () => Promise<DesktopBetaActionResult>;

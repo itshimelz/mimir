@@ -354,8 +354,8 @@ export function AppSnapSettingsPanel({
             Take an AppSnap to show your agent another app's window
           </p>
           <p className={SETTINGS_CARD_ROW_DESCRIPTION_CLASS_NAME}>
-            Press your two-key shortcut while any app is frontmost. Synara captures that window as
-            an image, brings itself forward, and attaches the snap to a task composer — the capture
+            Press your two-key shortcut while any app is frontmost. Mimir captures that window as an
+            image, brings itself forward, and attaches the snap to a task composer — the capture
             stays on this device until you send the message.
           </p>
           {!supported ? (
@@ -532,7 +532,7 @@ function LeaveBetaDialog({
                 onCheckedChange={(checked) => setMoveToTrash(checked === true)}
               />
               <span className="space-y-0.5">
-                <span className="block">Move Synara Beta to the Trash</span>
+                <span className="block">Move Mimir Beta to the Trash</span>
                 <span className="block text-ui-sm text-muted-foreground">
                   Your Beta data is kept, so you can pick up where you left off if you come back.
                 </span>
@@ -560,7 +560,7 @@ function BetaChannelMark() {
 }
 
 /**
- * Stable → Synara Beta handoff. Rendered inside General settings; visible only
+ * Stable → Beta handoff. Rendered inside General settings; visible only
  * on desktop builds, with the full action card on production and a status card
  * (plus diagnostics disclosure) on beta.
  */
@@ -659,7 +659,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
       <SettingsCard divided={false} className="flex items-start gap-3 px-4 py-3.5">
         <BetaChannelMark />
         <div className="min-w-0 flex-1 space-y-1">
-          <p className={SETTINGS_CARD_ROW_TITLE_CLASS_NAME}>You're on Synara Beta</p>
+          <p className={SETTINGS_CARD_ROW_TITLE_CLASS_NAME}>You're on Mimir Beta</p>
           <p className={SETTINGS_CARD_ROW_DESCRIPTION_CLASS_NAME}>
             To help us fix problems, Beta shares crash reports, app errors, and anonymous usage
             counts. Crash reports may include private information.
@@ -735,7 +735,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
         <BetaChannelMark />
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-center gap-2">
-            <p className={SETTINGS_CARD_ROW_TITLE_CLASS_NAME}>Synara Beta</p>
+            <p className={SETTINGS_CARD_ROW_TITLE_CLASS_NAME}>Mimir Beta</p>
             <span className="inline-flex items-center rounded-full bg-[var(--beta-pill)] px-1.5 py-0.5 text-ui-xs font-semibold leading-none text-[var(--beta-pill-ink)]">
               Beta
             </span>
@@ -805,7 +805,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
                 </>
               ) : (
                 <Button size="xs" onClick={() => void openDownloadPage()}>
-                  Get Synara Beta
+                  Get Mimir Beta
                 </Button>
               )
             ) : (
@@ -843,7 +843,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
       <AlertDialog open={copyDialogOpen} onOpenChange={setCopyDialogOpen}>
         <AlertDialogPopup>
           <AlertDialogHeader>
-            <AlertDialogTitle>Replace Synara Beta data?</AlertDialogTitle>
+            <AlertDialogTitle>Replace Mimir Beta data?</AlertDialogTitle>
             <AlertDialogDescription>
               Copying from Synara replaces Beta chats and projects. Chats and projects created only
               in Beta will be lost. Matching settings and provider sign-ins are overwritten, but

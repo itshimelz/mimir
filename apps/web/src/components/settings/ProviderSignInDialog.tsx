@@ -162,7 +162,7 @@ export default function ProviderSignInDialog(props: {
             />
           ) : (
             <p className="p-3 text-ui-sm">
-              {config.isError ? "Unable to connect to the Synara server." : "Connecting…"}
+              {config.isError ? "Unable to connect to the Mimir server." : "Connecting…"}
             </p>
           )}
         </div>

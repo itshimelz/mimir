@@ -481,18 +481,18 @@ describe("resolveThreadHoverCardMetadata", () => {
     ).toBeNull();
   });
 
-  it("labels project-less chat containers as Synara instead of the slug folder", () => {
+  it("labels project-less chat containers as Mimir instead of the slug folder", () => {
     const metadata = resolveThreadHoverCardMetadata({
       thread: makeSidebarThreadSummary({ branch: null }),
       project: {
         kind: "chat",
         name: "open-the-browser-search-house-music",
         folderName: "open-the-browser-search-house-music",
-        cwd: "/Users/me/Documents/Synara/2026-08-01/open-the-browser-search-house-music",
+        cwd: "/Users/me/Documents/Mimir/2026-08-01/open-the-browser-search-house-music",
       },
     });
 
-    expect(metadata.projectName).toBe("Synara");
+    expect(metadata.projectName).toBe("Mimir");
   });
 });
 

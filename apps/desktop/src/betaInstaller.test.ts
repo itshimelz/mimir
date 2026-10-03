@@ -179,7 +179,7 @@ describe("verifyBetaAppBundle", () => {
   it("rejects a non-beta bundle id", () => {
     const root = makeRoot();
     expect(() => verifyBetaAppBundle(fakeApp(root, "com.itshimelz.mimir"))).toThrow(
-      /not Synara Beta/,
+      /not Mimir Beta/,
     );
   });
 
@@ -260,7 +260,7 @@ describe("installBetaFromFeed", () => {
         throw new Error(`unexpected command ${command}`);
       },
     };
-    await expect(installBetaFromFeed(bad, () => {})).rejects.toThrow(/not Synara Beta/);
+    await expect(installBetaFromFeed(bad, () => {})).rejects.toThrow(/not Mimir Beta/);
     expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
@@ -446,7 +446,7 @@ describe("installBetaFromFeed", () => {
     const { readCommand } = codesignStub("OTHER9999");
     await expect(
       installBetaFromFeed({ ...deps, expectedTeamId: "TEAM1234AB", readCommand }, () => {}),
-    ).rejects.toThrow("The beta download isn't signed by Synara. It wasn't installed.");
+    ).rejects.toThrow("The beta download isn't signed by Mimir. It wasn't installed.");
     expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
@@ -456,7 +456,7 @@ describe("installBetaFromFeed", () => {
     const { readCommand } = codesignStub("TEAM1234AB", false);
     await expect(
       installBetaFromFeed({ ...deps, expectedTeamId: "TEAM1234AB", readCommand }, () => {}),
-    ).rejects.toThrow(/isn't signed by Synara/);
+    ).rejects.toThrow(/isn't signed by Mimir/);
     expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
@@ -468,7 +468,7 @@ describe("installBetaFromFeed", () => {
         { ...deps, expectedTeamId: "TEAM1234AB", readCommand: noTeamIdReadCommand },
         () => {},
       ),
-    ).rejects.toThrow(/isn't signed by Synara/);
+    ).rejects.toThrow(/isn't signed by Mimir/);
     expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 
@@ -513,7 +513,7 @@ describe("installBetaFromFeed", () => {
         throw new Error(`unexpected command ${command}`);
       },
     };
-    await expect(installBetaFromFeed(bad, () => {})).rejects.toThrow(/isn't signed by Synara/);
+    await expect(installBetaFromFeed(bad, () => {})).rejects.toThrow(/isn't signed by Mimir/);
     expect(existsSync(join(installDir, "Mimir Beta.app"))).toBe(false);
   });
 });

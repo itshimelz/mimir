@@ -1038,7 +1038,7 @@ it("rejects enabled Computer startup when no gateway credentials are available",
   const modelCalls = responses("success");
   await expect(
     withAdapter(async () => undefined, 1, undefined, { enableComputerControl: true }),
-  ).rejects.toThrow("Pi did not receive a thread-scoped Synara gateway connection");
+  ).rejects.toThrow("Pi did not receive a thread-scoped Mimir gateway connection");
   expect(captured.sessions).toHaveLength(0);
   expect(modelCalls()).toBe(0);
 });

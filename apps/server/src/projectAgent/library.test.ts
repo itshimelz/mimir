@@ -115,7 +115,7 @@ it.layer(TestLayer)("hub library", (it) => {
 
       const history = yield* libraryHistory(git, libraryRoot);
       expect(history.map((commit) => commit.message)).toEqual(["Initialize library"]);
-      expect(history[0]?.author).toBe("Synara Library");
+      expect(history[0]?.author).toBe("Mimir Library");
 
       // Second call is a no-op: no extra commits.
       yield* ensureLibraryRepo(git, libraryRoot, testProjectId);
@@ -507,7 +507,7 @@ it.layer(TestLayer)("hub library", (it) => {
     }),
   );
 
-  it.effect("rejects a git repository that lacks the Synara marker", () =>
+  it.effect("rejects a git repository that lacks the Mimir marker", () =>
     Effect.gen(function* () {
       const root = yield* makeTmpDir;
       const git = yield* GitCore;

@@ -923,7 +923,7 @@ function providerAccountIdentityFields(
         key: "homePath",
         label: "CODEX_HOME path",
         placeholder: "~/.codex-work",
-        description: "Leave blank and Synara keeps this account's sign-in in its own folder.",
+        description: "Leave blank and Mimir keeps this account's sign-in in its own folder.",
       },
     ];
   }
@@ -934,7 +934,7 @@ function providerAccountIdentityFields(
         label: "Claude config directory",
         placeholder: "~/.claude-work",
         description:
-          "Leave blank and Synara keeps this account's sign-in in its own folder. " +
+          "Leave blank and Mimir keeps this account's sign-in in its own folder. " +
           "Set a directory to use a Claude config folder you already signed in to.",
       },
     ];
@@ -1093,7 +1093,7 @@ function ProviderAccountsControl(props: {
     toastManager.add({
       type: "success",
       title: `${providerLabel} account imported`,
-      description: "Synara references the selected directory; no files were moved or copied.",
+      description: "Mimir references the selected directory; no files were moved or copied.",
     });
   };
   const updateInstance = (
@@ -1278,11 +1278,11 @@ function ProviderAccountsControl(props: {
           {isAccountProvider ? (
             <span className="block text-ui-sm text-muted-foreground sm:col-span-2">
               {provider === "codex"
-                ? "Leave both paths blank and Synara keeps this account's sign-in in its " +
+                ? "Leave both paths blank and Mimir keeps this account's sign-in in its " +
                   "own folder. Set a shadow auth home to keep only the sign-in elsewhere " +
                   "while sharing settings and history with the default account, or a " +
                   "CODEX_HOME to keep everything separate."
-                : "Leave blank and Synara keeps this account's sign-in in its own folder. " +
+                : "Leave blank and Mimir keeps this account's sign-in in its own folder. " +
                   "Set a directory to use a Claude config folder you already signed in to."}
             </span>
           ) : null}
@@ -1332,7 +1332,7 @@ function ProviderAccountsControl(props: {
                 ? "Use 1–64 letters, numbers, dashes, or underscores; bare provider commands are reserved."
                 : cliCommandConflicts
                   ? "This command is already assigned to another account. Choose a unique override."
-                  : "Available in Synara terminals for zsh, bash, fish, and scripts."}
+                  : "Available in Mimir terminals for zsh, bash, fish, and scripts."}
             </span>
           </label>
           {props.config.fields.filter(isAdvancedField).map((field) => renderField(field, entry))}
@@ -1570,7 +1570,7 @@ function ProviderAccountsControl(props: {
             disabled={typeof window === "undefined" || !window.desktopBridge}
             title={
               typeof window === "undefined" || !window.desktopBridge
-                ? "Directory import is available in the Synara desktop app."
+                ? "Directory import is available in the Mimir desktop app."
                 : `Use an existing ${providerLabel} directory as a new account, without moving it.`
             }
           >
@@ -1832,7 +1832,7 @@ function ProviderToolRow(props: {
                       <code className="font-mono">{updateAdvisory.updateCommand}</code>
                     </>
                   ) : (
-                    "A newer version is available, but Synara could not identify a safe one-click update command for this installation."
+                    "A newer version is available, but Mimir could not identify a safe one-click update command for this installation."
                   )}
                 </div>
               ) : null}
@@ -2285,7 +2285,7 @@ export function ProvidersSettingsPanel({
 
           <SettingsRow
             title="Provider updates"
-            description="Review installed provider tools that Synara can safely update."
+            description="Review installed provider tools that Mimir can safely update."
             status={
               !settings.enableProviderUpdateChecks
                 ? "Automatic checks off"

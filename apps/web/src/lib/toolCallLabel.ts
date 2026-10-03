@@ -273,152 +273,152 @@ const SYNARA_COMPUTER_TOOL_PRESENTATIONS = {
 
 function presentComputerTool(present: string, past: string): SynaraMcpToolPresentation {
   return {
-    running: `Synara is ${present}`,
-    completed: `Synara ${past}`,
-    failed: `Synara couldn't finish ${present}`,
+    running: `Mimir is ${present}`,
+    completed: `Mimir ${past}`,
+    failed: `Mimir couldn't finish ${present}`,
   };
 }
 
 const SYNARA_MCP_TOOL_PRESENTATIONS = {
   synara_context: {
-    running: "Synara is checking its context",
-    completed: "Synara checked its context",
-    failed: "Synara couldn't check its context",
+    running: "Mimir is checking its context",
+    completed: "Mimir checked its context",
+    failed: "Mimir couldn't check its context",
   },
   synara_capabilities: {
-    running: "Synara is checking available agents",
-    completed: "Synara checked available agents",
-    failed: "Synara couldn't check available agents",
+    running: "Mimir is checking available agents",
+    completed: "Mimir checked available agents",
+    failed: "Mimir couldn't check available agents",
   },
   synara_overview: {
-    running: "Synara is gathering an overview",
-    completed: "Synara gathered an overview",
-    failed: "Synara couldn't gather an overview",
+    running: "Mimir is gathering an overview",
+    completed: "Mimir gathered an overview",
+    failed: "Mimir couldn't gather an overview",
   },
   synara_list_allowed_projects: {
-    running: "Synara is listing allowed projects",
-    completed: "Synara listed allowed projects",
-    failed: "Synara couldn't list allowed projects",
+    running: "Mimir is listing allowed projects",
+    completed: "Mimir listed allowed projects",
+    failed: "Mimir couldn't list allowed projects",
   },
   synara_create_task: {
-    running: "Synara is creating a task",
-    completed: "Synara created a task",
-    failed: "Synara couldn't create a task",
+    running: "Mimir is creating a task",
+    completed: "Mimir created a task",
+    failed: "Mimir couldn't create a task",
   },
   synara_wait_for_task: {
-    running: "Synara is waiting for a task",
-    completed: "Synara finished waiting for a task",
-    failed: "Synara couldn't wait for a task",
+    running: "Mimir is waiting for a task",
+    completed: "Mimir finished waiting for a task",
+    failed: "Mimir couldn't wait for a task",
   },
   synara_read_task: {
-    running: "Synara is reading a task",
-    completed: "Synara read a task",
-    failed: "Synara couldn't read a task",
+    running: "Mimir is reading a task",
+    completed: "Mimir read a task",
+    failed: "Mimir couldn't read a task",
   },
   synara_list_projects: {
-    running: "Synara is listing projects",
-    completed: "Synara listed projects",
-    failed: "Synara couldn't list projects",
+    running: "Mimir is listing projects",
+    completed: "Mimir listed projects",
+    failed: "Mimir couldn't list projects",
   },
   synara_list_threads: {
-    running: "Synara is listing threads",
-    completed: "Synara listed threads",
-    failed: "Synara couldn't list threads",
+    running: "Mimir is listing threads",
+    completed: "Mimir listed threads",
+    failed: "Mimir couldn't list threads",
   },
   synara_read_thread: {
-    running: "Synara is reading a thread",
-    completed: "Synara read a thread",
-    failed: "Synara couldn't read a thread",
+    running: "Mimir is reading a thread",
+    completed: "Mimir read a thread",
+    failed: "Mimir couldn't read a thread",
   },
   synara_read_thread_activity: {
-    running: "Synara is reading thread activity",
-    completed: "Synara read thread activity",
-    failed: "Synara couldn't read thread activity",
+    running: "Mimir is reading thread activity",
+    completed: "Mimir read thread activity",
+    failed: "Mimir couldn't read thread activity",
   },
   synara_read_thread_events: {
-    running: "Synara is reading thread events",
-    completed: "Synara read thread events",
-    failed: "Synara couldn't read thread events",
+    running: "Mimir is reading thread events",
+    completed: "Mimir read thread events",
+    failed: "Mimir couldn't read thread events",
   },
   synara_read_thread_runtime_events: {
-    running: "Synara is reading thread runtime events",
-    completed: "Synara read thread runtime events",
-    failed: "Synara couldn't read thread runtime events",
+    running: "Mimir is reading thread runtime events",
+    completed: "Mimir read thread runtime events",
+    failed: "Mimir couldn't read thread runtime events",
   },
   synara_diagnose_thread: {
-    running: "Synara is diagnosing a thread",
-    completed: "Synara diagnosed a thread",
-    failed: "Synara couldn't diagnose a thread",
+    running: "Mimir is diagnosing a thread",
+    completed: "Mimir diagnosed a thread",
+    failed: "Mimir couldn't diagnose a thread",
   },
   synara_create_thread: {
-    running: "Synara is creating a thread",
-    completed: "Synara created a thread",
-    failed: "Synara couldn't create a thread",
+    running: "Mimir is creating a thread",
+    completed: "Mimir created a thread",
+    failed: "Mimir couldn't create a thread",
   },
   synara_create_threads: {
-    running: "Synara is creating threads",
-    completed: "Synara created threads",
-    failed: "Synara couldn't create threads",
+    running: "Mimir is creating threads",
+    completed: "Mimir created threads",
+    failed: "Mimir couldn't create threads",
   },
   synara_wait_for_threads: {
-    running: "Synara is waiting for threads",
-    completed: "Synara finished waiting for threads",
-    failed: "Synara couldn't wait for threads",
+    running: "Mimir is waiting for threads",
+    completed: "Mimir finished waiting for threads",
+    failed: "Mimir couldn't wait for threads",
   },
   synara_send_message: {
-    running: "Synara is sending a message",
-    completed: "Synara sent a message",
-    failed: "Synara couldn't send a message",
+    running: "Mimir is sending a message",
+    completed: "Mimir sent a message",
+    failed: "Mimir couldn't send a message",
   },
   synara_interrupt_thread: {
-    running: "Synara is interrupting a thread",
-    completed: "Synara interrupted a thread",
-    failed: "Synara couldn't interrupt a thread",
+    running: "Mimir is interrupting a thread",
+    completed: "Mimir interrupted a thread",
+    failed: "Mimir couldn't interrupt a thread",
   },
   synara_set_thread_title: {
-    running: "Synara is renaming a thread",
-    completed: "Synara renamed a thread",
-    failed: "Synara couldn't rename a thread",
+    running: "Mimir is renaming a thread",
+    completed: "Mimir renamed a thread",
+    failed: "Mimir couldn't rename a thread",
   },
   synara_set_thread_archived: {
-    running: "Synara is updating a thread",
-    completed: "Synara updated a thread",
-    failed: "Synara couldn't update a thread",
+    running: "Mimir is updating a thread",
+    completed: "Mimir updated a thread",
+    failed: "Mimir couldn't update a thread",
   },
   synara_create_automation: {
-    running: "Synara is creating an automation",
-    completed: "Synara created an automation",
-    failed: "Synara couldn't create an automation",
+    running: "Mimir is creating an automation",
+    completed: "Mimir created an automation",
+    failed: "Mimir couldn't create an automation",
   },
   synara_list_automations: {
-    running: "Synara is listing automations",
-    completed: "Synara listed automations",
-    failed: "Synara couldn't list automations",
+    running: "Mimir is listing automations",
+    completed: "Mimir listed automations",
+    failed: "Mimir couldn't list automations",
   },
   synara_view_automation: {
-    running: "Synara is viewing an automation",
-    completed: "Synara viewed an automation",
-    failed: "Synara couldn't view an automation",
+    running: "Mimir is viewing an automation",
+    completed: "Mimir viewed an automation",
+    failed: "Mimir couldn't view an automation",
   },
   synara_update_automation: {
-    running: "Synara is updating an automation",
-    completed: "Synara updated an automation",
-    failed: "Synara couldn't update an automation",
+    running: "Mimir is updating an automation",
+    completed: "Mimir updated an automation",
+    failed: "Mimir couldn't update an automation",
   },
   synara_update_automation_memory: {
-    running: "Synara is updating automation memory",
-    completed: "Synara updated automation memory",
-    failed: "Synara couldn't update automation memory",
+    running: "Mimir is updating automation memory",
+    completed: "Mimir updated automation memory",
+    failed: "Mimir couldn't update automation memory",
   },
   synara_report_automation_result: {
-    running: "Synara is reporting an automation result",
-    completed: "Synara reported an automation result",
-    failed: "Synara couldn't report an automation result",
+    running: "Mimir is reporting an automation result",
+    completed: "Mimir reported an automation result",
+    failed: "Mimir couldn't report an automation result",
   },
   synara_cancel_automation: {
-    running: "Synara is stopping an automation",
-    completed: "Synara stopped an automation",
-    failed: "Synara couldn't stop an automation",
+    running: "Mimir is stopping an automation",
+    completed: "Mimir stopped an automation",
+    failed: "Mimir couldn't stop an automation",
   },
   ...SYNARA_BROWSER_TOOL_PRESENTATIONS,
   ...SYNARA_COMPUTER_TOOL_PRESENTATIONS,
@@ -492,9 +492,9 @@ function fallbackSynaraMcpToolPresentation(toolName: string): SynaraMcpToolPrese
       .replace(/_+/g, " ")
       .trim() || "an action";
   return {
-    running: `Synara is handling ${action}`,
-    completed: `Synara handled ${action}`,
-    failed: `Synara couldn't handle ${action}`,
+    running: `Mimir is handling ${action}`,
+    completed: `Mimir handled ${action}`,
+    failed: `Mimir couldn't handle ${action}`,
   };
 }
 
@@ -586,8 +586,8 @@ export function deriveSynaraMcpToolTitle(input: SynaraMcpToolTitleInput): string
     case "failed":
       return presentation.failed;
     case "cancelled":
-      return presentation.running.startsWith("Synara is ")
-        ? `Synara stopped ${presentation.running.slice("Synara is ".length)}`
+      return presentation.running.startsWith("Mimir is ")
+        ? `Mimir stopped ${presentation.running.slice("Mimir is ".length)}`
         : `Cancelled ${presentation.running}`;
   }
 }

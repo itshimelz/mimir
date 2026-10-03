@@ -231,7 +231,7 @@ const COMPOSER_SLASH_COMMAND_DEFINITIONS: Record<
   "computer-use": {
     command: "computer-use",
     label: "/computer-use",
-    description: "Use Synara Computer for this request only",
+    description: "Use Mimir Computer for this request only",
     source: "app",
   },
   fast: {
@@ -261,7 +261,7 @@ const COMPOSER_SLASH_COMMAND_DEFINITIONS: Record<
   feedback: {
     command: "feedback",
     label: "/feedback",
-    description: "Send feedback to the Synara team",
+    description: "Send feedback to the Mimir team",
     source: "app",
   },
   automation: {

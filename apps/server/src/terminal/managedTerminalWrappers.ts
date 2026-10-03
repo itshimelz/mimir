@@ -313,7 +313,7 @@ export function buildProviderProfileWrapperScript(profile: ManagedTerminalProfil
       ];
   return [
     "#!/bin/sh",
-    `# Synara provider profile: ${profile.commandName}`,
+    `# Mimir provider profile: ${profile.commandName}`,
     ...(profile.omittedSensitiveEnvironmentNames?.length
       ? [
           `# Sensitive environment is intentionally not serialized: ${profile.omittedSensitiveEnvironmentNames.join(

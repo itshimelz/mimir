@@ -534,7 +534,7 @@ export async function ensureCapturePlugin(
       {
         $schema: "https://antigravity.google/schemas/v1/plugin.json",
         name: "synara-capture",
-        description: "Streams Antigravity CLI lifecycle events to Synara when requested.",
+        description: "Streams Antigravity CLI lifecycle events to Mimir when requested.",
       },
       null,
       2,
@@ -2269,7 +2269,7 @@ const makeAntigravityAdapter = (dependencies: AntigravityAdapterDependencies = {
             new ProviderAdapterRequestError({
               provider: PROVIDER,
               method: "plugin/install",
-              detail: messageFromCause(cause, "Failed to install the Synara capture hook."),
+              detail: messageFromCause(cause, "Failed to install the Mimir capture hook."),
               cause,
             }),
         });
@@ -2453,7 +2453,7 @@ const makeAntigravityAdapter = (dependencies: AntigravityAdapterDependencies = {
           return yield* new ProviderAdapterRequestError({
             provider: PROVIDER,
             method: "turn/prepare",
-            detail: `The Synara gateway credential is no longer active for this provider turn (expected gateway capabilities: ${expectedCapabilities.join(", ") || "none"}; lease minted with: ${mintedCapabilities.join(", ") || "none"}).`,
+            detail: `The Mimir gateway credential is no longer active for this provider turn (expected gateway capabilities: ${expectedCapabilities.join(", ") || "none"}; lease minted with: ${mintedCapabilities.join(", ") || "none"}).`,
           });
         }
         if (gatewaySessionLease) context.gatewaySessionLease = gatewaySessionLease;

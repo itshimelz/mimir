@@ -98,7 +98,7 @@ describe("Linux desktop host startup", () => {
     },
   );
 
-  it("keeps newly created Synara helper PIDs protected without starting a driver", async () => {
+  it("keeps newly created Mimir helper PIDs protected without starting a driver", async () => {
     const f = await fixture();
     const helperPid = process.pid + 10_000;
     f.ownPids.add(helperPid);
@@ -122,7 +122,7 @@ describe("Linux desktop host startup", () => {
       cuaRequest<CuaReply>(f.endpoint, { method: "setup", capability }),
     ).resolves.toMatchObject({
       ok: false,
-      error: expect.stringContaining("Start Synara inside your Linux desktop session"),
+      error: expect.stringContaining("Start Mimir inside your Linux desktop session"),
     });
   });
 });

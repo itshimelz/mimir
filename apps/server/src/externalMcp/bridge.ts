@@ -107,7 +107,7 @@ class ExternalMcpRequestCancelledError extends Error {
 
 class ExternalMcpRequestTimeoutError extends ExternalMcpBridgeError {
   constructor(timeoutMs: number) {
-    super(`Synara did not respond within ${timeoutMs} ms.`);
+    super(`Mimir did not respond within ${timeoutMs} ms.`);
     this.name = "ExternalMcpRequestTimeoutError";
   }
 }
@@ -183,7 +183,7 @@ function parseRuntimeState(
     }
     return state as PersistedServerRuntimeState;
   } catch (cause) {
-    throw new ExternalMcpBridgeError(`Invalid Synara runtime-state file: ${sourcePath}`, { cause });
+    throw new ExternalMcpBridgeError(`Invalid Mimir runtime-state file: ${sourcePath}`, { cause });
   }
 }
 
@@ -314,12 +314,12 @@ function discoverRunningRuntime(
   });
   if (candidates.length === 0) {
     throw new ExternalMcpBridgeError(
-      `No running Synara instance was found under ${baseDir}. Start Synara first or pass --home-dir for the intended instance.`,
+      `No running Mimir instance was found under ${baseDir}. Start Mimir first or pass --home-dir for the intended instance.`,
     );
   }
   if (candidates.length > 1) {
     throw new ExternalMcpBridgeError(
-      `Multiple running Synara instances were found under ${baseDir}: ${candidates.map((candidate) => candidate.state.origin).join(", ")}. Stop one instance or pass a distinct --home-dir.`,
+      `Multiple running Mimir instances were found under ${baseDir}: ${candidates.map((candidate) => candidate.state.origin).join(", ")}. Stop one instance or pass a distinct --home-dir.`,
     );
   }
   return candidates[0]!;
@@ -403,7 +403,7 @@ export function writeExternalMcpClientCredential(
     const existing = readExternalMcpClientCredential(baseDir, paired.integrationId);
     if (existing.credential !== paired.credential) {
       throw new ExternalMcpBridgeError(
-        `Integration ${paired.integrationId} already has a different stored credential. Revoke it in Synara before replacing the local secret.`,
+        `Integration ${paired.integrationId} already has a different stored credential. Revoke it in Mimir before replacing the local secret.`,
       );
     }
     return filePath;
@@ -436,8 +436,8 @@ export function readExternalMcpClientCredential(
   if (candidates.length === 0 || !fs.existsSync(candidates[0]!)) {
     throw new ExternalMcpBridgeError(
       integrationId
-        ? `No paired external MCP credential was found for integration ${integrationId}. Run its pairing command from Synara Settings.`
-        : `No paired external MCP credential was found under ${directory}. Create an integration in Synara Settings, then run its pairing command.`,
+        ? `No paired external MCP credential was found for integration ${integrationId}. Run its pairing command from Mimir Settings.`
+        : `No paired external MCP credential was found under ${directory}. Create an integration in Mimir Settings, then run its pairing command.`,
     );
   }
   if (candidates.length > 1) {
@@ -563,7 +563,7 @@ export async function readExternalMcpResponseText(
   const timeout = new Promise<never>((_resolve, reject) => {
     timer = setTimeout(() => {
       void reader.cancel().catch(() => undefined);
-      reject(new ExternalMcpBridgeError(`Synara response body stalled for ${timeoutMs} ms.`));
+      reject(new ExternalMcpBridgeError(`Mimir response body stalled for ${timeoutMs} ms.`));
     }, timeoutMs);
   });
   try {
@@ -606,7 +606,7 @@ async function verifyPersistedServerRuntime(
     !runtimeProofsMatch(expected, body.proof)
   ) {
     throw new ExternalMcpBridgeError(
-      "The server endpoint did not prove it is the Synara process named by the private runtime-state file.",
+      "The server endpoint did not prove it is the Mimir process named by the private runtime-state file.",
     );
   }
 }
@@ -696,7 +696,7 @@ async function fetchWithRestartRecovery(input: {
     }
   } while (Date.now() < deadline);
   throw new ExternalMcpBridgeError(
-    "Could not authenticate and reconnect to Synara. Ensure exactly one intended instance is running.",
+    "Could not authenticate and reconnect to Mimir. Ensure exactly one intended instance is running.",
     { cause: lastCause },
   );
 }
@@ -738,7 +738,7 @@ export async function pairExternalMcpClient(input: {
   } while (Date.now() < deadline);
   if (!response) {
     throw new ExternalMcpBridgeError(
-      "Could not reconnect to Synara to complete pairing. The private pending credential was preserved for a safe retry.",
+      "Could not reconnect to Mimir to complete pairing. The private pending credential was preserved for a safe retry.",
       { cause: lastCause },
     );
   }
@@ -753,13 +753,11 @@ export async function pairExternalMcpClient(input: {
   if (!response.ok || !body || !("credential" in body)) {
     throw new ExternalMcpBridgeError(
       (body && "error" in body && body.error) ||
-        `Synara rejected external MCP pairing with HTTP ${response.status}.`,
+        `Mimir rejected external MCP pairing with HTTP ${response.status}.`,
     );
   }
   if (body.credential !== pending.value.credential) {
-    throw new ExternalMcpBridgeError(
-      "Synara returned a different pairing credential; refusing it.",
-    );
+    throw new ExternalMcpBridgeError("Mimir returned a different pairing credential; refusing it.");
   }
   const storePath = writeExternalMcpClientCredential(input.baseDir, body);
   fs.rmSync(pending.path, { force: true });
@@ -896,7 +894,7 @@ export async function serveExternalMcpStdio(input: {
     }
     if (response.status === 401) {
       const message =
-        "Synara rejected the stored external MCP credential because it was revoked, expired, or replaced. Pair the integration again from Settings.";
+        "Mimir rejected the stored external MCP credential because it was revoked, expired, or replaced. Pair the integration again from Settings.";
       await emit(stderr, `[synara mcp] ${message}\n`);
       return localErrorResponse(line, -32001, message);
     }
@@ -909,7 +907,7 @@ export async function serveExternalMcpStdio(input: {
           // Fall through to a transport error that preserves request ids.
         }
       }
-      const message = `Synara external MCP request failed with HTTP ${response.status}.`;
+      const message = `Mimir external MCP request failed with HTTP ${response.status}.`;
       await emit(stderr, `[synara mcp] ${message}\n`);
       return localErrorResponse(line, -32603, message);
     }
@@ -966,7 +964,7 @@ export async function serveExternalMcpStdio(input: {
         if (Array.isArray(decoded)) responses.push(...decoded);
         else responses.push(decoded);
       } catch {
-        const fallback = localErrorResponse(entry.line, -32603, "Invalid Synara response");
+        const fallback = localErrorResponse(entry.line, -32603, "Invalid Mimir response");
         if (fallback) responses.push(JSON.parse(fallback) as unknown);
       }
     }

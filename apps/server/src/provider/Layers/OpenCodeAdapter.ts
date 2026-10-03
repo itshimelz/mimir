@@ -317,8 +317,8 @@ const installOpenCodeGatewayMcp = Effect.fn("installOpenCodeGatewayMcp")(functio
     operation: "mcp.add",
     detail:
       status?.status === "failed"
-        ? `${input.displayName} Synara MCP connection failed: ${status.error}`
-        : `${input.displayName} Synara MCP connection did not become ready.`,
+        ? `${input.displayName} Mimir MCP connection failed: ${status.error}`
+        : `${input.displayName} Mimir MCP connection did not become ready.`,
   });
 });
 
@@ -3649,7 +3649,7 @@ export function makeOpenCodeAdapterLive(options?: OpenCodeAdapterLiveOptions) {
             return yield* new ProviderAdapterValidationError({
               provider,
               operation: "session/start",
-              issue: `Computer Use requires a Synara-managed ${adapterConfig.displayName} server with a thread-scoped gateway. It is unavailable with an external server URL.`,
+              issue: `Computer Use requires a Mimir-managed ${adapterConfig.displayName} server with a thread-scoped gateway. It is unavailable with an external server URL.`,
             });
           }
           const serverPassword =
@@ -3702,7 +3702,7 @@ export function makeOpenCodeAdapterLive(options?: OpenCodeAdapterLiveOptions) {
               provider,
               method: "session/start",
               detail:
-                "Computer Use could not start because the thread-scoped Synara gateway is unavailable.",
+                "Computer Use could not start because the thread-scoped Mimir gateway is unavailable.",
             });
           }
           const poolIsolationKey = agentGatewayConnection ? randomUUID() : undefined;
@@ -3751,7 +3751,7 @@ export function makeOpenCodeAdapterLive(options?: OpenCodeAdapterLiveOptions) {
                           input.enableComputerControl === true
                             ? new OpenCodeRuntimeError({
                                 operation: "mcp.add",
-                                detail: `Computer Use could not start because the thread-scoped Synara MCP connection is not ready: ${openCodeRuntimeErrorDetail(cause)}`,
+                                detail: `Computer Use could not start because the thread-scoped Mimir MCP connection is not ready: ${openCodeRuntimeErrorDetail(cause)}`,
                               })
                             : cause,
                         ),
@@ -3761,7 +3761,7 @@ export function makeOpenCodeAdapterLive(options?: OpenCodeAdapterLiveOptions) {
                             : Effect.sync(() => agentGatewaySessionLease?.release()).pipe(
                                 Effect.andThen(
                                   Effect.logWarning(
-                                    `${adapterConfig.displayName} could not install thread-scoped Synara MCP control`,
+                                    `${adapterConfig.displayName} could not install thread-scoped Mimir MCP control`,
                                     Cause.squash(cause),
                                   ),
                                 ),
@@ -3802,7 +3802,7 @@ export function makeOpenCodeAdapterLive(options?: OpenCodeAdapterLiveOptions) {
                               : {}),
                             ...(initialAgent ? { agent: initialAgent } : {}),
                             permission: buildOpenCodePermissionRules(input.runtimeMode),
-                            title: `Synara ${input.threadId}`,
+                            title: `Mimir ${input.threadId}`,
                           };
                           return client.session.create(
                             sessionCreateInput as unknown as Parameters<
@@ -4562,7 +4562,7 @@ export function makeOpenCodeAdapterLive(options?: OpenCodeAdapterLiveOptions) {
             return yield* new ProviderAdapterValidationError({
               provider,
               operation: "forkThread",
-              issue: `The source ${adapterConfig.displayName} session has a turn in flight; Synara will rebuild the fork from its retained transcript.`,
+              issue: `The source ${adapterConfig.displayName} session has a turn in flight; Mimir will rebuild the fork from its retained transcript.`,
             });
           }
           const sourceSessionId =

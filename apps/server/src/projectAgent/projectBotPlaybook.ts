@@ -1,11 +1,11 @@
 export const PROJECT_BOT_PLAYBOOK_PATH = "docs/project-bot.md";
 
 const WORKER_RECOVERY_RULES =
-  "Synara's health monitor owns bounded retries. Report terminal failures and blockers; do not create replacement threads without a new explicit user request.";
+  "Mimir's health monitor owns bounded retries. Report terminal failures and blockers; do not create replacement threads without a new explicit user request.";
 
 export const PROJECT_BOT_HEARTBEAT_PROMPT = `Watch this hub's threads. When a thread finishes, dies, errors, hits a quota limit, or is interrupted, reply in this chat with a short status. Review the outcome and update decisions.md. ${WORKER_RECOVERY_RULES} Do not expand scope. Do not ask the user to start a goal. If everything is on track and nothing needs the user's attention, reply with exactly "SILENT" — no other text.`;
 
-export const PROJECT_BOT_WATCH_RULES = `Threads you start stay your job. Synara delivers completion and failure reports in this chat. Review each report and reply only when an outcome or blocker needs attention. ${WORKER_RECOVERY_RULES} Do not ask the user to start a goal. Goals are optional.`;
+export const PROJECT_BOT_WATCH_RULES = `Threads you start stay your job. Mimir delivers completion and failure reports in this chat. Review each report and reply only when an outcome or blocker needs attention. ${WORKER_RECOVERY_RULES} Do not ask the user to start a goal. Goals are optional.`;
 
 export const PROJECT_BOT_PLAYBOOK = `# Hub coordinator playbook
 
@@ -78,7 +78,7 @@ Ignore unless the user points you at it. Do not treat it as hub state.
 Pointers to existing artifacts only. Do not copy binaries here.
 
 ### \`inbox/<threadId>/report.md\` — Synara writes this
-When a thread's turn finishes, stops, or dies, Synara writes this file. The thread does not have to remember a tool. Read the report, reply in this chat, then fold useful bits into \`decisions.md\`. Do not leave raw thread output as the hub's memory.
+When a thread's turn finishes, stops, or dies, Mimir writes this file. The thread does not have to remember a tool. Read the report, reply in this chat, then fold useful bits into \`decisions.md\`. Do not leave raw thread output as the hub's memory.
 
 ## How to run the hub
 

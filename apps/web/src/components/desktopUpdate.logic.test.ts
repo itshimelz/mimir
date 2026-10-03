@@ -91,7 +91,7 @@ describe("desktop update button state", () => {
       status: "error",
       availableVersion: "1.1.0",
       downloadedVersion: null,
-      message: "Synara restarted before the update was installed.",
+      message: "Mimir restarted before the update was installed.",
       errorContext: "install",
       canRetry: true,
       installFailureCount: 1,
@@ -101,7 +101,7 @@ describe("desktop update button state", () => {
     expect(isDesktopUpdateButtonDisabled(state)).toBe(false);
     expect(getDesktopUpdateButtonPresentation(state).label).toBe("Retry");
     expect(getDesktopUpdateButtonTooltip(state)).toBe(
-      "Synara restarted, but update 1.1.0 was not installed. Click to try again.",
+      "Mimir restarted, but update 1.1.0 was not installed. Click to try again.",
     );
   });
 

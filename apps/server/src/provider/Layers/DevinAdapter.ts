@@ -1559,7 +1559,7 @@ export function makeDevinAdapter(
         childProcessSpawner,
         cwd: input.cwd,
         runtimeMode: "approval-required",
-        clientInfo: { name: "Synara Command Discovery", version: "0.0.0" },
+        clientInfo: { name: "Mimir Command Discovery", version: "0.0.0" },
       });
 
     const discoverDevinModelsUncached = (
@@ -1998,7 +1998,7 @@ export function makeDevinAdapter(
               if (!gatewaySessionLease || !agentGatewayCredentials) return undefined;
               const bootstrapToken = gatewaySessionLease.issueStdioBootstrapToken?.();
               if (!bootstrapToken)
-                throw new Error("Synara gateway bootstrap token was unavailable.");
+                throw new Error("Mimir gateway bootstrap token was unavailable.");
               return createDevinSessionConfig({
                 connection: gatewaySessionLease.connection,
                 stdioProxy: agentGatewayCredentials.stdioProxy,
@@ -2105,7 +2105,7 @@ export function makeDevinAdapter(
             childProcessSpawner,
             cwd,
             runtimeMode: input.runtimeMode,
-            clientInfo: { name: "Synara", version: "0.0.0" },
+            clientInfo: { name: "Mimir", version: "0.0.0" },
             clientCapabilities: { elicitation: { form: {} } },
             ...(resumeSessionId ? { resumeSessionId } : {}),
             ...(devinSessionConfig ? { sessionConfig: devinSessionConfig } : {}),

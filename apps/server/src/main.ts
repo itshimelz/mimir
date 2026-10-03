@@ -310,7 +310,7 @@ const ServerConfigLive = (input: CliInput) =>
       yield* Effect.try({
         try: () => preparePrivateServerPaths(derivedPaths),
         catch: (cause) =>
-          new StartupError({ message: "Failed to secure Synara's local state directory", cause }),
+          new StartupError({ message: "Failed to secure Mimir's local state directory", cause }),
       });
       const noBrowser = resolveBooleanConfig(input.noBrowser, env.noBrowser, mode === "desktop");
       const authToken = Option.getOrUndefined(input.authToken) ?? env.authToken;
@@ -505,7 +505,7 @@ const makeServerProgram = (input: CliInput) =>
       Effect.forkChild,
     );
 
-    yield* Effect.logInfo("Synara running", makeServerStartupLogData(config));
+    yield* Effect.logInfo("Mimir running", makeServerStartupLogData(config));
     if (startupPairingUrl) {
       if (config.allowInsecureRemote && !config.publicUrl) {
         yield* Effect.logWarning(
@@ -562,7 +562,7 @@ const hostFlag = Flag.string("host").pipe(
   Flag.optional,
 );
 const synaraHomeFlag = Flag.string("home-dir").pipe(
-  Flag.withDescription("Base directory for all Synara data (equivalent to SYNARA_HOME)."),
+  Flag.withDescription("Base directory for all Mimir data (equivalent to SYNARA_HOME)."),
   Flag.optional,
 );
 const devUrlFlag = Flag.string("dev-url").pipe(
@@ -629,7 +629,7 @@ const baseServerCommand = Command.make("synara", {
   autoBootstrapProjectFromCwd: autoBootstrapProjectFromCwdFlag,
   logProviderEvents: logProviderEventsFlag,
   logWebSocketEvents: logWebSocketEventsFlag,
-}).pipe(Command.withDescription("Run the Synara server."));
+}).pipe(Command.withDescription("Run the Mimir server."));
 
 const mcpServeCommand = Command.make(
   "serve",
@@ -650,7 +650,7 @@ const mcpServeCommand = Command.make(
     }),
 ).pipe(
   Command.withDescription(
-    "Serve the paired Synara external MCP integration over stdio for Codex, Claude, and other MCP clients.",
+    "Serve the paired Mimir external MCP integration over stdio for Codex, Claude, and other MCP clients.",
   ),
 );
 
@@ -658,7 +658,7 @@ const mcpPairCommand = Command.make(
   "pair",
   {
     code: Flag.string("code").pipe(
-      Flag.withDescription("Short-lived pairing code issued by Synara Settings."),
+      Flag.withDescription("Short-lived pairing code issued by Mimir Settings."),
     ),
   },
   ({ code }) =>
@@ -674,21 +674,21 @@ const mcpPairCommand = Command.make(
         catch: (cause) => new StartupError({ message: "External MCP pairing failed.", cause }),
       });
       process.stdout.write(
-        `Paired Synara external MCP integration "${paired.paired.name}".\nCredential stored privately at ${paired.storePath}.\nConfigure the MCP client command as: ${externalMcpShellCommand(externalMcpLauncher(["mcp", "serve", "--integration", paired.paired.integrationId, "--home-dir", baseDir]))}\n`,
+        `Paired Mimir external MCP integration "${paired.paired.name}".\nCredential stored privately at ${paired.storePath}.\nConfigure the MCP client command as: ${externalMcpShellCommand(externalMcpLauncher(["mcp", "serve", "--integration", paired.paired.integrationId, "--home-dir", baseDir]))}\n`,
       );
       if (process.platform === "win32") {
         process.stdout.write(
-          "Windows note: Synara stores this credential under your user profile, but Windows does not expose POSIX 0600 permission checks. Protect the profile and its Synara data directory.\n",
+          "Windows note: Mimir stores this credential under your user profile, but Windows does not expose POSIX 0600 permission checks. Protect the profile and its Mimir data directory.\n",
         );
       }
     }),
-).pipe(Command.withDescription("Pair this CLI with a user-approved Synara MCP integration."));
+).pipe(Command.withDescription("Pair this CLI with a user-approved Mimir MCP integration."));
 
 const serverStatusCommand = Command.make(
   "status",
   {
     url: Flag.string("url").pipe(
-      Flag.withDescription("Synara server base URL to probe."),
+      Flag.withDescription("Mimir server base URL to probe."),
       Flag.optional,
     ),
     json: Flag.boolean("json").pipe(
@@ -711,7 +711,7 @@ const serverStatusCommand = Command.make(
                 error:
                   cause instanceof Error
                     ? cause.message
-                    : "Failed to discover a running Synara server.",
+                    : "Failed to discover a running Mimir server.",
               };
             }
           })();
@@ -737,7 +737,7 @@ const serverStatusCommand = Command.make(
                   error:
                     cause instanceof Error
                       ? cause.message
-                      : "Failed to verify the discovered Synara server.",
+                      : "Failed to verify the discovered Mimir server.",
                 };
               }
             });
@@ -748,15 +748,15 @@ const serverStatusCommand = Command.make(
         process.exitCode = 1;
       }
     }),
-).pipe(Command.withDescription("Check whether a Synara server is reachable and ready."));
+).pipe(Command.withDescription("Check whether a Mimir server is reachable and ready."));
 
 const serverToolsCommand = Command.make("server").pipe(
-  Command.withDescription("Inspect and manage a running Synara server."),
+  Command.withDescription("Inspect and manage a running Mimir server."),
   Command.withSubcommands([serverStatusCommand]),
 );
 
 const mcpCommand = Command.make("mcp").pipe(
-  Command.withDescription("Manage Synara's loopback external MCP bridge."),
+  Command.withDescription("Manage Mimir's loopback external MCP bridge."),
   Command.withSubcommands([mcpServeCommand, mcpPairCommand]),
 );
 

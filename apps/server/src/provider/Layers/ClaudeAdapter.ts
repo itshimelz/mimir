@@ -1366,7 +1366,7 @@ export const buildEmbeddedClaudeSystemPromptAppend = (
   enableComputerControl = false,
 ) =>
   [
-    "You are running inside Synara, a coding app that embeds the Claude Agent SDK.",
+    "You are running inside Mimir, a coding app that embeds the Claude Agent SDK.",
     "Do not present the host app as Claude Code unless the user is explicitly asking about Claude Code.",
     "Treat the current working directory as the active workspace for the task.",
     "When the user asks about the current project, codebase, or repository, proactively inspect files in the current working directory before asking the user where to look.",
@@ -7174,7 +7174,7 @@ function makeClaudeAdapter(options?: ClaudeAdapterLiveOptions) {
             provider: PROVIDER,
             operation: "forkThread",
             issue:
-              "The source Claude session has a turn in flight; Synara will rebuild the fork from its retained transcript.",
+              "The source Claude session has a turn in flight; Mimir will rebuild the fork from its retained transcript.",
           });
         }
         const claudeOptions = input.providerOptions?.claudeAgent;
@@ -7188,7 +7188,7 @@ function makeClaudeAdapter(options?: ClaudeAdapterLiveOptions) {
             provider: PROVIDER,
             operation: "forkThread",
             issue:
-              "A stopped account-scoped Claude session cannot be forked safely through the default SDK store; Synara will rebuild the fork from its retained transcript.",
+              "A stopped account-scoped Claude session cannot be forked safely through the default SDK store; Mimir will rebuild the fork from its retained transcript.",
           });
         }
         const sourceState = readClaudeResumeState(input.sourceResumeCursor);

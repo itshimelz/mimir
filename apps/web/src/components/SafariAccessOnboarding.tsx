@@ -20,8 +20,8 @@ const Decision = Schema.Literals(["unseen", "later", "continued"]);
 const SAFARI_ICON_SRC = "/app-icons/safari.png";
 
 const STATUS = {
-  settingsOpened: "System Settings is open. Once Synara is switched on, quit and reopen it.",
-  appRevealed: "Synara is selected in Finder. Drag it into the Full Disk Access list.",
+  settingsOpened: "System Settings is open. Once Mimir is switched on, quit and reopen it.",
+  appRevealed: "Mimir is selected in Finder. Drag it into the Full Disk Access list.",
   openFailed: "Couldn't open it automatically. It lives in System Settings › Privacy & Security.",
 } as const;
 

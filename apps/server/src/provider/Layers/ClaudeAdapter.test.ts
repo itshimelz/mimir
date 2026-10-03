@@ -703,14 +703,14 @@ function fakeSlashCommand(entry: string) {
   return alias ? Object.assign(command, { aliases: [alias] }) : command;
 }
 
-describe("Claude Synara harness policy", () => {
+describe("Claude Mimir harness policy", () => {
   it("advertises scoped MCP additively when credentials are available", () => {
     const text = buildEmbeddedClaudeSystemPromptAppend(true);
     assert.include(text, SYNARA_HARNESS_POLICY_MARKER);
     assert.include(text, "Final responses must restate every needed scope");
     assert.include(text, "include all decision context");
     assert.include(text, "Use the synara_* tools");
-    assert.notInclude(text, "Synara MCP control is unavailable");
+    assert.notInclude(text, "Mimir MCP control is unavailable");
   });
 
   it("stays truthful when scoped MCP credentials are absent", () => {
@@ -718,7 +718,7 @@ describe("Claude Synara harness policy", () => {
     assert.include(text, SYNARA_HARNESS_POLICY_MARKER);
     assert.include(text, "Final responses must restate every needed scope");
     assert.include(text, "include all decision context");
-    assert.include(text, "Synara MCP control is unavailable");
+    assert.include(text, "Mimir MCP control is unavailable");
   });
 });
 
@@ -782,7 +782,7 @@ describe("ClaudeAdapterLive", () => {
     );
   });
 
-  it.effect("starts an environment-only runtime in its Synara-scoped home", () => {
+  it.effect("starts an environment-only runtime in its Mimir-scoped home", () => {
     const harness = makeHarness();
     return Effect.acquireUseRelease(
       Effect.sync(() => {
@@ -913,7 +913,7 @@ describe("ClaudeAdapterLive", () => {
     },
   );
 
-  it.effect("injects the canonical Synara browser MCP into an Opus 4.8 session", () => {
+  it.effect("injects the canonical Mimir browser MCP into an Opus 4.8 session", () => {
     const gateway = makeGatewayCredentialsHarness();
     const harness = makeMultiQueryHarness({ gatewayCredentials: gateway.credentials });
     return Effect.gen(function* () {
@@ -975,7 +975,7 @@ describe("ClaudeAdapterLive", () => {
   });
 
   it.effect(
-    "pre-approves Synara group tools for an opted-in coordinator session while Bash still asks",
+    "pre-approves Mimir group tools for an opted-in coordinator session while Bash still asks",
     () => {
       const gateway = makeGatewayCredentialsHarness();
       const harness = makeMultiQueryHarness({ gatewayCredentials: gateway.credentials });
@@ -1045,7 +1045,7 @@ describe("ClaudeAdapterLive", () => {
     },
   );
 
-  it.effect("keeps Synara group tools on the approval path when the session did not opt in", () => {
+  it.effect("keeps Mimir group tools on the approval path when the session did not opt in", () => {
     const gateway = makeGatewayCredentialsHarness();
     const harness = makeMultiQueryHarness({ gatewayCredentials: gateway.credentials });
     return Effect.gen(function* () {
@@ -1281,9 +1281,9 @@ describe("ClaudeAdapterLive", () => {
       assert.include(systemPrompt.append ?? "", "When spawning subagents");
       assert.include(systemPrompt.append ?? "", "worker-<tier>");
       assert.include(systemPrompt.append ?? "", SYNARA_HARNESS_POLICY_MARKER);
-      assert.include(systemPrompt.append ?? "", "Synara is the host and harness");
+      assert.include(systemPrompt.append ?? "", "Mimir is the host and harness");
       // This characterization harness intentionally omits gateway credentials.
-      assert.include(systemPrompt.append ?? "", "Synara MCP control is unavailable");
+      assert.include(systemPrompt.append ?? "", "Mimir MCP control is unavailable");
     }).pipe(
       Effect.provideService(Random.Random, makeDeterministicRandomService()),
       Effect.provide(harness.layer),
@@ -10342,7 +10342,7 @@ await agent("Draft the spec", { label: "delta-agent", phase: "Two" });
       const promptText = yield* Effect.promise(() =>
         readFirstPromptText(harness.getLastCreateQueryInput()),
       );
-      assert.include(promptText ?? "", "Synara plan mode is active.");
+      assert.include(promptText ?? "", "Mimir plan mode is active.");
       assert.include(promptText ?? "", "<proposed_plan>");
       assert.include(promptText ?? "", "User request:\nplan this for me");
     }).pipe(
@@ -12217,7 +12217,7 @@ describe("Claude explicit native compaction", () => {
           if (native) {
             assert.equal(text, input);
           } else {
-            assert.include(text, "Synara plan mode is active.");
+            assert.include(text, "Mimir plan mode is active.");
           }
         }).pipe(
           Effect.provideService(Random.Random, makeDeterministicRandomService()),

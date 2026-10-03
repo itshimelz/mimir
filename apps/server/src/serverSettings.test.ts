@@ -810,9 +810,9 @@ describe("gateBetaOnlyProviders", () => {
 });
 
 describe("providerDisabledSettingsMessage", () => {
-  it("points Beta-only providers at Synara Beta instead of Settings", () => {
+  it("points Beta-only providers at Mimir Beta instead of Settings", () => {
     expect(providerDisabledSettingsMessage("omp", () => false)).toBe(
-      "Oh My Pi is available in Synara Beta.",
+      "Oh My Pi is available in Mimir Beta.",
     );
     expect(providerDisabledSettingsMessage("codex", (f) => f !== "omp")).toBe(
       "Codex is disabled in Settings > Providers.",

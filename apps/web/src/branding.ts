@@ -1,11 +1,11 @@
-export const APP_BASE_NAME = "Synara";
+export const APP_BASE_NAME = "Mimir";
 const isCanaryDesktop =
-  typeof window !== "undefined" && window.location?.protocol === "synara-canary:";
-const isBetaDesktop = typeof window !== "undefined" && window.location?.protocol === "synara-beta:";
+  typeof window !== "undefined" && window.location?.protocol === "mimir-canary:";
+const isBetaDesktop = typeof window !== "undefined" && window.location?.protocol === "mimir-beta:";
 export const APP_DISPLAY_NAME = isCanaryDesktop
-  ? "Synara Canary"
+  ? "Mimir Canary"
   : isBetaDesktop
-    ? "Synara Beta"
+    ? "Mimir Beta"
     : import.meta.env.DEV
       ? `${APP_BASE_NAME} (Dev)`
       : APP_BASE_NAME;

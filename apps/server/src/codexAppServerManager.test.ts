@@ -415,7 +415,7 @@ function makeAuthMutationFixture(prefix: string, accountId: string, nextAccountI
   };
 }
 
-describe("Codex Synara harness policy", () => {
+describe("Codex Mimir harness policy", () => {
   it("keeps Computer desktop guidance out of base and disabled default/plan instructions", () => {
     const disabledInstructions = [SYNARA_GATEWAY_HARNESS_POLICY];
     for (const interactionMode of ["default", "plan"] as const) {
@@ -433,13 +433,13 @@ describe("Codex Synara harness policy", () => {
         interactionMode,
         enableComputerControl: true,
       })?.settings.developer_instructions;
-      expect(enabled).toContain("## Synara computer use");
+      expect(enabled).toContain("## Mimir computer use");
       expect(enabled).toContain("The computer_* tools are live on this session");
     }
     for (const instructions of disabledInstructions) {
       expect(instructions).not.toContain("Use `Computer Use`");
       expect(instructions).not.toContain("desktop apps, OS settings");
-      expect(instructions).not.toContain("## Synara computer use");
+      expect(instructions).not.toContain("## Mimir computer use");
       expect(instructions).not.toContain("computer_");
     }
   });
@@ -451,7 +451,7 @@ describe("Codex Synara harness policy", () => {
     ]) {
       expect(instructions).toContain(SYNARA_HARNESS_POLICY_MARKER);
       expect(instructions.split(SYNARA_HARNESS_POLICY_MARKER)).toHaveLength(2);
-      expect(instructions).toContain("Synara is the host and harness");
+      expect(instructions).toContain("Mimir is the host and harness");
       expect(instructions).toContain("Final responses must restate every needed scope");
       expect(instructions).toContain("include all decision context");
       expect(instructions).toContain("one exact synara_create_threads plan");
@@ -1347,7 +1347,7 @@ describe("codex CLI version gate", () => {
       writeBinary("0.1.0", "replaced-in-place-by-a-downgrade");
       await expect(
         assertSupportedCodexCliVersion({ binaryPath: "codex", cwd: dir, homePath }),
-      ).rejects.toThrow(/too old for Synara/);
+      ).rejects.toThrow(/too old for Mimir/);
     } finally {
       reset();
       vi.unstubAllEnvs();
@@ -1384,10 +1384,10 @@ describe("codex CLI version gate", () => {
     try {
       await expect(
         assertSupportedCodexCliVersion({ binaryPath, cwd: dir, homePath }),
-      ).rejects.toThrow(/too old for Synara/);
+      ).rejects.toThrow(/too old for Mimir/);
       await expect(
         assertSupportedCodexCliVersion({ binaryPath, cwd: dir, homePath }),
-      ).rejects.toThrow(/too old for Synara/);
+      ).rejects.toThrow(/too old for Mimir/);
       // Failures are re-probed so installing or upgrading Codex takes effect at once.
       expect(probeCount()).toBe(2);
     } finally {
@@ -1491,7 +1491,7 @@ describe("buildCodexProcessEnv", () => {
     }
   });
 
-  it("applies durable section suppressions inside Synara's Codex overlay", async () => {
+  it("applies durable section suppressions inside Mimir's Codex overlay", async () => {
     const tempDir = mkdtempSync(path.join(os.tmpdir(), "synara-codex-env-"));
     const runtimeHome = mkdtempSync(path.join(os.tmpdir(), "synara-runtime-home-"));
     try {
@@ -1630,7 +1630,7 @@ describe("buildCodexProcessEnv", () => {
     }
   });
 
-  it("keeps Codex SQLite state out of Synara's Codex home overlay", async () => {
+  it("keeps Codex SQLite state out of Mimir's Codex home overlay", async () => {
     const tempDir = mkdtempSync(path.join(os.tmpdir(), "synara-codex-env-"));
     const runtimeHome = mkdtempSync(path.join(os.tmpdir(), "synara-runtime-home-"));
     const lstatOrUndefined = (target: string) => {
@@ -1688,7 +1688,7 @@ describe("buildCodexProcessEnv", () => {
     }
   });
 
-  it("repairs stale auth.json files in Synara's Codex home overlay", async () => {
+  it("repairs stale auth.json files in Mimir's Codex home overlay", async () => {
     const tempDir = mkdtempSync(path.join(os.tmpdir(), "synara-codex-env-"));
     const runtimeHome = mkdtempSync(path.join(os.tmpdir(), "synara-runtime-home-"));
     try {
@@ -1800,7 +1800,7 @@ describe("buildCodexProcessEnv", () => {
     }
   });
 
-  it("preserves real generated image directories in Synara's Codex home overlay", async () => {
+  it("preserves real generated image directories in Mimir's Codex home overlay", async () => {
     const tempDir = mkdtempSync(path.join(os.tmpdir(), "synara-codex-env-"));
     const runtimeHome = mkdtempSync(path.join(os.tmpdir(), "synara-runtime-home-"));
     try {
@@ -4858,7 +4858,7 @@ describe("MCP tool call elicitation approvals", () => {
     turnId: "turn_mcp",
     serverName: "synara",
     mode: "form",
-    message: "Allow Synara to launch the calculator?",
+    message: "Allow Mimir to launch the calculator?",
     requestedSchema: { type: "object", properties: {} },
     _meta: {
       codex_approval_kind: "mcp_tool_call",
@@ -4881,7 +4881,7 @@ describe("MCP tool call elicitation approvals", () => {
     return { ...harness, context };
   }
 
-  it("delegates exact active Synara Computer calls to gateway consent without persistent permission", async () => {
+  it("delegates exact active Mimir Computer calls to gateway consent without persistent permission", async () => {
     const { manager, context, emitEvent, writeMessage } = computerApprovalHarness();
     for (const toolName of ["computer_click", "computer_type_text", "computer_read_clipboard"]) {
       const params = approvalParams();
@@ -5117,7 +5117,7 @@ describe("MCP tool call elicitation approvals", () => {
       expect.objectContaining({
         kind: "error",
         method: "mcpServer/elicitation/request/unrenderable",
-        message: "Synara declined an MCP elicitation it cannot render yet.",
+        message: "Mimir declined an MCP elicitation it cannot render yet.",
       }),
     );
   });

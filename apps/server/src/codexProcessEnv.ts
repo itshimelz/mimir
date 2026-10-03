@@ -255,7 +255,7 @@ function parseManagedCodexConfig(config: string): {
     root = parseToml(config) as Record<string, unknown>;
   } catch (error) {
     throw new Error(
-      "Codex config.toml must be valid TOML so Synara can verify managed account state safely.",
+      "Codex config.toml must be valid TOML so Mimir can verify managed account state safely.",
       { cause: error },
     );
   }
@@ -289,7 +289,7 @@ function assertCodexSqliteHomeMatchesSource(input: {
   ) {
     const displayPath = typeof configured === "string" && configured ? configured : "<invalid>";
     throw new Error(
-      `Codex config sqlite_home at ${displayPath} must resolve to the source CODEX_HOME ${path.resolve(input.sourceHomePath)} so Synara account overlays share one continuation database.`,
+      `Codex config sqlite_home at ${displayPath} must resolve to the source CODEX_HOME ${path.resolve(input.sourceHomePath)} so Mimir account overlays share one continuation database.`,
     );
   }
 }
@@ -317,7 +317,7 @@ function assertManagedCodexHomeUsesObservableAuth(input: {
   if (mode !== "keyring" && mode !== "auto") return;
   const accountLabel = input.accountId?.trim() || "default";
   throw new Error(
-    `Codex account '${accountLabel}' uses cli_auth_credentials_store = "${mode}". Synara-managed Codex homes require file-backed Codex auth so account changes can invalidate long-lived app-server sessions; set the root cli_auth_credentials_store = "file" before starting this account.`,
+    `Codex account '${accountLabel}' uses cli_auth_credentials_store = "${mode}". Mimir-managed Codex homes require file-backed Codex auth so account changes can invalidate long-lived app-server sessions; set the root cli_auth_credentials_store = "file" before starting this account.`,
   );
 }
 

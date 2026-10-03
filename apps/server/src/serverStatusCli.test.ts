@@ -29,7 +29,7 @@ describe("server status CLI probe", () => {
       },
     });
     expect(formatSynaraServerStatus(result)).toBe(
-      "Synara server: ready\nURL: http://127.0.0.1:3773\nProjection: healthy",
+      "Mimir server: ready\nURL: http://127.0.0.1:3773\nProjection: healthy",
     );
   });
 
@@ -44,7 +44,7 @@ describe("server status CLI probe", () => {
     });
 
     expect(result).toMatchObject({ reachable: true, ready: false });
-    expect(formatSynaraServerStatus(result)).toContain("Synara server: starting");
+    expect(formatSynaraServerStatus(result)).toContain("Mimir server: starting");
   });
 
   it("distinguishes an unhealthy projection from a server that is still starting", async () => {
@@ -58,7 +58,7 @@ describe("server status CLI probe", () => {
     });
 
     expect(result).toMatchObject({ reachable: true, ready: false });
-    expect(formatSynaraServerStatus(result)).toContain("Synara server: not ready");
+    expect(formatSynaraServerStatus(result)).toContain("Mimir server: not ready");
   });
 
   it("treats an unknown or missing projection health state as not ready", async () => {
@@ -119,7 +119,7 @@ describe("server status CLI probe", () => {
     ).resolves.toMatchObject({
       reachable: false,
       ready: false,
-      error: "Health response did not match the Synara health shape.",
+      error: "Health response did not match the Mimir health shape.",
     });
   });
 
@@ -144,6 +144,6 @@ describe("server status CLI probe", () => {
       ready: false,
       error: "connection refused",
     });
-    expect(formatSynaraServerStatus(result)).toContain("Synara server: unreachable");
+    expect(formatSynaraServerStatus(result)).toContain("Mimir server: unreachable");
   });
 });

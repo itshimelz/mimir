@@ -36,7 +36,7 @@ export function ProjectSourceSegmentedPicker(props: {
           disabled: !props.githubAvailable,
           ...(props.githubAvailable
             ? {}
-            : { title: "Update the Synara server to add GitHub projects." }),
+            : { title: "Update the Mimir server to add GitHub projects." }),
         },
       ]}
     />

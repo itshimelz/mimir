@@ -6,7 +6,7 @@
       "layers": [
         {
           "image-name": "glyph.png",
-          "name": "Y",
+          "name": "Owl",
           "glass": true
         }
       ],
@@ -25,7 +25,7 @@
       "layers": [
         {
           "image-name": "background.png",
-          "name": "Background"
+          "name": "Owl"
         }
       ],
       "shadow": {

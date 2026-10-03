@@ -23,6 +23,10 @@ import {
   selectProfileTopProvider,
 } from "../profile/profileSelectors";
 import { ProfileUsageCoverage } from "../profile/ProfileUsageCoverage";
+import {
+  SHARE_CARD_UNAVAILABLE_FEATURE,
+  isFeatureAvailable,
+} from "@synara/shared/unavailableFeatures";
 import { ShareDialog } from "../profile/ShareDialog";
 import { EditProfileDialog } from "../profile/EditProfileDialog";
 import { useProfileHandle } from "../profile/useProfileHandle";
@@ -97,10 +101,12 @@ function ProfileContent({
     <div className="flex min-w-0 flex-col gap-7">
       {/* Action row */}
       <div className="flex items-center justify-end gap-2">
-        <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
-          <CentralIcon name="share-os" />
-          Share
-        </Button>
+        {isFeatureAvailable(SHARE_CARD_UNAVAILABLE_FEATURE) ? (
+          <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+            <CentralIcon name="share-os" />
+            Share
+          </Button>
+        ) : null}
         <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
           <CentralIcon name="pencil" />
           Edit
@@ -374,7 +380,7 @@ function ModelUsageRow({
       </div>
       <div className="h-1 w-full overflow-hidden rounded-full bg-muted">
         <div
-          className="h-full rounded-full bg-[var(--info)]"
+          className="h-full rounded-full bg-info"
           style={{ width: `${Math.min(100, Math.max(2, percent))}%` }}
         />
       </div>
@@ -390,7 +396,7 @@ function ProfileSkeleton() {
         <Skeleton className="h-6 w-40" />
         <Skeleton className="h-3 w-24" />
       </div>
-      <Skeleton className="h-[72px] w-full rounded-2xl" />
+      <Skeleton className="h-18 w-full rounded-2xl" />
       <Skeleton className="h-24 w-full rounded-lg" />
       <div className="grid w-full gap-7 md:grid-cols-2">
         <Skeleton className="h-40 w-full rounded-lg" />

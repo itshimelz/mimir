@@ -173,7 +173,7 @@ const OMP_MODEL_DISCOVERY_CACHE_MS = 5 * 60_000;
 const OMP_MODEL_DISCOVERY_TIMEOUT_MS = 30_000;
 const OMP_DISCOVERY_CACHE_MAX_ENTRIES = 16;
 const OMP_PLAN_MODE_PROMPT_PREFIX = [
-  "Synara OMP plan mode is active.",
+  "Mimir OMP plan mode is active.",
   "Do not implement or mutate files in this turn.",
   "Do not ask follow-up questions or wait for confirmation; if scope is ambiguous, choose a reasonable default and state the assumption in the plan.",
   "When ready, create the final implementation plan.",
@@ -913,7 +913,7 @@ export function makeOmpAdapter(
             cwd,
             ...(resumeSessionId ? { resumeSessionId } : {}),
             clientCapabilities: { elicitation: { form: {} } },
-            clientInfo: { name: "Synara", version: "0.0.0" },
+            clientInfo: { name: "Mimir", version: "0.0.0" },
             ...(agentGatewayCredentials
               ? {
                   buildMcpServers: (initializeResult: Acp.InitializeResponse) =>
@@ -1083,7 +1083,7 @@ export function makeOmpAdapter(
               provider: PROVIDER,
               method: "session/resume",
               detail:
-                "Omp could not resume the requested native session. Synara refused the fresh fallback to avoid silently losing conversation context.",
+                "Omp could not resume the requested native session. Mimir refused the fresh fallback to avoid silently losing conversation context.",
             });
           }
 
@@ -2050,7 +2050,7 @@ export function makeOmpAdapter(
                 provider: PROVIDER,
                 operation: "forkThread",
                 issue:
-                  "This Omp ACP version does not advertise session/fork; Synara will rebuild the fork from its retained transcript.",
+                  "This Omp ACP version does not advertise session/fork; Mimir will rebuild the fork from its retained transcript.",
               });
             }
             return yield* runtime.forkSession({ cwd: targetCwd, mcpServers: [] });
@@ -2072,7 +2072,7 @@ export function makeOmpAdapter(
             provider: PROVIDER,
             operation: "forkThread",
             issue:
-              "The source Omp session has a turn in flight; Synara will rebuild the fork from its retained transcript.",
+              "The source Omp session has a turn in flight; Mimir will rebuild the fork from its retained transcript.",
           });
         }
         const forked = activeSource
@@ -2104,7 +2104,7 @@ export function makeOmpAdapter(
                 childProcessSpawner,
                 cwd: sourceCwd,
                 resumeSessionId: sourceSessionId,
-                clientInfo: { name: "Synara Fork", version: "0.0.0" },
+                clientInfo: { name: "Mimir Fork", version: "0.0.0" },
               });
               yield* runtime.start().pipe(
                 Effect.timeoutOption(OMP_ACP_REQUEST_TIMEOUT_MS),
@@ -2338,7 +2338,7 @@ export function makeOmpAdapter(
             ...(input.agentDir ? { agentDir: input.agentDir } : {}),
             account,
             cwd,
-            clientName: "Synara Command Discovery",
+            clientName: "Mimir Command Discovery",
           });
           yield* runtime.start();
           let commands = yield* runtime.getAvailableCommands;

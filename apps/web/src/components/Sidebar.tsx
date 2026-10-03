@@ -1235,7 +1235,7 @@ function SidebarActivityBellButton({
 }
 
 const SIDEBAR_SURFACE_PICKER_COPY: Record<SidebarView, { title: string; description: string }> = {
-  threads: { title: "Synara", description: "Build, debug, and ship" },
+  threads: { title: "Mimir", description: "Build, debug, and ship" },
   groups: { title: "Hubs", description: "Coordinated work across repos" },
 };
 
@@ -6360,7 +6360,7 @@ export default function Sidebar() {
       {
         id: "import-projects",
         label: "Import projects from…",
-        description: "Bring Codex and Claude Code projects and conversations into Synara.",
+        description: "Bring Codex and Claude Code projects and conversations into Mimir.",
         keywords: ["import", "projects", "codex", "claude", "conversations", "folders"],
       },
       {
@@ -6381,8 +6381,8 @@ export default function Sidebar() {
       },
       {
         id: "feedback",
-        label: "Feedback Synara",
-        description: "Send feedback or report an issue to the Synara team.",
+        label: "Feedback Mimir",
+        description: "Send feedback or report an issue to the Mimir team.",
         keywords: ["feedback", "bug", "issue", "problem", "report", "support", "synara"],
       },
       {
@@ -6470,7 +6470,7 @@ export default function Sidebar() {
             toastManager.add({
               type: "info",
               title: "Preparing update",
-              description: `Synara is preparing version ${nextState.availableVersion ?? "available"} in the background.`,
+              description: `Mimir is preparing version ${nextState.availableVersion ?? "available"} in the background.`,
             });
             return;
           }
@@ -6479,7 +6479,7 @@ export default function Sidebar() {
             toastManager.add({
               type: "info",
               title: "Preparing update",
-              description: "Synara is downloading the update in the background.",
+              description: "Mimir is downloading the update in the background.",
             });
             return;
           }
@@ -6497,7 +6497,7 @@ export default function Sidebar() {
             toastManager.add({
               type: "info",
               title: "You're up to date",
-              description: `Synara ${nextState.currentVersion} is already the newest version.`,
+              description: `Mimir ${nextState.currentVersion} is already the newest version.`,
             });
             return;
           }
@@ -6650,7 +6650,7 @@ export default function Sidebar() {
 
   const betaBadge = isBetaDesktopFlavor ? (
     <span
-      aria-label="Synara Beta"
+      aria-label="Mimir Beta"
       className="inline-flex shrink-0 items-center rounded-full bg-[var(--beta-pill)] px-1.5 py-0.5 text-ui-xs font-semibold leading-none text-[var(--beta-pill-ink)]"
     >
       Beta

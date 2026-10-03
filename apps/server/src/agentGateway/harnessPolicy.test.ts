@@ -9,7 +9,7 @@ import {
   takeSynaraHarnessPolicyForSession,
 } from "./harnessPolicy.ts";
 
-describe("Synara harness policy", () => {
+describe("Mimir harness policy", () => {
   it("defers duplicate automation authoring text while preserving tool routing and run rules", () => {
     const inline = renderSynaraHarnessPolicy({ gatewayControlAvailable: true });
     const deferred = renderSynaraHarnessPolicy({
@@ -40,10 +40,10 @@ describe("Synara harness policy", () => {
     );
   });
 
-  it("identifies Synara and explains exact batch coordination when MCP is available", () => {
+  it("identifies Mimir and explains exact batch coordination when MCP is available", () => {
     const policy = renderSynaraHarnessPolicy({ gatewayControlAvailable: true });
     assert.include(policy, SYNARA_HARNESS_POLICY_MARKER);
-    assert.include(policy, "Synara is the host and harness");
+    assert.include(policy, "Mimir is the host and harness");
     assert.include(policy, "one exact synara_create_threads plan");
     assert.include(policy, "before returning an operationId");
     assert.include(policy, "synara_wait_for_threads");
@@ -57,7 +57,7 @@ describe("Synara harness policy", () => {
     assert.include(policy, "Detailed rules live in each tool description");
     assert.notInclude(policy, "BrowserInterruptedByHuman");
     assert.notInclude(policy, "start with browser_open");
-    assert.include(policy, "do not create Synara threads");
+    assert.include(policy, "do not create Mimir threads");
     assert.include(policy, "specific 3–8 word outcome label");
     assert.include(policy, "Assume no chat context");
     assert.include(policy, "notify-versus-silent criteria");
@@ -91,7 +91,7 @@ describe("Synara harness policy", () => {
 
   it("never advertises gateway mutation to providers without scoped MCP", () => {
     const policy = renderSynaraHarnessPolicy({ gatewayControlAvailable: false });
-    assert.include(policy, "Synara MCP control is unavailable");
+    assert.include(policy, "Mimir MCP control is unavailable");
     assert.notInclude(policy, "one exact synara_create_threads plan");
   });
 
@@ -121,7 +121,7 @@ describe("Synara harness policy", () => {
           { provider, scopedGatewayConnectionAvailable: false },
         ) ?? "";
       assert.include(text, SYNARA_HARNESS_POLICY_MARKER, provider);
-      assert.include(text, "Synara MCP control is unavailable", provider);
+      assert.include(text, "Mimir MCP control is unavailable", provider);
       assert.notInclude(text, "one exact synara_create_threads plan", provider);
     }
   });
@@ -158,10 +158,10 @@ describe("Synara harness policy", () => {
         });
         const scope = `${gatewayControlAvailable}/${enableComputerControl}`;
         if (gatewayControlAvailable && enableComputerControl === true) {
-          assert.include(policy, "## Synara computer use", scope);
+          assert.include(policy, "## Mimir computer use", scope);
           assert.include(policy, "The computer_* tools are live on this session", scope);
         } else {
-          assert.notInclude(policy, "## Synara computer use", scope);
+          assert.notInclude(policy, "## Mimir computer use", scope);
           assert.notInclude(policy, "computer_", scope);
           assert.notInclude(policy, "turn Computer control on in Settings", scope);
         }
@@ -192,7 +192,7 @@ it("adds Computer guidance only for an explicitly enabled scoped session across 
       { provider, scopedGatewayConnectionAvailable: true },
     );
     assert.strictEqual(off, explicitOff);
-    assert.notInclude(off ?? "", "## Synara computer use");
+    assert.notInclude(off ?? "", "## Mimir computer use");
     assert.notInclude(off ?? "", "computer_", provider);
     const state = { enableComputerControl: true };
     const on =
@@ -200,7 +200,7 @@ it("adds Computer guidance only for an explicitly enabled scoped session across 
         provider,
         scopedGatewayConnectionAvailable: true,
       }) ?? "";
-    assert.equal(on.split("## Synara computer use").length - 1, 1, provider);
+    assert.equal(on.split("## Mimir computer use").length - 1, 1, provider);
     assert.include(on, "never replay it");
     assert.isNull(
       takeSynaraHarnessPolicyForProviderSession(state, {
@@ -213,7 +213,7 @@ it("adds Computer guidance only for an explicitly enabled scoped session across 
         { enableComputerControl: true },
         { provider, scopedGatewayConnectionAvailable: false },
       ) ?? "",
-      "## Synara computer use",
+      "## Mimir computer use",
     );
   }
 });

@@ -72,7 +72,7 @@ describe("GrokAdapter runtime event scoping", () => {
     expect(env.HTTPS_PROXY).toBe("http://proxy.example");
   });
 
-  it("uses the configured Synara state root for nondefault discovery without env", () => {
+  it("uses the configured Mimir state root for nondefault discovery without env", () => {
     const stateDir = mkdtempSync(join(tmpdir(), "synara-grok-discovery-"));
     const env = buildGrokModelDiscoveryEnv({
       instanceId: "grok_work",
@@ -114,7 +114,7 @@ describe("Grok native plan approval", () => {
         text: "Design the change",
         interactionMode: "plan",
       }),
-    ).toMatch(/^Synara requested Grok's native plan mode\./u);
+    ).toMatch(/^Mimir requested Grok's native plan mode\./u);
   });
 
   it("sets Grok's native prompt mode idempotently on every turn", () => {
@@ -203,11 +203,11 @@ describe("Grok native plan approval", () => {
     expect(extractGrokExitPlanMarkdown(request)).toBeUndefined();
   });
 
-  it("keeps native plan mode gated after Synara captures the plan", () => {
+  it("keeps native plan mode gated after Mimir captures the plan", () => {
     expect(makeGrokExitPlanModeCapturedResponse()).toEqual({
       outcome: "cancelled",
       feedback:
-        "Synara captured this plan for user review. Do not revise or implement it now. End this turn and wait for the user's next message.",
+        "Mimir captured this plan for user review. Do not revise or implement it now. End this turn and wait for the user's next message.",
     });
   });
 
@@ -258,7 +258,7 @@ describe("Grok native user questions", () => {
     ]);
   });
 
-  it("maps Synara answers to Grok's question-text keyed response", () => {
+  it("maps Mimir answers to Grok's question-text keyed response", () => {
     expect(extractGrokUserInputQuestions(request)[0]).toMatchObject({
       id: "grok-question-0",
       header: "Verification",

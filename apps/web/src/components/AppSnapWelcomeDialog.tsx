@@ -85,7 +85,7 @@ export function AppSnapWelcomeDialog() {
           <CentralIcon name="screen-capture" className="size-8" />
         </span>
       }
-      title="Synara AppSnaps are live!"
+      title="Mimir AppSnaps are live!"
       description={
         <>
           Press both Option keys (⌥&thinsp;⌥) to snap any app&rsquo;s window into the task

@@ -69,7 +69,7 @@ describe("outbound HTTP policy", () => {
       { maxBytes: 1_024 },
     );
     const body = new TextDecoder().decode(multipart.body);
-    expect(multipart.contentType).toMatch(/^multipart\/form-data; boundary=Synara-/u);
+    expect(multipart.contentType).toMatch(/^multipart\/form-data; boundary=Mimir-/u);
     expect(body).toContain('name="file"; filename="voice.wav"');
     expect(() =>
       encodeOutboundMultipart([{ name: "file", body: "oversize" }], { maxBytes: 4 }),

@@ -45,7 +45,7 @@ export function useThreadUnblock(input: {
       void (async () => {
         try {
           const api = readNativeApi();
-          if (!api) throw new Error("Not connected to the Synara server.");
+          if (!api) throw new Error("Not connected to the Mimir server.");
           const result = await unblockThreadFromClient(api.orchestration, resolvedThreadId);
           onUnblocked(resolvedThreadId);
           toastManager.add(describeThreadUnblockResult(result));

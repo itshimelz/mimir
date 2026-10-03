@@ -185,7 +185,7 @@ const CURSOR_ACP_SESSION_MODE_ALIASES = {
   approval: ACP_APPROVAL_MODE_ALIASES,
 } as const;
 const CURSOR_PLAN_MODE_PROMPT_PREFIX = [
-  "Synara Cursor plan mode is active.",
+  "Mimir Cursor plan mode is active.",
   "Do not implement or mutate files in this turn.",
   "Do not ask follow-up questions or wait for confirmation; if scope is ambiguous, choose a reasonable default and state the assumption in the plan.",
   "When ready, create the final implementation plan.",
@@ -797,7 +797,7 @@ export function makeCursorAdapter(
             childProcessSpawner,
             cwd,
             ...(resumeSessionId ? { resumeSessionId } : {}),
-            clientInfo: { name: "Synara", version: "0.0.0" },
+            clientInfo: { name: "Mimir", version: "0.0.0" },
             startupTimeouts: CURSOR_ACP_STARTUP_TIMEOUTS,
             ...(agentGatewayCredentials
               ? {
@@ -1773,7 +1773,7 @@ export function makeCursorAdapter(
           cursorSettings: effectiveAcpSettings,
           childProcessSpawner,
           cwd: process.cwd(),
-          clientInfo: { name: "Synara", version: "0.0.0" },
+          clientInfo: { name: "Mimir", version: "0.0.0" },
         });
         const started = yield* runtime.start();
         const models = yield* fetchCursorAcpModelDescriptors(runtime, started.sessionId);
@@ -1864,7 +1864,7 @@ export function makeCursorAdapter(
             runtime,
             targetCwd,
             unsupportedIssue:
-              "This Cursor ACP version does not advertise session/fork; Synara will rebuild the fork from its retained transcript.",
+              "This Cursor ACP version does not advertise session/fork; Mimir will rebuild the fork from its retained transcript.",
             requestTimeoutMs: CURSOR_ACP_FORK_TIMEOUT_MS,
             timeoutError: cursorForkTimeoutError,
           });
@@ -1877,7 +1877,7 @@ export function makeCursorAdapter(
             provider: PROVIDER,
             operation: "forkThread",
             issue:
-              "The source Cursor session has a turn in flight; Synara will rebuild the fork from its retained transcript.",
+              "The source Cursor session has a turn in flight; Mimir will rebuild the fork from its retained transcript.",
           });
         }
         const forked = activeSource
@@ -1913,7 +1913,7 @@ export function makeCursorAdapter(
                 childProcessSpawner,
                 cwd: sourceCwd,
                 resumeSessionId: sourceSessionId,
-                clientInfo: { name: "Synara Fork", version: "0.0.0" },
+                clientInfo: { name: "Mimir Fork", version: "0.0.0" },
                 startupTimeouts: CURSOR_ACP_STARTUP_TIMEOUTS,
               });
               yield* runtime.start().pipe(

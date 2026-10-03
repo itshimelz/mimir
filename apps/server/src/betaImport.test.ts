@@ -368,7 +368,7 @@ describe("runBetaImportIfRequested", () => {
     expect(existsSync(join(betaHome, BETA_IMPORT_REQUEST_FILE_NAME))).toBe(false);
   });
 
-  it("refuses a source that is not the Synara data folder", async () => {
+  it("refuses a source that is not the Mimir data folder", async () => {
     const root = await seedStableHome(makeRoot());
     const betaHome = join(root, ".synara-beta");
     const betaState = join(betaHome, "userdata");
@@ -379,7 +379,7 @@ describe("runBetaImportIfRequested", () => {
       { allowedSourceHomes: [join(root, "..", "somewhere-else")] },
     );
     expect(outcome.ok).toBe(false);
-    expect(outcome.error).toContain("not the Synara data folder");
+    expect(outcome.error).toContain("not the Mimir data folder");
     expect(existsSync(join(betaState, "state.sqlite"))).toBe(false);
   });
 
@@ -399,7 +399,7 @@ describe("runBetaImportIfRequested", () => {
       { latestMigrationId: 50 },
     );
     expect(outcome.ok).toBe(false);
-    expect(outcome.error).toContain("Update Synara Beta");
+    expect(outcome.error).toContain("Update Mimir Beta");
     expect(existsSync(join(betaState, "state.sqlite"))).toBe(false);
     expect(existsSync(join(betaState, "settings.json"))).toBe(false);
   });

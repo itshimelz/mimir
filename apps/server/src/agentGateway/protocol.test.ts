@@ -76,7 +76,7 @@ describe("agent gateway MCP protocol", () => {
     assert.equal(result.instructions, "use the tools");
     assert.deepEqual(result.serverInfo, {
       name: "synara",
-      title: "Synara App Control",
+      title: "Mimir App Control",
       version: "1.2.3",
     });
   });

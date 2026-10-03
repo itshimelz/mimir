@@ -6251,7 +6251,7 @@ layer("Stable saved Groups automations", (it) => {
         const savedDefinition = yield* repository.getDefinitionById({ id: definition.id });
         const result = yield* service.runNow({ automationId: definition.id }).pipe(Effect.result);
         assert.equal(result._tag, "Failure");
-        if (result._tag === "Failure") assert.match(result.failure.message, /Synara Beta/);
+        if (result._tag === "Failure") assert.match(result.failure.message, /Mimir Beta/);
         assert.deepEqual(
           yield* repository.getDefinitionById({ id: definition.id }),
           savedDefinition,

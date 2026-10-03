@@ -15,14 +15,14 @@ import { pngDimensions } from "../../../server/src/pngHeader";
 export async function runLiveFixture(directory: string, binaryPath: string) {
   const serverEntry = process.env.SYNARA_CUA_FIXTURE_SERVER;
   if (!serverEntry?.endsWith("/apps/server/dist/index.mjs"))
-    throw new Error("An explicit built Synara server is required.");
+    throw new Error("An explicit built Mimir server is required.");
   await readFile(serverEntry);
   await mkdir(directory, { recursive: true, mode: 0o700 });
   const workspace = join(directory, "workspace");
   await mkdir(workspace, { recursive: true });
   await writeFile(
     join(workspace, "README.md"),
-    "Owned Synara Computer integration fixture. No repository changes are needed.\n",
+    "Owned Mimir Computer integration fixture. No repository changes are needed.\n",
   );
   const calls: Array<Record<string, unknown>> = [];
   const report: Record<string, unknown> = {
@@ -44,7 +44,7 @@ export async function runLiveFixture(directory: string, binaryPath: string) {
     return persistence;
   };
   await app.whenReady();
-  const title = `Synara Cua Live Fixture ${process.pid}`;
+  const title = `Mimir Cua Live Fixture ${process.pid}`;
   const target = new BrowserWindow({
     title,
     width: 600,
@@ -389,13 +389,9 @@ export async function runLiveFixture(directory: string, binaryPath: string) {
     // login shell with a 5 s execFileSync timeout before the HTTP listener and
     // the readiness marker land. 120 s bounds that without hiding a wedged
     // server — the wait still exits as soon as the marker appears.
-    for (
-      let attempt = 0;
-      attempt < 1200 && !exited && !output.includes("Synara running");
-      attempt++
-    )
+    for (let attempt = 0; attempt < 1200 && !exited && !output.includes("Mimir running"); attempt++)
       await pause(100);
-    if (!output.includes("Synara running"))
+    if (!output.includes("Mimir running"))
       throw new Error("Live fixture server failed to become ready.");
     report.server = {
       pid: server.pid,

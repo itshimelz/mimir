@@ -71,7 +71,7 @@ describe("normalizeCompactToolLabel", () => {
   });
 });
 
-describe("deriveSynaraMcpToolTitle", () => {
+describe("deriveMimirMcpToolTitle", () => {
   it.each([["browser_run", "Run browser actions"]])(
     "keeps current and historical %s messages readable",
     (toolName, title) => {
@@ -80,7 +80,7 @@ describe("deriveSynaraMcpToolTitle", () => {
     },
   );
 
-  it("uses stable action-first names for Synara browser tools", () => {
+  it("uses stable action-first names for Mimir browser tools", () => {
     for (const status of ["running", "completed", "failed"] as const) {
       expect(
         deriveSynaraMcpToolTitle({
@@ -98,16 +98,16 @@ describe("deriveSynaraMcpToolTitle", () => {
     ).toBe("Snapshot browser page");
   });
 
-  it("recognizes bare and already-humanized Synara tool names", () => {
+  it("recognizes bare and already-humanized Mimir tool names", () => {
     expect(deriveSynaraMcpToolTitle({ toolName: "synara_send_message", status: "running" })).toBe(
-      "Synara is sending a message",
+      "Mimir is sending a message",
     );
     expect(
       deriveSynaraMcpToolTitle({ title: "Synara: Synara List Threads", status: "completed" }),
-    ).toBe("Synara listed threads");
+    ).toBe("Mimir listed threads");
     expect(
       deriveSynaraMcpToolTitle({ toolName: "synara_create_thread", status: "cancelled" }),
-    ).toBe("Synara stopped creating a thread");
+    ).toBe("Mimir stopped creating a thread");
   });
 
   it("ignores tools from other MCP servers", () => {
@@ -119,71 +119,71 @@ describe("deriveSynaraMcpToolTitle", () => {
     ).toBeNull();
   });
 
-  it("keeps future Synara actions branded without exposing raw identifiers", () => {
+  it("keeps future Mimir actions branded without exposing raw identifiers", () => {
     expect(
       deriveSynaraMcpToolTitle({
         toolName: "mcp__synara__synara_delete_project",
         status: "running",
       }),
-    ).toBe("Synara is handling delete project");
+    ).toBe("Mimir is handling delete project");
     expect(
       deriveSynaraMcpToolTitle({
         toolName: "Synara__synara_delete_project",
         status: "completed",
       }),
-    ).toBe("Synara handled delete project");
+    ).toBe("Mimir handled delete project");
     expect(
       deriveSynaraMcpToolTitle({
         toolName: "synara_is_handling_delete_project",
         status: "completed",
       }),
-    ).toBe("Synara handled delete project");
+    ).toBe("Mimir handled delete project");
   });
 
   it("does not reinterpret free text beginning with fallback status copy", () => {
     expect(
       deriveSynaraMcpToolTitle({
-        title: "Synara is handling delete project after recovery",
+        title: "Mimir is handling delete project after recovery",
         status: "completed",
       }),
     ).toBeNull();
     expect(
       deriveSynaraMcpToolTitle({
-        title: "Synara handled delete project after recovery",
+        title: "Mimir handled delete project after recovery",
         status: "running",
       }),
     ).toBeNull();
     expect(
       deriveSynaraMcpToolTitle({
-        title: "Synara couldn't handle delete project after recovery",
+        title: "Mimir couldn't handle delete project after recovery",
         status: "failed",
       }),
     ).toBeNull();
   });
 
-  it("removes transport identifiers without hiding meaningful Synara details", () => {
+  it("removes transport identifiers without hiding meaningful Mimir details", () => {
     expect(
       sanitizeSynaraMcpToolPreview({
         preview: "Synara__synara_create_threads",
-        heading: "Synara created threads",
+        heading: "Mimir created threads",
         status: "completed",
       }),
     ).toBeNull();
     expect(
       sanitizeSynaraMcpToolPreview({
         preview: 'Unexpected key "reasoningEffort" for Claude Agent',
-        heading: "Synara couldn't create threads",
+        heading: "Mimir couldn't create threads",
         status: "failed",
       }),
     ).toBe('Unexpected key "reasoningEffort" for Claude Agent');
   });
 });
 
-describe("isSynaraBrowserToolCall", () => {
+describe("isMimirBrowserToolCall", () => {
   it("recognizes canonical presentation titles without a tool identifier", () => {
     expect(isSynaraBrowserToolCall({ title: "Open browser tab" })).toBe(true);
     expect(isSynaraBrowserToolCall({ fallbackLabel: "Snapshot browser page" })).toBe(true);
-    expect(isSynaraBrowserToolCall({ title: "Synara listed threads" })).toBe(false);
+    expect(isSynaraBrowserToolCall({ title: "Mimir listed threads" })).toBe(false);
   });
 });
 

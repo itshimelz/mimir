@@ -24,7 +24,7 @@ function scratchOwnerSegment(homeDirectory = homedir()): string {
 function scratchCacheRoot(homeDirectory: string, platform: NodeJS.Platform): string {
   if (platform === "darwin") return path.join(homeDirectory, "Library", "Caches", "synara");
   if (platform === "win32") {
-    return path.join(homeDirectory, "AppData", "Local", "Synara", "Cache");
+    return path.join(homeDirectory, "AppData", "Local", "Mimir", "Cache");
   }
   return path.join(homeDirectory, ".cache", "synara");
 }

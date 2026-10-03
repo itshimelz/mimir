@@ -34,11 +34,11 @@ if (
 )
   throw new Error("An explicit temporary fixture directory and driver binary are required.");
 app.setPath("userData", join(directory, "electron-profile"));
-app.setName("Synara Cua Fixture");
+app.setName("Mimir Cua Fixture");
 // Closing the last target is itself a test case; keep its runner alive until
 // the refused action, native target and report teardown have completed.
 app.on("window-all-closed", () => undefined);
-const nonce = `Synara Cua Fixture ${process.pid}`;
+const nonce = `Mimir Cua Fixture ${process.pid}`;
 const report: Record<string, unknown> = {
   fixtureRevision: 12,
   fixture: nonce,
@@ -115,7 +115,7 @@ async function main() {
     y: 330,
     show: false,
   });
-  const html = `<!doctype html><title>${nonce} A</title><style>body{font:18px system-ui;padding:24px}button,input{font:20px system-ui;margin:14px;padding:12px}</style><h1>Synara controlled fixture</h1><button id="counter">Click counter: 0</button><input id="text" aria-label="Fixture text" value="abc"><p id="state"></p><script>const {ipcRenderer}=require('electron'); let clicks=0,changes=0; const button=document.querySelector('#counter'),input=document.querySelector('#text'); function emit(){const value={clicks,text:input.value,changes};document.querySelector('#state').textContent=JSON.stringify(value);ipcRenderer.send('fixture-state',value)} button.onclick=()=>{clicks++;button.textContent='Click counter: '+clicks;emit()};input.oninput=()=>{changes++;emit()};emit();</script>`;
+  const html = `<!doctype html><title>${nonce} A</title><style>body{font:18px system-ui;padding:24px}button,input{font:20px system-ui;margin:14px;padding:12px}</style><h1>Mimir controlled fixture</h1><button id="counter">Click counter: 0</button><input id="text" aria-label="Fixture text" value="abc"><p id="state"></p><script>const {ipcRenderer}=require('electron'); let clicks=0,changes=0; const button=document.querySelector('#counter'),input=document.querySelector('#text'); function emit(){const value={clicks,text:input.value,changes};document.querySelector('#state').textContent=JSON.stringify(value);ipcRenderer.send('fixture-state',value)} button.onclick=()=>{clicks++;button.textContent='Click counter: '+clicks;emit()};input.oninput=()=>{changes++;emit()};emit();</script>`;
   await first.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`);
   const targetHtml = (label: "B" | "C") =>
     `<!doctype html><title>${nonce} ${label}</title><style>body{font:18px system-ui;padding:24px}input{font:20px system-ui;padding:12px;width:90%}</style><h1>Background target ${label}</h1><input id="text" aria-label="Fixture text ${label}" value=""><p>Exact semantic target ${label}</p>`;

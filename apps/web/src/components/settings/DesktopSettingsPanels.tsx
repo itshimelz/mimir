@@ -56,7 +56,7 @@ import { toastManager } from "~/components/ui/toast";
 import { serverConfigQueryOptions } from "~/lib/serverReactQuery";
 
 function appSnapStatusText(state: DesktopAppSnapState | null): string {
-  if (!state) return "Available in the Synara desktop app";
+  if (!state) return "Available in the Mimir desktop app";
   if (!state.supported) return state.message ?? "Available on macOS only";
   if (state.status === "ready") {
     const shortcut = state.shortcut;
@@ -298,7 +298,7 @@ export function AppSnapSettingsPanel({
       toastManager.add({
         type: "warning",
         title: "AppSnap unavailable",
-        description: "AppSnap requires the Synara desktop app on macOS.",
+        description: "AppSnap requires the Mimir desktop app on macOS.",
       });
       return;
     }
@@ -362,7 +362,7 @@ export function AppSnapSettingsPanel({
             <p className={cn(SETTINGS_CARD_ROW_DESCRIPTION_CLASS_NAME, "pt-0.5")}>
               {appSnapState
                 ? (appSnapState.message ?? "AppSnap is available only in the macOS desktop app.")
-                : "AppSnap requires the Synara desktop app on macOS."}
+                : "AppSnap requires the Mimir desktop app on macOS."}
             </p>
           ) : null}
         </div>
@@ -371,7 +371,7 @@ export function AppSnapSettingsPanel({
       <SettingsSection title="Capture">
         <SettingsRow
           title="Enable AppSnap"
-          description="Run the capture listener in the background while Synara is open."
+          description="Run the capture listener in the background while Mimir is open."
           status={appSnapStatusText(appSnapState)}
           resetAction={
             settings.enableAppSnap !== defaults.enableAppSnap ? (
@@ -393,7 +393,7 @@ export function AppSnapSettingsPanel({
 
         <SettingsRow
           title="Shortcut"
-          description="Choose exactly two keys: one modifier and one other key. Synara checks its own bindings and asks macOS whether another app already owns the shortcut before saving it."
+          description="Choose exactly two keys: one modifier and one other key. Mimir checks its own bindings and asks macOS whether another app already owns the shortcut before saving it."
           control={
             <AppSnapShortcutControl
               key={
@@ -415,7 +415,7 @@ export function AppSnapSettingsPanel({
 
         <SettingsRow
           title="Destination"
-          description="Snaps join the task you interacted with in the last minute, and consecutive snaps stay together. Otherwise Synara opens a fresh task with the capture attached."
+          description="Snaps join the task you interacted with in the last minute, and consecutive snaps stay together. Otherwise Mimir opens a fresh task with the capture attached."
           control={
             <span className="text-ui leading-snug font-medium text-muted-foreground">
               Automatic
@@ -496,8 +496,8 @@ function LeaveBetaDialog({
       if (!result.ok) {
         toastManager.add({
           type: "warning",
-          title: "Could not switch back to Synara",
-          description: result.message ?? "Open Synara from your Applications folder.",
+          title: "Could not switch back to Mimir",
+          description: result.message ?? "Open Mimir from your Applications folder.",
         });
         onOpenChange(false);
       }
@@ -545,7 +545,7 @@ function LeaveBetaDialog({
             Stay on Beta
           </AlertDialogClose>
           <Button size="sm" disabled={pending} onClick={() => void leave()}>
-            {pending ? "Switching…" : "Switch to Synara"}
+            {pending ? "Switching…" : "Switch to Mimir"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogPopup>
@@ -555,11 +555,7 @@ function LeaveBetaDialog({
 
 function BetaChannelMark() {
   return (
-    <img
-      src="/app-icons/beta.png"
-      alt="Synara Beta"
-      className="mt-0.5 size-9 shrink-0 rounded-xl"
-    />
+    <img src="/app-icons/beta.png" alt="Mimir Beta" className="mt-0.5 size-9 shrink-0 rounded-xl" />
   );
 }
 
@@ -602,7 +598,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
       }
       toastManager.add({
         type: "success",
-        title: "Opening Synara Beta",
+        title: "Opening Mimir Beta",
         description:
           "Beta is copying your projects, settings, and provider sign-ins from stable on first launch.",
       });
@@ -619,7 +615,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
       if (!result.ok) {
         toastManager.add({
           type: "warning",
-          title: "Could not open Synara Beta",
+          title: "Could not open Mimir Beta",
           description: result.message ?? "The beta install was not found.",
         });
       }
@@ -636,7 +632,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
       if (!result.ok) {
         toastManager.add({
           type: "warning",
-          title: "Could not install Synara Beta",
+          title: "Could not install Mimir Beta",
           description: result.message ?? "Try again from Settings → General.",
         });
       }
@@ -751,8 +747,8 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
           </div>
           <p className={SETTINGS_CARD_ROW_DESCRIPTION_CLASS_NAME}>
             {state.installed
-              ? "Beta runs next to Synara with its own data, so nothing here changes. Copy your data to bring over projects, settings, and provider sign-ins. Beta shares crash reports and anonymous usage stats."
-              : "Try new features before everyone else. Synara Beta is a separate app with its own data, and this app stays exactly as it is. Beta shares crash reports and anonymous usage stats to help us improve it."}
+              ? "Beta runs next to Mimir with its own data, so nothing here changes. Copy your data to bring over projects, settings, and provider sign-ins. Beta shares crash reports and anonymous usage stats."
+              : "Try new features before everyone else. Mimir Beta is a separate app with its own data, and this app stays exactly as it is. Beta shares crash reports and anonymous usage stats to help us improve it."}
           </p>
           {state.lastImportAt ? (
             <p className="text-ui-xs text-muted-foreground">
@@ -771,12 +767,12 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
           ) : state.install ? (
             <p className="text-ui-xs text-muted-foreground">
               {state.install.phase === "downloading"
-                ? `Downloading Synara Beta${state.install.percent !== null ? ` — ${state.install.percent}%` : "…"}`
+                ? `Downloading Mimir Beta${state.install.percent !== null ? ` — ${state.install.percent}%` : "…"}`
                 : state.install.phase === "verifying"
                   ? "Verifying the download…"
                   : state.install.phase === "installing"
-                    ? "Installing Synara Beta…"
-                    : "Opening Synara Beta…"}
+                    ? "Installing Mimir Beta…"
+                    : "Opening Mimir Beta…"}
             </p>
           ) : null}
           <div className="flex flex-wrap items-center gap-2 pt-1.5">
@@ -788,7 +784,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
                     disabled={actionPending !== null}
                     onClick={() => void installBeta()}
                   >
-                    {actionPending === "install" ? "Installing…" : "Install Synara Beta"}
+                    {actionPending === "install" ? "Installing…" : "Install Mimir Beta"}
                   </Button>
                   <Button
                     size="xs"
@@ -820,7 +816,7 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
                   disabled={actionPending !== null || state.running}
                   title={
                     state.running
-                      ? "Quit Synara Beta first so it can pick up the import on its next launch."
+                      ? "Quit Mimir Beta first so it can pick up the import on its next launch."
                       : undefined
                   }
                   onClick={() => setCopyDialogOpen(true)}

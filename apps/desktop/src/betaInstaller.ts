@@ -339,7 +339,7 @@ const readCommandDefault: ReadCommand = (command, args) => {
 };
 
 const TEAM_ID_LINE_PATTERN = /^TeamIdentifier=(\S+)$/m;
-const UNSIGNED_BETA_MESSAGE = "The beta download isn't signed by Synara. It wasn't installed.";
+const UNSIGNED_BETA_MESSAGE = "The beta download isn't signed by Mimir. It wasn't installed.";
 const TEAM_ID_LOOKUP_FAILED_MESSAGE =
   "Couldn't check the beta download's signature. Try the download page instead.";
 
@@ -386,7 +386,7 @@ export function verifyBetaAppBundle(appPath: string): void {
   }
   const bundleId = plist.match(/<key>CFBundleIdentifier<\/key>\s*<string>([^<]+)<\/string>/)?.[1];
   if (bundleId !== SYNARA_BETA_BUNDLE_ID) {
-    throw new Error(`Downloaded app is not Synara Beta (bundle id ${bundleId ?? "missing"}).`);
+    throw new Error(`Downloaded app is not Mimir Beta (bundle id ${bundleId ?? "missing"}).`);
   }
 }
 

@@ -61,7 +61,7 @@ export function makeDeviceServiceLayer(options: DeviceServiceLiveOptions = {}) {
           if (reclaimed.length > 0) {
             console.info(
               `[device] shut down ${reclaimed.length} simulator(s) left booted by a previous ` +
-                `Synara run: ${reclaimed.join(", ")}`,
+                `Mimir run: ${reclaimed.join(", ")}`,
             );
           }
         });

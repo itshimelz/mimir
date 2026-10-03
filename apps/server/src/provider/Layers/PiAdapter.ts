@@ -578,7 +578,7 @@ function piGatewayToolResult(result: unknown): AgentToolResult<unknown> {
           )
           .join("\n")
       : "";
-    throw new Error(message || "Synara gateway tool failed.");
+    throw new Error(message || "Mimir gateway tool failed.");
   }
   const content =
     isRecord(result) && Array.isArray(result.content)
@@ -635,7 +635,7 @@ export async function buildPiAgentGatewayCustomTools(input: {
     ...(input.fetch === undefined ? {} : { fetch: input.fetch }),
   });
   if (tools.length === 0) {
-    throw new Error("Synara MCP returned an empty tool catalog.");
+    throw new Error("Mimir MCP returned an empty tool catalog.");
   }
   const catalog = new Map(tools.map((tool) => [tool.name, tool]));
   if (input.enableComputerControl === true) {
@@ -650,7 +650,7 @@ export async function buildPiAgentGatewayCustomTools(input: {
     ].filter((name) => !catalog.has(name));
     if (missing.length > 0) {
       throw new Error(
-        `Synara MCP catalog is missing required Computer tools: ${missing.join(", ")}.`,
+        `Mimir MCP catalog is missing required Computer tools: ${missing.join(", ")}.`,
       );
     }
   }
@@ -2217,7 +2217,7 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
           ...makeEventBase(context, { includeTurnId: false }),
           type: "runtime.warning",
           payload: {
-            message: `Pi extension UI API '${method}' is not supported in Synara yet.`,
+            message: `Pi extension UI API '${method}' is not supported in Mimir yet.`,
             detail: { method },
           },
           raw: {
@@ -2348,7 +2348,7 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
           return undefined;
         },
         setTheme() {
-          return { success: false, error: "Synara does not expose Pi themes." };
+          return { success: false, error: "Mimir does not expose Pi themes." };
         },
         getToolsExpanded() {
           return false;
@@ -2415,7 +2415,7 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
               type: "runtime.warning",
               payload: {
                 message:
-                  "Pi could not refresh the Synara gateway tool catalog after rotation; keeping the previous tools.",
+                  "Pi could not refresh the Mimir gateway tool catalog after rotation; keeping the previous tools.",
                 detail: { method: "gateway/rotate", cause: toMessage(cause, "refresh failed") },
               },
               raw: {
@@ -2591,7 +2591,7 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
             type: "runtime.error",
             payload: {
               message:
-                "Pi could not rotate the Synara gateway credential after the turn; Synara tools are unavailable until the session restarts.",
+                "Pi could not rotate the Mimir gateway credential after the turn; Mimir tools are unavailable until the session restarts.",
               class: classifyPiRuntimeError("gateway credential rotation failed"),
             },
             raw: {
@@ -3383,7 +3383,7 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
             provider: PROVIDER,
             method: "session/start",
             detail:
-              "Computer Use could not start because Pi did not receive a thread-scoped Synara gateway connection.",
+              "Computer Use could not start because Pi did not receive a thread-scoped Mimir gateway connection.",
           });
         }
         const gatewayTools = agentGatewayConnection
@@ -3410,12 +3410,12 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
                           new ProviderAdapterRequestError({
                             provider: PROVIDER,
                             method: "session/start",
-                            detail: `Computer Use could not start because Pi could not install Synara gateway tools: ${toMessage(cause, "Gateway setup failed.")}`,
+                            detail: `Computer Use could not start because Pi could not install Mimir gateway tools: ${toMessage(cause, "Gateway setup failed.")}`,
                             cause,
                           }),
                         )
                       : Effect.logWarning(
-                          "Pi could not install thread-scoped Synara gateway tools",
+                          "Pi could not install thread-scoped Mimir gateway tools",
                           cause,
                         ),
                   ),
@@ -3564,7 +3564,7 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
             type: "runtime.warning",
             payload: {
               message:
-                "Pi extensions are loaded with Synara's limited UI bridge. select/confirm/input and notifications are supported; terminal status, widgets, and editor hooks are ignored.",
+                "Pi extensions are loaded with Mimir's limited UI bridge. select/confirm/input and notifications are supported; terminal status, widgets, and editor hooks are ignored.",
               detail: {
                 extensionCount: loadedExtensions.length,
                 extensions: extensionNames,
@@ -3837,7 +3837,7 @@ const makePiAdapter = (options?: PiAdapterLiveOptions) =>
         new ProviderAdapterRequestError({
           provider: PROVIDER,
           method,
-          detail: `Pi does not expose Synara approval/user-input requests for thread ${threadId}.`,
+          detail: `Pi does not expose Mimir approval/user-input requests for thread ${threadId}.`,
         }),
       );
 

@@ -89,7 +89,7 @@ import {
 } from "../Services/ExternalMcpGateway.ts";
 
 const EXTERNAL_MCP_INSTRUCTIONS =
-  "This is Synara's loopback-only external integration. Call synara_overview first to discover the allowed projects (with on-disk paths), provider availability, and granted scopes. Tools are restricted to the integration's allowed projects and scopes. Task creation is one task per stable requestId and defaults to a managed worktree with approval-required execution.";
+  "This is Mimir's loopback-only external integration. Call synara_overview first to discover the allowed projects (with on-disk paths), provider availability, and granted scopes. Tools are restricted to the integration's allowed projects and scopes. Task creation is one task per stable requestId and defaults to a managed worktree with approval-required execution.";
 const MCP_MAX_BATCH_MESSAGES = 50;
 
 interface ExternalToolContext {
@@ -244,7 +244,7 @@ export const makeExternalMcpGateway = Effect.gen(function* () {
         additionalProperties: false,
       },
       annotations: {
-        title: "Synara integration capabilities",
+        title: "Mimir integration capabilities",
         ...READ_ONLY_TOOL_ANNOTATIONS,
       },
     },
@@ -310,14 +310,14 @@ export const makeExternalMcpGateway = Effect.gen(function* () {
     requiredCapability: "projects:read",
     definition: {
       name: "synara_list_allowed_projects",
-      description: "List only the Synara projects explicitly granted to this integration.",
+      description: "List only the Mimir projects explicitly granted to this integration.",
       inputSchema: {
         type: "object",
         properties: {},
         additionalProperties: false,
       },
       annotations: {
-        title: "List allowed Synara projects",
+        title: "List allowed Mimir projects",
         ...READ_ONLY_TOOL_ANNOTATIONS,
       },
     },
@@ -342,13 +342,13 @@ export const makeExternalMcpGateway = Effect.gen(function* () {
     definition: {
       name: "synara_overview",
       description:
-        "Discover everything this integration can use in one call: every allowed Synara project with its on-disk path and activity, provider availability, granted scopes, and safe defaults. Call this first to orient yourself.",
+        "Discover everything this integration can use in one call: every allowed Mimir project with its on-disk path and activity, provider availability, granted scopes, and safe defaults. Call this first to orient yourself.",
       inputSchema: {
         type: "object",
         properties: {},
         additionalProperties: false,
       },
-      annotations: { title: "Synara overview", ...READ_ONLY_TOOL_ANNOTATIONS },
+      annotations: { title: "Mimir overview", ...READ_ONLY_TOOL_ANNOTATIONS },
     },
     handler: (_args, context) =>
       Effect.gen(function* () {
@@ -398,7 +398,7 @@ export const makeExternalMcpGateway = Effect.gen(function* () {
     definition: {
       name: "synara_create_task",
       description:
-        "Create exactly one Synara task in an explicitly allowed project. requestId is a stable idempotency key and cannot be reused with a different plan. Defaults to a managed worktree and approval-required runtime.",
+        "Create exactly one Mimir task in an explicitly allowed project. requestId is a stable idempotency key and cannot be reused with a different plan. Defaults to a managed worktree and approval-required runtime.",
       inputSchema: {
         type: "object",
         properties: {
@@ -428,7 +428,7 @@ export const makeExternalMcpGateway = Effect.gen(function* () {
         additionalProperties: false,
       },
       annotations: {
-        title: "Create one Synara task",
+        title: "Create one Mimir task",
         readOnlyHint: false,
         destructiveHint: true,
         idempotentHint: true,
@@ -547,7 +547,7 @@ export const makeExternalMcpGateway = Effect.gen(function* () {
         additionalProperties: false,
       },
       annotations: {
-        title: "Read a permitted Synara task",
+        title: "Read a permitted Mimir task",
         ...READ_ONLY_TOOL_ANNOTATIONS,
       },
     },
@@ -602,7 +602,7 @@ export const makeExternalMcpGateway = Effect.gen(function* () {
         additionalProperties: false,
       },
       annotations: {
-        title: "Wait for a permitted Synara task",
+        title: "Wait for a permitted Mimir task",
         ...READ_ONLY_TOOL_ANNOTATIONS,
       },
     },

@@ -19,7 +19,7 @@ export async function runGatewayFixture(
   approveCapture: (windowId: string) => void,
   focusProbePath?: string,
 ) {
-  const title = `Synara Cua Fixture ${process.pid}`;
+  const title = `Mimir Cua Fixture ${process.pid}`;
   const first = new BrowserWindow({
     title: `${title} A`,
     width: 640,

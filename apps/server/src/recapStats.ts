@@ -495,7 +495,7 @@ export const makeRecapStatsQuery = (
         if (!isInboxEnabled()) {
           return yield* Effect.fail(
             new WsRpcError({
-              message: "The Inbox is available in Synara Beta.",
+              message: "The Inbox is available in Mimir Beta.",
               code: "FEATURE_UNAVAILABLE",
               retryable: false,
             }),

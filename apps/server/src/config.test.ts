@@ -41,9 +41,9 @@ afterEach(() => {
 });
 
 describe("resolveStaticDir", () => {
-  it("uses the desktop static snapshot exposed through the Synara environment", async () => {
+  it("uses the desktop static snapshot exposed through the Mimir environment", async () => {
     const snapshotDir = makeTempDir("synara-static-snapshot-test-");
-    fs.writeFileSync(path.join(snapshotDir, "index.html"), "<main>Synara</main>");
+    fs.writeFileSync(path.join(snapshotDir, "index.html"), "<main>Mimir</main>");
     process.env.SYNARA_STATIC_DIR = snapshotDir;
 
     const resolved = await Effect.runPromise(
@@ -67,7 +67,7 @@ describe("resolveDefaultChatWorkspaceRoot", () => {
         homeDir: "C:\\Users\\tester",
         platform: "win32",
       }),
-    ).toBe("C:\\Users\\tester\\Documents\\Synara");
+    ).toBe("C:\\Users\\tester\\Documents\\Mimir");
   });
 
   it("defaults to the current process platform when no platform is supplied", () => {
@@ -79,7 +79,7 @@ describe("resolveDefaultChatWorkspaceRoot", () => {
 
     try {
       expect(resolveDefaultChatWorkspaceRoot({ homeDir: "C:\\Users\\tester" })).toBe(
-        "C:\\Users\\tester\\Documents\\Synara",
+        "C:\\Users\\tester\\Documents\\Mimir",
       );
     } finally {
       Object.defineProperty(process, "platform", originalPlatformDescriptor!);
@@ -94,7 +94,7 @@ describe("resolveDefaultStudioWorkspaceRoot", () => {
         homeDir: "C:\\Users\\tester",
         platform: "win32",
       }),
-    ).toBe("C:\\Users\\tester\\Documents\\Synara\\Studio");
+    ).toBe("C:\\Users\\tester\\Documents\\Mimir\\Studio");
   });
 });
 
@@ -116,12 +116,12 @@ describe("resolveCanonicalWorkspaceRoots", () => {
     // chatWorkspaceRoot/studioWorkspaceRoot don't exist yet under the resolved
     // home, so they must be re-derived from the canonicalized (symlink-free)
     // home rather than the raw, symlinked input.
-    expect(result.chatWorkspaceRoot).toBe(path.join(expectedHomeDir, "Documents", "Synara"));
+    expect(result.chatWorkspaceRoot).toBe(path.join(expectedHomeDir, "Documents", "Mimir"));
     expect(result.studioWorkspaceRoot).toBe(
-      path.join(expectedHomeDir, "Documents", "Synara", "Studio"),
+      path.join(expectedHomeDir, "Documents", "Mimir", "Studio"),
     );
     expect(result.groupsWorkspaceRoot).toBe(
-      path.join(expectedHomeDir, "Documents", "Synara", "Groups"),
+      path.join(expectedHomeDir, "Documents", "Mimir", "Groups"),
     );
   });
 
@@ -144,9 +144,9 @@ describe("resolveCanonicalWorkspaceRoots", () => {
 
     const expectedDocuments = fs.realpathSync(realDocuments);
     expect(result.homeDir).toBe(fs.realpathSync(homeDir));
-    expect(result.chatWorkspaceRoot).toBe(path.join(expectedDocuments, "Synara"));
-    expect(result.studioWorkspaceRoot).toBe(path.join(expectedDocuments, "Synara", "Studio"));
-    expect(result.groupsWorkspaceRoot).toBe(path.join(expectedDocuments, "Synara", "Groups"));
+    expect(result.chatWorkspaceRoot).toBe(path.join(expectedDocuments, "Mimir"));
+    expect(result.studioWorkspaceRoot).toBe(path.join(expectedDocuments, "Mimir", "Studio"));
+    expect(result.groupsWorkspaceRoot).toBe(path.join(expectedDocuments, "Mimir", "Groups"));
     expect(fs.existsSync(result.chatWorkspaceRoot)).toBe(false);
     expect(fs.existsSync(result.studioWorkspaceRoot)).toBe(false);
     expect(fs.existsSync(result.groupsWorkspaceRoot)).toBe(false);

@@ -18,7 +18,7 @@ export async function runCancellationFixture(
   // local broker — backend.stopInput() sends the same `stop` method over the
   // socket, exercising the identical cancellation wire path.
   const stop = () => (host ? host.stop() : backend.stopInput());
-  const title = `Synara Cua Fixture ${process.pid} C`;
+  const title = `Mimir Cua Fixture ${process.pid} C`;
   const channel = `fixture-cancel-${randomUUID()}`;
   const window = new BrowserWindow({
     title,

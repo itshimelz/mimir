@@ -2917,7 +2917,7 @@ describe("agent gateway computer setup prompts", () => {
         Promise.resolve({
           kind: "permission-required",
           missing: ["accessibility"],
-          message: "Synara needs Accessibility to control this Mac. Turn Synara on in…",
+          message: "Mimir needs Accessibility to control this Mac. Turn Mimir on in…",
           buildSignature: "signed",
         }),
       missingPermissions: () => Promise.resolve(["accessibility"]),
@@ -2934,9 +2934,9 @@ describe("agent gateway computer setup prompts", () => {
     // The model is told a setup card is in front of the user — not how macOS
     // privacy works, and not to walk them through System Settings over the top
     // of a card that is already on screen.
-    expect(text).toContain("Synara needs Accessibility and has shown the user a setup card");
+    expect(text).toContain("Mimir needs Accessibility and has shown the user a setup card");
     expect(text).toContain("waiting for the user to grant it");
-    expect(text).not.toContain("Turn Synara on in");
+    expect(text).not.toContain("Turn Mimir on in");
   });
 
   it("prompts for setup for a grant that only blinds the desktop", async () => {
@@ -3048,7 +3048,7 @@ describe("agent gateway computer setup prompts", () => {
     const state = await run("computer_get_state", { include_screenshot: true });
     expect(state.content.map((entry) => entry.type)).toEqual(["text", "image"]);
     expect((resultJson(state) as { setupRequired?: string }).setupRequired).toContain(
-      "Synara needs Accessibility and has shown the user a setup card",
+      "Mimir needs Accessibility and has shown the user a setup card",
     );
 
     // And a failure, which used to hand back the backend's sentence alone.
@@ -3070,7 +3070,7 @@ describe("agent gateway computer setup prompts", () => {
         Promise.resolve({
           kind: "permission-required" as const,
           missing: ["accessibility" as const],
-          message: "Synara needs Accessibility to control this Mac.",
+          message: "Mimir needs Accessibility to control this Mac.",
           buildSignature: "signed" as const,
         }),
     });

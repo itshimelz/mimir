@@ -22,14 +22,14 @@ export interface CrossTaskOrigin {
 // handed it the task and where the result goes back to.
 function crossTaskOriginText(origin: CrossTaskOrigin): string {
   const groupName = origin.coordinatorGroupName?.trim();
-  return groupName ? `Sent by the ${groupName} coordinator` : "Sent by Synara from another thread";
+  return groupName ? `Sent by the ${groupName} coordinator` : "Sent by Mimir from another thread";
 }
 
 function OriginContent({ text }: { readonly text: string }): ReactNode {
   return (
     <>
       <span className="flex size-4 shrink-0 items-center justify-center text-muted-foreground/70">
-        <SynaraLogo className="h-4 w-auto" aria-label="Synara" />
+        <SynaraLogo className="h-4 w-auto" aria-label="Mimir" />
       </span>
       <span className="truncate">{text}</span>
     </>

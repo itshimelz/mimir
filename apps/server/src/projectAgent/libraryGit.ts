@@ -19,9 +19,9 @@ import { GitCommandError } from "../git/Errors.ts";
 import type { GitCoreShape } from "../git/Services/GitCore.ts";
 
 const LIBRARY_AUTHOR_ENV = {
-  GIT_AUTHOR_NAME: "Synara Library",
+  GIT_AUTHOR_NAME: "Mimir Library",
   GIT_AUTHOR_EMAIL: "library@synara.local",
-  GIT_COMMITTER_NAME: "Synara Library",
+  GIT_COMMITTER_NAME: "Mimir Library",
   GIT_COMMITTER_EMAIL: "library@synara.local",
 } satisfies NodeJS.ProcessEnv;
 

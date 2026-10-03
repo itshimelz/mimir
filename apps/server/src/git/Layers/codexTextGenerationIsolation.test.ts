@@ -169,7 +169,7 @@ it.layer(NodeServices.layer)("Codex text-generation isolation", (it) => {
           systemConfigPaths: ["/etc/codex/config.toml"],
           fileExists: () => true,
         }),
-      ).toThrowError(/outside Synara's isolated home/);
+      ).toThrowError(/outside Mimir's isolated home/);
       expect(() =>
         assertNoExternalCodexConfigLayers({
           platform: "darwin",

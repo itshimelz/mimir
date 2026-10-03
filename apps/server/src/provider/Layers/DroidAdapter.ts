@@ -164,7 +164,7 @@ const DROID_DISCOVERY_CACHE_MAX_ENTRIES = 16;
 const DROID_RESOURCE_DISCIPLINE_PROMPT =
   "Keep CPU-intensive validation work serial: never overlap builds, typechecks, linters, tests, package audits, or package-manager commands, including across background agents. Wait for one CPU-intensive command to finish before starting the next. Read-only code inspection may still run in parallel.";
 const DROID_PLAN_MODE_PROMPT_PREFIX = [
-  "Synara Droid plan mode is active.",
+  "Mimir Droid plan mode is active.",
   "Do not implement or mutate files in this turn.",
   "Do not ask follow-up questions or wait for confirmation; if scope is ambiguous, choose a reasonable default and state the assumption in the plan.",
   "When ready, create the final implementation plan.",
@@ -855,7 +855,7 @@ export function makeDroidAdapter(
             cwd,
             ...(resumeSessionId ? { resumeSessionId } : {}),
             clientCapabilities: { elicitation: { form: {} } },
-            clientInfo: { name: "Synara", version: "0.0.0" },
+            clientInfo: { name: "Mimir", version: "0.0.0" },
             ...(agentGatewayCredentials
               ? {
                   buildMcpServers: (initializeResult: Acp.InitializeResponse) =>
@@ -1028,7 +1028,7 @@ export function makeDroidAdapter(
               provider: PROVIDER,
               method: "session/resume",
               detail:
-                "Droid could not resume the requested native session. Synara refused the fresh fallback to avoid silently losing conversation context.",
+                "Droid could not resume the requested native session. Mimir refused the fresh fallback to avoid silently losing conversation context.",
             });
           }
 
@@ -1928,7 +1928,7 @@ export function makeDroidAdapter(
             runtime,
             targetCwd,
             unsupportedIssue:
-              "This Droid ACP version does not advertise session/fork; Synara will rebuild the fork from its retained transcript.",
+              "This Droid ACP version does not advertise session/fork; Mimir will rebuild the fork from its retained transcript.",
             requestTimeoutMs: DROID_ACP_REQUEST_TIMEOUT_MS,
             timeoutError: droidAcpTimeoutError,
           });
@@ -1941,7 +1941,7 @@ export function makeDroidAdapter(
             provider: PROVIDER,
             operation: "forkThread",
             issue:
-              "The source Droid session has a turn in flight; Synara will rebuild the fork from its retained transcript.",
+              "The source Droid session has a turn in flight; Mimir will rebuild the fork from its retained transcript.",
           });
         }
         const forked = activeSource
@@ -1969,7 +1969,7 @@ export function makeDroidAdapter(
                 childProcessSpawner,
                 cwd: sourceCwd,
                 resumeSessionId: sourceSessionId,
-                clientInfo: { name: "Synara Fork", version: "0.0.0" },
+                clientInfo: { name: "Mimir Fork", version: "0.0.0" },
               });
               yield* runtime.start().pipe(
                 Effect.timeoutOption(DROID_ACP_REQUEST_TIMEOUT_MS),
@@ -2072,7 +2072,7 @@ export function makeDroidAdapter(
             ...(input.binaryPath ? { binaryPath: input.binaryPath } : {}),
             ...(input.environment ? { environment: input.environment } : {}),
             cwd,
-            clientName: "Synara Model Discovery",
+            clientName: "Mimir Model Discovery",
           });
           yield* runtime.start();
           const result = yield* discoverDroidAcpModels(runtime);
@@ -2199,7 +2199,7 @@ export function makeDroidAdapter(
             ...(input.binaryPath ? { binaryPath: input.binaryPath } : {}),
             ...(input.environment ? { environment: input.environment } : {}),
             cwd,
-            clientName: "Synara Command Discovery",
+            clientName: "Mimir Command Discovery",
           });
           yield* runtime.start();
           let commands = yield* runtime.getAvailableCommands;

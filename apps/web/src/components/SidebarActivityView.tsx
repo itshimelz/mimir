@@ -424,7 +424,7 @@ function ActivityScopeMenu({
     scopeSelection === null
       ? "All activity"
       : scopeSelection === "chats"
-        ? "Synara"
+        ? "Mimir"
         : resolveThreadProjectLabel(projectById.get(scopeSelection));
 
   return (
@@ -477,7 +477,7 @@ function ActivityScopeMenu({
                 <span className="min-w-0 flex-1 truncate">
                   {option.kind === "project"
                     ? resolveThreadProjectLabel(projectById.get(option.projectId))
-                    : "Synara"}
+                    : "Mimir"}
                 </span>
                 <span className="ml-2 shrink-0 tabular-nums text-muted-foreground/60">
                   {option.threadCount}
@@ -859,7 +859,7 @@ export function SidebarActivityView({
     activeScope === null
       ? "No activity yet"
       : activeScope === "chats"
-        ? "No activity in Synara chats"
+        ? "No activity in Mimir chats"
         : "No activity for this project";
 
   return (
@@ -918,7 +918,7 @@ export function SidebarActivityView({
             <SidebarSectionLabel
               label={
                 group.kind === "chats"
-                  ? "Synara"
+                  ? "Mimir"
                   : resolveThreadProjectLabel(projectById.get(group.projectId))
               }
               {...(group.kind === "project"

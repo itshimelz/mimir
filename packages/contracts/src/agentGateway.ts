@@ -46,7 +46,7 @@ export type SynaraGatewayErrorResult = typeof SynaraGatewayErrorResult.Type;
 
 export const SynaraContextResult = Schema.Struct({
   harness: Schema.Struct({
-    name: Schema.Literal("Synara"),
+    name: Schema.Literal("Mimir"),
     policyVersion: Schema.String,
   }),
   caller: Schema.Struct({

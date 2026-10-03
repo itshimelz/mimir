@@ -290,7 +290,7 @@ export function ensureWindowsShellAppUserModelHelper(cacheDirectory: string): st
       "/nologo",
       "/target:exe",
       "/platform:x64",
-      `/main:Synara.ShellAppUserModel`,
+      `/main:Mimir.ShellAppUserModel`,
       `/out:${exePath}`,
       csPath,
     ],

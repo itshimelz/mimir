@@ -878,7 +878,7 @@ function buildCodexInitializeParams() {
   return {
     clientInfo: {
       name: "synara_desktop",
-      title: "Synara Desktop",
+      title: "Mimir Desktop",
       version: "0.1.0",
     },
     capabilities: {
@@ -1473,10 +1473,10 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
         this.emitLifecycleEvent(
           context,
           "session/threadStartWithoutResume",
-          "Starting a new Codex thread for a Synara thread that previously had a provider binding.",
+          "Starting a new Codex thread for a Mimir thread that previously had a provider binding.",
         );
         await Effect.logWarning(
-          "codex app-server starting a fresh thread for a previously bound Synara thread",
+          "codex app-server starting a fresh thread for a previously bound Mimir thread",
           {
             threadId,
             threadOpenMethod: "thread/start",
@@ -4358,7 +4358,7 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
       this.emitErrorEvent(
         context,
         "mcpServer/elicitation/request/unrenderable",
-        "Synara declined an MCP elicitation it cannot render yet.",
+        "Mimir declined an MCP elicitation it cannot render yet.",
       );
       return;
     }
@@ -4457,7 +4457,7 @@ export class CodexAppServerManager extends EventEmitter<CodexAppServerManagerEve
         return;
       }
 
-      const detail = "Codex asked a question Synara could not render, so it was declined.";
+      const detail = "Codex asked a question Mimir could not render, so it was declined.";
       this.emitErrorEvent(context, "item/tool/requestUserInput/unrenderable", detail);
       await this.writeMessage(context, {
         id: request.id,

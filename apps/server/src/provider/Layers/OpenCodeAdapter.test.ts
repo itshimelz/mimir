@@ -78,7 +78,7 @@ describe("OpenCode permission policy", () => {
     ).toBeUndefined();
   });
 
-  it("approves Synara group tools once when the session opted in behind a live gateway lease", () => {
+  it("approves Mimir group tools once when the session opted in behind a live gateway lease", () => {
     const base = {
       runtimeMode: "approval-required" as const,
       interactionMode: "default" as const,
@@ -724,9 +724,7 @@ describe("OpenCode host policy delivery", () => {
     );
     expect(runtime.promptCalls.map(promptContainsHarnessPolicy)).toEqual([true, true, false, true]);
     expect(
-      runtime.promptCalls.map((prompt) =>
-        JSON.stringify(prompt).includes("## Synara computer use"),
-      ),
+      runtime.promptCalls.map((prompt) => JSON.stringify(prompt).includes("## Mimir computer use")),
     ).toEqual([false, true, false, false]);
   });
 
@@ -1533,10 +1531,10 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
         ),
       );
 
-      expect(JSON.stringify(runtime.promptCalls[0]).includes("## Synara computer use")).toBe(
+      expect(JSON.stringify(runtime.promptCalls[0]).includes("## Mimir computer use")).toBe(
         enableComputerControl,
       );
-      expect(JSON.stringify(runtime.promptCalls[1])).not.toContain("## Synara computer use");
+      expect(JSON.stringify(runtime.promptCalls[1])).not.toContain("## Mimir computer use");
       expect(gateway.leasedCapabilities).toEqual([
         enableComputerControl ? ["computer:control"] : [],
       ]);
@@ -1691,7 +1689,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
     expect(gateway.revoked).toEqual([]);
     expect(runtime.promptCalls).toHaveLength(2);
     for (const prompt of runtime.promptCalls) {
-      expect(JSON.stringify(prompt)).toContain("Synara MCP control is unavailable");
+      expect(JSON.stringify(prompt)).toContain("Mimir MCP control is unavailable");
     }
   });
 
@@ -1791,7 +1789,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
 
     expect(activeSetupAttempts).toBe(0);
     expect(runtime.mcpAddCalls).toEqual([]);
-    expect(JSON.stringify(runtime.promptCalls[0])).toContain("Synara MCP control is unavailable");
+    expect(JSON.stringify(runtime.promptCalls[0])).toContain("Mimir MCP control is unavailable");
     expect(gateway.revoked).toEqual([]);
   });
 
@@ -1831,7 +1829,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
 
     expect(gateway.revoked).toEqual(["gateway-token-1"]);
     expect(gateway.ownerByToken.size).toBe(0);
-    expect(JSON.stringify(runtime.promptCalls[0])).toContain("Synara MCP control is unavailable");
+    expect(JSON.stringify(runtime.promptCalls[0])).toContain("Mimir MCP control is unavailable");
   });
 
   it.each(["failed status", "transport error"] as const)(
@@ -1979,7 +1977,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
             });
             yield* adapter.stopSession(threadId);
             expect(JSON.stringify(runtime.promptCalls[0])).toContain(
-              "Synara MCP control is unavailable",
+              "Mimir MCP control is unavailable",
             );
           }
         }).pipe(
@@ -2552,7 +2550,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
         variant: "fast",
       },
       agent: "build",
-      title: "Synara thread-model-pin",
+      title: "Mimir thread-model-pin",
     });
   });
 
@@ -2611,7 +2609,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
       runtime.promptCalls[0]?.parts as ReadonlyArray<{ readonly text?: string }> | undefined
     )?.[0]?.text;
     expect(firstPromptText).toContain(SYNARA_HARNESS_POLICY_MARKER);
-    expect(firstPromptText).toContain("Synara MCP control is unavailable");
+    expect(firstPromptText).toContain("Mimir MCP control is unavailable");
     expect(runtime.promptCalls[0]).toMatchObject({
       model: {
         providerID: "openai",
@@ -3185,7 +3183,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
     expect(runtime.promptCalls[0]?.parts).toEqual([
       {
         type: "text",
-        text: expect.stringContaining("Synara plan mode is active."),
+        text: expect.stringContaining("Mimir plan mode is active."),
       },
     ]);
     expect(result.map((event) => event.type)).toEqual([
@@ -3259,7 +3257,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
     expect(parts?.[0]?.text).toEqual(expect.stringContaining(".docx"));
   });
 
-  it("ignores a stale plan agent option when Synara interaction mode is default", async () => {
+  it("ignores a stale plan agent option when Mimir interaction mode is default", async () => {
     const runtime = createMockOpenCodeRuntime();
 
     await Effect.runPromise(
@@ -3400,7 +3398,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
               id: "part-default-plan",
               messageID: "assistant-message-default-plan",
               type: "text",
-              text: "<proposed_plan>\n# Not a Synara plan\n</proposed_plan>",
+              text: "<proposed_plan>\n# Not a Mimir plan\n</proposed_plan>",
               time: {
                 start: 1,
                 end: 2,
@@ -3435,7 +3433,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
       type: "item.completed",
       payload: {
         itemType: "assistant_message",
-        detail: "<proposed_plan>\n# Not a Synara plan\n</proposed_plan>",
+        detail: "<proposed_plan>\n# Not a Mimir plan\n</proposed_plan>",
       },
     });
   });
@@ -4555,7 +4553,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
             id: "permission-human-1",
             sessionID: "opencode-session-1",
             permission: "websearch",
-            patterns: ["Synara handoff"],
+            patterns: ["Mimir handoff"],
             metadata: {},
             always: [],
           },
@@ -4588,7 +4586,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
             id: "permission-human-1",
             sessionID: "opencode-session-1",
             permission: "websearch",
-            patterns: ["Synara handoff"],
+            patterns: ["Mimir handoff"],
             metadata: {},
             always: [],
           },
@@ -4963,7 +4961,7 @@ describe("OpenCodeAdapter runtime lifecycle", () => {
       id: "permission-list-failure-1",
       sessionID: "opencode-session-1",
       permission: "websearch",
-      patterns: ["Synara"],
+      patterns: ["Mimir"],
       metadata: {},
       always: [],
     } satisfies PermissionRequest;

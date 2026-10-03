@@ -87,7 +87,7 @@ export function KeyboardShortcutsResetButton() {
   const resetAll = async () => {
     const message = [
       "Reset all shortcuts to their defaults?",
-      "Every shortcut you changed, added, or removed goes back to what Synara ships with. Project script shortcuts are kept.",
+      "Every shortcut you changed, added, or removed goes back to what Mimir ships with. Project script shortcuts are kept.",
     ].join("\n");
     const api = readNativeApi();
     const confirmed = api

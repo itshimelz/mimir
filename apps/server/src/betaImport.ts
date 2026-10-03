@@ -233,7 +233,7 @@ export function copyLiveDatabase(
     }
     if (signature(sourceDbPath) === before) return stagedDbPath;
   }
-  throw new Error("Synara kept rewriting its database during the copy. Try again in a moment.");
+  throw new Error("Mimir kept rewriting its database during the copy. Try again in a moment.");
 }
 
 async function snapshotStableDatabase(
@@ -261,7 +261,7 @@ async function snapshotStableDatabase(
     const sourceMigration = await readMigrationHighWaterMark(stagingPath);
     if (sourceMigration !== null && sourceMigration > latestMigrationId) {
       throw new Error(
-        "Synara is newer than this Synara Beta. Update Synara Beta, then copy your data again.",
+        "Mimir is newer than this Mimir Beta. Update Mimir Beta, then copy your data again.",
       );
     }
     // A leftover WAL from an earlier unclean beta exit is not tied to a
@@ -386,7 +386,7 @@ export async function runBetaImportIfRequested(input: {
     return finish(false, "import source points at the beta home itself");
   }
   if (!(input.allowedSourceHomes ?? allowedImportSourceHomes()).includes(sourceHomeDir)) {
-    return finish(false, "import source is not the Synara data folder");
+    return finish(false, "import source is not the Mimir data folder");
   }
 
   const sourceStateDir = join(sourceHomeDir, "userdata");

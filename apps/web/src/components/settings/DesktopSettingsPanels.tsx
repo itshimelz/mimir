@@ -466,7 +466,7 @@ export function AppSnapSettingsPanel({
 }
 
 /**
- * Beta → stable: opens stable Synara and quits beta. Beta data is never copied
+ * Beta → stable: opens stable Mimir and quits beta. Beta data is never copied
  * back because beta can hold data for features stable does not have yet.
  */
 function LeaveBetaDialog({
@@ -510,14 +510,14 @@ function LeaveBetaDialog({
     <AlertDialog open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
       <AlertDialogPopup>
         <AlertDialogHeader>
-          <AlertDialogTitle>Switch back to Synara?</AlertDialogTitle>
+          <AlertDialogTitle>Switch back to Mimir?</AlertDialogTitle>
           <AlertDialogDescription>
-            Synara opens with the chats and settings it had before you tried Beta. Beta closes, and
+            Mimir opens with the chats and settings it had before you tried Beta. Beta closes, and
             any chats still running in Beta stop.
           </AlertDialogDescription>
           <AlertDialogDescription>
-            Anything you did in Beta stays in Beta. It can't be moved into Synara, because Beta can
-            include features Synara doesn't have yet.
+            Anything you did in Beta stays in Beta. It can't be moved into Mimir, because Beta can
+            include features Mimir doesn't have yet.
           </AlertDialogDescription>
           {canMoveToTrash ? (
             <label
@@ -708,11 +708,11 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
           <div className="flex flex-wrap items-center gap-2 pt-1.5">
             {state.stableInstalled ? (
               <Button size="xs" variant="outline" onClick={() => setLeaveDialogOpen(true)}>
-                Switch back to Synara
+                Switch back to Mimir
               </Button>
             ) : (
               <Button size="xs" variant="outline" onClick={() => void openStableDownloadPage()}>
-                Get Synara
+                Get Mimir
               </Button>
             )}
           </div>
@@ -845,9 +845,9 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
           <AlertDialogHeader>
             <AlertDialogTitle>Replace Mimir Beta data?</AlertDialogTitle>
             <AlertDialogDescription>
-              Copying from Synara replaces Beta chats and projects. Chats and projects created only
+              Copying from Mimir replaces Beta chats and projects. Chats and projects created only
               in Beta will be lost. Matching settings and provider sign-ins are overwritten, but
-              Beta-only sign-ins may remain. Your data in Synara will not change.
+              Beta-only sign-ins may remain. Your data in Mimir will not change.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

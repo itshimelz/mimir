@@ -25,7 +25,7 @@ import {
 
 describe("composerSlashCommands", () => {
   it.each(["codex"] as const)(
-    "offers one Synara Computer invocation for %s despite a native name collision",
+    "withholds the Computer invocation for %s while the feature is unavailable",
     (provider) => {
       const commands = getAvailableComposerSlashCommands({
         provider,
@@ -37,7 +37,9 @@ describe("composerSlashCommands", () => {
         canOfferExportCommand: false,
         providerNativeCommandNames: ["computer-use"],
       });
-      expect(commands.filter((command) => command === "computer-use")).toHaveLength(1);
+      // /computer-use is withheld: see unavailableFeatures.ts. The name is still
+      // a built-in command, it is simply not offered.
+      expect(commands.filter((command) => command === "computer-use")).toHaveLength(0);
       expect(shouldHideProviderNativeCommandFromComposerMenu(provider, "computer-use")).toBe(true);
       expect(isBuiltInComposerSlashCommand("computer-use")).toBe(true);
     },
@@ -401,7 +403,7 @@ describe("composerSlashCommands", () => {
     expect(providerSupportsTextNativeReviewCommand("claudeAgent", ["review"])).toBe(true);
   });
 
-  it("only exposes Synara-owned app commands for claude", () => {
+  it("only exposes app-owned commands for claude", () => {
     const commands = getAvailableComposerSlashCommands({
       provider: "claudeAgent",
       supportsFastSlashCommand: true,
@@ -419,7 +421,6 @@ describe("composerSlashCommands", () => {
       "goal",
       "rename",
       "debug",
-      "computer-use",
       "default",
       "automation",
     ]);

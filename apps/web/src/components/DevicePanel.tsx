@@ -899,7 +899,7 @@ function DeviceVideoOverlay(props: {
     return (
       <p className="text-balance text-center text-ui-xs text-white/70 leading-snug">
         This browser cannot decode the simulator stream. Chrome, Edge, or Safari 17+ support the
-        WebCodecs video decoder Synara uses.
+        WebCodecs video decoder Mimir uses.
       </p>
     );
   }

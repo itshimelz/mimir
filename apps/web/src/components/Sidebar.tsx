@@ -523,6 +523,7 @@ import {
 } from "../lib/spaceGrouping";
 import {
   FEEDBACK_UNAVAILABLE_FEATURE,
+  HELP_MENU_UNAVAILABLE_FEATURE,
   isFeatureAvailable,
 } from "@synara/shared/unavailableFeatures";
 import { isSidechatThread } from "@synara/shared/sidechatThread";
@@ -6954,7 +6955,9 @@ export default function Sidebar() {
             void navigate({ to: "/settings", search: { section: "usage" } });
           }}
         />
-        <SidebarHelpMenu inRail {...sidebarHelpMenuProps} />
+        {isFeatureAvailable(HELP_MENU_UNAVAILABLE_FEATURE) ? (
+          <SidebarHelpMenu inRail {...sidebarHelpMenuProps} />
+        ) : null}
       </>
     ),
     onContextMenu: handleNavContextMenu,

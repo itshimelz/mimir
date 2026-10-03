@@ -21,9 +21,30 @@ export const FEEDBACK_UNAVAILABLE_FEATURE = "feedback";
  */
 export const SHARE_CARD_UNAVAILABLE_FEATURE = "share-card";
 
+/**
+ * The activity bar's Help menu. Its rows point at Synara's site and it is the
+ * only entry point to the keyboard-shortcuts panel, so it is withheld while the
+ * links are repointed. Delete the entry to restore it.
+ */
+export const HELP_MENU_UNAVAILABLE_FEATURE = "help-menu";
+
+/**
+ * AppSnap: capture another app's window as an image and attach it to a task.
+ * Withheld while the feature is being rescoped for the learning workspace.
+ */
+export const APPSNAP_UNAVAILABLE_FEATURE = "appsnap";
+
+/**
+ * Computer Use: agent control of the desktop. Withheld for the same reason.
+ */
+export const COMPUTER_UNAVAILABLE_FEATURE = "computer";
+
 export const UNAVAILABLE_FEATURES: readonly string[] = [
   FEEDBACK_UNAVAILABLE_FEATURE,
   SHARE_CARD_UNAVAILABLE_FEATURE,
+  HELP_MENU_UNAVAILABLE_FEATURE,
+  APPSNAP_UNAVAILABLE_FEATURE,
+  COMPUTER_UNAVAILABLE_FEATURE,
 ];
 
 /**

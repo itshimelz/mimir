@@ -6,6 +6,7 @@ import {
   type ProviderKind,
 } from "@synara/contracts";
 import {
+  COMPUTER_UNAVAILABLE_FEATURE,
   FEEDBACK_UNAVAILABLE_FEATURE,
   isFeatureAvailable,
 } from "@synara/shared/unavailableFeatures";
@@ -125,6 +126,8 @@ export function shouldHideProviderNativeCommandFromComposerMenu(
   const appCommandIsAvailable = options.availableAppCommands?.has(normalizedCommand) ?? true;
   return (
     normalizedCommand === "automation" ||
+    // Always app-owned: gating this on availability would reveal the
+    // provider-native /computer-use, which is the opposite of hiding it.
     normalizedCommand === "computer-use" ||
     normalizedCommand === "debug" ||
     normalizedCommand === "default" ||
@@ -309,9 +312,11 @@ export function parseComposerSlashInvocationForCommands(
  * Synara's endpoint; the definition stays so restoring the flag is enough.
  */
 const SELECTABLE_COMPOSER_SLASH_COMMANDS: ReadonlyArray<ComposerSlashCommand> =
-  BUILT_IN_COMPOSER_SLASH_COMMANDS.filter(
-    (command) => command !== "feedback" || isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE),
-  );
+  BUILT_IN_COMPOSER_SLASH_COMMANDS.filter((command) => {
+    if (command === "feedback") return isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE);
+    if (command === "computer-use") return isFeatureAvailable(COMPUTER_UNAVAILABLE_FEATURE);
+    return true;
+  });
 
 export function filterComposerSlashCommands(
   query: string,
@@ -529,7 +534,7 @@ export function getAvailableComposerSlashCommands(input: {
           ...(input.canOfferSideCommand ? (["side"] as const) : []),
           "status",
           "subagents",
-          "computer-use",
+          ...(isFeatureAvailable(COMPUTER_UNAVAILABLE_FEATURE) ? (["computer-use"] as const) : []),
           ...(input.canOfferExportCommand ? (["export"] as const) : []),
           "goal",
           "rename",
@@ -549,7 +554,7 @@ export function getAvailableComposerSlashCommands(input: {
           "goal",
           "rename",
           "debug",
-          "computer-use",
+          ...(isFeatureAvailable(COMPUTER_UNAVAILABLE_FEATURE) ? (["computer-use"] as const) : []),
           "default",
           ...(isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (["feedback"] as const) : []),
           "automation",

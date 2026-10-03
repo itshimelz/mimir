@@ -35,7 +35,10 @@ import {
   SYNARA_STABLE_WINDOWS_INSTALLER_GUID,
   type BetaImportResult,
 } from "@synara/shared/betaChannel";
-import { SYNARA_DESKTOP_SMOKE_USER_DATA_ENV } from "@synara/shared/desktopIdentity";
+import {
+  SYNARA_DESKTOP_SMOKE_USER_DATA_ENV,
+  synaraDesktopInstallNames,
+} from "@synara/shared/desktopIdentity";
 import type {
   DesktopBetaActionError,
   DesktopBetaActionResult,
@@ -48,13 +51,15 @@ import { installBetaFromFeed, type BetaInstallDeps, type ExpectedTeamId } from "
 // electron-builder registers the uninstall key under the raw NSIS guid (no
 // braces); the value itself lives in @synara/shared/betaChannel.
 export const BETA_WINDOWS_UNINSTALL_GUID = SYNARA_BETA_WINDOWS_INSTALLER_GUID;
-const BETA_MAC_APP_NAME = "Synara Beta.app";
-const BETA_MAC_EXECUTABLE_NAME = "Synara Beta";
-const BETA_WINDOWS_EXE_NAME = "Synara Beta.exe";
-const BETA_LINUX_DESKTOP_FILE = "synara-beta.desktop";
-const STABLE_MAC_APP_NAME = "Synara.app";
-const STABLE_MAC_EXECUTABLE_NAME = "Synara";
-const STABLE_WINDOWS_EXE_NAME = "Synara.exe";
+const BETA_INSTALL_NAMES = synaraDesktopInstallNames("beta");
+const STABLE_INSTALL_NAMES = synaraDesktopInstallNames("production");
+const BETA_MAC_APP_NAME = BETA_INSTALL_NAMES.macAppName;
+const BETA_MAC_EXECUTABLE_NAME = BETA_INSTALL_NAMES.macExecutableName;
+const BETA_WINDOWS_EXE_NAME = BETA_INSTALL_NAMES.windowsExecutableName;
+const BETA_LINUX_DESKTOP_FILE = BETA_INSTALL_NAMES.linuxDesktopFileName;
+const STABLE_MAC_APP_NAME = STABLE_INSTALL_NAMES.macAppName;
+const STABLE_MAC_EXECUTABLE_NAME = STABLE_INSTALL_NAMES.macExecutableName;
+const STABLE_WINDOWS_EXE_NAME = STABLE_INSTALL_NAMES.windowsExecutableName;
 
 export interface BetaInstallDetection {
   readonly installed: boolean;
@@ -269,7 +274,7 @@ export function detectBetaInstall(
     return missing;
   }
   if (platform === "linux") {
-    const executablePath = findOnPath("synara-beta");
+    const executablePath = findOnPath(BETA_INSTALL_NAMES.linuxExecutableName);
     if (executablePath) {
       return {
         installed: true,

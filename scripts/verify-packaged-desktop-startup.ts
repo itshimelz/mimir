@@ -20,6 +20,13 @@ import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { synaraDesktopIdentity, synaraDesktopInstallNames } from "@synara/shared/desktopIdentity";
+
+const BETA_INSTALL_NAMES = synaraDesktopInstallNames("beta");
+const STABLE_INSTALL_NAMES = synaraDesktopInstallNames("production");
+const BETA_USER_DATA_DIRECTORY_NAME = synaraDesktopIdentity("beta").userDataDirectoryName;
+const STABLE_USER_DATA_DIRECTORY_NAME = synaraDesktopIdentity("production").userDataDirectoryName;
+
 export type PackagedDesktopPlatform = "linux" | "mac" | "win";
 
 export interface PackagedDesktopStartupOptions {
@@ -67,7 +74,8 @@ export function parsePackagedDesktopStartupArgs(
   if (!Number.isInteger(timeoutMs) || timeoutMs < 5_000 || timeoutMs > 180_000) {
     throw new Error("--timeout-ms must be an integer between 5000 and 180000.");
   }
-  const executableName = values.get("--executable-name")?.trim() || "synara";
+  const executableName =
+    values.get("--executable-name")?.trim() || STABLE_INSTALL_NAMES.linuxExecutableName;
   if (!/^[A-Za-z0-9._-]+$/.test(executableName) || executableName.includes("..")) {
     throw new Error(`Invalid packaged startup executable name: ${executableName}.`);
   }
@@ -306,7 +314,9 @@ export function createPackagedDesktopSmokeEnvironment(
       env.HOME!,
       "Library",
       "Application Support",
-      options.executableName === "synara-beta" ? "synara-beta" : "synara",
+      options.executableName === BETA_INSTALL_NAMES.linuxExecutableName
+        ? BETA_USER_DATA_DIRECTORY_NAME
+        : STABLE_USER_DATA_DIRECTORY_NAME,
     );
     mkdirSync(userDataPath, { recursive: true });
     // Prevent the packaged app's update-only icon repair from registering this
@@ -413,7 +423,9 @@ export async function verifyPackagedDesktopStartup(
     verifyPackagedRuntimeDependencies(launch.runtime, env, options.timeoutMs);
     // Beta deliberately ignores SYNARA_HOME to avoid opening Stable's data.
     const appHome =
-      options.executableName === "synara-beta" ? env.SYNARA_BETA_HOME! : env.SYNARA_HOME!;
+      options.executableName === BETA_INSTALL_NAMES.linuxExecutableName
+        ? env.SYNARA_BETA_HOME!
+        : env.SYNARA_HOME!;
     logDirectory = join(appHome, "userdata", "logs");
     const logPath = join(logDirectory, "desktop-main.log");
     child = spawn(launch.command, [...launch.args], {

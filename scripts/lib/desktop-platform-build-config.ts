@@ -9,7 +9,12 @@ import {
   SYNARA_BETA_WINDOWS_INSTALLER_GUID,
   SYNARA_STABLE_WINDOWS_INSTALLER_GUID,
 } from "@synara/shared/betaChannel";
-import type { SynaraPackagedDesktopFlavor } from "@synara/shared/desktopIdentity";
+import {
+  synaraDesktopInstallNames,
+  type SynaraPackagedDesktopFlavor,
+} from "@synara/shared/desktopIdentity";
+
+const productionInstallNames = synaraDesktopInstallNames("production");
 
 import {
   createDesktopBundleFilePatterns,
@@ -17,9 +22,9 @@ import {
 } from "./desktop-bundle-files.ts";
 
 export const MICROPHONE_USAGE_DESCRIPTION =
-  "Synara needs microphone access so you can record voice notes and transcribe them into the chat composer, and, if you turn it on, to move the chat message trail with your voice.";
+  "Mimir needs microphone access so you can record voice notes and transcribe them into the chat composer, and, if you turn it on, to move the chat message trail with your voice.";
 export const AUDIO_CAPTURE_USAGE_DESCRIPTION =
-  "Synara reads how loud your Mac's audio is to animate the chat message trail. The audio itself is never recorded.";
+  "Mimir reads how loud your Mac's audio is to animate the chat message trail. The audio itself is never recorded.";
 export const MAC_ENTITLEMENTS_PATH = "apps/desktop/resources/entitlements.mac.plist";
 export const MAC_INHERITED_ENTITLEMENTS_PATH =
   "apps/desktop/resources/entitlements.mac.inherit.plist";
@@ -142,11 +147,11 @@ export function createDesktopPlatformBuildConfig(
         NSMicrophoneUsageDescription: MICROPHONE_USAGE_DESCRIPTION,
         NSAudioCaptureUsageDescription: AUDIO_CAPTURE_USAGE_DESCRIPTION,
         NSScreenCaptureUsageDescription:
-          "Synara captures the windows you authorize for Computer use.",
+          "Mimir captures the windows you authorize for Computer use.",
         NSAccessibilityUsageDescription:
-          "Synara controls the windows you authorize for Computer use.",
+          "Mimir controls the windows you authorize for Computer use.",
         NSLocalNetworkUsageDescription:
-          "Synara connects to the browsers it drives on this Mac so agents can browse in the background.",
+          "Mimir connects to the browsers it drives on this Mac so agents can browse in the background.",
         CFBundleIconName: MAC_ICON_ASSET_NAME,
       },
     } satisfies Record<string, unknown>;
@@ -219,12 +224,12 @@ export function createDesktopPlatformBuildConfig(
       extraResources: [{ from: "apps/desktop/resources/cua-driver", to: "cua-driver" }],
       linux: {
         target: [input.target],
-        executableName: "synara",
+        executableName: productionInstallNames.linuxExecutableName,
         icon: "icon.png",
         category: "Development",
         desktop: {
           entry: {
-            StartupWMClass: "synara",
+            StartupWMClass: productionInstallNames.linuxStartupWmClass,
           },
         },
       },

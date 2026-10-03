@@ -24,10 +24,10 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 
 import { BETA_RELEASE_TAG_PATTERN, SYNARA_BETA_RELEASES_API_URL } from "@synara/shared/betaChannel";
-import { SYNARA_BETA_BUNDLE_ID } from "@synara/shared/desktopIdentity";
+import { SYNARA_BETA_BUNDLE_ID, synaraDesktopInstallNames } from "@synara/shared/desktopIdentity";
 
 export const BETA_MAC_MANIFEST_NAME = "beta-mac.yml";
-export const BETA_MAC_APP_NAME = "Synara Beta.app";
+export const BETA_MAC_APP_NAME = synaraDesktopInstallNames("beta").macAppName;
 
 export interface BetaFeedFile {
   readonly url: string;

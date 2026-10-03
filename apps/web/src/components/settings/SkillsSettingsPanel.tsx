@@ -100,19 +100,13 @@ export function SkillsSettingsPanel() {
 
   const totalSkills = skillGroups.length;
   const enabledSkills = skillGroups.filter((group) => !disabledSkillNames.has(group.key)).length;
-  const synaraSkillsDir = catalogQuery.data?.synaraSkillsDir;
 
   return (
     <div className="space-y-8">
       <SettingsSection title="Portable skills">
         <SettingsRow
-          title="Mimir skills folder"
+          title="Portable skills"
           description="Skills placed here are available on every provider. When a provider already ships its own copy of a skill, that copy is used; otherwise Mimir's copy is the fallback."
-          status={
-            synaraSkillsDir ? (
-              <code className="break-all text-ui-sm text-muted-foreground">{synaraSkillsDir}</code>
-            ) : null
-          }
           control={
             <span className="text-ui leading-snug font-medium text-muted-foreground">
               {catalogQuery.isLoading
@@ -136,7 +130,7 @@ export function SkillsSettingsPanel() {
         <SettingsSection title="Skills">
           <SettingsRow
             title="No skills found"
-            description="Add a skill folder containing a SKILL.md to the Mimir skills folder above, or install skills for any supported provider."
+            description="Add a skill folder containing a SKILL.md to the Mimir skills folder, or install skills for any supported provider."
           />
         </SettingsSection>
       ) : null}
@@ -167,14 +161,6 @@ export function SkillsSettingsPanel() {
                           {group.sources.map((source) => source.originInfo.label).join(" · ")}
                         </span>
                       </span>
-                      {group.sources.map((source) => (
-                        <code
-                          key={source.skill.path}
-                          className="truncate text-ui-sm text-muted-foreground"
-                        >
-                          {source.skill.path}
-                        </code>
-                      ))}
                     </span>
                   }
                   control={

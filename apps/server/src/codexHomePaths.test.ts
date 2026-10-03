@@ -44,7 +44,7 @@ describe("Codex home paths", () => {
   it("derives a default overlay beside the source home", () => {
     assert.equal(
       resolveSynaraCodexHomeOverlayPath({}, "/users/me/.codex"),
-      path.join("/users/me", ".synara", "runtime", "codex-home-overlay"),
+      path.join("/users/me", ".mimir", "runtime", "codex-home-overlay"),
     );
   });
   it("derives nested account overlays when given an account segment", () => {

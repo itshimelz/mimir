@@ -12,6 +12,7 @@ import * as fs from "node:fs/promises";
 import * as nodePath from "node:path";
 
 import type { ProviderKind, ProviderSkillDescriptor } from "@synara/contracts";
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 import { discoverClaudePluginSkillRoots } from "./claudePluginSkills.ts";
 
 type FrontmatterValue = string | boolean;
@@ -415,7 +416,7 @@ interface SkillOriginRootSpec {
 const SKILL_ORIGIN_ROOTS = {
   synara: {
     homeRoots: (input) => [synaraSkillsDir(input.synaraBaseDir)],
-    projectRootNames: [".synara"],
+    projectRootNames: [DEFAULT_SYNARA_HOME_DIRECTORY_NAME],
   },
   codex: {
     // Keep Synara's existing Codex-local root. Official Codex discovery uses

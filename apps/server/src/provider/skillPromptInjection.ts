@@ -9,6 +9,7 @@ import * as fs from "node:fs/promises";
 import * as nodePath from "node:path";
 
 import type { ProviderKind, ProviderSkillReference } from "@synara/contracts";
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 
 // Per-skill cap keeps a single oversized SKILL.md from eating the turn budget.
 const MAX_INLINE_SKILL_CONTENT_CHARS = 24_000;
@@ -19,7 +20,7 @@ const INLINE_SKILLS_HEADER =
   '"dir" attribute.';
 
 const CROSS_PROVIDER_SKILL_DIR_NAMES = [
-  ".synara",
+  DEFAULT_SYNARA_HOME_DIRECTORY_NAME,
   ".codex",
   ".cursor",
   ".claude",
@@ -48,7 +49,7 @@ export function shouldInlineSkillForProvider(provider: ProviderKind, skillPath: 
     case "cursor":
       // cursor-agent natively scans .cursor/.agents/.claude/.codex skill roots;
       // only Synara-owned paths need inlining.
-      return segments.has(".synara");
+      return segments.has(DEFAULT_SYNARA_HOME_DIRECTORY_NAME);
     case "claudeAgent":
       // Claude Code only loads skills from .claude/skills folders.
       return !segments.has(".claude");

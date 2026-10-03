@@ -199,7 +199,7 @@ describe("createDesktopPlatformBuildConfig", () => {
     assert.equal(win.extraFiles, undefined);
     assert.equal(win.extraResources, undefined);
     assert.deepStrictEqual(win.asarUnpack, ["node_modules/node-pty/**"]);
-    assert.equal(WINDOWS_INSTALLER_GUID, "368107a8-afe6-5db5-ab3b-d4f331684868");
+    assert.equal(WINDOWS_INSTALLER_GUID, "83122b18-03df-4f65-891c-698d6291fc2c");
     assert.deepStrictEqual(win.nsis, {
       guid: WINDOWS_INSTALLER_GUID,
     });

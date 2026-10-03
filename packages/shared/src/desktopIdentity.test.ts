@@ -25,22 +25,22 @@ import {
 
 describe("desktopIdentity", () => {
   it("uses the exact canonical production and development bundle IDs", () => {
-    expect(SYNARA_PRODUCTION_BUNDLE_ID).toBe("com.emanueledipietro.synara");
-    expect(SYNARA_DEVELOPMENT_BUNDLE_ID).toBe("com.emanueledipietro.synara.dev");
+    expect(SYNARA_PRODUCTION_BUNDLE_ID).toBe("com.itshimelz.mimir");
+    expect(SYNARA_DEVELOPMENT_BUNDLE_ID).toBe("com.itshimelz.mimir.dev");
     expect(synaraDesktopIdentity("production").bundleId).toBe(SYNARA_PRODUCTION_BUNDLE_ID);
     expect(synaraDesktopIdentity("development").bundleId).toBe(SYNARA_DEVELOPMENT_BUNDLE_ID);
   });
 
   it("uses the exact packaged renderer origin and entry URL", () => {
-    expect(SYNARA_DESKTOP_ORIGIN).toBe("synara://app");
-    expect(SYNARA_DESKTOP_ENTRY_URL).toBe("synara://app/index.html");
+    expect(SYNARA_DESKTOP_ORIGIN).toBe("mimir://app");
+    expect(SYNARA_DESKTOP_ENTRY_URL).toBe("mimir://app/index.html");
   });
 
-  it("uses the isolated Synara desktop update channel", () => {
-    expect(SYNARA_DESKTOP_UPDATE_CHANNEL).toBe("synara");
+  it("uses the isolated Mimir desktop update channel", () => {
+    expect(SYNARA_DESKTOP_UPDATE_CHANNEL).toBe("mimir");
   });
 
-  it("matches the beta update channel to prerelease tags and keeps synara otherwise", () => {
+  it("matches the beta update channel to prerelease tags and keeps mimir otherwise", () => {
     expect(desktopUpdateChannel("beta")).toBe("beta");
     expect(desktopUpdateChannel("production")).toBe(SYNARA_DESKTOP_UPDATE_CHANNEL);
     expect(desktopUpdateChannel("canary")).toBe(SYNARA_DESKTOP_UPDATE_CHANNEL);
@@ -48,52 +48,52 @@ describe("desktopIdentity", () => {
   });
 
   it("gives Canary a fully separate desktop identity and storage profile", () => {
-    expect(SYNARA_CANARY_BUNDLE_ID).toBe("com.emanueledipietro.synara.canary");
-    expect(SYNARA_CANARY_DESKTOP_ORIGIN).toBe("synara-canary://app");
-    expect(SYNARA_CANARY_DESKTOP_ENTRY_URL).toBe("synara-canary://app/index.html");
+    expect(SYNARA_CANARY_BUNDLE_ID).toBe("com.itshimelz.mimir.canary");
+    expect(SYNARA_CANARY_DESKTOP_ORIGIN).toBe("mimir-canary://app");
+    expect(SYNARA_CANARY_DESKTOP_ENTRY_URL).toBe("mimir-canary://app/index.html");
     expect(synaraDesktopIdentity("canary")).toEqual({
       flavor: "canary",
-      displayName: "Synara Canary",
+      displayName: "Mimir Canary",
       bundleId: SYNARA_CANARY_BUNDLE_ID,
-      scheme: "synara-canary",
+      scheme: "mimir-canary",
       origin: SYNARA_CANARY_DESKTOP_ORIGIN,
       entryUrl: SYNARA_CANARY_DESKTOP_ENTRY_URL,
-      userDataDirectoryName: "synara-canary",
-      defaultHomeDirectoryName: ".synara-canary",
+      userDataDirectoryName: "mimir-canary",
+      defaultHomeDirectoryName: ".mimir-canary",
       usesScriptedUpdates: true,
     });
   });
 
   it("gives Cua a fully separate desktop identity and storage profile", () => {
-    expect(SYNARA_CUA_BUNDLE_ID).toBe("com.emanueledipietro.synara.cua");
-    expect(SYNARA_CUA_DESKTOP_ORIGIN).toBe("synara-cua://app");
-    expect(SYNARA_CUA_DESKTOP_ENTRY_URL).toBe("synara-cua://app/index.html");
+    expect(SYNARA_CUA_BUNDLE_ID).toBe("com.itshimelz.mimir.cua");
+    expect(SYNARA_CUA_DESKTOP_ORIGIN).toBe("mimir-cua://app");
+    expect(SYNARA_CUA_DESKTOP_ENTRY_URL).toBe("mimir-cua://app/index.html");
     expect(synaraDesktopIdentity("cua")).toEqual({
       flavor: "cua",
-      displayName: "Synara Cua",
+      displayName: "Mimir Cua",
       bundleId: SYNARA_CUA_BUNDLE_ID,
-      scheme: "synara-cua",
+      scheme: "mimir-cua",
       origin: SYNARA_CUA_DESKTOP_ORIGIN,
       entryUrl: SYNARA_CUA_DESKTOP_ENTRY_URL,
-      userDataDirectoryName: "synara-cua",
-      defaultHomeDirectoryName: ".synara-cua",
+      userDataDirectoryName: "mimir-cua",
+      defaultHomeDirectoryName: ".mimir-cua",
       usesScriptedUpdates: true,
     });
   });
 
   it("gives Beta a fully separate desktop identity and storage profile", () => {
-    expect(SYNARA_BETA_BUNDLE_ID).toBe("com.emanueledipietro.synara.beta");
-    expect(SYNARA_BETA_DESKTOP_ORIGIN).toBe("synara-beta://app");
-    expect(SYNARA_BETA_DESKTOP_ENTRY_URL).toBe("synara-beta://app/index.html");
+    expect(SYNARA_BETA_BUNDLE_ID).toBe("com.itshimelz.mimir.beta");
+    expect(SYNARA_BETA_DESKTOP_ORIGIN).toBe("mimir-beta://app");
+    expect(SYNARA_BETA_DESKTOP_ENTRY_URL).toBe("mimir-beta://app/index.html");
     expect(synaraDesktopIdentity("beta")).toEqual({
       flavor: "beta",
-      displayName: "Synara Beta",
+      displayName: "Mimir Beta",
       bundleId: SYNARA_BETA_BUNDLE_ID,
-      scheme: "synara-beta",
+      scheme: "mimir-beta",
       origin: SYNARA_BETA_DESKTOP_ORIGIN,
       entryUrl: SYNARA_BETA_DESKTOP_ENTRY_URL,
-      userDataDirectoryName: "synara-beta",
-      defaultHomeDirectoryName: ".synara-beta",
+      userDataDirectoryName: "mimir-beta",
+      defaultHomeDirectoryName: ".mimir-beta",
       usesScriptedUpdates: false,
     });
   });
@@ -133,11 +133,11 @@ describe("desktopIdentity", () => {
   });
 
   it("isolates development and Canary homes from packaged Stable", () => {
-    expect(synaraDesktopIdentity("development").defaultHomeDirectoryName).toBe(".synara-dev");
-    expect(synaraDesktopIdentity("canary").defaultHomeDirectoryName).toBe(".synara-canary");
-    expect(synaraDesktopIdentity("cua").defaultHomeDirectoryName).toBe(".synara-cua");
-    expect(synaraDesktopIdentity("beta").defaultHomeDirectoryName).toBe(".synara-beta");
-    expect(synaraDesktopIdentity("production").defaultHomeDirectoryName).toBe(".synara");
+    expect(synaraDesktopIdentity("development").defaultHomeDirectoryName).toBe(".mimir-dev");
+    expect(synaraDesktopIdentity("canary").defaultHomeDirectoryName).toBe(".mimir-canary");
+    expect(synaraDesktopIdentity("cua").defaultHomeDirectoryName).toBe(".mimir-cua");
+    expect(synaraDesktopIdentity("beta").defaultHomeDirectoryName).toBe(".mimir-beta");
+    expect(synaraDesktopIdentity("production").defaultHomeDirectoryName).toBe(".mimir");
   });
 
   it.each(["production", "canary", "cua", "beta"] as const)(
@@ -192,7 +192,7 @@ describe("desktopIdentity", () => {
           isDevelopment: false,
           packagedFlavor,
         }),
-      ).toThrow("packaged Synara desktop flavor is invalid");
+      ).toThrow("packaged Mimir desktop flavor is invalid");
     },
   );
 

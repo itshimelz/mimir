@@ -1,27 +1,27 @@
 // FILE: desktopIdentity.ts
 // Purpose: Defines the canonical desktop application identity across packaging and runtime.
 
-export const SYNARA_DESKTOP_SCHEME = "synara";
+export const SYNARA_DESKTOP_SCHEME = "mimir";
 export const SYNARA_DESKTOP_ORIGIN = `${SYNARA_DESKTOP_SCHEME}://app`;
 export const SYNARA_DESKTOP_ENTRY_URL = `${SYNARA_DESKTOP_ORIGIN}/index.html`;
-export const SYNARA_DESKTOP_UPDATE_CHANNEL = "synara";
-export const SYNARA_PRODUCTION_BUNDLE_ID = "com.emanueledipietro.synara";
+export const SYNARA_DESKTOP_UPDATE_CHANNEL = "mimir";
+export const SYNARA_PRODUCTION_BUNDLE_ID = "com.itshimelz.mimir";
 export const SYNARA_DEVELOPMENT_BUNDLE_ID = `${SYNARA_PRODUCTION_BUNDLE_ID}.dev`;
 export const SYNARA_CANARY_BUNDLE_ID = `${SYNARA_PRODUCTION_BUNDLE_ID}.canary`;
 /** Display/setup identity of the GUI host; this value does not confer native authority. */
 export const SYNARA_DESKTOP_BUNDLE_ID_ENV = "SYNARA_DESKTOP_BUNDLE_ID";
-export const SYNARA_CANARY_DESKTOP_SCHEME = "synara-canary";
+export const SYNARA_CANARY_DESKTOP_SCHEME = "mimir-canary";
 export const SYNARA_CANARY_DESKTOP_ORIGIN = `${SYNARA_CANARY_DESKTOP_SCHEME}://app`;
 export const SYNARA_CANARY_DESKTOP_ENTRY_URL = `${SYNARA_CANARY_DESKTOP_ORIGIN}/index.html`;
 export const SYNARA_CUA_BUNDLE_ID = `${SYNARA_PRODUCTION_BUNDLE_ID}.cua`;
-export const SYNARA_CUA_DESKTOP_SCHEME = "synara-cua";
+export const SYNARA_CUA_DESKTOP_SCHEME = "mimir-cua";
 export const SYNARA_CUA_DESKTOP_ORIGIN = `${SYNARA_CUA_DESKTOP_SCHEME}://app`;
 export const SYNARA_CUA_DESKTOP_ENTRY_URL = `${SYNARA_CUA_DESKTOP_ORIGIN}/index.html`;
 export const SYNARA_BETA_BUNDLE_ID = `${SYNARA_PRODUCTION_BUNDLE_ID}.beta`;
-export const SYNARA_BETA_DESKTOP_SCHEME = "synara-beta";
+export const SYNARA_BETA_DESKTOP_SCHEME = "mimir-beta";
 export const SYNARA_BETA_DESKTOP_ORIGIN = `${SYNARA_BETA_DESKTOP_SCHEME}://app`;
 export const SYNARA_BETA_DESKTOP_ENTRY_URL = `${SYNARA_BETA_DESKTOP_ORIGIN}/index.html`;
-export const SYNARA_SOURCE_DESKTOP_BUILD_MARKER = "synara-source-desktop-build-v2";
+export const SYNARA_SOURCE_DESKTOP_BUILD_MARKER = "mimir-source-desktop-build-v2";
 export const SYNARA_DESKTOP_SMOKE_USER_DATA_ENV = "SYNARA_DESKTOP_SMOKE_USER_DATA";
 
 export type SynaraDesktopFlavor = "production" | "development" | "canary" | "cua" | "beta";
@@ -31,7 +31,7 @@ export type SynaraPackagedDesktopFlavor = (typeof SYNARA_PACKAGED_DESKTOP_FLAVOR
 /**
  * electron-updater matches the update channel against the release tag's
  * prerelease identifier, so the beta flavor must use the `beta` channel to see
- * `vX.Y.Z-beta.N` releases. Every other flavor keeps the `synara` channel.
+ * `vX.Y.Z-beta.N` releases. Every other flavor keeps the `mimir` channel.
  */
 export function desktopUpdateChannel(flavor: SynaraDesktopFlavor): string {
   return flavor === "beta" ? "beta" : SYNARA_DESKTOP_UPDATE_CHANNEL;
@@ -86,7 +86,7 @@ export function resolveSynaraDesktopRuntimeFlavor(input: {
     if (flavor === "production" || flavor === "canary" || flavor === "cua" || flavor === "beta") {
       return flavor;
     }
-    throw new Error("The packaged Synara desktop flavor is invalid. Rebuild the application.");
+    throw new Error("The packaged Mimir desktop flavor is invalid. Rebuild the application.");
   }
   // Source launchers also use an app bundle on macOS. Their build marker keeps
   // the existing environment-based routing, while legacy packaged apps remain
@@ -113,64 +113,64 @@ export function synaraDesktopIdentity(flavor: SynaraDesktopFlavor): SynaraDeskto
   if (flavor === "cua") {
     return {
       flavor,
-      displayName: "Synara Cua",
+      displayName: "Mimir Cua",
       bundleId: SYNARA_CUA_BUNDLE_ID,
       scheme: SYNARA_CUA_DESKTOP_SCHEME,
       origin: SYNARA_CUA_DESKTOP_ORIGIN,
       entryUrl: SYNARA_CUA_DESKTOP_ENTRY_URL,
-      userDataDirectoryName: "synara-cua",
-      defaultHomeDirectoryName: ".synara-cua",
+      userDataDirectoryName: "mimir-cua",
+      defaultHomeDirectoryName: ".mimir-cua",
       usesScriptedUpdates: true,
     };
   }
   if (flavor === "canary") {
     return {
       flavor,
-      displayName: "Synara Canary",
+      displayName: "Mimir Canary",
       bundleId: SYNARA_CANARY_BUNDLE_ID,
       scheme: SYNARA_CANARY_DESKTOP_SCHEME,
       origin: SYNARA_CANARY_DESKTOP_ORIGIN,
       entryUrl: SYNARA_CANARY_DESKTOP_ENTRY_URL,
-      userDataDirectoryName: "synara-canary",
-      defaultHomeDirectoryName: ".synara-canary",
+      userDataDirectoryName: "mimir-canary",
+      defaultHomeDirectoryName: ".mimir-canary",
       usesScriptedUpdates: true,
     };
   }
   if (flavor === "beta") {
     return {
       flavor,
-      displayName: "Synara Beta",
+      displayName: "Mimir Beta",
       bundleId: SYNARA_BETA_BUNDLE_ID,
       scheme: SYNARA_BETA_DESKTOP_SCHEME,
       origin: SYNARA_BETA_DESKTOP_ORIGIN,
       entryUrl: SYNARA_BETA_DESKTOP_ENTRY_URL,
-      userDataDirectoryName: "synara-beta",
-      defaultHomeDirectoryName: ".synara-beta",
+      userDataDirectoryName: "mimir-beta",
+      defaultHomeDirectoryName: ".mimir-beta",
       usesScriptedUpdates: false,
     };
   }
   if (flavor === "development") {
     return {
       flavor,
-      displayName: "Synara (Dev)",
+      displayName: "Mimir (Dev)",
       bundleId: SYNARA_DEVELOPMENT_BUNDLE_ID,
       scheme: SYNARA_DESKTOP_SCHEME,
       origin: SYNARA_DESKTOP_ORIGIN,
       entryUrl: SYNARA_DESKTOP_ENTRY_URL,
-      userDataDirectoryName: "synara-dev",
-      defaultHomeDirectoryName: ".synara-dev",
+      userDataDirectoryName: "mimir-dev",
+      defaultHomeDirectoryName: ".mimir-dev",
       usesScriptedUpdates: false,
     };
   }
   return {
     flavor,
-    displayName: "Synara",
+    displayName: "Mimir",
     bundleId: SYNARA_PRODUCTION_BUNDLE_ID,
     scheme: SYNARA_DESKTOP_SCHEME,
     origin: SYNARA_DESKTOP_ORIGIN,
     entryUrl: SYNARA_DESKTOP_ENTRY_URL,
-    userDataDirectoryName: "synara",
-    defaultHomeDirectoryName: ".synara",
+    userDataDirectoryName: "mimir",
+    defaultHomeDirectoryName: ".mimir",
     usesScriptedUpdates: false,
   };
 }

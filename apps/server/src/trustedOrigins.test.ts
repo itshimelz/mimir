@@ -37,28 +37,28 @@ describe("trustedOrigins", () => {
     ).toBe(true);
     expect(
       isTrustedAppOrigin({
-        origin: "synara://app",
+        origin: "mimir://app",
         requestOrigin: "http://127.0.0.1:58090",
         config,
       }),
     ).toBe(true);
     expect(
       isTrustedAppOrigin({
-        origin: "synara-canary://app",
+        origin: "mimir-canary://app",
         requestOrigin: "http://127.0.0.1:58090",
         config,
       }),
     ).toBe(true);
     expect(
       isTrustedAppOrigin({
-        origin: "synara-cua://app",
+        origin: "mimir-cua://app",
         requestOrigin: "http://127.0.0.1:58090",
         config,
       }),
     ).toBe(true);
     expect(
       isTrustedAppOrigin({
-        origin: "synara-beta://app",
+        origin: "mimir-beta://app",
         requestOrigin: "http://127.0.0.1:58090",
         config,
       }),
@@ -129,18 +129,18 @@ describe("trustedOrigins", () => {
   });
 
   it("normalizes desktop origins with trailing slashes", () => {
-    expect(normalizeCorsOrigin("synara://app/")).toBe("synara://app");
-    expect(normalizeCorsOrigin("synara-canary://app/")).toBe("synara-canary://app");
-    expect(normalizeCorsOrigin("synara-cua://app/")).toBe("synara-cua://app");
-    expect(normalizeCorsOrigin("synara-beta://app/")).toBe("synara-beta://app");
+    expect(normalizeCorsOrigin("mimir://app/")).toBe("mimir://app");
+    expect(normalizeCorsOrigin("mimir-canary://app/")).toBe("mimir-canary://app");
+    expect(normalizeCorsOrigin("mimir-cua://app/")).toBe("mimir-cua://app");
+    expect(normalizeCorsOrigin("mimir-beta://app/")).toBe("mimir-beta://app");
   });
 
   it("trusts every packaged desktop flavor at the request gate and rejects lookalikes", () => {
     for (const rawOrigin of [
-      "synara://app",
-      "synara-beta://app",
-      "synara-canary://app",
-      "synara-cua://app",
+      "mimir://app",
+      "mimir-beta://app",
+      "mimir-canary://app",
+      "mimir-cua://app",
     ]) {
       expect(
         shouldRejectUntrustedRequestOrigin({
@@ -151,12 +151,12 @@ describe("trustedOrigins", () => {
       ).toBe(false);
     }
     for (const rawOrigin of [
-      "synara://evil.test",
-      "synara-beta://evil.test",
-      "synara-beta://app.evil.test",
-      "synara-betas://app",
-      "synara-canary://evil.test",
-      "synara-cua://evil.test",
+      "mimir://evil.test",
+      "mimir-beta://evil.test",
+      "mimir-beta://app.evil.test",
+      "mimir-betas://app",
+      "mimir-canary://evil.test",
+      "mimir-cua://evil.test",
     ]) {
       expect(
         shouldRejectUntrustedRequestOrigin({

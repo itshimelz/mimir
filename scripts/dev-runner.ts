@@ -19,13 +19,15 @@ import * as ConfigProvider from "effect/ConfigProvider";
 import { Argument, Command, Flag } from "effect/unstable/cli";
 import { ChildProcess } from "effect/unstable/process";
 
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
+
 const BASE_SERVER_PORT = 3773;
 const BASE_WEB_PORT = 5733;
 const MAX_HASH_OFFSET = 3000;
 const MAX_PORT = 65535;
 
 export const DEFAULT_SYNARA_HOME = Effect.map(Effect.service(Path.Path), (path) =>
-  path.join(homedir(), ".synara"),
+  path.join(homedir(), DEFAULT_SYNARA_HOME_DIRECTORY_NAME),
 );
 const MODE_ARGS = {
   dev: [

@@ -5,11 +5,11 @@ import { canaryCloneArgs, parseCanaryArgs, resolveCanaryPaths, resolveCanaryRef 
 describe("canary tooling", () => {
   it("keeps managed source and Canary data separate from Stable", () => {
     expect(resolveCanaryPaths({}, "/Users/tester")).toEqual({
-      home: "/Users/tester/.synara-canary",
+      home: "/Users/tester/.mimir-canary",
       source: "/Users/tester/.cache/synara-canary/source",
-      state: "/Users/tester/.synara-canary/canary-state.json",
-      pid: "/Users/tester/.synara-canary/canary.pid",
-      log: "/Users/tester/.synara-canary/canary.log",
+      state: "/Users/tester/.mimir-canary/canary-state.json",
+      pid: "/Users/tester/.mimir-canary/canary.pid",
+      log: "/Users/tester/.mimir-canary/canary.log",
     });
   });
 

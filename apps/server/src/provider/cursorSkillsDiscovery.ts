@@ -8,6 +8,7 @@ import * as nodePath from "node:path";
 
 import type { ProviderSkillDescriptor } from "@synara/contracts";
 
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 import { collectSkillsFromRoots, providerNativeSkillRoots } from "./skillsCatalog.ts";
 
 export interface CursorSkillDiscoveryInput {
@@ -22,7 +23,7 @@ export async function discoverCursorSkills(
     providerNativeSkillRoots({
       cwd: input.cwd,
       homeDir: input.homeDir,
-      synaraBaseDir: nodePath.join(input.homeDir, ".synara"),
+      synaraBaseDir: nodePath.join(input.homeDir, DEFAULT_SYNARA_HOME_DIRECTORY_NAME),
       provider: "cursor",
     }),
   );

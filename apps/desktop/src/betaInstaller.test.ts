@@ -158,7 +158,7 @@ describe("resolveBetaFeedLocation", () => {
   });
 });
 
-function fakeApp(dir: string, bundleId = "com.emanueledipietro.synara.beta"): string {
+function fakeApp(dir: string, bundleId = "com.itshimelz.mimir.beta"): string {
   const appPath = join(dir, "Synara Beta.app", "Contents");
   mkdirSync(appPath, { recursive: true });
   writeFileSync(
@@ -178,7 +178,7 @@ describe("verifyBetaAppBundle", () => {
 
   it("rejects a non-beta bundle id", () => {
     const root = makeRoot();
-    expect(() => verifyBetaAppBundle(fakeApp(root, "com.emanueledipietro.synara"))).toThrow(
+    expect(() => verifyBetaAppBundle(fakeApp(root, "com.itshimelz.mimir"))).toThrow(
       /not Synara Beta/,
     );
   });
@@ -253,7 +253,7 @@ describe("installBetaFromFeed", () => {
       ...deps,
       run: (command: string, args: readonly string[]) => {
         if (command === "ditto") {
-          fakeApp(args[args.length - 1]!, "com.emanueledipietro.synara");
+          fakeApp(args[args.length - 1]!, "com.itshimelz.mimir");
           return;
         }
         if (command === "mv") return;

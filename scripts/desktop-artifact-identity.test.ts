@@ -13,13 +13,13 @@ describe("desktop artifact identity", () => {
       const result = createDesktopArtifactIdentity({ platform, flavor: "production" });
       expect(result.packageMetadata).toEqual({
         name: "synara-desktop",
-        productName: "Synara",
+        productName: "Mimir",
         synaraDesktopFlavor: "production",
       });
       expect(result.buildConfig).toEqual({
-        appId: "com.emanueledipietro.synara",
-        productName: "Synara",
-        artifactName: "Synara-${version}-${arch}.${ext}",
+        appId: "com.itshimelz.mimir",
+        productName: "Mimir",
+        artifactName: "Mimir-${version}-${arch}.${ext}",
       });
       expect(result.releaseDirectoryName).toBe("release");
       expect(result.identity.usesScriptedUpdates).toBe(false);
@@ -45,11 +45,11 @@ describe("desktop artifact identity", () => {
       expect(result.buildConfig.protocols).toEqual([
         { name: runtimeIdentity.displayName, schemes: [runtimeIdentity.scheme] },
       ]);
-      expect(runtimeIdentity.userDataDirectoryName).toBe(`synara-${flavor}`);
-      expect(runtimeIdentity.defaultHomeDirectoryName).toBe(`.synara-${flavor}`);
+      expect(runtimeIdentity.userDataDirectoryName).toBe(`mimir-${flavor}`);
+      expect(runtimeIdentity.defaultHomeDirectoryName).toBe(`.mimir-${flavor}`);
       expect(runtimeIdentity.usesScriptedUpdates).toBe(true);
       expect(result.releaseDirectoryName).toBe(`release-${flavor}`);
-      expect(result.buildConfig.artifactName).not.toBe("Synara-${version}-${arch}.${ext}");
+      expect(result.buildConfig.artifactName).not.toBe("Mimir-${version}-${arch}.${ext}");
     },
   );
 

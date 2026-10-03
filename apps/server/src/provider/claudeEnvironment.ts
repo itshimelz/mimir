@@ -8,6 +8,7 @@ import { homedir } from "node:os";
 
 import { defaultInstanceIdForDriver } from "@synara/contracts";
 
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 import { expandProviderAccountHomePath } from "../providerAccountHomePath.ts";
 import { buildClaudeProcessEnv, isClaudeAccountIsolationEnvKey } from "./claudeProcessEnv.ts";
 
@@ -49,7 +50,11 @@ export function claudeIsolatedHomePath(input: {
 }): string {
   const isolationRoot =
     input.isolationRootDir?.trim() ||
-    NodePath.join(input.homeDir?.trim() || homedir(), ".synara", "userdata");
+    NodePath.join(
+      input.homeDir?.trim() || homedir(),
+      DEFAULT_SYNARA_HOME_DIRECTORY_NAME,
+      "userdata",
+    );
   return NodePath.resolve(
     isolationRoot,
     "provider-homes",

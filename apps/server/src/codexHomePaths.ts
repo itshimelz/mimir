@@ -11,6 +11,7 @@ import { createHash } from "node:crypto";
 import { homedir } from "node:os";
 import path from "node:path";
 
+import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 import { expandProviderAccountHomePath } from "./providerAccountHomePath.ts";
 
 export const SYNARA_CODEX_HOME_OVERLAY_DIR = "codex-home-overlay";
@@ -38,7 +39,9 @@ export function resolveSynaraCodexHomeOverlayPath(
   accountSegment?: string,
 ): string {
   const runtimeHome = env.SYNARA_HOME?.trim();
-  const overlayRoot = runtimeHome || path.join(path.dirname(sourceHomePath), ".synara", "runtime");
+  const overlayRoot =
+    runtimeHome ||
+    path.join(path.dirname(sourceHomePath), DEFAULT_SYNARA_HOME_DIRECTORY_NAME, "runtime");
   const overlayHome = path.join(overlayRoot, SYNARA_CODEX_HOME_OVERLAY_DIR);
   return accountSegment
     ? path.join(overlayHome, SYNARA_CODEX_HOME_ACCOUNT_OVERLAYS_DIR, accountSegment)

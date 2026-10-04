@@ -55,9 +55,9 @@ export const COMPOSER_PICKER_MODEL_LIST_MAX_HEIGHT_CLASS_NAME =
 /** Scroll chrome for long model-provider lists. */
 export const COMPOSER_PICKER_MODEL_LIST_SCROLL_CLASS_NAME = "composer-picker-scroll";
 
-/** Corner radius for picker panel chrome and panel-level surfaces. `md` is one step above
- *  the menu shell: these panels are taller, so they read as a panel rather than a menu. */
-export const COMPOSER_PICKER_RADIUS_CLASS_NAME = "rounded-md";
+/** Corner radius for picker panel chrome and panel-level surfaces. `sm` matches the menu
+ *  shell so pickers and menus share one corner. */
+export const COMPOSER_PICKER_RADIUS_CLASS_NAME = "rounded-sm";
 
 /** Tighter corner radius for option rows / selection pills inside picker panels. */
 export const COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME = "rounded-sm";
@@ -206,7 +206,7 @@ export const COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME = `${COMPOSER_PICKER_MEN
  *  Picker border/radius/shadow, but a solid fill: the menu floats over the
  *  transcript, so frosted bg-popover/70 would let chat content bleed through. */
 export const COMPOSER_COMMAND_MENU_SURFACE_CLASS_NAME =
-  "relative overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground";
+  "relative overflow-hidden rounded-sm border border-border bg-popover text-popover-foreground";
 
 /** Environment panel card. Opaque for the same reason as the command menu (it overlays the
  *  transcript), except on a whole-window glass shell, where it takes the shared raised
@@ -240,10 +240,10 @@ export const COMPOSER_COMMAND_MENU_INLINE_WRAPPER_CLASS_NAME =
  *  Highlight tints the surface darker (button-secondary), matching every other
  *  composer picker. The `elevated-secondary-opaque` token lightens toward white,
  *  which is invisible on the near-white popover surface, so it is not used here.
- *  `rounded-xl` keeps the row concentric with the `rounded-2xl` surface behind the
+ *  `rounded-xs` keeps the row concentric with the `rounded-sm` surface behind the
  *  list's 0.25rem padding. */
 export const COMPOSER_COMMAND_MENU_ITEM_CLASS_NAME =
-  "flex cursor-pointer select-none items-center gap-2 rounded-xl px-2 py-1 transition-colors hover:bg-[var(--color-background-button-secondary-hover)] data-highlighted:bg-[var(--color-background-button-secondary-hover)]";
+  "flex cursor-pointer select-none items-center gap-2 rounded-xs px-2 py-1 transition-colors hover:bg-[var(--color-background-button-secondary-hover)] data-highlighted:bg-[var(--color-background-button-secondary-hover)]";
 
 /** Active command menu row — keyboard-selected pill fill. */
 export const COMPOSER_COMMAND_MENU_ITEM_ACTIVE_CLASS_NAME =

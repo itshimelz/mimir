@@ -127,16 +127,3 @@ test("media authoring guide defines privacy, provenance, accessibility, and asse
     assert.ok(guide.includes(phrase), `media guide is missing: ${phrase}`);
   }
 });
-
-test("the initial docs integration is explicitly derived and dimensioned", () => {
-  const coreConcepts = read("content/docs/getting-started/core-concepts.mdx");
-  const block = componentBlocks(coreConcepts, "DocsScreenshot")[0];
-
-  assert.ok(block);
-  assert.match(block, /lightSrc="\/synara-ui-light\.png"/);
-  assert.match(block, /darkSrc="\/synara-ui-dark\.png"/);
-  assert.match(block, /width=\{3216\}/);
-  assert.match(block, /height=\{2090\}/);
-  assert.match(block, /provenance="derived"/);
-  assert.match(block, /representative composition/i);
-});

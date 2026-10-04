@@ -205,8 +205,6 @@ branch, its empty managed folder, and recovery
 snapshots cached for that path. Automatic retention keeps the 15 most recently archived worktrees
 and snapshots older ones before removing them; those snapshots expire after 30 days.
 
-![Delete worktree on archive setting](assets/worktree-cleanup/1-setting-delete-worktree-on-archive.png)
-
 ## Providers, models, and sessions
 
 A provider is the coding-agent runtime Synara operates, such as Claude Code, Codex, OpenCode, Cursor,

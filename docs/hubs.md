@@ -42,8 +42,6 @@ yet, Synara asks **Discard this hub?** Choose **Discard hub** to remove it, or *
 finish setup later. A hub you keep shows its name with **Set up** in the sidebar; click it to
 reopen setup.
 
-![Set up your hub dialog](./screenshots/hubs-onboarding.png)
-
 The coordinator conversation opens with a welcome message. Until you send your first message, a
 **Suggestions** row offers three shortcuts: **Connect repositories**, **Add a goal**, and **Write
 instructions**. Each one opens the matching settings section, and hides once that setting is filled.
@@ -217,8 +215,6 @@ The sections:
 
 Threads in linked repositories appear here too, labelled with their repository.
 
-![Hubs panel](./screenshots/hubs-overview.png)
-
 ## Instructions and memory
 
 Every turn of every thread in the hub, whether the coordinator started it or you did, and
@@ -247,8 +243,6 @@ small model for reviews"), it saves a note and adds one line to the `MEMORY.md` 
 near-identical note updates the existing file instead of creating a second one. Any hub thread
 can remember or forget notes the same way. Ask the coordinator to forget a note when it is stale.
 
-![Hub memory settings](./screenshots/hubs-memory.png)
-
 ## The Library
 
 The Library is a folder of files for the hub, versioned as a Git repository. Every change is a
@@ -263,12 +257,8 @@ commit. Open it with the **Library** button in the chat header.
 - **History** lists every version. Choose **Restore** to bring back an earlier version or a
   deleted file.
 
-![Library panel](./screenshots/hubs-library.png)
-
 Choose **Expand** in the Library header to make the panel as tall as the chat column and much
 wider, which is easier for reading documents. **Collapse** returns it to its compact size.
-
-![Library previewing a document](./screenshots/hubs-library-preview.png)
 
 Threads deliver files to the Library themselves: when a thread produces something worth keeping,
 the coordinator asks it to add the file, then links the Library path in its reply. A thread can

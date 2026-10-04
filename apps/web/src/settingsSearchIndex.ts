@@ -551,7 +551,7 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
       target: null,
     },
 
-// ── Advanced ──────────────────────────────────────────────────────────────────
+    // ── Advanced ──────────────────────────────────────────────────────────────────
     {
       id: "advanced:keybindings",
       section: "advanced",

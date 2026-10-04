@@ -128,7 +128,7 @@ describe("trustedOrigins", () => {
     ).toBe(false);
   });
 
-it("normalizes desktop origins and single Origin-header arrays", () => {
+  it("normalizes desktop origins and single Origin-header arrays", () => {
     expect(normalizeCorsOrigin(["http://localhost:5173"])).toBe("http://localhost:5173");
     expect(normalizeCorsOrigin("mimir://app/")).toBe("mimir://app");
     expect(normalizeCorsOrigin("mimir-canary://app/")).toBe("mimir-canary://app");

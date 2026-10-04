@@ -187,7 +187,7 @@ it("does not jump ahead of a slow AppSnap probe and then waits for its dismissal
   expect(document.querySelectorAll('[role="dialog"]').length).toBe(0);
   resolveProbe({ supported: true });
   await expect
-    .element(page.getByRole("dialog", { name: "Synara AppSnaps are live!" }))
+    .element(page.getByRole("dialog", { name: "Mimir AppSnaps are live!" }))
     .toBeVisible();
   await page.getByRole("button", { name: "Not now" }).click();
   await expect

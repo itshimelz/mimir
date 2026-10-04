@@ -2752,8 +2752,8 @@ diffs-container {
 
    `--surface-border-strength` thins that base color toward transparent. Lower it to
    make the whole raised-chrome outline recede; 100% restores the full-weight border.
-   Floating menus, pickers, and popovers deliberately stay on plain `border-border` —
-   they are transient overlays, not part of this raised-card family. */
+   Floating menus, pickers, and popovers use `--overlay-border` below instead — they are
+   transient overlays, not part of this raised-card family. */
 :root {
   --surface-border-strength: 55%;
   --surface-border: color-mix(
@@ -2773,6 +2773,29 @@ diffs-container {
   --composer-stacked-border: color-mix(
     in srgb,
     color-mix(in srgb, var(--color-border-heavy) 50%, transparent) var(--surface-border-strength),
+    transparent
+  );
+}
+
+/* Floating-overlay outline — menus, pickers, popovers, tooltips, toasts. These no
+   longer frost what passes behind them, so this border carries the whole edge. Built
+   from theme tokens so a pack that shifts `--border` carries the menu edge with it. */
+:root {
+  --overlay-border-strength: 62%;
+  --overlay-border: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-border-heavy) 88%, var(--foreground) 12%)
+      var(--overlay-border-strength),
+    transparent
+  );
+}
+
+.dark {
+  /* Dark needs more foreground in the mix or the edge disappears into the fill. */
+  --overlay-border: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--color-border-heavy) 45%, var(--foreground) 55%)
+      var(--overlay-border-strength),
     transparent
   );
 }
@@ -2857,17 +2880,22 @@ diffs-container {
   background: var(--color-background-surface);
 }
 
-/* Code, diff, and file viewers paint their own fill inside the dock (`--synara-code-surface`
-   in diffRendering.ts). On whole-window glass they go clear like the dock body, so the pane
-   reads as one sheet of glass instead of an opaque slab; only what content scrolls under
-   (sticky diff headers, the gutter once a row scrolls sideways) keeps the composer's dense
-   tint. A maximized dock and the mobile sheet are opaque, so their viewers keep their own fill. */
+/* Code, diff, and file viewers paint their own fill (`--synara-code-surface` in
+   diffRendering.ts). On whole-window glass they go clear like the surface around them in the
+   dock and the editor workspace, so the pane reads as one sheet of glass instead of an opaque
+   slab; only what content scrolls under (sticky diff headers, the gutter once a row scrolls
+   sideways) keeps the composer's dense tint. A maximized dock and the mobile sheet are opaque,
+   so their viewers keep their own fill. */
 :root[data-window-translucency="window"]
-  [data-slot="sidebar-container"]:not([data-dock-maximized])
-  [data-right-dock-content] {
+  :is(
+    [data-slot="sidebar-container"]:not([data-dock-maximized]) [data-right-dock-content],
+    [data-editor-workspace]
+  ) {
   --app-code-viewer-surface: transparent;
   --app-code-viewer-sticky-surface: color-mix(in srgb, var(--popover) 96%, transparent);
   --app-code-viewer-gutter-animation: synara-code-gutter-backing;
+  --app-code-viewer-addition-row: color-mix(in srgb, var(--success) 10%, transparent);
+  --app-code-viewer-deletion-row: color-mix(in srgb, var(--destructive) 10%, transparent);
 }
 
 /* Terminals follow the window's glass: xterm resolves its background from this token
@@ -3115,11 +3143,13 @@ diffs-container {
    `--composer-glass-opacity` keeps every composer-family surface on one knob. A
    whole-window glass shell replaces this material entirely; see `.app-glass-raised`. */
 :root {
-  --composer-glass-opacity: 55%;
-  --composer-glass-stacked-opacity: calc(var(--composer-glass-opacity) / 2);
-  --composer-glass-filter: blur(40px) saturate(150%);
-  /* Same base as `.composer-picker-menu-surface`, kept opaque here so the shared
-     `--composer-glass-opacity` knob is the only thing thinning it. */
+  --composer-glass-opacity: 100%;
+  --composer-glass-stacked-opacity: 100%;
+  /* No frost: the transcript scrolls directly under the composer, so an opaque fill is
+     what keeps that text from reading through. */
+  --composer-glass-filter: none;
+  /* Same base as `.composer-picker-menu-surface`, so the composer and the menus
+      floating off it share one fill. */
   --composer-glass-surface: var(--popover);
 }
 
@@ -3226,18 +3256,11 @@ diffs-container {
 }
 
 /* ─── Floating overlays ───────────────────────────────────────────────────────────
-   Menus, pickers, popovers, tooltips, and toasts share the composer's material
-   (`--app-overlay-surface`, theme.logic). What keeps the content behind them from
-   reading through depends on the window:
-     • Opaque window: the backdrop blur on the surface frosts it.
-     • Translucent window: a blur cannot do that. Over a see-through region Chromium
-       composites the blurred copy over the sharp original, so text stays readable.
-       glassOverlayCutout.ts cuts the page out from under each overlay instead, leaving
-       only the window's coat and the natively blurred desktop behind it, and the blur
-       is dropped (it would only lay a second copy of the coat under the fill). The
-       same cutout serves raised surfaces floating inside the page (a floating side
-       panel, the PR composer), which is why they share the docked surfaces' tint.
-   `--app-overlay-backing` is that coat where the body does not paint one. */
+   Menus, pickers, and popovers share the composer's material
+   (`--app-overlay-surface`, theme.logic) and sit directly on the content behind them,
+   so the fill is opaque and the outline that separates them is `--overlay-border`.
+   `--app-overlay-backing` is the window's coat on a translucent shell, where
+   glassOverlayCutout.ts cuts the page out from under each overlay instead. */
 :is(.app-popup-surface, .composer-picker-menu-surface) {
   background:
     linear-gradient(var(--app-overlay-surface), var(--app-overlay-surface)),

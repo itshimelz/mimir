@@ -615,7 +615,7 @@ function SortableProviderVisibilityRow(props: {
       className={cn(
         SETTINGS_OUTLINED_SURFACE_CLASS_NAME,
         "flex items-center justify-between gap-3 px-3 py-2.5",
-        isDragging && "z-10 opacity-80 shadow-lg",
+        isDragging && "z-10 opacity-80 shadow-sm",
       )}
     >
       <div className="flex min-w-0 items-center gap-2.5">

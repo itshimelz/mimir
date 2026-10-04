@@ -60,6 +60,7 @@ interface ChatTranscriptPaneProps {
   isTemporaryThread?: boolean;
   /** A new chat the server has not created yet. The server refuses history requests for it. */
   isLocalDraft?: boolean;
+  isProjectImport?: boolean;
   isWorking: boolean;
   workingLabel?: ComponentProps<typeof MessagesTimeline>["workingLabel"];
   followLiveOutput: boolean;
@@ -154,6 +155,7 @@ export function ChatTranscriptPane({
   isRevertingCheckpoint,
   isTemporaryThread,
   isLocalDraft,
+  isProjectImport,
   isWorking,
   workingLabel,
   followLiveOutput,
@@ -249,7 +251,10 @@ export function ChatTranscriptPane({
   useEffect(() => {
     activeTrailStore.set(null);
   }, [activeThreadId, activeTrailStore]);
-  const importedHistory = useImportedHistory(activeThreadId, !isTemporaryThread && !isLocalDraft);
+  const importedHistory = useImportedHistory(
+    activeThreadId,
+    isProjectImport === true && !isTemporaryThread && !isLocalDraft,
+  );
   const olderTimelineEntries = useMemo(
     () =>
       importedHistory.messages.map((message) => ({
@@ -324,7 +329,7 @@ export function ChatTranscriptPane({
           <MessagesTimeline
             key={activeThreadId}
             historyHeader={
-              importedHistory.nextCursor || importedHistory.error ? (
+              importedHistory.nextCursor || importedHistory.error || importedHistory.loading ? (
                 <ImportedHistoryButton history={importedHistory} />
               ) : undefined
             }
@@ -444,7 +449,7 @@ export function ChatTranscriptPane({
               aria-hidden={!scrollButtonVisible}
               tabIndex={scrollButtonVisible ? 0 : -1}
               className={cn(
-                "flex size-8 items-center justify-center rounded-full border border-[color:var(--color-border)] bg-[var(--color-background-elevated-primary-opaque)] text-[var(--color-text-foreground)] backdrop-blur-md hover:cursor-pointer",
+                "flex size-8 items-center justify-center rounded-full border border-[color:var(--overlay-border)] bg-[var(--color-background-elevated-primary-opaque)] text-[var(--color-text-foreground)] hover:cursor-pointer",
                 // The hover tint is layered over the opaque fill instead of replacing it: the
                 // shared elevated hover is a thin ink wash, which alone would let the
                 // transcript read through the button.

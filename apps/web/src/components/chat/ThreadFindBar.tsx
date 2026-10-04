@@ -173,7 +173,7 @@ export function ThreadFindBar({
       role="search"
       data-testid="thread-find-bar"
       data-thread-find-layout="panel"
-      className="flex w-80 max-w-[calc(100vw-2rem)] flex-col rounded-3xl border border-border/60 bg-[var(--color-background-elevated-primary-opaque)] shadow-lg"
+      className="flex w-80 max-w-[calc(100vw-2rem)] flex-col rounded-sm border border-[color:var(--overlay-border)] bg-[var(--color-background-elevated-primary-opaque)] shadow-sm"
     >
       <div className="flex items-center gap-2.5 px-4">
         <SearchIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />

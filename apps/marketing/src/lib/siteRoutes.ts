@@ -45,11 +45,7 @@ const staticRoutes = [
     lastModified: latestReleaseUpdate,
     changeFrequency: "daily",
     priority: 1,
-    images: [
-      absoluteUrl(SITE_IMAGES.og),
-      absoluteUrl(SITE_IMAGES.lightScreenshot),
-      absoluteUrl(SITE_IMAGES.darkScreenshot),
-    ],
+    images: [absoluteUrl(SITE_IMAGES.og)],
   },
   {
     path: "/install",

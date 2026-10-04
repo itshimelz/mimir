@@ -57,7 +57,7 @@ export interface WindowTranslucency {
   blur: number | null;
   /**
    * Limit the glass to the sidebar (and the rail layout's shell band) and keep the route
-   * content opaque. On by default; off shares one translucent fill across the whole window.
+   * content opaque. Off by default to share one translucent fill across the whole window.
    */
   sidebarOnly: boolean;
 }
@@ -290,12 +290,10 @@ export const DEFAULT_CHROME_THEME_BY_VARIANT: Record<ThemeVariant, ChromeTheme> 
   },
 };
 
-// Opacity reproduces the sidebar tint the translucent shell has always used, and the
-// unset blur keeps the macOS vibrancy material behind it, so an untouched install looks
-// the way it did before these were adjustable.
+// Full-window glass defaults shared by light and dark themes.
 export const DEFAULT_WINDOW_TRANSLUCENCY_BY_VARIANT: Record<ThemeVariant, WindowTranslucency> = {
-  dark: { opacity: 72, blur: null, sidebarOnly: true },
-  light: { opacity: 38, blur: null, sidebarOnly: true },
+  dark: { opacity: 90, blur: 64, sidebarOnly: false },
+  light: { opacity: 90, blur: 64, sidebarOnly: false },
 };
 
 /** Thinnest glass fill: below this the window reads as see-through rather than as glass. */
@@ -304,7 +302,7 @@ export const WINDOW_TRANSLUCENCY_OPACITY_MIN = 15;
 /** Where the blur slider rests while the vibrancy material is in use; roughly its frosting. */
 export const VIBRANCY_EQUIVALENT_BLUR_RADIUS = 30;
 
-// The rail layout's shell tint scales with the sidebar opacity from these defaults
+// The rail layout's shell tint scales with the sidebar opacity from its original values
 // (dark 72% -> 64%, light 38% -> 82%), so both surfaces move together.
 const RAIL_SHELL_OPACITY_RATIO_BY_VARIANT: Record<ThemeVariant, number> = {
   dark: 64 / 72,
@@ -321,11 +319,10 @@ const RAISED_GLASS_OPACITY_BY_VARIANT: Record<ThemeVariant, { floor: number; rat
   light: { floor: 4, ratio: 0.3 },
 };
 
-// Floating overlays (menus, pickers, popovers, tooltips, toasts) share the composer's material
-// so the whole UI reads as one. Off a whole-window glass shell that is the composer's own fill
-// (`--composer-glass-opacity` in index.css) over a backdrop blur; on one it is the raised tint,
-// with the page cut out from under the overlay instead of blurred (see glassOverlayCutout.ts).
-const OVERLAY_OPACITY = 55;
+// Floating overlays (menus, pickers, popovers, tooltips, toasts) sit on the content
+// behind them, so their fill is opaque. On a whole-window glass shell they take the
+// raised tint instead: there the page is cut out, not blurred (glassOverlayCutout.ts).
+const OVERLAY_OPACITY = 100;
 
 export const DEFAULT_THEME_STATE: ThemeState = {
   chromeThemes: {
@@ -433,7 +430,9 @@ export function normalizeWindowTranslucency(
             DESKTOP_WINDOW_BLUR_RADIUS_MAX,
             DESKTOP_WINDOW_BLUR_RADIUS_MIN,
           )
-        : fallback.blur,
+        : translucency.blur === null
+          ? null
+          : fallback.blur,
     sidebarOnly:
       typeof translucency.sidebarOnly === "boolean"
         ? translucency.sidebarOnly

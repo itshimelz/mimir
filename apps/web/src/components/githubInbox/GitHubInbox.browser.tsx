@@ -670,7 +670,7 @@ describe("GitHubInbox states", () => {
 
     await expect.element(page.getByText("GitHub rate limit reached")).toBeVisible();
     await expect
-      .element(page.getByText(/Synara pauses GitHub requests until the limit resets at/))
+      .element(page.getByText(/Mimir pauses GitHub requests until the limit resets at/))
       .toBeVisible();
   });
 

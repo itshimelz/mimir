@@ -14,10 +14,11 @@ import {
   CopyIcon,
   CustomizeIcon,
   FeedbackIcon,
-  GitBranchIcon,
   ExternalLinkIcon,
   FolderOpenIcon,
   GiftIcon,
+  GitBranchIcon,
+  GitForkIcon,
   InboxIcon,
   KanbanIcon,
   TasksIcon,
@@ -51,6 +52,7 @@ import {
   subscribeComposerSends,
 } from "~/lib/composerSendOwnership";
 import { autoAnimate } from "@formkit/auto-animate";
+import { IoIosGitCompare } from "react-icons/io";
 import {
   useCallback,
   useEffect,
@@ -788,7 +790,7 @@ function resolveThreadRowMetaChips(input: {
       tooltip: "Forked thread",
       icon: (
         <SidebarGlyph
-          icon={GitBranchIcon}
+          icon={GitForkIcon}
           variant="meta"
           className="text-emerald-600 dark:text-emerald-300/90"
         />
@@ -1242,7 +1244,7 @@ function SidebarActivityBellButton({
         sideOffset={onboardingVisible ? 8 : 4}
         className={cn(
           onboardingVisible &&
-            "max-w-64 border-[var(--color-text-accent)] bg-[var(--color-text-accent)] text-white shadow-lg",
+            "max-w-64 border-[var(--color-text-accent)] bg-[var(--color-text-accent)] text-white shadow-sm",
         )}
         viewportClassName={cn(onboardingVisible && "px-3 py-2.5")}
       >

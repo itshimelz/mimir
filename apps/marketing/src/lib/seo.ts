@@ -73,8 +73,6 @@ export const OG_IMAGE = {
 export const SITE_IMAGES = {
   icon: "/synara-icon.png",
   og: "/og.png",
-  lightScreenshot: "/synara-ui-light.png",
-  darkScreenshot: "/synara-ui-dark.png",
 };
 
 /** Builds an absolute production URL for metadata, sitemaps, and structured data. */
@@ -130,10 +128,6 @@ export const SITE_JSONLD = {
       description: SITE_DESCRIPTION,
       url: SITE_URL,
       image: absoluteUrl(SITE_IMAGES.og),
-      screenshot: [
-        absoluteUrl(SITE_IMAGES.lightScreenshot),
-        absoluteUrl(SITE_IMAGES.darkScreenshot),
-      ],
       downloadUrl: absoluteUrl("/install"),
       sameAs: GITHUB_REPO_URL,
       operatingSystem: "macOS, Windows, Linux",

@@ -116,20 +116,7 @@ export default async function Home() {
             </p>
 
             <div className="relative mt-10 sm:mt-14" data-hero-preview>
-              <div className="relative overflow-hidden rounded-xl bg-[var(--block-elevated)] p-2 ring-1 ring-black/5 sm:rounded-2xl sm:p-3 dark:ring-white/10">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/synara-ui-light.png"
-                  alt="Synara — local-first command center for parallel coding agents, terminals, previews, diffs, and Git worktrees"
-                  className="block h-auto w-full rounded-lg dark:hidden sm:rounded-xl"
-                />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/synara-ui-dark.png"
-                  alt="Synara — local-first command center for parallel coding agents, terminals, previews, diffs, and Git worktrees"
-                  className="hidden h-auto w-full rounded-lg dark:block sm:rounded-xl"
-                />
-              </div>
+              <div className="relative overflow-hidden rounded-xl bg-[var(--block-elevated)] p-2 ring-1 ring-black/5 sm:rounded-2xl sm:p-3 dark:ring-white/10" />
             </div>
           </div>
         </section>

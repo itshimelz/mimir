@@ -62,7 +62,7 @@ export function TranscriptSelectionAction(props: TranscriptSelectionActionProps)
     >
       {/* Sized to its labels and centered in the layout's slot, so labels never clip
           regardless of font size or which actions are present. */}
-      <div className="pointer-events-auto inline-flex w-max max-w-[calc(100vw-16px)] shrink-0 items-center divide-x divide-[var(--color-border)] overflow-hidden rounded-lg border border-[color:var(--color-border)] bg-[var(--color-background-elevated-primary-opaque)] shadow-md">
+      <div className="pointer-events-auto inline-flex w-max max-w-[calc(100vw-16px)] shrink-0 items-center divide-x divide-[var(--color-border)] overflow-hidden rounded-sm border border-[color:var(--overlay-border)] bg-[var(--color-background-elevated-primary-opaque)] shadow-sm">
         <TranscriptSelectionToolbarButton
           label="Add to Chat"
           onClick={props.onAddToChat}

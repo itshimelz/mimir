@@ -4,15 +4,14 @@
 // Layer: Sidebar UI primitive
 // Exports: ThreadArchiveActionButton, THREAD_ARCHIVE_ICON
 
-import { HiOutlineArchiveBox } from "react-icons/hi2";
-
 import type { ThreadId } from "@synara/contracts";
 
+import { ArchiveIcon } from "~/lib/icons";
 import { cn } from "~/lib/utils";
 import { SIDEBAR_TRAILING_ICON_CLASS, sidebarGlyphClass } from "./sidebarGlyphs";
 import { SidebarIconButton } from "./SidebarIconButton";
 
-export const THREAD_ARCHIVE_ICON = HiOutlineArchiveBox;
+export const THREAD_ARCHIVE_ICON = ArchiveIcon;
 
 export function ThreadArchiveActionButton({
   threadId,

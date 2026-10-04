@@ -8,9 +8,8 @@ import { MUTED_LABEL_TEXT_CLASS_NAME } from "~/surfaceStyles";
 
 export { COMPOSER_PICKER_SIZE, type ComposerPickerSize } from "./composerPickerSize";
 
-/** Soft, dispersed outer shadow for the composer input shell and floating pickers. */
-export const COMPOSER_SURFACE_SHADOW_CLASS_NAME =
-  "shadow-[0_4px_18px_-6px_color-mix(in_srgb,var(--foreground)_7%,transparent)] dark:shadow-[0_6px_24px_-10px_rgba(0,0,0,0.30)]";
+/** Depth comes from the border, not a cast shadow. */
+export const COMPOSER_SURFACE_SHADOW_CLASS_NAME = "shadow-sm";
 
 // Uses the UI-sm token so picker labels sit slightly below the editor text size.
 // The sm: override is required to beat the Button component's base responsive text classes.
@@ -56,11 +55,12 @@ export const COMPOSER_PICKER_MODEL_LIST_MAX_HEIGHT_CLASS_NAME =
 /** Scroll chrome for long model-provider lists. */
 export const COMPOSER_PICKER_MODEL_LIST_SCROLL_CLASS_NAME = "composer-picker-scroll";
 
-/** Corner radius for picker panel chrome and panel-level surfaces. */
-export const COMPOSER_PICKER_RADIUS_CLASS_NAME = "rounded-[0.875rem]";
+/** Corner radius for picker panel chrome and panel-level surfaces. `sm` matches the menu
+ *  shell so pickers and menus share one corner. */
+export const COMPOSER_PICKER_RADIUS_CLASS_NAME = "rounded-sm";
 
 /** Tighter corner radius for option rows / selection pills inside picker panels. */
-export const COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME = "rounded-[0.625rem]";
+export const COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME = "rounded-sm";
 
 /** Collapsible section headers inside model provider lists. */
 export const COMPOSER_PICKER_MODEL_GROUP_HEADER_CLASS_NAME = `grid w-full grid-cols-[0.75rem_minmax(0,1fr)_2.5rem] items-center gap-x-1.5 ${COMPOSER_PICKER_RADIUS_CLASS_NAME} px-2 py-1 text-left text-ui-xs font-medium text-muted-foreground/80 outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--foreground)_4%,transparent)] focus-visible:ring-0`;
@@ -155,35 +155,26 @@ export const COMPOSER_STACKED_SURFACE_BORDER_CLASS_NAME =
   "border-[color:var(--composer-stacked-border)]";
 
 /** Border + shadow chrome for raised opaque surfaces (kanban cards): a real border
- *  follows squircle/corner-shape geometry more evenly than an outer ring (box-shadow).
- *  Dark mode drops the border and leans on the shadow for separation. */
-export const RAISED_SURFACE_CHROME_CLASS_NAME = `border ${RAISED_SURFACE_BORDER_CLASS_NAME} ${COMPOSER_SURFACE_SHADOW_CLASS_NAME} dark:border-0`;
+ *  follows squircle/corner-shape geometry more evenly than an outer ring (box-shadow),
+ *  and with a flat `shadow-sm` it is the only thing separating a card from its column. */
+export const RAISED_SURFACE_CHROME_CLASS_NAME = `border ${RAISED_SURFACE_BORDER_CLASS_NAME} ${COMPOSER_SURFACE_SHADOW_CLASS_NAME}`;
 
 /** Composer input shell. Like RAISED_SURFACE_CHROME but keeps a visible border in
  *  dark mode (via `--surface-border`) instead of dropping to shadow-only separation. */
 export const COMPOSER_INPUT_SURFACE_CLASS_NAME = `chat-composer-surface squircle border ${RAISED_SURFACE_BORDER_CLASS_NAME} ${COMPOSER_SURFACE_SHADOW_CLASS_NAME} transition-colors duration-200`;
 
-/** Shell for floating menus, pickers, and popovers: the shared overlay fill over a backdrop
- *  blur. FLOATING_OVERLAY_SURFACE_CLASS_NAME hands the fill to index.css and, on a translucent
- *  window where the blur cannot hide what sits behind the popup, marks it for the cutout. */
-export const APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden border border-border bg-popover/70 text-popover-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] before:backdrop-blur-2xl before:backdrop-saturate-150`;
+/** Shell for floating menus, pickers, and popovers: opaque fill, theme border, no frost.
+ *  The `before:` layer is the inner-surface hook dependents add hairlines to. */
+export const APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden border border-[color:var(--overlay-border)] bg-popover text-popover-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
 
-/** Default floating popup shell (dropdown menus, selects, popovers). */
-export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-2xl shadow-xl`;
+/** Default floating popup shell. `rounded-sm` is the VS Code menu corner. */
+export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-sm shadow-sm`;
 
-/**
- * Frosted surface chrome shared by every plain tooltip (default TooltipPopup) and
- * the sidebar hover cards: the translucent shell at the tooltip's tighter
- * `rounded-lg` radius with a lifted shadow. The sidebar hover cards extend this
- * with their fixed width, so a plain tooltip, the thread card, and the project
- * card all read as one surface and can never drift apart. Composer-attached
- * picker tooltips deliberately stay on the picker chrome instead (see
- * COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME) so they match the menus they open.
- */
-export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-lg shadow-xl`;
+/** Chrome for plain tooltips and the sidebar hover cards, so they read as one surface. */
+export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-sm shadow-sm`;
 
 /** Shared border, radius, and shadow for composer-attached popup panels. */
-export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-border ${COMPOSER_PICKER_RADIUS_CLASS_NAME} ${COMPOSER_SURFACE_SHADOW_CLASS_NAME}`;
+export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-[color:var(--overlay-border)] ${COMPOSER_PICKER_RADIUS_CLASS_NAME} ${COMPOSER_SURFACE_SHADOW_CLASS_NAME}`;
 
 /** Visual shell for composer picker dropdown panels (menus attached to the composer). */
 export const COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} ${COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME}`;
@@ -215,7 +206,7 @@ export const COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME = `${COMPOSER_PICKER_MEN
  *  Picker border/radius/shadow, but a solid fill: the menu floats over the
  *  transcript, so frosted bg-popover/70 would let chat content bleed through. */
 export const COMPOSER_COMMAND_MENU_SURFACE_CLASS_NAME =
-  "relative overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground";
+  "relative overflow-hidden rounded-sm border border-border bg-popover text-popover-foreground";
 
 /** Environment panel card. Opaque for the same reason as the command menu (it overlays the
  *  transcript), except on a whole-window glass shell, where it takes the shared raised
@@ -249,10 +240,10 @@ export const COMPOSER_COMMAND_MENU_INLINE_WRAPPER_CLASS_NAME =
  *  Highlight tints the surface darker (button-secondary), matching every other
  *  composer picker. The `elevated-secondary-opaque` token lightens toward white,
  *  which is invisible on the near-white popover surface, so it is not used here.
- *  `rounded-xl` keeps the row concentric with the `rounded-2xl` surface behind the
+ *  `rounded-xs` keeps the row concentric with the `rounded-sm` surface behind the
  *  list's 0.25rem padding. */
 export const COMPOSER_COMMAND_MENU_ITEM_CLASS_NAME =
-  "flex cursor-pointer select-none items-center gap-2 rounded-xl px-2 py-1 transition-colors hover:bg-[var(--color-background-button-secondary-hover)] data-highlighted:bg-[var(--color-background-button-secondary-hover)]";
+  "flex cursor-pointer select-none items-center gap-2 rounded-xs px-2 py-1 transition-colors hover:bg-[var(--color-background-button-secondary-hover)] data-highlighted:bg-[var(--color-background-button-secondary-hover)]";
 
 /** Active command menu row — keyboard-selected pill fill. */
 export const COMPOSER_COMMAND_MENU_ITEM_ACTIVE_CLASS_NAME =

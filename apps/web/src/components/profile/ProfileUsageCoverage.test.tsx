@@ -24,6 +24,12 @@ vi.mock("@tanstack/react-query", () => ({
 }));
 vi.mock("./ShareDialog", () => ({ ShareDialog: () => null }));
 vi.mock("./EditProfileDialog", () => ({ EditProfileDialog: () => null }));
+// The insights columns are withheld behind PROFILE_INSIGHTS_UNAVAILABLE_FEATURE.
+// These cases cover the coverage notices those columns render, so render them.
+vi.mock("@synara/shared/unavailableFeatures", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@synara/shared/unavailableFeatures")>()),
+  isFeatureAvailable: () => true,
+}));
 
 function renderCard() {
   return renderToStaticMarkup(

@@ -17,6 +17,7 @@ import {
   IconArrowRight,
   IconArrowUp,
   IconArrowUpRight,
+  IconArrowsExchange,
   IconBolt,
   IconBrain,
   IconBulb,
@@ -165,6 +166,9 @@ export const DownloadIcon = adaptIcon(IconDownload);
 export const BELL_ICON_NAME = "notes";
 export const BellIcon: LucideIcon = centralIconWrapper(BELL_ICON_NAME);
 export const EllipsisIcon = adaptIcon(IconDots);
+// Swap/transfer glyph ("Change thread"). Tabler's IconArrowsExchange, previously
+// imported straight from react-icons/tb in the chat header.
+export const ExchangeIcon = adaptIcon(IconArrowsExchange);
 export const EyeIcon = adaptIcon(IconEye);
 // Markdown Source/Preview toggle glyphs, sourced from the Central set so the
 // file-preview header controls share one visual language with the rest of the

@@ -16,10 +16,6 @@
   </p>
 </div>
 
-<p align="center">
-  <img src="./assets/prod/readme-workspace-light.png" width="1200" alt="Mimir workspace with an agent conversation and pull request review side by side">
-</p>
-
 <details open>
   <summary><strong>Table of contents</strong></summary>
 
@@ -64,10 +60,6 @@ The tools surrounding an agent session remain available from the same task surfa
 
 Keep an active conversation alongside the surface it is changing. Split views, browser previews, and device previews make the result part of the working context.
 
-<p align="center">
-  <img src="./assets/prod/readme-split-view-dark.png" width="900" alt="Mimir split view with an agent thread and iOS simulator preview">
-</p>
-
 ### 4. Provider-native integrations
 
 Mimir connects to coding-agent runtimes that are installed and authenticated locally. The current development build includes the following integrations:
@@ -102,10 +94,6 @@ See [External MCP integrations](./docs/external-mcp.md) for setup, pairing, proj
 ### 7. Appearance and workspace preferences
 
 Configure the shell to match the way you work with light and dark themes, typography controls, density preferences, and workspace settings.
-
-<p align="center">
-  <img src="./assets/prod/readme-appearance-dark.png" width="900" alt="Mimir Appearance settings with theme, typography, and density controls">
-</p>
 
 ### Additional capabilities
 

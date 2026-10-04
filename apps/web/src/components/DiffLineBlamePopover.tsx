@@ -138,7 +138,7 @@ export function DiffLineBlamePopover(props: {
       data-diff-line-blame="true"
       role="dialog"
       aria-label={`Blame for line ${props.target.line}`}
-      className="fixed z-50 flex flex-col gap-1.5 rounded-md border border-border bg-[var(--color-background-elevated-primary-opaque)] p-2 shadow-xl backdrop-blur-xl"
+      className="fixed z-50 flex flex-col gap-1.5 rounded-sm border border-[color:var(--overlay-border)] bg-[var(--color-background-elevated-primary-opaque)] p-2 shadow-sm"
       style={{ left: props.target.left, top: props.target.top, width: BLAME_POPOVER_WIDTH_PX }}
     >
       {isLoadingBlame ? (

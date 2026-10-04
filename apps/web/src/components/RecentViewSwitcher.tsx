@@ -102,7 +102,7 @@ export function RecentViewSwitcher(props: {
         aria-activedescendant={`recent-view-switcher-${selectedIndex}`}
         // Same skin as the ⌘K / ⌘P palettes (ui/command popup): squircle 2xl surface,
         // settings-scale type, 30px single-line rows with the zinc highlight.
-        className="palette-surface squircle w-[min(32rem,calc(100vw-2rem))] overflow-hidden rounded-3xl border border-[color:var(--color-border-light)] bg-[var(--color-background-surface-under)] text-[var(--color-text-foreground)] shadow-2xl shadow-black/30 backdrop-blur-xl"
+        className="palette-surface squircle w-[min(32rem,calc(100vw-2rem))] overflow-hidden rounded-sm border border-[color:var(--overlay-border)] bg-[var(--color-background-surface-under)] text-[var(--color-text-foreground)] shadow-sm"
       >
         <div className="flex flex-col p-1.5">
           <div className="px-2.5 pt-1.5 pb-1 text-ui-xs text-muted-foreground/70">Recent views</div>

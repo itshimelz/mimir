@@ -24,6 +24,7 @@ import {
 } from "../profile/profileSelectors";
 import { ProfileUsageCoverage } from "../profile/ProfileUsageCoverage";
 import {
+  PROFILE_INSIGHTS_UNAVAILABLE_FEATURE,
   SHARE_CARD_UNAVAILABLE_FEATURE,
   isFeatureAvailable,
 } from "@synara/shared/unavailableFeatures";
@@ -176,80 +177,82 @@ function ProfileContent({
       </section>
 
       {/* Insights + plugins */}
-      <div className="grid gap-x-12 gap-y-7 md:grid-cols-2">
-        <section className="flex flex-col gap-3">
-          <h3 className="text-ui-lg font-medium">Activity insights</h3>
-          <dl className="flex flex-col gap-2.5">
-            <InsightRow
-              label="Most used provider"
-              value={
-                topProvider.provider
-                  ? `${formatProviderLabel(topProvider.provider)}${
-                      topProvider.percent !== null
-                        ? ` · ${topProvider.percent}% of ${formatProfileUsageBasis(topProvider.metric)}`
-                        : ""
-                    }`
-                  : "—"
-              }
-            />
-            <InsightRow
-              label="Most used reasoning"
-              value={
-                stats.insights.topReasoning
-                  ? `${capitalize(stats.insights.topReasoning)}${
-                      stats.insights.topReasoningPercent !== null
-                        ? ` · ${stats.insights.topReasoningPercent}%`
-                        : ""
-                    }`
-                  : "—"
-              }
-            />
-            <InsightRow label="Most active hour" value={peakHourLabel} />
-            <InsightRow label="Most worked project" value={mostWorkedProjectLabel} />
-            <InsightRow
-              label="Skills explored"
-              value={formatNumber(stats.insights.skillsExplored)}
-            />
-            <InsightRow
-              label="Total skills used"
-              value={formatNumber(stats.insights.totalSkillsUsed)}
-            />
-            <InsightRow label="Total threads" value={formatNumber(stats.activity.totalThreads)} />
-          </dl>
-          <ProfileUsageCoverage unavailableProviders={topProvider.unavailableProviders} />
-        </section>
+      {isFeatureAvailable(PROFILE_INSIGHTS_UNAVAILABLE_FEATURE) ? (
+        <div className="grid gap-x-12 gap-y-7 md:grid-cols-2">
+          <section className="flex flex-col gap-3">
+            <h3 className="text-ui-lg font-medium">Activity insights</h3>
+            <dl className="flex flex-col gap-2.5">
+              <InsightRow
+                label="Most used provider"
+                value={
+                  topProvider.provider
+                    ? `${formatProviderLabel(topProvider.provider)}${
+                        topProvider.percent !== null
+                          ? ` · ${topProvider.percent}% of ${formatProfileUsageBasis(topProvider.metric)}`
+                          : ""
+                      }`
+                    : "—"
+                }
+              />
+              <InsightRow
+                label="Most used reasoning"
+                value={
+                  stats.insights.topReasoning
+                    ? `${capitalize(stats.insights.topReasoning)}${
+                        stats.insights.topReasoningPercent !== null
+                          ? ` · ${stats.insights.topReasoningPercent}%`
+                          : ""
+                      }`
+                    : "—"
+                }
+              />
+              <InsightRow label="Most active hour" value={peakHourLabel} />
+              <InsightRow label="Most worked project" value={mostWorkedProjectLabel} />
+              <InsightRow
+                label="Skills explored"
+                value={formatNumber(stats.insights.skillsExplored)}
+              />
+              <InsightRow
+                label="Total skills used"
+                value={formatNumber(stats.insights.totalSkillsUsed)}
+              />
+              <InsightRow label="Total threads" value={formatNumber(stats.activity.totalThreads)} />
+            </dl>
+            <ProfileUsageCoverage unavailableProviders={topProvider.unavailableProviders} />
+          </section>
 
-        <section className="flex flex-col gap-3">
-          <h3 className="text-ui-lg font-medium">Most used plugins</h3>
-          {stats.skills.length > 0 ? (
-            <ul className="flex flex-col gap-2.5">
-              {stats.skills.slice(0, 6).map((skill) => (
-                <li
-                  key={`${skill.kind}:${skill.name}`}
-                  className="flex items-center justify-between gap-3"
-                >
-                  <span className="flex min-w-0 items-center gap-2.5">
-                    <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted/60">
-                      <CentralIcon
-                        name={skill.kind === "agent" ? "agent" : "building-blocks"}
-                        className="size-3"
-                      />
+          <section className="flex flex-col gap-3">
+            <h3 className="text-ui-lg font-medium">Most used plugins</h3>
+            {stats.skills.length > 0 ? (
+              <ul className="flex flex-col gap-2.5">
+                {stats.skills.slice(0, 6).map((skill) => (
+                  <li
+                    key={`${skill.kind}:${skill.name}`}
+                    className="flex items-center justify-between gap-3"
+                  >
+                    <span className="flex min-w-0 items-center gap-2.5">
+                      <span className="flex size-5 shrink-0 items-center justify-center rounded-md bg-muted/60">
+                        <CentralIcon
+                          name={skill.kind === "agent" ? "agent" : "building-blocks"}
+                          className="size-3"
+                        />
+                      </span>
+                      <span className="truncate text-ui leading-snug">{skill.displayName}</span>
                     </span>
-                    <span className="truncate text-ui leading-snug">{skill.displayName}</span>
-                  </span>
-                  <span className="shrink-0 text-ui leading-snug tabular-nums text-muted-foreground">
-                    {formatNumber(skill.runCount)} runs
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-ui leading-snug text-muted-foreground">
-              No skills or agents used yet.
-            </p>
-          )}
-        </section>
-      </div>
+                    <span className="shrink-0 text-ui leading-snug tabular-nums text-muted-foreground">
+                      {formatNumber(skill.runCount)} runs
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-ui leading-snug text-muted-foreground">
+                No skills or agents used yet.
+              </p>
+            )}
+          </section>
+        </div>
+      ) : null}
 
       {/* Model usage */}
       <section className="flex flex-col gap-3">

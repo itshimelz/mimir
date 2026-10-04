@@ -13,8 +13,8 @@ const originalBridge = window.desktopBridge;
 const api = {
   getInfo: vi.fn(async () => ({
     supported: true as const,
-    appName: "Synara (Dev)",
-    appPath: "/Applications/Synara (Dev).app",
+    appName: "Mimir (Dev)",
+    appPath: "/Applications/Mimir (Dev).app",
   })),
   openSettings: vi.fn(async () => true),
   revealApp: vi.fn(async () => true),
@@ -49,10 +49,10 @@ describe("Safari access onboarding", () => {
     await expect.element(page.getByText("Next welcome")).not.toBeInTheDocument();
     await expect.element(page.getByRole("dialog")).toHaveTextContent("It's optional");
     await expect.element(page.getByRole("dialog")).toHaveTextContent("broad macOS permission");
-    await expect.element(page.getByRole("dialog")).toHaveTextContent("Synara (Dev)");
+    await expect.element(page.getByRole("dialog")).toHaveTextContent("Mimir (Dev)");
     await expect
       .element(page.getByRole("button", { name: "Show app in Finder" }))
-      .toHaveAttribute("title", "/Applications/Synara (Dev).app");
+      .toHaveAttribute("title", "/Applications/Mimir (Dev).app");
     expect(api.openSettings).not.toHaveBeenCalled();
     expect(localStorage.getItem(SAFARI_ACCESS_STORAGE_KEY)).toBeNull();
   });

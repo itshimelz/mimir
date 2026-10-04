@@ -115,7 +115,4 @@ The subsequent check-code review traced the normalized selection through reactor
 preparation, adapter retirement and dispatch, then checked runtime/configuration provenance in
 the composer. No additional actionable defects or worthwhile structural refactors were found.
 
-![Composer trigger before and after, including pending and new-thread states](screenshots/claude-context-switch.png)
-
-The image renders the actual trigger component: the before row omits its new suffix prop.
-It is a browser component comparison, not a packaged-app or native Claude validation.
+The trigger is a browser component comparison, not a packaged-app or native Claude validation.

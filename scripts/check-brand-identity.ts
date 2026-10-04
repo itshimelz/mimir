@@ -139,10 +139,6 @@ const approvedRetiredBrandFiles: readonly { readonly path: string; readonly reas
     reason: "Recorded Synara release checksums; factual provenance.",
   },
   {
-    path: "apps/web/src/whatsNew/entries.ts",
-    reason: "Upstream What's New history, retained for provenance.",
-  },
-  {
     path: "apps/desktop/src/betaChannel.ts",
     reason: "Synara Beta handoff code. Mimir ships production only, so it never runs.",
   },
@@ -227,10 +223,6 @@ const approvedIdentityLines: readonly ApprovedIdentityLine[] = [
     path: "CHANGELOG.md",
     markdownSection: "## 0.7.0 - 2026-08-05",
     line: `**A review of the Synara codebase found an analytics configuration that came from the original ${retiredFirstSpacedDisplayName} codebase when Synara was created as a clone in March. We did not add it, and we have no access to the PostHog project receiving the events.**`,
-  },
-  {
-    path: "apps/web/src/whatsNew/entries.ts",
-    line: `"A review of the Synara codebase found an analytics configuration that came from the original ${retiredFirstSpacedDisplayName} codebase when Synara was created as a clone in March.",`,
   },
   {
     // The website's copy of the same published disclosure as CHANGELOG.md.

@@ -1836,7 +1836,7 @@ export function BrowserPanel({
           />
         </form>
         {showBrowserAddressSuggestions ? (
-          <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 overflow-hidden rounded-lg border border-border bg-popover shadow-lg [-webkit-app-region:no-drag]">
+          <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 overflow-hidden rounded-sm border border-[color:var(--overlay-border)] bg-popover shadow-sm [-webkit-app-region:no-drag]">
             <div className="max-h-64 overflow-auto p-1">
               {browserAddressSuggestions.map((suggestion) => (
                 <button

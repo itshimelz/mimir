@@ -40,21 +40,5 @@ export default function manifest(): MetadataRoute.Manifest {
         type: "image/png",
       },
     ],
-    screenshots: [
-      {
-        src: SITE_IMAGES.lightScreenshot,
-        sizes: "3216x2090",
-        type: "image/png",
-        form_factor: "wide",
-        label: "Synara desktop workspace in light mode",
-      },
-      {
-        src: SITE_IMAGES.darkScreenshot,
-        sizes: "3228x2102",
-        type: "image/png",
-        form_factor: "wide",
-        label: "Synara desktop workspace in dark mode",
-      },
-    ],
   };
 }

@@ -194,7 +194,6 @@ export function ChatComposerFooter({
                 type="button"
                 variant="prominent"
                 size="icon-xs"
-                className="sm:size-[26px]"
                 onClick={submission.onInterrupt}
                 aria-label="Stop generation"
                 title="Stop the current response. On Mac, press Ctrl+C to interrupt."

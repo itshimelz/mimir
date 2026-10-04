@@ -25,12 +25,6 @@ export function MultiProjectShowcase() {
           <div className="relative min-w-0">
             <div className="relative isolate overflow-hidden rounded-xl p-2 ring-1 ring-black/5 sm:rounded-2xl sm:p-3 dark:ring-white/10">
               <div aria-hidden className="shot-card-bg absolute inset-0 -z-10" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/projects-syn.png"
-                alt="Synara project sidebar with separate repositories, tasks, and activity state"
-                className="mx-auto block h-auto w-3/5 rounded-lg sm:rounded-xl"
-              />
             </div>
           </div>
         </div>

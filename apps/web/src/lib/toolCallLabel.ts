@@ -159,7 +159,7 @@ const SYNARA_BROWSER_TOOL_PRESENTATIONS = Object.fromEntries(
  * The desktop tools, spoken. Every browser tool had a curated presentation and
  * every computer tool had none, so the most consequential rows in the
  * transcript — an agent moving a pointer on the user's own machine — fell
- * through to the invented "Synara is handling computer click" fallback.
+ * through to the invented "Mimir is handling computer click" fallback.
  *
  * The wording deliberately keeps the machine in the sentence ("this computer's
  * desktop") rather than saying "the desktop", because on the backends that
@@ -371,24 +371,24 @@ const SYNARA_MCP_TOOL_PRESENTATIONS = {
     failed: "Mimir couldn't send a message",
   },
   synara_read_kanban_board: {
-    running: "Synara is reading the board",
-    completed: "Synara read the board",
-    failed: "Synara couldn't read the board",
+    running: "Mimir is reading the board",
+    completed: "Mimir read the board",
+    failed: "Mimir couldn't read the board",
   },
   synara_read_kanban_card: {
-    running: "Synara is reading a board card",
-    completed: "Synara read a board card",
-    failed: "Synara couldn't read a board card",
+    running: "Mimir is reading a board card",
+    completed: "Mimir read a board card",
+    failed: "Mimir couldn't read a board card",
   },
   synara_create_kanban_task: {
-    running: "Synara is creating a board task",
-    completed: "Synara created a board task",
-    failed: "Synara couldn't create a board task",
+    running: "Mimir is creating a board task",
+    completed: "Mimir created a board task",
+    failed: "Mimir couldn't create a board task",
   },
   synara_move_kanban_card: {
-    running: "Synara is moving a board card",
-    completed: "Synara moved a board card",
-    failed: "Synara couldn't move a board card",
+    running: "Mimir is moving a board card",
+    completed: "Mimir moved a board card",
+    failed: "Mimir couldn't move a board card",
   },
   synara_interrupt_thread: {
     running: "Mimir is interrupting a thread",
@@ -586,7 +586,7 @@ export function isSynaraBrowserToolCall(input: SynaraMcpToolTitleInput): boolean
   return resolveSynaraBrowserToolName([input.toolName, input.title, input.fallbackLabel]) !== null;
 }
 
-// Every provider exposes Synara's MCP tools differently: MCP, dynamic, and even
+// Every provider exposes Mimir's MCP tools differently: MCP, dynamic, and even
 // file-change rows can all represent the same gateway action. Normalize by tool
 // identity instead of provider item type so transport details never reach the UI.
 export function deriveSynaraMcpToolTitle(input: SynaraMcpToolTitleInput): string | null {

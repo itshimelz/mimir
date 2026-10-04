@@ -14,14 +14,14 @@ import {
 } from "@synara/contracts";
 import { isGenericChatThreadTitle } from "@synara/shared/chatThreads";
 import React, { useEffect, useRef, useState } from "react";
-import { FiGitBranch } from "react-icons/fi";
-import { HiMiniArrowsPointingOut } from "react-icons/hi2";
-import { TbExchange } from "react-icons/tb";
 import type { ThreadPrimarySurface } from "../../types";
 import GitActionsControl from "../GitActionsControl";
 import {
   CheckIcon,
+  ExchangeIcon,
+  ExternalLinkIcon,
   FoldersIcon,
+  GitBranchIcon,
   HandoffIcon,
   HistoryIcon,
   MessageCircleIcon,
@@ -528,7 +528,7 @@ export function ChatHeader({
         provider={provider}
         tone="header"
         className={className}
-        fallback={<FiGitBranch className={className} />}
+        fallback={<GitBranchIcon className={className} />}
       />
     );
   };
@@ -813,7 +813,7 @@ export function ChatHeader({
                   label={inlineChatLayoutAction.label}
                   onClick={inlineChatLayoutAction.onClick}
                 >
-                  <HiMiniArrowsPointingOut className="size-3.5" />
+                  <ExternalLinkIcon className="size-3.5" />
                 </ChatHeaderIconButton>
               }
             />
@@ -831,7 +831,7 @@ export function ChatHeader({
                   label={changeThreadAction.label}
                   onClick={changeThreadAction.onClick}
                 >
-                  <TbExchange className="size-3.5" />
+                  <ExchangeIcon className="size-3.5" />
                 </ChatHeaderIconButton>
               }
             />

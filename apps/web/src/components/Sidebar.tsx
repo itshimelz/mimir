@@ -16,6 +16,8 @@ import {
   ExternalLinkIcon,
   FolderOpenIcon,
   GiftIcon,
+  GitBranchIcon,
+  GitForkIcon,
   InboxIcon,
   KanbanIcon,
   TasksIcon,
@@ -46,9 +48,7 @@ import {
   subscribeComposerSends,
 } from "~/lib/composerSendOwnership";
 import { autoAnimate } from "@formkit/auto-animate";
-import { FiGitBranch } from "react-icons/fi";
 import { IoIosGitCompare } from "react-icons/io";
-import { GoRepoForked } from "react-icons/go";
 import {
   useCallback,
   useEffect,
@@ -775,7 +775,9 @@ function resolveThreadRowMetaChips(input: {
     chips.push({
       id: "handoff",
       tooltip: handoffBadgeLabel,
-      icon: <SidebarGlyph icon={FiGitBranch} variant="meta" className="text-muted-foreground/55" />,
+      icon: (
+        <SidebarGlyph icon={GitBranchIcon} variant="meta" className="text-muted-foreground/55" />
+      ),
     });
   }
 
@@ -785,7 +787,7 @@ function resolveThreadRowMetaChips(input: {
       tooltip: "Forked thread",
       icon: (
         <SidebarGlyph
-          icon={GoRepoForked}
+          icon={GitForkIcon}
           variant="meta"
           className="text-emerald-600 dark:text-emerald-300/90"
         />

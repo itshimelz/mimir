@@ -71,8 +71,8 @@ describe("browser saved logins", () => {
         safariAccess: {
           getInfo: async () => ({
             supported: true,
-            appName: "Synara",
-            appPath: "/Applications/Synara.app",
+            appName: "Mimir",
+            appPath: "/Applications/Mimir.app",
           }),
           openSettings: async () => true,
           revealApp: async () => true,
@@ -101,7 +101,7 @@ describe("browser saved logins", () => {
       await expect
         .element(page.getByRole("status"))
         .toHaveTextContent(
-          "System Settings is open. Once Synara is switched on, quit and reopen it.",
+          "System Settings is open. Once Mimir is switched on, quit and reopen it.",
         );
       await page.getByRole("button", { name: "Not now" }).click();
       await page.getByRole("button", { name: "Import browser cookies" }).click();

@@ -10,14 +10,18 @@ import { renderToStaticMarkup } from "react-dom/server";
 import {
   ArchiveIcon,
   BELL_ICON_NAME,
+  ClockIcon,
   COPY_ICON_NAME,
   DeviceLaptopIcon,
   EYE_OPEN_ICON_NAME,
+  FolderOpenIcon,
+  GitBranchIcon,
   HandoffIcon,
   PENCIL_ICON_NAME,
   PIN_ICON_NAME,
   TERMINAL_ICON_NAME,
   Trash2,
+  WorktreeIcon,
 } from "./icons";
 
 export const THREAD_CONTEXT_MENU_ICONS = {
@@ -28,10 +32,13 @@ export const THREAD_CONTEXT_MENU_ICONS = {
   // Same glyph as the chat header's Hand off button.
   handoff: renderToStaticMarkup(<HandoffIcon />),
   // Fork shares the branch glyph (see GitForkIcon); its targets match the env-mode glyphs.
-  fork: "branch",
+  fork: renderToStaticMarkup(<GitBranchIcon />),
   forkLocal: renderToStaticMarkup(<DeviceLaptopIcon />),
-  forkWorktree: "arrow-split-right",
-  group: "folder-open-front",
+  forkWorktree: renderToStaticMarkup(<WorktreeIcon />),
+  // Same glyph as the project rows' open folder.
+  group: renderToStaticMarkup(<FolderOpenIcon />),
+  // Same glyph as the composer's snooze notice.
+  snooze: renderToStaticMarkup(<ClockIcon />),
   copy: COPY_ICON_NAME,
   openInTerminal: TERMINAL_ICON_NAME,
   // Same glyph as the thread row's hover archive button (both use ArchiveIcon).

@@ -73,6 +73,7 @@ import {
   LoaderCircleIcon,
   RefreshCwIcon,
   TemporaryThreadIcon,
+  FolderIcon,
 } from "~/lib/icons";
 import { getLocalFolderBrowseRootPath } from "~/lib/localFolderMentions";
 import { findProviderStatus, resolveVoiceTranscriptionTarget } from "~/lib/providerAvailability";
@@ -269,7 +270,6 @@ import {
 } from "./ChatView.logic";
 import { createThreadLineageSelector, localSubagentThreadId } from "./ChatView.selectors";
 import { ComposerPromptEditor } from "./ComposerPromptEditor";
-import { FolderClosed } from "./FolderClosed";
 import PlanSidebar from "./PlanSidebar";
 import { PullRequestThreadDialog } from "./PullRequestThreadDialog";
 import { RenameThreadDialog } from "./RenameThreadDialog";
@@ -318,6 +318,7 @@ import {
   shouldShowComputerControlEffortHint,
 } from "./chat/composerComputerControlHint";
 import { ComposerComputerControlEffortHint } from "./chat/ComposerComputerControlEffortHint";
+import { ComposerPullRequestAutoFixHint } from "./chat/ComposerPullRequestAutoFixHint";
 import { ComposerReferenceAttachments } from "./chat/ComposerReferenceAttachments";
 import { ComposerSlashStatusDialog } from "./chat/ComposerSlashStatusDialog";
 import { ComposerSubagentStrip } from "./chat/ComposerSubagentStrip";
@@ -5424,7 +5425,7 @@ export default function ChatView({
           COMPOSER_TOOLBAR_TRIGGER_TEXT_CLASS_NAME,
         )}
       >
-        <FolderClosed className="size-3.5 shrink-0" />
+        <FolderIcon className="size-3.5 shrink-0" />
         <span className="min-w-0 truncate">{activeProjectDisplayName}</span>
       </span>
     ) : null;
@@ -5863,6 +5864,22 @@ export default function ChatView({
                 }
               />
             ) : null}
+            <ComposerPullRequestAutoFixHint
+              threadId={threadId}
+              isServerThread={isServerThread}
+              pullRequest={gitStatusQuery.data?.pr ?? null}
+              isWorking={isWorking}
+              attachedToPrevious={
+                showComposerLiveChangesHeader ||
+                showComposerActiveTaskListCard ||
+                showComposerWorkflowRunCard ||
+                showComposerSubagentStrip ||
+                queuedComposerTurns.length > 0 ||
+                showComposerGoalHeader ||
+                showComposerComputerControlEffortHint ||
+                pendingBackgroundWorkCount > 0
+              }
+            />
             {settledThreadBranchMismatch ? (
               <div className="pb-2">
                 <ComposerBranchMismatchBanner {...settledThreadBranchMismatch} />
@@ -6277,6 +6294,7 @@ export default function ChatView({
                 threadTabs: (
                   <OpenThreadTabStrip
                     activeThreadId={activeThread.id}
+                    keybindings={keybindings}
                     onRenameActiveThread={() => setRenameDialogOpen(true)}
                   />
                 ),

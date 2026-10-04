@@ -8,11 +8,12 @@ import {
   ArchiveIcon,
   BookIcon,
   BotIcon,
-  ChatBubbleIcon,
   CircleQuestionIcon,
   ClockIcon,
+  CodeReviewIcon,
   CopyIcon,
   CustomizeIcon,
+  FeedbackIcon,
   ExternalLinkIcon,
   FolderOpenIcon,
   GiftIcon,
@@ -38,7 +39,10 @@ import {
   XIcon,
 } from "~/lib/icons";
 import { createCentralIconComponent } from "~/lib/central-icons";
-import { ThreadPrStatusBadge } from "~/components/pullRequest/ThreadPrStatusBadge";
+import {
+  PR_STATE_PRESENTATION_ICONS,
+  resolvePrStatePresentation,
+} from "~/components/pullRequest/pullRequestStatePresentation";
 import { PinStatusIcon, pinActionLabel } from "~/lib/pin";
 import { useTasksNeedingAttentionCount, useTodoEventSubscription } from "./tasks/useTodos";
 import { THREAD_CONTEXT_MENU_ICONS } from "~/lib/contextMenuIcons";
@@ -171,6 +175,7 @@ import { useCommittedPathname } from "../hooks/useCommittedPathname";
 import { countNeedsYouActions } from "./inbox/inbox.logic";
 import {
   resolveThreadPullRequestFallback,
+  type ThreadPullRequest,
   useThreadPullRequests,
 } from "../hooks/useThreadPullRequests";
 import {
@@ -273,6 +278,7 @@ import {
   SidebarActivityView,
   SidebarSnoozedThreadsSection,
 } from "./SidebarActivityView";
+import { DesktopUpdateRailButton } from "./DesktopUpdateRailButton";
 import { SidebarIconButton, sidebarIconButtonSlotClass } from "./SidebarIconButton";
 import { SidebarLeadingIcon } from "./SidebarLeadingIcon";
 import { SidebarPrimaryAction } from "./SidebarPrimaryAction";
@@ -327,9 +333,6 @@ import {
   getArm64IntelBuildWarningDescription,
   getDesktopUpdateActionError,
   getDesktopUpdateAlreadyCurrentNotice,
-  getDesktopUpdateButtonPresentation,
-  getDesktopUpdateButtonTooltip,
-  getDesktopUpdateDownloadPercent,
   getDesktopUpdateErrorSignature,
   isDesktopUpdateButtonDisabled,
   isDesktopUpdateInstallInFlight,
@@ -354,7 +357,7 @@ import {
   DialogPopup,
   DialogTitle,
 } from "./ui/dialog";
-import { KbdGroup } from "./ui/kbd";
+import { ShortcutKbd } from "./ui/kbd";
 import {
   Menu,
   MenuGroup,
@@ -726,7 +729,7 @@ function groupPickupMessageText(sourceThread: Pick<Thread, "id" | "title">): str
 }
 
 type ThreadMetaChip = {
-  id: "automation" | "handoff" | "fork" | "worktree";
+  id: "automation" | "handoff" | "fork" | "worktree" | "pr";
   tooltip: string;
   icon: ReactNode;
 };
@@ -805,6 +808,23 @@ function resolveThreadRowMetaChips(input: {
   }
 
   return chips;
+}
+
+// The thread's PR state, as a plain meta chip that closes the row (the hover card's PR
+// row is the clickable way to open it).
+function resolveThreadRowPrChip(pr: NonNullable<ThreadPullRequest>): ThreadMetaChip {
+  const presentation = resolvePrStatePresentation(pr);
+  return {
+    id: "pr",
+    tooltip: `#${pr.number} ${presentation.label}: ${pr.title}`,
+    icon: (
+      <SidebarGlyph
+        icon={PR_STATE_PRESENTATION_ICONS[presentation.iconKind]}
+        variant="meta"
+        className={presentation.colorClass}
+      />
+    ),
+  };
 }
 
 function terminalStatusFromThreadState(input: {
@@ -996,9 +1016,9 @@ function SidebarHelpMenu({
               <SidebarContextMenuIcon icon={KeyboardIcon} />
               <span>Keybindings</span>
             </MenuItem>
-            {isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (
+{isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (
               <MenuItem className={SIDEBAR_CONTEXT_MENU_ITEM_CLASS_NAME} onClick={onOpenFeedback}>
-                <SidebarContextMenuIcon icon={ChatBubbleIcon} />
+                <SidebarContextMenuIcon icon={FeedbackIcon} />
                 <span>Send feedback</span>
               </MenuItem>
             ) : null}
@@ -3419,7 +3439,7 @@ export default function Sidebar() {
                       {
                         id: "snooze-cancel",
                         label: "Return now",
-                        icon: "clock",
+                        icon: THREAD_CONTEXT_MENU_ICONS.snooze,
                         separatorBefore: true,
                       },
                     ]
@@ -3428,16 +3448,20 @@ export default function Sidebar() {
                   {
                     id: "snooze",
                     label: threadSummary?.snoozedUntil != null ? "Reschedule" : "Snooze",
-                    icon: "clock",
+                    icon: THREAD_CONTEXT_MENU_ICONS.snooze,
                     separatorBefore: threadSummary?.snoozedUntil == null,
                   },
                   [
                     ...SNOOZE_PRESETS.map((preset) => ({
                       id: preset.id,
                       label: preset.label,
-                      icon: "clock",
+                      icon: THREAD_CONTEXT_MENU_ICONS.snooze,
                     })),
-                    { id: "snooze-custom", label: "Pick date & time…", icon: "clock" },
+                    {
+                      id: "snooze-custom",
+                      label: "Pick date & time…",
+                      icon: THREAD_CONTEXT_MENU_ICONS.snooze,
+                    },
                   ],
                 ),
               ]
@@ -4328,7 +4352,7 @@ export default function Sidebar() {
         },
       },
       pullRequests: {
-        icon: IoIosGitCompare,
+        icon: CodeReviewIcon,
         label: "Code review",
         active: isOnPullRequests,
         badge: pullRequestsReviewBadge,
@@ -5010,6 +5034,7 @@ export default function Sidebar() {
     isSubagentThread: boolean;
     threadJumpLabel: string | null;
     rightMetaChips: ThreadMetaChip[];
+    prChip: ThreadMetaChip | null;
     threadStatus: ReturnType<typeof resolveThreadStatusForSidebar>;
     timestampToneClassName?: string;
     hoverActions: ReactNode;
@@ -5028,9 +5053,10 @@ export default function Sidebar() {
           </div>
         ) : null}
         {input.threadJumpLabel ? (
-          <KbdGroup
+          <ShortcutKbd
             shortcutLabel={input.threadJumpLabel}
-            className={cn(THREAD_ROW_META_CHIP_HOVER_FADE_CLASS_NAME, "shrink")}
+            title={input.threadJumpLabel}
+            groupClassName={cn(THREAD_ROW_META_CHIP_HOVER_FADE_CLASS_NAME, "shrink")}
           />
         ) : null}
         {trailingStatus ? (
@@ -5046,6 +5072,11 @@ export default function Sidebar() {
           >
             <SidebarStatusTrailingGlyph status={trailingStatus} />
           </span>
+        ) : null}
+        {input.prChip ? (
+          <div className={cn("shrink-0", THREAD_ROW_META_CHIP_HOVER_FADE_CLASS_NAME)}>
+            <SidebarMetaChipStack chips={[input.prChip]} />
+          </div>
         ) : null}
         {input.hoverActions}
       </div>
@@ -5221,7 +5252,8 @@ export default function Sidebar() {
     const threadStatus = resolveThreadStatusForSidebar(thread);
     const isSubagentThread = Boolean(thread.parentThreadId);
     const pr = prByThreadId.get(thread.id) ?? null;
-    const leadingPr = isSubagentThread || thread.forkSourceThreadId ? null : pr;
+    const prChip =
+      !isSubagentThread && !thread.forkSourceThreadId && pr ? resolveThreadRowPrChip(pr) : null;
     const threadJumpLabel = visibleThreadJumpLabelByThreadId.get(thread.id) ?? null;
     const hoverAnchorId = createSidebarThreadHoverAnchorId({
       scope: "pinned",
@@ -5238,23 +5270,16 @@ export default function Sidebar() {
             />
           }
         >
-          {leadingPr ? (
-            <ThreadPrStatusBadge
-              pr={leadingPr}
-              onOpen={openPrLink}
-              className="pointer-events-auto absolute left-1.5 top-1/2 z-30 size-5 -translate-y-1/2"
-            />
-          ) : null}
           <div
             role="button"
             tabIndex={0}
             data-thread-item
             aria-label={resolveThreadRowAriaLabel(thread)}
+            aria-description={prChip?.tooltip}
             className={cn(
               SIDEBAR_HEADER_ROW_CLASS_NAME,
               // Metadata and shortcut hints occupy their actual width in the flex row.
               "relative gap-1.5 pr-2 transition-colors",
-              leadingPr && "pl-8",
               isActive
                 ? SIDEBAR_ROW_ACTIVE_CLASS_NAME
                 : cn(
@@ -5314,6 +5339,7 @@ export default function Sidebar() {
                 isSubagentThread,
                 threadJumpLabel,
                 rightMetaChips,
+                prChip,
                 threadStatus,
                 timestampToneClassName: "text-muted-foreground/38",
                 hoverActions: renderThreadHoverActions({
@@ -5372,7 +5398,8 @@ export default function Sidebar() {
       threadAutomations: automationsByThreadId.get(thread.id),
     });
     const isSubagentThread = Boolean(thread.parentThreadId);
-    const leadingPr = isSubagentThread || thread.forkSourceThreadId ? null : pr;
+    const prChip =
+      !isSubagentThread && !thread.forkSourceThreadId && pr ? resolveThreadRowPrChip(pr) : null;
     const subagentIndentPx = Math.max(0, Math.min(depth - 1, 3) * 10);
     const showCompactMeta = !isSubagentThread;
     const showTemporaryThreadIcon = showCompactMeta && isTemporaryThread;
@@ -5389,13 +5416,6 @@ export default function Sidebar() {
         className="group/thread-row w-full"
         data-thread-item
       >
-        {leadingPr ? (
-          <ThreadPrStatusBadge
-            pr={leadingPr}
-            onOpen={openPrLink}
-            className="pointer-events-auto absolute left-1.5 top-1/2 z-30 size-5 -translate-y-1/2"
-          />
-        ) : null}
         <Tooltip>
           <TooltipTrigger
             {...SIDEBAR_HOVER_CARD_TRIGGER_PROPS}
@@ -5406,13 +5426,14 @@ export default function Sidebar() {
                 size="sm"
                 isActive={isActive}
                 aria-label={resolveThreadRowAriaLabel(thread)}
+                aria-description={prChip?.tooltip}
                 className={cn(
                   resolveThreadRowClassName({
                     isActive,
                     isSelected,
                     isSnoozeReminder: threadStatus?.label === "Reminder",
                   }),
-                  leadingPr ? "pl-8" : topLevel && !isSubagentThread ? "pl-2" : null,
+                  topLevel && !isSubagentThread ? "pl-2" : null,
                   "pr-2",
                 )}
                 draggable
@@ -5492,6 +5513,7 @@ export default function Sidebar() {
                 isSubagentThread,
                 threadJumpLabel,
                 rightMetaChips: showCompactMeta ? rightMetaChips : [],
+                prChip,
                 threadStatus,
                 timestampToneClassName: isSubagentThread
                   ? isHighlighted
@@ -5519,7 +5541,7 @@ export default function Sidebar() {
     return (
       <>
         <SidebarIconButton
-          icon={IoIosGitCompare}
+          icon={CodeReviewIcon}
           label={`Open code review for ${project.name}`}
           tooltip="Code review"
           tooltipSide="top"
@@ -6287,38 +6309,17 @@ export default function Sidebar() {
   const showDesktopUpdateButton = isElectron && shouldShowDesktopUpdateButton(desktopUpdateState);
   const isBetaDesktopFlavor = desktopUpdateState?.flavor === "beta";
 
-  const desktopUpdateTooltip = desktopUpdateState
-    ? getDesktopUpdateButtonTooltip(desktopUpdateState, {
-        installing: installingDesktopUpdate,
-      })
-    : "Update available";
-
   const desktopUpdateButtonDisabled =
     isDesktopUpdateButtonDisabled(desktopUpdateState) || installingDesktopUpdate;
   const desktopUpdateButtonAction = desktopUpdateState
     ? resolveDesktopUpdateButtonAction(desktopUpdateState)
     : "none";
-  const desktopUpdateButtonPresentation = getDesktopUpdateButtonPresentation(desktopUpdateState, {
-    installing: installingDesktopUpdate,
-  });
   const showArm64IntelBuildWarning =
     isElectron && shouldShowArm64IntelBuildWarning(desktopUpdateState);
   const arm64IntelBuildWarningDescription =
     desktopUpdateState && showArm64IntelBuildWarning
       ? getArm64IntelBuildWarningDescription(desktopUpdateState)
       : null;
-  const desktopUpdateButtonInteractivityClasses = desktopUpdateButtonDisabled
-    ? "cursor-not-allowed opacity-60"
-    : "hover:brightness-110";
-  const desktopUpdateButtonHasSecondaryLabel =
-    desktopUpdateButtonPresentation.secondaryLabel !== null;
-  const desktopUpdateDownloadPercent = getDesktopUpdateDownloadPercent(desktopUpdateState);
-  const desktopUpdateRowButtonClasses = cn(
-    "inline-flex h-6 shrink-0 items-center justify-center gap-1.5 rounded-full px-2.5 font-system-ui text-ui-xs font-medium leading-none text-white transition-colors",
-    isBetaDesktopFlavor ? "bg-[image:var(--beta-gradient)]" : "bg-[var(--info)]",
-    desktopUpdateButtonHasSecondaryLabel && "min-h-6 py-0.5",
-    desktopUpdateButtonInteractivityClasses,
-  );
   const searchPaletteProjects = useMemo<SidebarSearchProject[]>(
     () =>
       projects.map((project) => ({
@@ -6957,8 +6958,15 @@ export default function Sidebar() {
             void navigate({ to: "/settings", search: { section: "usage" } });
           }}
         />
-        {isFeatureAvailable(HELP_MENU_UNAVAILABLE_FEATURE) ? (
+{isFeatureAvailable(HELP_MENU_UNAVAILABLE_FEATURE) ? (
           <SidebarHelpMenu inRail {...sidebarHelpMenuProps} />
+        ) : null}
+        {showDesktopUpdateButton && desktopUpdateState ? (
+          <DesktopUpdateRailButton
+            state={desktopUpdateState}
+            installing={installingDesktopUpdate}
+            onClick={handleDesktopUpdateButtonClick}
+          />
         ) : null}
       </>
     ),
@@ -7459,7 +7467,7 @@ export default function Sidebar() {
           </SidebarContent>
 
           <SidebarFooter
-            // Help lives in the rail, so the footer only carries the update pill.
+            // Help and the update button live in the rail; the footer only carries debug tools.
             className="gap-2 border-sidebar-border border-t-0 p-2 pt-0 font-system-ui"
           >
             <SidebarMenu>
@@ -7470,41 +7478,6 @@ export default function Sidebar() {
                       <DebugFeatureFlagsMenu />
                     </Suspense>
                   ) : null}
-                  <div className="flex items-center gap-2">
-                    {showDesktopUpdateButton ? (
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <button
-                              type="button"
-                              aria-label={desktopUpdateTooltip}
-                              aria-disabled={desktopUpdateButtonDisabled || undefined}
-                              disabled={desktopUpdateButtonDisabled}
-                              className={desktopUpdateRowButtonClasses}
-                              onClick={handleDesktopUpdateButtonClick}
-                            >
-                              <span className="flex min-w-0 flex-1 items-center justify-between gap-1.5 leading-tight">
-                                <span className="min-w-0 truncate text-center">
-                                  {desktopUpdateButtonPresentation.label}
-                                </span>
-                                {desktopUpdateButtonPresentation.secondaryLabel ? (
-                                  <span className="min-w-0 truncate text-center text-ui-xs text-white/80">
-                                    {desktopUpdateButtonPresentation.secondaryLabel}
-                                  </span>
-                                ) : null}
-                              </span>
-                              {desktopUpdateDownloadPercent !== null ? (
-                                <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-ui-2xs font-semibold tabular-nums text-white/95">
-                                  {desktopUpdateDownloadPercent}%
-                                </span>
-                              ) : null}
-                            </button>
-                          }
-                        />
-                        <TooltipPopup side="top">{desktopUpdateTooltip}</TooltipPopup>
-                      </Tooltip>
-                    ) : null}
-                  </div>
                 </div>
               </SidebarMenuItem>
             </SidebarMenu>

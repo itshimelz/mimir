@@ -419,6 +419,10 @@
     "./coordinatorCheckin": {
       "types": "./src/coordinatorCheckin.ts",
       "import": "./src/coordinatorCheckin.ts"
+    },
+    "./keybindingRules": {
+      "types": "./src/keybindingRules.ts",
+      "import": "./src/keybindingRules.ts"
     }
   },
   "scripts": {

@@ -14,6 +14,8 @@ import {
 } from "@synara/contracts";
 import { isGenericChatThreadTitle } from "@synara/shared/chatThreads";
 import React, { useEffect, useRef, useState } from "react";
+import { HiMiniArrowsPointingOut } from "react-icons/hi2";
+import { TbExchange } from "react-icons/tb";
 import type { ThreadPrimarySurface } from "../../types";
 import GitActionsControl from "../GitActionsControl";
 import {

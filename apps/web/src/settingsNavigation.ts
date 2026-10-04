@@ -4,6 +4,7 @@
 // Exports: section ids, nav items, and search normalization helper
 
 import { isFeatureAvailable } from "@synara/shared/unavailableFeatures";
+import { KEYBINDINGS_ICON_NAME } from "~/lib/icons";
 
 export const SETTINGS_SECTION_IDS = [
   "general",
@@ -112,7 +113,7 @@ export const SETTINGS_NAV_ITEMS: readonly SettingsNavItem[] = (
       group: "personal",
       label: "Keybindings",
       description: "Change, add, or remove the shortcut for every Mimir command.",
-      icon: "shortcut",
+      icon: KEYBINDINGS_ICON_NAME,
       eyebrow: "Key bindings",
     },
     {

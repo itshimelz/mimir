@@ -39,12 +39,21 @@ export const APPSNAP_UNAVAILABLE_FEATURE = "appsnap";
  */
 export const COMPUTER_UNAVAILABLE_FEATURE = "computer";
 
+/**
+ * The profile panel's "Activity insights" and "Most used plugins" columns. Withheld
+ * while the profile surface is rescoped for the learning workspace — the aggregate
+ * stats read as product analytics rather than a student's own progress. The panel
+ * itself stays. Delete the entry to restore both columns.
+ */
+export const PROFILE_INSIGHTS_UNAVAILABLE_FEATURE = "profile-insights";
+
 export const UNAVAILABLE_FEATURES: readonly string[] = [
   FEEDBACK_UNAVAILABLE_FEATURE,
   SHARE_CARD_UNAVAILABLE_FEATURE,
   HELP_MENU_UNAVAILABLE_FEATURE,
   APPSNAP_UNAVAILABLE_FEATURE,
   COMPUTER_UNAVAILABLE_FEATURE,
+  PROFILE_INSIGHTS_UNAVAILABLE_FEATURE,
 ];
 
 /**

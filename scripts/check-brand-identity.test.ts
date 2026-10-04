@@ -104,15 +104,18 @@ describe("brand identity guard", () => {
   });
 
   it("allows the exact 0.7.0 release attribution only in its approved locations", () => {
+    // Mimir's release history starts at 0.0.1, so whatsNew/entries.ts no longer
+    // carries the attribution and the guard no longer exempts that path.
     expect(
       findBrandIdentityViolations([
         { path: "CHANGELOG.md", contents: `## 0.7.0 - 2026-08-05\n\n${releaseAttribution}` },
-        {
-          path: "apps/web/src/whatsNew/entries.ts",
-          contents: inAppReleaseAttribution,
-        },
       ]),
     ).toEqual([]);
+    expect(
+      findBrandIdentityViolations([
+        { path: "apps/web/src/whatsNew/entries.ts", contents: inAppReleaseAttribution },
+      ]),
+    ).toHaveLength(1);
     expect(
       findBrandIdentityViolations([
         { path: "CHANGELOG.md", contents: `## 0.6.7 - 2026-08-05\n\n${releaseAttribution}` },

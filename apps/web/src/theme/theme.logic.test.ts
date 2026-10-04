@@ -431,9 +431,10 @@ describe("window translucency", () => {
     expect(dark.translucencyScope).toBe("sidebar");
     expect(dark.variables["--app-window-background"]).toBe("transparent");
     expect(dark.variables["--app-glass-raised-surface"]).toBe("");
-    // Off whole-window glass, overlays take the composer's fill and carry the coat themselves.
+    // Off whole-window glass, an overlay is opaque: it sits directly on the content
+    // behind it, and nothing frosts that content any more.
     expect(dark.variables["--app-overlay-surface"]).toBe(
-      "color-mix(in srgb, var(--popover) 55%, transparent)",
+      "color-mix(in srgb, var(--popover) 100%, transparent)",
     );
     expect(dark.variables["--app-overlay-backing"]).toBe(dark.variables["--app-sidebar-surface"]);
     expect(dark.variables["--app-content-surface"]).toBe(

@@ -31,7 +31,7 @@ export function showConfirmDialogFallback(message: string): Promise<boolean> {
     popup.setAttribute("role", "alertdialog");
     popup.setAttribute("aria-modal", "true");
     popup.className =
-      "flex w-full max-w-[22rem] flex-col rounded-xl border border-[color:var(--color-border-light)] bg-[var(--composer-surface)] text-[var(--color-text-foreground)] shadow-xl";
+      "flex w-full max-w-[22rem] flex-col rounded-sm border border-[color:var(--overlay-border)] bg-popover text-[var(--color-text-foreground)] shadow-sm";
     popup.style.cssText = "animation:scaleIn .15s ease-out";
 
     // Header

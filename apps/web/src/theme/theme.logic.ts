@@ -321,11 +321,10 @@ const RAISED_GLASS_OPACITY_BY_VARIANT: Record<ThemeVariant, { floor: number; rat
   light: { floor: 4, ratio: 0.3 },
 };
 
-// Floating overlays (menus, pickers, popovers, tooltips, toasts) share the composer's material
-// so the whole UI reads as one. Off a whole-window glass shell that is the composer's own fill
-// (`--composer-glass-opacity` in index.css) over a backdrop blur; on one it is the raised tint,
-// with the page cut out from under the overlay instead of blurred (see glassOverlayCutout.ts).
-const OVERLAY_OPACITY = 55;
+// Floating overlays (menus, pickers, popovers, tooltips, toasts) sit on the content
+// behind them, so their fill is opaque. On a whole-window glass shell they take the
+// raised tint instead: there the page is cut out, not blurred (glassOverlayCutout.ts).
+const OVERLAY_OPACITY = 100;
 
 export const DEFAULT_THEME_STATE: ThemeState = {
   chromeThemes: {

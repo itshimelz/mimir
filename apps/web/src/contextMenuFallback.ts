@@ -12,7 +12,7 @@ function createMenuIconElement(icon: string): HTMLElement | null {
 }
 
 const HIGHLIGHT_CLASS = "bg-[var(--sidebar-accent)]";
-const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-xl border border-white/[0.08] shadow-xl animate-in fade-in zoom-in-95`;
+const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-sm border border-[color:var(--overlay-border)] shadow-sm animate-in fade-in zoom-in-95`;
 const VIEWPORT_MARGIN = 4;
 /** Small overlap so the pointer never crosses a gap between a row and its submenu. */
 const SUBMENU_OVERLAP = 4;

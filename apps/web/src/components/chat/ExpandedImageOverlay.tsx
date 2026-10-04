@@ -76,7 +76,7 @@ export function ExpandedImageOverlay({
         <img
           src={expandedImageItem.src}
           alt={expandedImageItem.name}
-          className="max-h-[86vh] max-w-[92vw] select-none rounded-lg border border-[color:var(--color-border)] bg-[var(--color-background-elevated-primary-opaque)] object-contain shadow-2xl"
+          className="max-h-[86vh] max-w-[92vw] select-none rounded-sm border border-[color:var(--overlay-border)] bg-[var(--color-background-elevated-primary-opaque)] object-contain shadow-sm"
           draggable={false}
         />
         <p className="mt-2 max-w-[92vw] truncate text-center text-ui leading-snug text-muted-foreground/80">

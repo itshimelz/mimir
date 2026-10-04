@@ -139,13 +139,9 @@ function KanbanCardViewComponent({
       className={cn(
         "flex w-full cursor-pointer flex-col gap-1.5 rounded-lg bg-card/70 px-3 py-2.5 text-left transition-colors",
         RAISED_SURFACE_CHROME_CLASS_NAME,
-        // The shared raised chrome drops its border in dark mode (shadow-only),
-        // which leaves kanban cards edgeless against the column. Re-add a faint
-        // hairline so each card stays visually separated in dark mode.
-        "dark:border dark:border-white/[0.05]",
         "hover:bg-card focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-none",
         // A dragged card floats over the board, so it keeps its opaque fill on a glass window.
-        isOverlay ? "bg-card shadow-lg dark:shadow-lg" : GLASS_RAISED_SURFACE_CLASS_NAME,
+        isOverlay ? "bg-card shadow-md" : GLASS_RAISED_SURFACE_CLASS_NAME,
         isDragSource && "opacity-40",
       )}
     >

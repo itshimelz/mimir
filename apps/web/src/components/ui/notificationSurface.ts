@@ -16,11 +16,11 @@ import { cn } from "~/lib/utils";
 // top edge over Electron's draggable titlebar region; without this the OS
 // captures clicks in that band for window dragging and the X stops working.
 const NOTIFICATION_SURFACE_BASE_CLASS_NAME =
-  "border border-border bg-popover/94 [--notification-fg:var(--popover-foreground)] text-[var(--notification-fg)] shadow-lg/10 backdrop-blur-xl before:hidden [-webkit-app-region:no-drag] dark:shadow-lg/15";
+  "border border-[color:var(--overlay-border)] bg-popover [--notification-fg:var(--popover-foreground)] text-[var(--notification-fg)] shadow-sm before:hidden [-webkit-app-region:no-drag]";
 
-export const COMPACT_NOTIFICATION_SURFACE_CLASS_NAME = `w-max max-w-[min(calc(100vw-2rem),28rem)] rounded-xl ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
+export const COMPACT_NOTIFICATION_SURFACE_CLASS_NAME = `w-max max-w-[min(calc(100vw-2rem),28rem)] rounded-sm ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
 
-export const EXPANDED_NOTIFICATION_SURFACE_CLASS_NAME = `w-full rounded-2xl ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
+export const EXPANDED_NOTIFICATION_SURFACE_CLASS_NAME = `w-full rounded-sm ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
 
 // The icon carries the tone color while the copy stays on the neutral
 // `--notification-fg`, so tones only need to set `--notification-icon-fg`.

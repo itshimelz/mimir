@@ -388,7 +388,7 @@ function TransportCompatibilityView({ issue }: { issue: WsCompatibilityError }) 
         <div className="absolute inset-x-0 top-0 h-44 bg-[radial-gradient(44rem_16rem_at_top,color-mix(in_srgb,var(--color-amber-500)_16%,transparent),transparent)]" />
         <div className="absolute inset-0 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--background)_90%,var(--color-black))_0%,var(--background)_55%)]" />
       </div>
-      <section className="relative w-full max-w-xl rounded-2xl border border-border/80 bg-card/90 p-6 shadow-2xl shadow-black/20 backdrop-blur-md sm:p-8">
+      <section className="relative w-full max-w-xl rounded-sm border border-[color:var(--overlay-border)] bg-card p-6 shadow-sm sm:p-8">
         <p className="text-ui-sm font-semibold text-muted-foreground">{APP_DISPLAY_NAME}</p>
         <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">{title}</h1>
         <p className="mt-2 text-ui leading-relaxed text-muted-foreground">{issue.message}</p>
@@ -976,7 +976,7 @@ function RootRouteErrorView({ error, reset }: ErrorComponentProps) {
         <div className="absolute inset-0 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--background)_90%,var(--color-black))_0%,var(--background)_55%)]" />
       </div>
 
-      <section className="relative w-full max-w-xl rounded-2xl border border-border/80 bg-card/90 p-6 shadow-2xl shadow-black/20 backdrop-blur-md sm:p-8">
+      <section className="relative w-full max-w-xl rounded-sm border border-[color:var(--overlay-border)] bg-card p-6 shadow-sm sm:p-8">
         <p className="text-ui-sm font-semibold text-muted-foreground">{APP_DISPLAY_NAME}</p>
         <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">Something went wrong.</h1>
         <p className="mt-2 text-ui leading-relaxed text-muted-foreground">{message}</p>

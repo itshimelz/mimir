@@ -1222,7 +1222,7 @@ function SidebarActivityBellButton({
         sideOffset={onboardingVisible ? 8 : 4}
         className={cn(
           onboardingVisible &&
-            "max-w-64 border-[var(--color-text-accent)] bg-[var(--color-text-accent)] text-white shadow-lg",
+            "max-w-64 border-[var(--color-text-accent)] bg-[var(--color-text-accent)] text-white shadow-sm",
         )}
         viewportClassName={cn(onboardingVisible && "px-3 py-2.5")}
       >

@@ -228,7 +228,7 @@ function ComputerPreviewPopoverCard(props: {
       inert={!visuallyOpen}
       data-computer-preview-popover={threadId}
       className={cn(
-        "group pointer-events-auto flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-popover/95 text-foreground shadow-[0_16px_56px_-16px_rgb(0_0_0/0.5),0_2px_12px_-2px_rgb(0_0_0/0.3)] backdrop-blur-xl",
+        "group pointer-events-auto flex flex-col overflow-hidden rounded-sm border border-[color:var(--overlay-border)] bg-popover text-foreground shadow-sm",
         floating !== undefined && "fixed z-50",
         disclosurePopClassName(visuallyOpen),
       )}
@@ -353,14 +353,14 @@ function ComputerPreviewViewport(props: {
         </div>
       ) : null}
       {statusLabel ? (
-        <div className="pointer-events-none absolute bottom-2 left-2 flex max-w-[calc(100%_-_1rem)] items-center gap-1.5 rounded-full border border-white/15 bg-black/55 px-2.5 py-1 text-ui-xs font-medium text-white shadow-sm backdrop-blur-md">
+        <div className="pointer-events-none absolute bottom-2 left-2 flex max-w-[calc(100%_-_1rem)] items-center gap-1.5 rounded-full border border-white/15 bg-black/80 px-2.5 py-1 text-ui-xs font-medium text-white">
           <StatusDot aria-hidden="true" className="bg-muted-foreground" />
           <span className="truncate">{statusLabel}</span>
         </div>
       ) : null}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-2 right-2 translate-y-1 opacity-0 transition-[opacity,translate] duration-200 ease-out group-focus-within:translate-y-0 group-focus-within:opacity-100 group-hover:translate-y-0 group-hover:opacity-100 motion-reduce:translate-y-0 motion-reduce:transition-none pointer-coarse:translate-y-0 pointer-coarse:opacity-100">
-          <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/20 bg-gradient-to-b from-white/25 via-white/10 to-white/[0.06] p-1 shadow-[inset_0_1px_0_rgb(255_255_255/0.28),0_8px_24px_-8px_rgb(0_0_0/0.45)] backdrop-blur-md backdrop-saturate-150">
+          <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/20 bg-black/70 p-1 backdrop-saturate-150">
             {floating ? (
               <button
                 type="button"

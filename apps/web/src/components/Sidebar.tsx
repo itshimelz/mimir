@@ -1016,7 +1016,7 @@ function SidebarHelpMenu({
               <SidebarContextMenuIcon icon={KeyboardIcon} />
               <span>Keybindings</span>
             </MenuItem>
-{isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (
+            {isFeatureAvailable(FEEDBACK_UNAVAILABLE_FEATURE) ? (
               <MenuItem className={SIDEBAR_CONTEXT_MENU_ITEM_CLASS_NAME} onClick={onOpenFeedback}>
                 <SidebarContextMenuIcon icon={FeedbackIcon} />
                 <span>Send feedback</span>
@@ -6958,7 +6958,7 @@ export default function Sidebar() {
             void navigate({ to: "/settings", search: { section: "usage" } });
           }}
         />
-{isFeatureAvailable(HELP_MENU_UNAVAILABLE_FEATURE) ? (
+        {isFeatureAvailable(HELP_MENU_UNAVAILABLE_FEATURE) ? (
           <SidebarHelpMenu inRail {...sidebarHelpMenuProps} />
         ) : null}
         {showDesktopUpdateButton && desktopUpdateState ? (

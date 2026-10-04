@@ -19,7 +19,7 @@ import {
   HandoffIcon,
   PENCIL_ICON_NAME,
   PIN_ICON_NAME,
-  TERMINAL_ICON_NAME,
+  TerminalIcon,
   Trash2,
   WorktreeIcon,
 } from "./icons";
@@ -40,7 +40,7 @@ export const THREAD_CONTEXT_MENU_ICONS = {
   // Same glyph as the composer's snooze notice.
   snooze: renderToStaticMarkup(<ClockIcon />),
   copy: COPY_ICON_NAME,
-  openInTerminal: TERMINAL_ICON_NAME,
+  openInTerminal: renderToStaticMarkup(<TerminalIcon />),
   // Same glyph as the thread row's hover archive button (both use ArchiveIcon).
   archive: renderToStaticMarkup(<ArchiveIcon />),
   // Same glyph as the delete rows in the sidebar project and space menus.

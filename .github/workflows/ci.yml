@@ -397,6 +397,21 @@ jobs:
         with:
           node-version-file: package.json
 
+      # A fork does not inherit its upstream's release tags, and this check only
+      # means something against them. Read them from upstream on the runner rather
+      # than mirroring 91 upstream tags into this repository.
+      - name: Fetch upstream release tags
+        env:
+          UPSTREAM_REPOSITORY: ${{ vars.MIMIR_UPSTREAM_REPOSITORY }}
+        run: |
+          if [ -z "$(git tag --list 'v[0-9]*')" ]; then
+            repository="${UPSTREAM_REPOSITORY:-Emanuele-web04/synara}"
+            echo "No release tags in this checkout; fetching them from ${repository}."
+            git remote add upstream "https://github.com/${repository}.git"
+            git fetch --quiet --tags upstream
+          fi
+          echo "Release tags available: $(git tag --list 'v[0-9]*' | wc -l)"
+
       - name: Verify released migration lineage
         run: |
           test -n "$(git tag --list 'v[0-9]*')" || { echo "::error::Release tags are missing; lineage cannot be verified."; exit 1; }

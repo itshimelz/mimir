@@ -1,5 +1,6 @@
 // FILE: EditorWorkspaceView.browser.tsx
-// Purpose: Preserve explicit Markdown view choices across editor navigation.
+// Purpose: Preserve explicit Markdown view choices across editor navigation, and guard the
+//          Study/Studio surface switch (header toggle, left column, artifact preview).
 // Layer: Component browser regressions
 
 import "../index.css";
@@ -59,6 +60,8 @@ afterEach(async () => {
   }
   if (previousApi) Object.defineProperty(window, "nativeApi", previousApi);
   else Reflect.deleteProperty(window, "nativeApi");
+  // The surface is a stored preference, so it must not leak between tests.
+  window.localStorage.removeItem("synara.editor.surface");
 });
 
 function makeView() {
@@ -89,6 +92,14 @@ function makeView() {
           onEditFile={vi.fn()}
           onCloseEdit={vi.fn()}
           onExitEditorView={vi.fn()}
+          studioOutputs={[
+            {
+              name: "2026-06-09_cell_division_lesson.md",
+              relativePath: "Outbox/Content/2026-06-09_cell_division_lesson.md",
+              fullPath: `${WORKSPACE_ROOT}/Outbox/Content/2026-06-09_cell_division_lesson.md`,
+              modifiedAt: "2026-06-09T10:00:00.000Z",
+            },
+          ]}
         />
       </SidebarProvider>
     </QueryClientProvider>
@@ -179,4 +190,56 @@ it("keeps non-Markdown files in Source without a Markdown toggle", async () => {
   await expect.element(source()).not.toBeInTheDocument();
   await expect.element(preview()).not.toBeInTheDocument();
   await screen.unmount();
+});
+
+it("switches between the Study and Studio surfaces from the header", async () => {
+  const view = makeView();
+  const screen = await render(view());
+
+  // Study is the default surface: the course file tree and its activity bar.
+  const activityBar = page.getByRole("navigation", { name: "Editor activity bar" });
+  await expect
+    .element(page.getByRole("radio", { name: "Study", exact: true }))
+    .toHaveAttribute("aria-checked", "true");
+  await expect.element(activityBar).toBeInTheDocument();
+
+  await page.getByRole("radio", { name: "Studio", exact: true }).click();
+  await expect.element(page.getByTestId("studio-artifacts-sidebar")).toBeInTheDocument();
+  // Studio's left column is the artifact list, so the Study activity bar steps aside.
+  await expect.element(activityBar).not.toBeInTheDocument();
+
+  await page.getByRole("radio", { name: "Study", exact: true }).click();
+  await expect.element(page.getByTestId("studio-artifacts-sidebar")).not.toBeInTheDocument();
+  await expect.element(activityBar).toBeInTheDocument();
+
+  // The choice is a stored preference, so it survives leaving the view entirely.
+  expect(window.localStorage.getItem("synara.editor.surface")).toBe("study");
+  await screen.unmount();
+});
+
+it("groups Studio artifacts by their Outbox category and previews the selected one", async () => {
+  window.localStorage.setItem("synara.editor.surface", "studio");
+  try {
+    const screen = await render(makeView()());
+    await expect
+      .element(page.getByRole("radio", { name: "Studio", exact: true }))
+      .toHaveAttribute("aria-checked", "true");
+    await expect.element(page.getByText("Content", { exact: true })).toBeInTheDocument();
+
+    // Nothing is previewed until the student picks an artifact.
+    await expect.element(page.getByText("Select an artifact to review it.")).toBeInTheDocument();
+
+    const artifactRow = page.getByRole("button", { name: /Cell division lesson/ });
+    await artifactRow.click();
+    // Selecting an artifact previews it in the center through the same viewer Study uses,
+    // and marks the row so the student can see what they are looking at.
+    await expect
+      .element(page.getByText("Select an artifact to review it."))
+      .not.toBeInTheDocument();
+    await expect.element(artifactRow).toHaveAttribute("aria-pressed", "true");
+
+    await screen.unmount();
+  } finally {
+    window.localStorage.removeItem("synara.editor.surface");
+  }
 });

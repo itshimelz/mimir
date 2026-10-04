@@ -1,9 +1,11 @@
 // FILE: EditorWorkspaceView.tsx
-// Purpose: Read-only editor-style thread surface with file explorer, workspace
-//          file search, file/diff preview, and chat.
+// Purpose: The workspace surface: file explorer, workspace file search, file/diff
+//          preview, and chat, split into two product surfaces — Study (the course's
+//          own files) and Studio (the artifacts the agent produced). Both share one
+//          workspace and one chat rail; only the left column and center swap.
 // Layer: Chat route presentation
 
-import type { ProjectId } from "@synara/contracts";
+import type { ProjectId, StudioOutputEntry } from "@synara/contracts";
 import type { FileDiffMetadata } from "@pierre/diffs/react";
 import {
   type CSSProperties,
@@ -46,6 +48,7 @@ import {
   type EditorActivityBarItem,
   editorCenterModeFamily,
   type EditorCenterMode,
+  type EditorSurface,
 } from "~/lib/editorCenterMode";
 import type { FileCommentSelection } from "~/lib/fileComments";
 import { cn } from "~/lib/utils";
@@ -62,6 +65,7 @@ import { FileEntryIcon } from "./chat/FileEntryIcon";
 import { fileRowClassName } from "./chat/fileRowStyles";
 import { DiffStat } from "./chat/DiffStatLabel";
 import { PanelStateMessage } from "./chat/PanelStateMessage";
+import { StudioArtifactsSidebar } from "./chat/StudioArtifactsSidebar";
 import {
   ExplorerActivityBarButton,
   setFileReferenceDragData,
@@ -69,6 +73,7 @@ import {
   WorkspaceSearchSidebar,
 } from "./chat/workspaceExplorer";
 import { ProjectMenuPicker, type ProjectMenuPickerOption } from "./ProjectMenuPicker";
+import { SegmentedPicker } from "./SegmentedPicker";
 import { WorkspaceFileDiffEditorPane } from "./chat/WorkspaceFileDiffEditorPane";
 import { useQueryClient } from "@tanstack/react-query";
 import { flushWorkspaceEditors } from "~/lib/workspaceEditorSession";
@@ -78,6 +83,7 @@ import { WorkspaceFilePreview } from "./WorkspaceFilePreview";
 const EDITOR_CHAT_PANE_STORAGE_KEY = "synara.editor.chatPaneWidth";
 const EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY = "synara.editor.sidebarVisible";
 const EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY = "synara.editor.chatPaneVisible";
+const EDITOR_SURFACE_STORAGE_KEY = "synara.editor.surface";
 const EDITOR_CHAT_PANE_DEFAULT_WIDTH = 384;
 const EDITOR_CHAT_PANE_MIN_WIDTH = 320;
 const EDITOR_CHAT_PANE_MAX_WIDTH = 600;
@@ -116,6 +122,9 @@ interface EditorWorkspaceViewProps {
   onAskWhyInChat?: (reference: ChatFileReference) => void;
   onCommentInChat?: (comment: FileCommentSelection) => void;
   onSelectProject?: (projectId: ProjectId) => void;
+  /** Agent-produced artifacts backing the Studio surface. Undefined while Studio has no data. */
+  studioOutputs?: ReadonlyArray<StudioOutputEntry>;
+  studioOutputsLoading?: boolean;
 }
 
 function clampEditorChatPaneWidth(width: number): number {
@@ -173,6 +182,30 @@ function storeEditorVisibility(key: string, visible: boolean): void {
   }
   try {
     window.localStorage.setItem(key, String(visible));
+  } catch {
+    // Best-effort preference persistence only.
+  }
+}
+
+function readStoredEditorSurface(): EditorSurface {
+  if (typeof window === "undefined") {
+    return "study";
+  }
+  try {
+    return window.localStorage.getItem(EDITOR_SURFACE_STORAGE_KEY) === "studio"
+      ? "studio"
+      : "study";
+  } catch {
+    return "study";
+  }
+}
+
+function storeEditorSurface(surface: EditorSurface): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(EDITOR_SURFACE_STORAGE_KEY, surface);
   } catch {
     // Best-effort preference persistence only.
   }
@@ -408,6 +441,15 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   // query lives here so it survives toggling between sidebar panes.
   const [searchPaneActive, setSearchPaneActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  // Study is the course surface (explore/read/write the course's own files); Studio is the
+  // agent surface (artifacts and lessons it produced). Both share this workspace and the
+  // chat rail, so the switch is local state rather than a route.
+  const [surface, setSurface] = useState<EditorSurface>(readStoredEditorSurface);
+  // Which artifact the student is reviewing in Studio. Local to the shell because the
+  // preview itself is opened by the owner through `onSelectStudioOutput`.
+  const [selectedStudioOutputPath, setSelectedStudioOutputPath] = useState<string | null>(null);
+  const selectedStudioOutput =
+    props.studioOutputs?.find((entry) => entry.fullPath === selectedStudioOutputPath) ?? null;
   // The file preview unmounts in Diff/Edit mode. Keep explicit Markdown choices
   // in the editor shell, scoped to the workspace and file for this session.
   const [markdownPreviewModes, setMarkdownPreviewModes] = useState<ReadonlyMap<string, boolean>>(
@@ -434,6 +476,28 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     [queryClient, props.workspaceRoot],
   );
   useImperativeHandle(props.leaveGuardRef, () => ({ guardLeavingEdit }), [guardLeavingEdit]);
+  // Leaving a dirty editor for the other surface would strand the buffer in the pane the
+  // student just left, so the surface switch runs through the same flush as every other
+  // editor-replacing action.
+  const handleSelectSurface = (next: EditorSurface) => {
+    if (next === surface) {
+      return;
+    }
+    guardLeavingEdit(() => {
+      setSurface(next);
+      storeEditorSurface(next);
+      setSelectedStudioOutputPath(null);
+      if (next === "study") {
+        // Study's left column is the course file tree. Come back to it rather than
+        // inheriting whatever the search pane was showing.
+        setSearchPaneActive(false);
+        setSidebarVisible(true);
+        storeEditorVisibility(EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY, true);
+      }
+      // Studio's sidebar renders unconditionally and is not governed by
+      // `sidebarVisible`, so switching away from it needs no teardown.
+    });
+  };
   const activityBarSelection = (item: EditorActivityBarItem) => ({
     item,
     sidebarVisible,
@@ -623,6 +687,16 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               }
             />
           ) : null}
+          <SegmentedPicker
+            className="ms-1 w-[9.5rem] shrink-0"
+            ariaLabel="Surface"
+            value={surface}
+            onValueChange={handleSelectSurface}
+            options={[
+              { value: "study", label: "Study" },
+              { value: "studio", label: "Studio" },
+            ]}
+          />
         </div>
         <ChatHeaderButton
           type="button"
@@ -648,18 +722,29 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
         </ChatHeaderButton>
       </div>
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        <EditorActivityBar
-          centerMode={props.centerMode}
-          searchActive={searchPaneActive}
-          sidebarVisible={sidebarVisible}
-          onSelectItem={(item) =>
-            editorActivityBarSelectionLeavesEditor(activityBarSelection(item))
-              ? guardLeavingEdit(() => handleActivityBarSelectItem(item))
-              : handleActivityBarSelectItem(item)
-          }
-        />
+        {surface === "studio" ? null : (
+          <EditorActivityBar
+            centerMode={props.centerMode}
+            searchActive={searchPaneActive}
+            sidebarVisible={sidebarVisible}
+            onSelectItem={(item) =>
+              editorActivityBarSelectionLeavesEditor(activityBarSelection(item))
+                ? guardLeavingEdit(() => handleActivityBarSelectItem(item))
+                : handleActivityBarSelectItem(item)
+            }
+          />
+        )}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
-          {!sidebarVisible ? null : searchPaneActive ? (
+          {surface === "studio" ? (
+            <StudioArtifactsSidebar
+              entries={props.studioOutputs ?? []}
+              isLoading={props.studioOutputsLoading ?? false}
+              selectedOutputPath={selectedStudioOutputPath}
+              onSelectOutput={(entry) =>
+                guardLeavingEdit(() => setSelectedStudioOutputPath(entry.fullPath))
+              }
+            />
+          ) : !sidebarVisible ? null : searchPaneActive ? (
             <WorkspaceSearchSidebar
               workspaceRoot={props.workspaceRoot}
               query={searchQuery}
@@ -689,46 +774,72 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             />
           )}
           <main className="flex min-h-[16rem] min-w-0 flex-1 border-b border-border/65 lg:h-full lg:border-b-0">
-            {/* Keep the diff panel mounted while browsing files: unmounting it
+            {/* Studio reviews what the agent produced, in the same viewer Study uses.
+                `StudioOutputEntry.relativePath` is resolved against the thread's own
+                workspace root (apps/server/src/studioOutputs.ts:393), so the course
+                workspace is the correct containment root here. */}
+            {surface === "studio" ? (
+              selectedStudioOutput ? (
+                <div className="flex min-h-0 min-w-0 flex-1">
+                  <WorkspaceFilePreview
+                    workspaceRoot={props.workspaceRoot}
+                    filePath={selectedStudioOutput.relativePath}
+                    markdownPreviewEnabled
+                    onReferenceInChat={props.onReferenceInChat}
+                    onAskWhyInChat={props.onAskWhyInChat}
+                  />
+                </div>
+              ) : (
+                <PanelStateMessage density="compact" className="flex-1">
+                  Select an artifact to review it.
+                </PanelStateMessage>
+              )
+            ) : (
+              <>
+                {/* Keep the diff panel mounted while browsing files: unmounting it
                 drops the parsed patch, diff worker pool, and query subscriptions,
                 which made every Files -> Diff switch a cold multi-second reload. */}
-            <div className={cn("min-h-0 min-w-0 flex-1", props.centerMode !== "diff" && "hidden")}>
-              {props.diffPanel}
-            </div>
-            {props.centerMode === "fileEdit" && props.editFilePath !== null ? (
-              <div className="flex min-h-0 min-w-0 flex-1">
-                <WorkspaceFileEditorPane
-                  workspaceRoot={props.workspaceRoot}
-                  filePath={props.editFilePath}
-                  resolvedTheme={editorResolvedTheme}
-                  onClose={props.onCloseEdit}
-                />
-              </div>
-            ) : props.centerMode === "diffEdit" && props.editFilePath !== null ? (
-              <div className="flex min-h-0 min-w-0 flex-1">
-                <WorkspaceFileDiffEditorPane
-                  workspaceRoot={props.workspaceRoot}
-                  filePath={props.editFilePath}
-                  basePath={props.editDiffBasePath ?? null}
-                  baseRev={props.editDiffBaseRev ?? { rev: "HEAD" }}
-                  resolvedTheme={editorResolvedTheme}
-                  onClose={props.onCloseEdit}
-                />
-              </div>
-            ) : props.centerMode === "file" ? (
-              <div className="flex min-h-0 min-w-0 flex-1">
-                <WorkspaceFilePreview
-                  workspaceRoot={props.workspaceRoot}
-                  filePath={props.selectedFilePath}
-                  markdownPreviewEnabled={markdownPreviewModes.get(markdownPreviewKey) ?? true}
-                  onMarkdownPreviewChange={handleMarkdownPreviewChange}
-                  onReferenceInChat={props.onReferenceInChat}
-                  onAskWhyInChat={props.onAskWhyInChat}
-                  onCommentInChat={props.onCommentInChat}
-                  onEditFile={props.onEditFile}
-                />
-              </div>
-            ) : null}
+                <div
+                  className={cn("min-h-0 min-w-0 flex-1", props.centerMode !== "diff" && "hidden")}
+                >
+                  {props.diffPanel}
+                </div>
+                {props.centerMode === "fileEdit" && props.editFilePath !== null ? (
+                  <div className="flex min-h-0 min-w-0 flex-1">
+                    <WorkspaceFileEditorPane
+                      workspaceRoot={props.workspaceRoot}
+                      filePath={props.editFilePath}
+                      resolvedTheme={editorResolvedTheme}
+                      onClose={props.onCloseEdit}
+                    />
+                  </div>
+                ) : props.centerMode === "diffEdit" && props.editFilePath !== null ? (
+                  <div className="flex min-h-0 min-w-0 flex-1">
+                    <WorkspaceFileDiffEditorPane
+                      workspaceRoot={props.workspaceRoot}
+                      filePath={props.editFilePath}
+                      basePath={props.editDiffBasePath ?? null}
+                      baseRev={props.editDiffBaseRev ?? { rev: "HEAD" }}
+                      resolvedTheme={editorResolvedTheme}
+                      onClose={props.onCloseEdit}
+                    />
+                  </div>
+                ) : props.centerMode === "file" ? (
+                  <div className="flex min-h-0 min-w-0 flex-1">
+                    <WorkspaceFilePreview
+                      workspaceRoot={props.workspaceRoot}
+                      filePath={props.selectedFilePath}
+                      markdownPreviewEnabled={markdownPreviewModes.get(markdownPreviewKey) ?? true}
+                      onMarkdownPreviewChange={handleMarkdownPreviewChange}
+                      onReferenceInChat={props.onReferenceInChat}
+                      onAskWhyInChat={props.onAskWhyInChat}
+                      onCommentInChat={props.onCommentInChat}
+                      onEditFile={props.onEditFile}
+                    />
+                  </div>
+                ) : null}
+              </>
+            )}
           </main>
           <div
             role="separator"

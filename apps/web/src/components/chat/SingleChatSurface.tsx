@@ -43,6 +43,7 @@ import { editorCenterModeFamily, type EditorCenterMode } from "../../lib/editorC
 import { gitBranchesQueryOptions } from "../../lib/gitReactQuery";
 import { canComposerHandlePanelWidth } from "../../lib/panelResize";
 import { projectListDirectoriesQueryOptions } from "../../lib/projectReactQuery";
+import { studioThreadOutputsQueryOptions } from "../../lib/serverReactQuery";
 import { serverConfigQueryOptions } from "../../lib/serverReactQuery";
 import { useSidechatShortcut } from "./useSidechatShortcut";
 import { waitForSidechatCreator } from "../../lib/sidechatCreatorRegistry";
@@ -299,6 +300,12 @@ export function SingleChatSurface(props: {
   const [editorDiffFilesLoading, setEditorDiffFilesLoading] = useState(false);
   const [editorDiffOptionsControl, setEditorDiffOptionsControl] = useState<ReactNode | null>(null);
   const [editorDiffVisibleFilePath, setEditorDiffVisibleFilePath] = useState<string | null>(null);
+  // Backs the Studio surface's artifact column. The server attributes outputs to this
+  // thread from checkpoints and file-change activity, so it only resolves for the
+  // group/studio project kinds it currently gates on (apps/server/src/wsRpc.ts:1810).
+  const editorStudioOutputs = useQuery(
+    studioThreadOutputsQueryOptions({ threadId: props.threadId }),
+  );
   const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
   const [searchPaletteMode, setSearchPaletteMode] = useState<WorkspaceSearchPaletteMode>("files");
   const floatingBrowserRequested = useFloatingBrowserRequestStore(
@@ -1087,6 +1094,8 @@ export function SingleChatSurface(props: {
               onAskWhyInChat={handleAskWhyInChat}
               onCommentInChat={handleCommentInChat}
               onSelectProject={handleSelectEditorProject}
+              studioOutputs={editorStudioOutputs.data?.entries}
+              studioOutputsLoading={editorStudioOutputs.isPending}
               leaveGuardRef={editorLeaveGuardRef}
               diffPanel={
                 <LazyDiffPanel

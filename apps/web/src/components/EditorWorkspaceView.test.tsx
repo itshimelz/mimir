@@ -1,5 +1,6 @@
 // FILE: EditorWorkspaceView.test.tsx
-// Purpose: Guards the editor-style shell layout around file/diff sidebars.
+// Purpose: Guards the editor-style shell layout around file/diff sidebars, and pins the
+//          Study/Studio surface split on the server-rendered default.
 // Layer: Component rendering tests
 // Depends on: EditorWorkspaceView and React server rendering.
 
@@ -48,6 +49,46 @@ vi.mock("~/hooks/useDesktopTopBarGutter", () => ({
   useDesktopTopBarTrafficLightGutterClassName: () => "traffic-light-gutter",
   useDesktopTopBarWindowControlsGutterClassName: () => "windows-caption-gutter",
 }));
+
+describe("EditorWorkspaceView surfaces", () => {
+  // This suite renders on the server (`renderToStaticMarkup`), where there is no
+  // `window`. The surface is read from `localStorage` behind a `typeof window` guard
+  // that falls back to Study, so these cases pin the SSR default and prove the two
+  // surfaces cannot bleed into each other. The Studio surface, its persistence, and its
+  // artifact preview are covered in browser mode by `EditorWorkspaceView.browser.tsx`.
+  const ARTIFACT = {
+    name: "2026-06-09_cell_division_lesson.md",
+    relativePath: "Outbox/Content/2026-06-09_cell_division_lesson.md",
+    fullPath: "/Users/tester/project/Outbox/Content/2026-06-09_cell_division_lesson.md",
+    modifiedAt: "2026-06-09T10:00:00.000Z",
+  };
+
+  function renderView(extra: Partial<ComponentProps<typeof EditorWorkspaceView>> = {}) {
+    return renderToStaticMarkup(
+      <SidebarProvider>
+        <EditorWorkspaceView {...makeEditorBaseProps()} {...extra} />
+      </SidebarProvider>,
+    );
+  }
+
+  it("offers both surfaces and renders Study by default", () => {
+    const markup = renderView();
+    expect(markup).toContain('aria-label="Surface"');
+    expect(markup).toContain("Study");
+    expect(markup).toContain("Studio");
+    // Study owns the course file tree and its activity bar.
+    expect(markup).toContain('aria-label="Editor activity bar"');
+    expect(markup).not.toContain('data-testid="studio-artifacts-sidebar"');
+  });
+
+  it("does not render Studio content in the default surface", () => {
+    // Artifacts passed in must stay invisible while Study is active, so the two
+    // surfaces cannot bleed into each other.
+    const markup = renderView({ studioOutputs: [ARTIFACT] });
+    expect(markup).not.toContain('data-testid="studio-artifacts-sidebar"');
+    expect(markup).not.toContain("Outbox/Content");
+  });
+});
 
 describe("EditorWorkspaceView", () => {
   it("shows skeleton rows instead of the empty message while the diff loads", () => {

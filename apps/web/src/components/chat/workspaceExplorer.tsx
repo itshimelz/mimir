@@ -68,7 +68,7 @@ const EMPTY_WORKSPACE_SEARCH_FILE_MATCHES: ReadonlyArray<ProjectEntry> = [];
 // Default sidebar shell: a full-height column in the editor's wide row layout
 // that collapses to a stacked block on narrow viewports. Surfaces with a fixed
 // horizontal layout (e.g. the right dock) override this via `containerClassName`.
-const EXPLORER_SIDEBAR_CONTAINER_CLASS =
+export const EXPLORER_SIDEBAR_CONTAINER_CLASS =
   "flex min-h-[11rem] w-full shrink-0 flex-col border-b border-border/65 app-content-surface lg:h-full lg:w-56 lg:border-b-0 lg:border-r";
 
 // Marks the drag payload so the chat composer can accept it as a reference.

@@ -1,3 +1,8 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
+import * as NodeServices from "@effect/platform-node/NodeServices";
 import { Effect, FileSystem, Layer, Path } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -7,6 +12,7 @@ import {
   diffStudioWorkspaceScans,
   listStudioThreadOutputs,
   MAX_SCAN_ENTRIES,
+  MAX_SCAN_FILES,
   MAX_THREAD_OUTPUT_FILES,
   scanStudioWorkspaceFiles,
   STAT_CONCURRENCY,
@@ -200,6 +206,30 @@ function fakeFileInfo(type: "Directory" | "File"): FileSystem.File.Info {
 }
 
 describe("scanStudioWorkspaceFiles", () => {
+  it("still reaches Outbox when the rest of the workspace is enormous", async () => {
+    // The walk is breadth-first, so before the frontier was seeded with Outbox a single flat
+    // directory of course files exhausted the file cap before the walk ever reached the
+    // artifacts. A course folder with a few thousand files is not unusual, and the result was
+    // a permanently empty Studio with no error anywhere.
+    const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), "synara-studio-scan-"));
+    try {
+      await mkdir(path.join(workspaceRoot, "slides"), { recursive: true });
+      for (let index = 0; index < MAX_SCAN_FILES + 500; index += 1) {
+        await writeFile(path.join(workspaceRoot, "slides", `slide-${index}.md`), "x");
+      }
+      await mkdir(path.join(workspaceRoot, "Outbox", "Lessons"), { recursive: true });
+      await writeFile(path.join(workspaceRoot, "Outbox", "Lessons", "cell-division.md"), "# x");
+
+      const result = await Effect.runPromise(
+        scanStudioWorkspaceFiles({ workspaceRoot }).pipe(Effect.provide(NodeServices.layer)),
+      );
+
+      expect([...result.keys()]).toContain("Outbox/Lessons/cell-division.md");
+    } finally {
+      await rm(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
   it("walks a Git-rooted course folder and reports only authored files", async () => {
     // The scan now runs over repositories. This asserts the whole shape in one place: the
     // lesson is seen, and the repository's own machinery is not.

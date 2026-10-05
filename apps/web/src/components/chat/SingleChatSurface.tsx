@@ -301,8 +301,9 @@ export function SingleChatSurface(props: {
   const [editorDiffOptionsControl, setEditorDiffOptionsControl] = useState<ReactNode | null>(null);
   const [editorDiffVisibleFilePath, setEditorDiffVisibleFilePath] = useState<string | null>(null);
   // Backs the Studio surface's artifact column. The server attributes outputs to this
-  // thread from checkpoints and file-change activity, so it only resolves for the
-  // group/studio project kinds it currently gates on (apps/server/src/wsRpc.ts:1810).
+  // thread from checkpoints, file-change activity, and its per-turn scan, for any project
+  // kind that participates in Studio output (see `participatesInStudioOutputs`) — which
+  // includes ordinary course folders, not just the legacy group/studio containers.
   const editorStudioOutputs = useQuery(
     studioThreadOutputsQueryOptions({ threadId: props.threadId }),
   );

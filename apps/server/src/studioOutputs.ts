@@ -44,13 +44,22 @@ export const MAX_THREAD_OUTPUT_FILES = 500;
 // hundreds of file descriptors at once.
 export const STAT_CONCURRENCY = 16;
 
-// Bounds for the per-turn workspace scan: the Studio root is a content folder, not a
-// codebase, so realistic trees stay far below these limits. They only guard pathological
-// content (an agent cloning a repository into the root).
+// Bounds for the per-turn workspace scan. They guard pathological trees (an agent cloning a
+// repository into the root) and, since phase 1.2, cap a legitimately large course repository.
+// The file cap is the one that binds first on a real course folder: a single flat directory of
+// slides or scripts reaches it before the walk reaches anything deeper, which is why the
+// Outbox subtree is seeded into the frontier below rather than left to traversal order.
 export const MAX_SCAN_DEPTH = 8;
 export const MAX_SCAN_FILES = 4_000;
 export const MAX_SCAN_ENTRIES = 20_000;
 const SCAN_STAT_BATCH_SIZE = STAT_CONCURRENCY * 4;
+
+/**
+ * The `Outbox/` subtree, seeded into the scan frontier. Not an exclusion: it is the one
+ * place a produced artifact is expected to land, so it is scanned first regardless of the
+ * surrounding tree's size.
+ */
+const OUTBOX_TOP_LEVEL_SEGMENTS = ["Outbox"] as const;
 
 interface CheckpointFileLike {
   readonly path: string;
@@ -216,6 +225,13 @@ export const scanStudioWorkspaceFiles = Effect.fnUntraced(function* (input: {
   const files = new Map<string, StudioWorkspaceFileStat>();
   const pendingDirectories: Array<{ readonly segments: readonly string[] }> = [{ segments: [] }];
   let scannedEntryCount = 0;
+  // Directories are visited breadth-first and each one contributes its whole listing before
+  // the next. A single flat directory holding thousands of files therefore exhausted
+  // MAX_SCAN_FILES before the walk ever reached `Outbox/`, and a course folder is not an
+  // unusual place for that. Seeding the frontier with the managed Outbox subtree means the
+  // categories the student actually sees are always covered, whatever the rest of the
+  // workspace looks like.
+  pendingDirectories.push({ segments: [...OUTBOX_TOP_LEVEL_SEGMENTS] });
 
   while (
     pendingDirectories.length > 0 &&

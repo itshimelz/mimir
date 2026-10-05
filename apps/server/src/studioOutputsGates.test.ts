@@ -59,6 +59,19 @@ describe("Studio output gates", () => {
     expect(source).toContain("prepareStudioWorkspaceRoot(config.studioWorkspaceRoot)");
   });
 
+  it("routes generated-image materialization through the shared gate too", () => {
+    // A third independent condition lived here. Left on the narrower container check, a
+    // course folder would have had lessons attributed to it while a diagram the agent
+    // generated stayed in the provider's home directory and never reached Studio.
+    const source = readServerSource("./orchestration/Layers/ProviderRuntimeIngestion.ts");
+    expect(source, "generated-image materialization bypasses the shared gate").toContain(
+      "participatesInStudioOutputs(project.kind)",
+    );
+    expect(source, "still gates on the container rule directly").not.toContain(
+      "isGroupContainerKind",
+    );
+  });
+
   it("excludes the generated directories a repository accumulates", () => {
     const source = readServerSource("./studioOutputs.ts");
     for (const directory of ["dist", "build", "target", "out", "coverage", "venv", "__pycache__"]) {

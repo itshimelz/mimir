@@ -37,7 +37,7 @@ import {
 } from "effect";
 import * as Semaphore from "effect/Semaphore";
 import { makeDrainableWorker, startDrainableWorkerProducers } from "@synara/shared/DrainableWorker";
-import { isGroupContainerKind } from "@synara/shared/projectContainers";
+import { participatesInStudioOutputs } from "@synara/shared/studioOutputs";
 import { providerSupportsNativeTurnSteering } from "@synara/shared/providerMetadata";
 import { isProviderKind } from "@synara/shared/providerInstances";
 import {
@@ -1816,7 +1816,11 @@ const make = Effect.gen(function* () {
   }) =>
     Effect.gen(function* () {
       const project = yield* getProjectShell(input.thread);
-      if (!project || !isGroupContainerKind(project.kind)) {
+      // Shares the Studio gate so this cannot disagree with capture or listing. Left on the
+      // narrower container check it would have been a third independent condition: a course
+      // folder would have had lessons attributed to it, but a diagram the agent generated
+      // would have stayed in the provider's home directory and never reached Studio at all.
+      if (!project || !participatesInStudioOutputs(project.kind)) {
         return null;
       }
       const workspaceRoot = resolveThreadWorkspaceCwd({

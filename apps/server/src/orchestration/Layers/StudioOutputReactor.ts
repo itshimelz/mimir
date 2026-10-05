@@ -30,7 +30,6 @@ import { makeDrainableWorker, startDrainableWorkerProducers } from "@synara/shar
 import { participatesInStudioOutputs } from "@synara/shared/studioOutputs";
 
 import { resolveThreadWorkspaceCwd } from "../../checkpointing/Utils.ts";
-import { isGitRepository } from "../../git/isRepo.ts";
 import {
   scanStudioWorkspaceFiles,
   studioOutputsCapturedActivityPayload,
@@ -86,9 +85,16 @@ const make = Effect.gen(function* () {
 
   // Resolves the Studio workspace root to scan for a thread, or null when this
   // reactor should stay out of the way: projects that do not take part in Studio
-  // attribution, unresolvable cwds, and Git roots (checkpoint capture already
-  // attributes those precisely). Shares the gate with the listing RPC so the two
-  // cannot disagree — see `participatesInStudioOutputs`.
+  // attribution, and unresolvable cwds. Shares the gate with the listing RPC so the
+  // two cannot disagree — see `participatesInStudioOutputs`.
+  //
+  // Git roots are included on purpose. This reactor exists to catch files written by
+  // shell subprocesses (scripts, converters, downloads) that no file-change tool
+  // activity reports; checkpoints only see committed work, so they miss exactly the
+  // untracked lesson file an agent just wrote. The walk is safe on a repository because
+  // `.git` and other dot-directories are skipped as hidden entries, and generated
+  // directories (`dist`, `build`, `target`, `venv`, `__pycache__`) are excluded by name.
+  //
   // Shell reads keep this cheap: it runs on every turn boundary of every thread.
   const resolveStudioScanRoot = Effect.fnUntraced(function* (threadId: ThreadId) {
     const threadOption = yield* projectionSnapshotQuery
@@ -106,7 +112,7 @@ const make = Effect.gen(function* () {
       return null;
     }
     const cwd = resolveThreadWorkspaceCwd({ thread, projects: [project] });
-    if (!cwd || isGitRepository(cwd)) {
+    if (!cwd) {
       return null;
     }
     return cwd;

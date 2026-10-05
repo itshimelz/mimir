@@ -37,11 +37,25 @@ describe("Studio output gates", () => {
     }
   });
 
-  it("keeps the capture gate's Git-root exclusion separate from the kind gate", () => {
-    // The reactor skips Git roots because checkpoints already attribute those precisely.
-    // Lifting that is phase 1.2 of the course/space plan and needs its own review, so it is
-    // asserted to still be present rather than silently removed.
+  it("scans Git roots too, so an untracked lesson file is captured", () => {
+    // The reactor exists for files shell subprocesses write, which no file-change tool
+    // activity reports and which checkpoints only see once committed. Skipping Git roots
+    // therefore left every course folder capturing nothing. The tree walk is safe there
+    // because dot-directories (`.git`, `.venv`) are skipped as hidden entries and
+    // generated directories are excluded by name; asserted below.
     const source = readServerSource("./orchestration/Layers/StudioOutputReactor.ts");
-    expect(source).toContain("isGitRepository(cwd)");
+    expect(source, "capture still skips Git roots").not.toContain("isGitRepository");
+  });
+
+  it("excludes the generated directories a repository accumulates", () => {
+    const source = readServerSource("./studioOutputs.ts");
+    for (const directory of ["dist", "build", "target", "out", "coverage", "venv", "__pycache__"]) {
+      expect(source, `${directory} is not excluded from the scan`).toContain(`"${directory}"`);
+    }
+  });
+
+  it("still skips dot-directories, which is what keeps the Git walk safe", () => {
+    const source = readServerSource("./studioOutputs.ts");
+    expect(source).toContain('!segment.startsWith(".")');
   });
 });

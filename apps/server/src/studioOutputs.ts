@@ -17,8 +17,22 @@ const EXCLUDED_TOP_LEVEL_DIRECTORY_NAMES = new Set(["tmp", "logs", "inbox", "con
 // infrastructure even when the self-healing scaffold creates them mid-turn.
 const EXCLUDED_ROOT_FILE_NAMES = new Set(["agents.md", "claude.md"]);
 
-// Never treated as outputs (or descended into) at any depth.
-const EXCLUDED_NESTED_DIRECTORY_NAMES = new Set(["node_modules"]);
+// Never treated as outputs (or descended into) at any depth. `node_modules` predates
+// this; the rest are build and environment output that a course folder (typically a Git
+// repository) accumulates. They are regenerated rather than authored, so attributing them
+// to a turn would fill Studio with compiled bundles and bytecode instead of the lesson
+// the student asked for. Hidden directories are already dropped by `isSafeVisibleSegments`
+// (`.git`, `.venv`, `.next`, `.cache`), so only the non-hidden ones are listed here.
+const EXCLUDED_NESTED_DIRECTORY_NAMES = new Set([
+  "node_modules",
+  "dist",
+  "build",
+  "target",
+  "out",
+  "coverage",
+  "venv",
+  "__pycache__",
+]);
 
 // Upper bound on how many distinct files a single request will stat. Checkpoint file
 // lists are deduplicated, so a realistic chat stays far below this; the cap only guards
@@ -62,8 +76,8 @@ function isExcludedRootFileName(fileName: string): boolean {
 }
 
 // Rejects empty/dot segments so a crafted or malformed path can never escape the
-// workspace root, and skips hidden files (e.g. .DS_Store, .git) plus nested
-// infrastructure folders like node_modules.
+// workspace root, and skips hidden entries (`.git`, `.venv`, `.DS_Store`) plus the
+// build/infrastructure directories in `EXCLUDED_NESTED_DIRECTORY_NAMES`.
 function isSafeVisibleSegments(segments: readonly string[]): boolean {
   return segments.every(
     (segment) =>

@@ -80,6 +80,29 @@ describe("collectThreadOutputRelativePaths", () => {
     expect(relativePaths).toEqual(["Outbox/Content/kept.md"]);
   });
 
+  it("skips generated and environment directories a course folder accumulates", () => {
+    // A course folder is usually a repository, so the scan now runs over one. Build output
+    // is regenerated rather than authored, and attributing it would fill Studio with
+    // bundles instead of the lesson the student asked for. Dot-directories (.git, .venv)
+    // are already covered by the hidden-segment rule above.
+    const relativePaths = collectThreadOutputRelativePaths([
+      checkpoint([
+        "dist/bundle.js",
+        "build/app.js",
+        "target/debug/app",
+        "out/cli.js",
+        "coverage/lcov.info",
+        "venv/lib/site.py",
+        "__pycache__/module.pyc",
+        "src/__pycache__/module.pyc",
+        "site/.venv/lib/site.py",
+        "Outbox/Lessons/cell-division.md",
+      ]),
+    ]);
+
+    expect(relativePaths).toEqual(["Outbox/Lessons/cell-division.md"]);
+  });
+
   it("caps the collected paths, dropping the oldest turns' files first", () => {
     const oldest = checkpoint(
       Array.from({ length: 5 }, (_unused, index) => `Outbox/Content/old-${index}.md`),
@@ -177,6 +200,65 @@ function fakeFileInfo(type: "Directory" | "File"): FileSystem.File.Info {
 }
 
 describe("scanStudioWorkspaceFiles", () => {
+  it("walks a Git-rooted course folder and reports only authored files", async () => {
+    // The scan now runs over repositories. This asserts the whole shape in one place: the
+    // lesson is seen, and the repository's own machinery is not.
+    const workspaceRoot = "/course";
+    const layout: Record<
+      string,
+      ReadonlyArray<{ readonly name: string; readonly type: "File" | "Directory" }>
+    > = {
+      [workspaceRoot]: [
+        { name: ".git", type: "Directory" },
+        { name: ".venv", type: "Directory" },
+        { name: "node_modules", type: "Directory" },
+        { name: "dist", type: "Directory" },
+        { name: "__pycache__", type: "Directory" },
+        { name: "README.md", type: "File" },
+        { name: "Outbox", type: "Directory" },
+      ],
+      [`${workspaceRoot}/.git`]: [{ name: "objects", type: "Directory" }],
+      [`${workspaceRoot}/.git/objects`]: [{ name: "ab12", type: "File" }],
+      [`${workspaceRoot}/.venv`]: [{ name: "lib", type: "Directory" }],
+      [`${workspaceRoot}/.venv/lib`]: [{ name: "site.py", type: "File" }],
+      [`${workspaceRoot}/node_modules`]: [{ name: "pkg", type: "Directory" }],
+      [`${workspaceRoot}/node_modules/pkg`]: [{ name: "index.js", type: "File" }],
+      [`${workspaceRoot}/dist`]: [{ name: "bundle.js", type: "File" }],
+      [`${workspaceRoot}/__pycache__`]: [{ name: "module.pyc", type: "File" }],
+      [`${workspaceRoot}/Outbox`]: [{ name: "Lessons", type: "Directory" }],
+      [`${workspaceRoot}/Outbox/Lessons`]: [{ name: "cell-division.md", type: "File" }],
+    };
+    const fileSystemLayer = FileSystem.layerNoop({
+      readDirectory: (directoryPath: string) =>
+        Effect.succeed(
+          (layout[directoryPath] ?? []).map((entry) =>
+            entry.type === "Directory" ? entry.name : entry.name,
+          ),
+        ),
+      readLink: () => Effect.fail(new Error("EINVAL") as never),
+      stat: (entryPath: string) =>
+        Effect.succeed(
+          fakeFileInfo(
+            Object.values(layout).some((entries) =>
+              entries.some(
+                (entry) => entryPath.endsWith(`/${entry.name}`) && entry.type === "Directory",
+              ),
+            ) && !entryPath.includes(".")
+              ? "Directory"
+              : "File",
+          ),
+        ),
+    });
+
+    const result = await Effect.runPromise(
+      scanStudioWorkspaceFiles({ workspaceRoot }).pipe(
+        Effect.provide(Layer.merge(fileSystemLayer, Path.layer)),
+      ),
+    );
+
+    expect([...result.keys()].toSorted()).toEqual(["Outbox/Lessons/cell-division.md", "README.md"]);
+  });
+
   it("bounds traversal by total directory entries, not only discovered files", async () => {
     const workspaceRoot = "/studio";
     const rootEntries = Array.from(

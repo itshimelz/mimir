@@ -15,9 +15,10 @@ import { isSupportedLocalImagePath } from "@synara/shared/localPreviewFiles";
 import { formatRelativeTime } from "~/lib/relativeTime";
 import { groupStudioOutputsByCategory, studioOutputCategory } from "~/lib/studioOutputCategory";
 import { humanizeStudioOutputName } from "~/lib/studioOutputDisplay";
-import { cn } from "~/lib/utils";
 import { useWorkspaceFileOpener } from "~/lib/workspaceFileOpener";
+import { cn } from "~/lib/utils";
 import { readNativeApi } from "~/nativeApi";
+import { SIDEBAR_SECTION_LABEL_CLASS_NAME } from "~/sidebarRowStyles";
 
 import { EXPLORER_ROW_PROPS, useExplorerListNavigation } from "./explorerListNavigation";
 import { FileEntryIcon } from "./FileEntryIcon";
@@ -104,10 +105,21 @@ export function StudioArtifactsSidebar(props: {
       data-testid="studio-artifacts-sidebar"
       onKeyDown={handleListKeyDown}
     >
-      <div className="min-h-0 flex-1 overflow-y-auto py-1.5">
+      {/* `px-1` matches the explorer's list gutter so switching surfaces does not shift
+          rows sideways under the pointer. */}
+      <div className="min-h-0 flex-1 overflow-y-auto px-1 py-1.5">
         {groups.map((group) => (
           <section key={group.category}>
-            <h3 className="px-3 pb-1 pt-2 text-ui-xs font-medium text-muted-foreground/70">
+            {/* Uses the shared section-label token rather than an ad-hoc muted/70, so the
+                category headings read at the same weight as the sidebar's own section
+                labels instead of a shade fainter. */}
+            <h3
+              className={cn(
+                "px-2 pb-1 pt-2.5",
+                SIDEBAR_SECTION_LABEL_CLASS_NAME,
+                "font-medium tracking-[0.02em] uppercase",
+              )}
+            >
               {group.category}
             </h3>
             {group.entries.map((entry) => {
@@ -117,17 +129,23 @@ export function StudioArtifactsSidebar(props: {
                   key={entry.fullPath}
                   type="button"
                   {...EXPLORER_ROW_PROPS}
-                  className={fileRowClassName(selected, "h-7 pr-2")}
+                  // `h-8 px-2` is the explorer file row's own metrics. Studio replaces the
+                  // explorer in this column, so matching them keeps the row height and
+                  // text baseline identical across the two surfaces.
+                  className={fileRowClassName(selected, "h-8 px-2")}
                   title={entry.relativePath}
                   aria-pressed={selected}
                   onClick={(event) => openEntry(entry, event.metaKey || event.ctrlKey)}
                   onMouseEnter={() => fileOpener?.prefetchFile?.(entry.fullPath)}
                 >
                   <StudioArtifactIcon entry={entry} />
-                  <span className={cn("min-w-0 flex-1 truncate", selected && "text-foreground")}>
+                  <span className="min-w-0 flex-1 truncate">
                     {humanizeStudioOutputName(entry.name)}
                   </span>
-                  <span className="shrink-0 text-ui-xs tabular-nums text-muted-foreground/50">
+                  {/* `text-ui-xs` rather than `text-ui-sm`: a timestamp must not compete with
+                      the artifact name for the row's width. Tone lifted off `/50`, which was
+                      too faint to read against the sidebar surface. */}
+                  <span className="shrink-0 text-ui-xs tabular-nums text-muted-foreground/70">
                     {formatRelativeTime(entry.modifiedAt)}
                   </span>
                 </button>

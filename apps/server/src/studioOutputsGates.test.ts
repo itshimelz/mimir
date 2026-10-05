@@ -47,16 +47,47 @@ describe("Studio output gates", () => {
     expect(source, "capture still skips Git roots").not.toContain("isGitRepository");
   });
 
-  it("scaffolds the course layout into the thread's own workspace, not the shared root", () => {
-    // The listing handler used to prepare `config.studioWorkspaceRoot` unconditionally.
-    // Once ordinary projects list through it, that would write a course layout into the
-    // shared legacy container rather than the folder the student actually works in.
+  it("keeps the artifact listings read-only, so opening a chat never scaffolds a folder", () => {
+    // Regression: the listings used to self-heal the workspace, so merely opening a thread
+    // created eleven directories and two instruction files in a folder the user had only
+    // pointed Mimir at — visible immediately in the Study file tree. A read endpoint must not
+    // write to the user's disk, in either surface, for either listing.
     const source = readServerSource("./wsRpc.ts");
-    expect(source).toContain("studioWorkspaceLayoutFor(context.value.projectKind)");
-    expect(source).toContain("prepareCourseWorkspaceRoot(workspaceCwd");
-    // The container root is still prepared, but only for a kind that has no thread of its
-    // own to resolve.
-    expect(source).toContain("prepareStudioWorkspaceRoot(config.studioWorkspaceRoot)");
+    const listingBodies = source.slice(
+      source.indexOf("[WS_METHODS.studioListThreadOutputs]"),
+      source.indexOf("[WS_METHODS.shellOpenInEditor]"),
+    );
+    for (const write of [
+      "prepareCourseWorkspaceRoot(",
+      "courseWorkspaceSubdirectories(",
+      "courseWorkspaceInstructionText(",
+    ]) {
+      expect(listingBodies, `the listings still write via ${write}`).not.toContain(write);
+    }
+    // The legacy container root is still prepared: that path is Mimir's own directory,
+    // created and owned by it, not a folder the user brought.
+    expect(listingBodies).toContain("prepareStudioWorkspaceRoot(config.studioWorkspaceRoot)");
+  });
+
+  it("scaffolds the course layout from the reactor, on a turn, not from a read", () => {
+    const reactor = readServerSource("./orchestration/Layers/StudioOutputReactor.ts");
+    expect(reactor).toContain("ensureCourseWorkspaceLayout");
+    // Gated on the layout rule, so only a course folder is scaffolded and the legacy
+    // containers keep their own create-time layout.
+    expect(reactor).toContain('studioWorkspaceLayoutFor(input.projectKind) === "course"');
+    // After the diff is computed, so the layout is never attributed to the agent.
+    const diffAt = reactor.indexOf("diffStudioWorkspaceScans(input.baseline.files, after)");
+    const scaffoldAt = reactor.indexOf("ensureCourseWorkspaceLayout(input.baseline.workspaceRoot");
+    expect(diffAt).toBeGreaterThan(-1);
+    expect(scaffoldAt).toBeGreaterThan(diffAt);
+  });
+
+  it("hides agent-managed directories from the Study file tree", () => {
+    const explorer = readServerSource("../../web/src/components/chat/workspaceExplorer.tsx");
+    for (const directory of ["context", "inbox", "logs", "outbox", "skills", "tmp"]) {
+      expect(explorer, `${directory} is not hidden from Study`).toContain(`"${directory}"`);
+    }
+    expect(explorer).toContain("AGENT_MANAGED_DIRECTORY_NAMES.has(entry.name.toLowerCase())");
   });
 
   it("routes generated-image materialization through the shared gate too", () => {

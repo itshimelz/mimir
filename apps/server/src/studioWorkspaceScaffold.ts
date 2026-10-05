@@ -94,6 +94,15 @@ const COURSE_ROLE_PURPOSE: Readonly<Record<LearnerRole, string>> = {
   researcher: "working on a research topic",
 };
 
+/**
+ * The course instruction text. Exported so the per-turn reactor can write the same layout the
+ * scaffold module defines — the agent must be taught the categories the sidebar groups by, and
+ * two copies of that text would drift.
+ */
+export function courseWorkspaceInstructionText(role: LearnerRole): string {
+  return courseWorkspaceInstructions(role);
+}
+
 function courseWorkspaceInstructions(role: LearnerRole): string {
   const categories = [...COURSE_OUTBOX_CATEGORIES[role], "Images"].join(", ");
   return `# Course Workspace

@@ -1860,17 +1860,14 @@ const makeWsRpcHandlersLayer = () =>
               if (!workspaceCwd) {
                 return { entries: [] };
               }
-              // Self-heal THIS thread's own workspace. Previously the listing prepared
-              // `config.studioWorkspaceRoot` unconditionally, which for an ordinary project
-              // would have scaffolded a course layout into the shared legacy container instead
-              // of the folder the student works in.
-              // Derived from the shared gate, so the layout can never disagree with the
-              // attribution decision above.
-              yield* (
-                studioWorkspaceLayoutFor(context.value.projectKind) === "studio"
-                  ? prepareStudioWorkspaceRoot(workspaceCwd)
-                  : prepareCourseWorkspaceRoot(workspaceCwd, DEFAULT_LEARNER_ROLE)
-              ).pipe(Effect.catch(() => Effect.void));
+              // No write here. Listing artifacts is a read: it runs on prefetch, on every
+              // thread the surface touches, and in Study as well as Studio. It used to
+              // scaffold this workspace, which meant merely opening a chat created eleven
+              // directories and two instruction files in a folder the student had only
+              // pointed Mimir at. A course layout is now written by the reactor on the
+              // thread's first real turn (see `StudioOutputReactor`), so an untouched
+              // folder stays untouched. The legacy container's own root is still prepared
+              // above, because that path is Mimir's directory and not the user's.
               return yield* listStudioThreadOutputs({
                 workspaceRoot: workspaceCwd,
                 checkpoints: context.value.checkpoints,
@@ -1932,14 +1929,9 @@ const makeWsRpcHandlersLayer = () =>
                     if (!workspaceCwd) {
                       return null;
                     }
-                    // Self-heal each project's own workspace, exactly as the per-thread
-                    // listing does, so an accepted create whose scaffold failed recovers.
-                    const project = projectById.get(context.value.projectId);
-                    yield* (
-                      project && studioWorkspaceLayoutFor(context.value.projectKind) === "studio"
-                        ? prepareStudioWorkspaceRoot(workspaceCwd)
-                        : prepareCourseWorkspaceRoot(workspaceCwd, DEFAULT_LEARNER_ROLE)
-                    ).pipe(Effect.catch(() => Effect.void));
+                    // Read-only, same as the per-thread listing: a space aggregates many
+                    // threads, so writing here would touch every folder in the space from a
+                    // single prefetch.
                     const { entries } = yield* listStudioThreadOutputs({
                       workspaceRoot: workspaceCwd,
                       checkpoints: context.value.checkpoints,
@@ -1950,7 +1942,9 @@ const makeWsRpcHandlersLayer = () =>
                     return {
                       threadId: thread.threadId,
                       projectId: context.value.projectId,
-                      projectName: project?.title ?? context.value.workspaceRoot,
+                      projectName:
+                        projectById.get(context.value.projectId)?.title ??
+                        context.value.workspaceRoot,
                       entries,
                     };
                   }),

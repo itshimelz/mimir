@@ -22,12 +22,16 @@ import {
   EventId,
   STUDIO_OUTPUTS_ACTIVITY_KIND,
   ThreadId,
+  type ProjectKind,
   type ProviderRuntimeEvent,
   type TurnId,
 } from "@synara/contracts";
 import { Cause, Effect, FileSystem, Layer, Option, Path, Stream } from "effect";
 import { makeDrainableWorker, startDrainableWorkerProducers } from "@synara/shared/DrainableWorker";
-import { participatesInStudioOutputs } from "@synara/shared/studioOutputs";
+import {
+  participatesInStudioOutputs,
+  studioWorkspaceLayoutFor,
+} from "@synara/shared/studioOutputs";
 
 import { resolveThreadWorkspaceCwd } from "../../checkpointing/Utils.ts";
 import {
@@ -35,6 +39,12 @@ import {
   studioOutputsCapturedActivityPayload,
   type StudioWorkspaceScan,
 } from "../../studioOutputs.ts";
+import {
+  courseWorkspaceInstructionText,
+  courseWorkspaceSubdirectories,
+  DEFAULT_LEARNER_ROLE,
+  type LearnerRole,
+} from "../../studioWorkspaceScaffold.ts";
 import { diffStudioWorkspaceScans } from "../../studioOutputs.ts";
 import { ProviderService } from "../../provider/Services/ProviderService.ts";
 import { OrchestrationEngineService } from "../Services/OrchestrationEngine.ts";
@@ -59,6 +69,8 @@ const baselineKey = (threadId: ThreadId, turnId: string) => `${threadId}\0${turn
 interface StudioTurnBaseline {
   readonly threadId: ThreadId;
   readonly workspaceRoot: string;
+  /** Chooses which scaffold the workspace gets, once, on the first real turn. */
+  readonly projectKind: ProjectKind;
   readonly files: StudioWorkspaceScan;
 }
 
@@ -77,6 +89,42 @@ const make = Effect.gen(function* () {
       Effect.provideService(FileSystem.FileSystem, fileSystem),
       Effect.provideService(Path.Path, path),
     );
+  const makeDirectory = (dirPath: string) =>
+    fileSystem.makeDirectory(dirPath, { recursive: true }).pipe(
+      Effect.asVoid,
+      Effect.catch(() => Effect.void),
+    );
+  const exists = (entryPath: string) =>
+    fileSystem.exists(entryPath).pipe(Effect.catch(() => Effect.succeed(false)));
+
+  /**
+   * Writes the course layout into a user's workspace, once, on the thread's first real turn.
+   *
+   * This used to happen in the listing RPC, which is wrong twice over: a read ran on every
+   * prefetch and in both surfaces, so simply opening a chat created eleven directories and two
+   * instruction files in a folder the user had only pointed Mimir at. An untouched folder now
+   * stays untouched, and the agent is still taught the layout before it can do useful work.
+   *
+   * Runs *after* the baseline scan on purpose: a file this writes is not something the agent
+   * produced, so it must not be attributed to the turn.
+   */
+  const ensureCourseWorkspaceLayout = Effect.fnUntraced(function* (
+    workspaceRoot: string,
+    role: LearnerRole,
+  ) {
+    for (const relative of courseWorkspaceSubdirectories(role)) {
+      yield* makeDirectory(path.join(workspaceRoot, ...relative.split("/")));
+    }
+    for (const fileName of ["AGENTS.md", "CLAUDE.md"]) {
+      const filePath = path.join(workspaceRoot, fileName);
+      if (yield* exists(filePath)) {
+        continue;
+      }
+      yield* fileSystem
+        .writeFileString(filePath, courseWorkspaceInstructionText(role))
+        .pipe(Effect.catch(() => Effect.void));
+    }
+  });
   // ProviderCommandReactor writes this map before invoking sendTurn/startReview.
   // The subsequent runtime turn.started event promotes the prepared entry into
   // baselineByTurn without rescanning after provider execution has begun.
@@ -96,7 +144,7 @@ const make = Effect.gen(function* () {
   // directories (`dist`, `build`, `target`, `venv`, `__pycache__`) are excluded by name.
   //
   // Shell reads keep this cheap: it runs on every turn boundary of every thread.
-  const resolveStudioScanRoot = Effect.fnUntraced(function* (threadId: ThreadId) {
+  const resolveStudioScanTarget = Effect.fnUntraced(function* (threadId: ThreadId) {
     const threadOption = yield* projectionSnapshotQuery
       .getThreadShellById(threadId)
       .pipe(Effect.catch(() => Effect.succeed(Option.none())));
@@ -115,7 +163,7 @@ const make = Effect.gen(function* () {
     if (!cwd) {
       return null;
     }
-    return cwd;
+    return { workspaceRoot: cwd, projectKind: project.kind ?? "project" };
   });
 
   const evictOldestBaseline = () => {
@@ -140,13 +188,18 @@ const make = Effect.gen(function* () {
     // A retry replaces an earlier preparation for this thread. Remove it before
     // scanning so a failed fresh capture cannot leave a stale baseline behind.
     pendingBaselineByThread.delete(threadId);
-    const workspaceRoot = yield* resolveStudioScanRoot(threadId);
-    if (!workspaceRoot) {
+    const target = yield* resolveStudioScanTarget(threadId);
+    if (!target) {
       return;
     }
-    const files = yield* scanWorkspaceFiles(workspaceRoot);
+    const files = yield* scanWorkspaceFiles(target.workspaceRoot);
     makeRoomForBaseline();
-    pendingBaselineByThread.set(threadId, { threadId, workspaceRoot, files });
+    pendingBaselineByThread.set(threadId, {
+      threadId,
+      workspaceRoot: target.workspaceRoot,
+      projectKind: target.projectKind,
+      files,
+    });
   });
 
   const captureBaselineBeforeTurn: StudioOutputReactorShape["captureBaselineBeforeTurn"] = (
@@ -188,16 +241,17 @@ const make = Effect.gen(function* () {
     // Provider-native/subagent turns can bypass ProviderCommandReactor. Preserve
     // best-effort capture for those paths, while ordinary user turns always use
     // the awaited pre-dispatch baseline above.
-    const workspaceRoot = yield* resolveStudioScanRoot(event.threadId);
-    if (!workspaceRoot) {
+    const target = yield* resolveStudioScanTarget(event.threadId);
+    if (!target) {
       return;
     }
-    const files = yield* scanWorkspaceFiles(workspaceRoot);
+    const files = yield* scanWorkspaceFiles(target.workspaceRoot);
     makeRoomForBaseline();
     baselineByTurn.set(key, {
       threadId: event.threadId,
       turnId: event.turnId,
-      workspaceRoot,
+      workspaceRoot: target.workspaceRoot,
+      projectKind: target.projectKind,
       files,
     });
   });
@@ -206,9 +260,16 @@ const make = Effect.gen(function* () {
     readonly baseline: StudioTurnBaseline;
     readonly turnId: TurnId | null;
     readonly createdAt: string;
+    readonly projectKind: ProjectKind;
   }) {
     const after = yield* scanWorkspaceFiles(input.baseline.workspaceRoot);
     const changedRelativePaths = diffStudioWorkspaceScans(input.baseline.files, after);
+    // Scaffold after the diff is computed, so the layout this writes is never reported as
+    // something the agent produced. Only a course folder is scaffolded here: the legacy
+    // Studio and Hub containers keep being prepared by their own create paths.
+    if (studioWorkspaceLayoutFor(input.projectKind) === "course") {
+      yield* ensureCourseWorkspaceLayout(input.baseline.workspaceRoot, DEFAULT_LEARNER_ROLE);
+    }
     if (changedRelativePaths.length === 0) {
       return;
     }
@@ -254,6 +315,7 @@ const make = Effect.gen(function* () {
       baseline,
       turnId: event.turnId ?? null,
       createdAt: event.createdAt,
+      projectKind: baseline.projectKind,
     });
   });
 
@@ -279,7 +341,12 @@ const make = Effect.gen(function* () {
     yield* Effect.forEach(
       baselines,
       ({ baseline, turnId }) =>
-        persistBaselineOutputs({ baseline, turnId, createdAt: event.createdAt }),
+        persistBaselineOutputs({
+          baseline,
+          turnId,
+          createdAt: event.createdAt,
+          projectKind: baseline.projectKind,
+        }),
       { concurrency: 1, discard: true },
     );
   });

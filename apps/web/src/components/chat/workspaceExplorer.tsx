@@ -59,6 +59,29 @@ const EXPLORER_HIDDEN_DIRECTORY_NAMES = new Set([
   "target",
 ]);
 
+/**
+ * Agent-managed directories, hidden from Study's file tree.
+ *
+ * These belong to Mimir and the agent, not to the student's material. They used to be visible
+ * the moment a course layout was scaffolded, so an empty folder would fill with eleven
+ * directories the student never asked for. They are hidden rather than removed because Studio
+ * is where their contents belong, and because `Outbox/` must stay reachable — the chat and the
+ * file reference flow resolve artifacts by path, and hiding a row must not make the file
+ * unreachable.
+ *
+ * `Outbox/` is included here deliberately: its artifacts are reviewed in Studio, grouped by
+ * category, and listing them again in the course file tree blurs the line between what the
+ * student brought and what the agent produced.
+ */
+const AGENT_MANAGED_DIRECTORY_NAMES = new Set([
+  "context",
+  "inbox",
+  "logs",
+  "outbox",
+  "skills",
+  "tmp",
+]);
+
 // Mirrors the composer mention search: debounce keystrokes so they don't fan
 // out into fuzzy-search RPCs, and cap results to keep the sidebar light.
 const EXPLORER_SEARCH_QUERY_DEBOUNCE_MS = 120;
@@ -83,6 +106,11 @@ function shouldShowExplorerEntry(entry: ProjectFileSystemEntry): boolean {
     return true;
   }
   if (entry.name.startsWith(".synara")) {
+    return false;
+  }
+  // Compared lower-cased so an agent-created "tmp" or "logs" variant is hidden too — the
+  // server-side output filter already matches that way.
+  if (AGENT_MANAGED_DIRECTORY_NAMES.has(entry.name.toLowerCase())) {
     return false;
   }
   return !EXPLORER_HIDDEN_DIRECTORY_NAMES.has(entry.name);

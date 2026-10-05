@@ -47,6 +47,18 @@ describe("Studio output gates", () => {
     expect(source, "capture still skips Git roots").not.toContain("isGitRepository");
   });
 
+  it("scaffolds the course layout into the thread's own workspace, not the shared root", () => {
+    // The listing handler used to prepare `config.studioWorkspaceRoot` unconditionally.
+    // Once ordinary projects list through it, that would write a course layout into the
+    // shared legacy container rather than the folder the student actually works in.
+    const source = readServerSource("./wsRpc.ts");
+    expect(source).toContain("studioWorkspaceLayoutFor(context.value.projectKind)");
+    expect(source).toContain("prepareCourseWorkspaceRoot(workspaceCwd");
+    // The container root is still prepared, but only for a kind that has no thread of its
+    // own to resolve.
+    expect(source).toContain("prepareStudioWorkspaceRoot(config.studioWorkspaceRoot)");
+  });
+
   it("excludes the generated directories a repository accumulates", () => {
     const source = readServerSource("./studioOutputs.ts");
     for (const directory of ["dist", "build", "target", "out", "coverage", "venv", "__pycache__"]) {

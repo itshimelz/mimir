@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { isGroupContainerKind } from "./projectContainers";
-import { participatesInStudioOutputs } from "./studioOutputs";
+import { participatesInStudioOutputs, studioWorkspaceLayoutFor } from "./studioOutputs";
 
 /**
  * The capture gate and the listing gate must agree for every kind. They used to each call
@@ -45,6 +45,28 @@ describe("participatesInStudioOutputs", () => {
   it("answers deterministically for every kind", () => {
     for (const kind of ["project", "chat", "studio", "group", undefined] as const) {
       expect(participatesInStudioOutputs(kind)).toBe(participatesInStudioOutputs(kind));
+    }
+  });
+});
+
+describe("studioWorkspaceLayoutFor", () => {
+  it("gives legacy containers the Studio layout and ordinary projects the course layout", () => {
+    expect(studioWorkspaceLayoutFor("studio")).toBe("studio");
+    expect(studioWorkspaceLayoutFor("group")).toBe("studio");
+    expect(studioWorkspaceLayoutFor("project")).toBe("course");
+    expect(studioWorkspaceLayoutFor(undefined)).toBe("course");
+  });
+
+  it("gives the Home chat container no layout at all", () => {
+    expect(studioWorkspaceLayoutFor("chat")).toBeNull();
+  });
+
+  it("never attributes a kind it has no layout for", () => {
+    // The listing handler scaffolds a layout and then lists. If these could disagree the
+    // user would see a folder scaffolded with instructions nothing ever lists from.
+    for (const kind of ["project", "chat", "studio", "group", undefined] as const) {
+      const layout = studioWorkspaceLayoutFor(kind);
+      expect(participatesInStudioOutputs(kind)).toBe(layout !== null);
     }
   });
 });

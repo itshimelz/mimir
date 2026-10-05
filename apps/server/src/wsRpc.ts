@@ -91,7 +91,10 @@ import { CheckpointDiffQuery } from "./checkpointing/Services/CheckpointDiffQuer
 import { resolveThreadWorkspaceCwd } from "./checkpointing/Utils";
 import { ServerConfig, type ServerConfigShape } from "./config";
 import { realpathNearestExisting } from "./realpathNearestExisting";
-import { participatesInStudioOutputs } from "@synara/shared/studioOutputs";
+import {
+  participatesInStudioOutputs,
+  studioWorkspaceLayoutFor,
+} from "@synara/shared/studioOutputs";
 import { workspaceRootsEqual } from "@synara/shared/threadWorkspace";
 import { WORKSPACE_FILE_WRITE_CONFLICT_CODE } from "@synara/shared/workspaceFileWrite";
 import {
@@ -106,7 +109,11 @@ import {
 } from "@synara/shared/threadDetailEvents";
 import { listStudioThreadOutputs } from "./studioOutputs";
 import {
+  courseWorkspaceSubdirectories,
+  DEFAULT_LEARNER_ROLE,
+  ensureCourseWorkspaceInstructionsFiles,
   ensureStudioWorkspaceInstructionsFiles,
+  type LearnerRole,
   STUDIO_WORKSPACE_SUBDIRECTORIES,
 } from "./studioWorkspaceScaffold";
 import { ensureGroupWorkspaceInstructionsFiles } from "./groupWorkspaceScaffold";
@@ -760,6 +767,25 @@ const makeWsRpcHandlersLayer = () =>
             ensureStudioWorkspaceInstructionsFiles(workspaceRoot).pipe(
               Effect.catch((cause) =>
                 Effect.logWarning("failed to write studio workspace instructions", {
+                  workspaceRoot,
+                  cause,
+                }),
+              ),
+              Effect.provideService(FileSystem.FileSystem, fileSystem),
+              Effect.provideService(Path.Path, path),
+            ),
+          ),
+        );
+      // Course/space layout for an ordinary project that belongs to a Space. This is the
+      // folder a student actually learns in, so it gets the role's Outbox categories rather
+      // than the legacy creator-economy set. mkdir -p and the write-if-missing instructions
+      // are both idempotent, so this also self-heals a workspace whose earlier attempt failed.
+      const prepareCourseWorkspaceRoot = (workspaceRoot: string, role: LearnerRole) =>
+        prepareWorkspaceSubdirectories(workspaceRoot, courseWorkspaceSubdirectories(role)).pipe(
+          Effect.andThen(
+            ensureCourseWorkspaceInstructionsFiles(workspaceRoot, role).pipe(
+              Effect.catch((cause) =>
+                Effect.logWarning("failed to write course workspace instructions", {
                   workspaceRoot,
                   cause,
                 }),
@@ -1792,17 +1818,8 @@ const makeWsRpcHandlersLayer = () =>
         [WS_METHODS.studioListThreadOutputs]: (input) =>
           rpcEffect(
             Effect.gen(function* () {
-              // Self-heal the container folder tree: an accepted create whose deferred scaffold
-              // failed (crash, transient FS error) must not leave the workspace without its Outbox
-              // forever. mkdir -p is idempotent and cheap, and this endpoint only fires while
-              // a group/studio chat's environment panel is actually open. Failures degrade to the
-              // empty-list behavior.
-              yield* prepareStudioWorkspaceRoot(config.studioWorkspaceRoot).pipe(
-                Effect.catch(() => Effect.void),
-              );
               // Checkpoints cover Git workspaces; file-change activities preserve the same
-              // attribution in the default non-Git container root. Unknown/non-container ids
-              // stay empty.
+              // attribution in the default non-Git container root. Unknown kinds stay empty.
               const context = yield* projectionReadModelQuery.getThreadCheckpointContext(
                 input.threadId,
                 { includeFileChangeActivityPayloads: true },
@@ -1811,6 +1828,11 @@ const makeWsRpcHandlersLayer = () =>
                 Option.isNone(context) ||
                 !participatesInStudioOutputs(context.value.projectKind)
               ) {
+                // Still self-heal the legacy container: an accepted create whose deferred
+                // scaffold failed must not leave the workspace without its Outbox forever.
+                yield* prepareStudioWorkspaceRoot(config.studioWorkspaceRoot).pipe(
+                  Effect.catch(() => Effect.void),
+                );
                 return { entries: [] };
               }
               const workspaceCwd = resolveThreadWorkspaceCwd({
@@ -1831,6 +1853,17 @@ const makeWsRpcHandlersLayer = () =>
               if (!workspaceCwd) {
                 return { entries: [] };
               }
+              // Self-heal THIS thread's own workspace. Previously the listing prepared
+              // `config.studioWorkspaceRoot` unconditionally, which for an ordinary project
+              // would have scaffolded a course layout into the shared legacy container instead
+              // of the folder the student works in.
+              // Derived from the shared gate, so the layout can never disagree with the
+              // attribution decision above.
+              yield* (
+                studioWorkspaceLayoutFor(context.value.projectKind) === "studio"
+                  ? prepareStudioWorkspaceRoot(workspaceCwd)
+                  : prepareCourseWorkspaceRoot(workspaceCwd, DEFAULT_LEARNER_ROLE)
+              ).pipe(Effect.catch(() => Effect.void));
               return yield* listStudioThreadOutputs({
                 workspaceRoot: workspaceCwd,
                 checkpoints: context.value.checkpoints,

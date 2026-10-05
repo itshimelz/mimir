@@ -33,11 +33,11 @@ export interface ChromeTheme {
    * The window-body plane behind the content surface — the chrome the rail and overlays sit
    * against. `null` keeps the historical derivation (a fixed mix of `surface` and `ink`).
    *
-   * Stored rather than only derived because a monochrome ladder cannot be reached through the
+   * Stored rather than only derived because a tonal ladder cannot be reached through the
    * mix: in light mode the derived mix clamps to zero at the default contrast, and in dark mode
-   * it only ever moves toward black, so a rail that sits *above* the surface is unreachable.
-   * Whirl (github.com/whirlchat/whirl, apps/v2/app/globals.css) needs exactly that, so the
-   * Mimir theme pins it. Absent on every other pack, which is what keeps them unchanged.
+   * it only ever moves toward black, so a plane that sits *above* the surface is unreachable.
+   * Mimir's Material 3 surface-container-low step needs exactly that, so the Mimir theme pins
+   * it. Absent on every other pack, which is what keeps them unchanged.
    */
   chromeSurface?: string | null;
   contrast: number;

@@ -29,11 +29,7 @@ import {
 } from "~/lib/icons";
 import { projectAppearanceKey, type ProjectAppearance } from "~/lib/projectAppearance";
 import { cn } from "~/lib/utils";
-import {
-  SIDEBAR_ROW_ACTIVE_CLASS_NAME,
-  SIDEBAR_ROW_HOVER_CLASS_NAME,
-  SIDEBAR_SECTION_LABEL_TONE_CLASS_NAME,
-} from "~/sidebarRowStyles";
+import { Ripple } from "./m3/Ripple";
 import { ProjectSidebarIcon } from "./ProjectSidebarIcon";
 import type { SidebarActionBadge } from "./Sidebar.logic";
 import { SidebarIconButton } from "./SidebarIconButton";
@@ -147,43 +143,72 @@ type AppRailProps = {
   onContextMenu?: ((event: MouseEvent) => void) | undefined;
 };
 
-/** Rail glyph size, shared with controls rendered into the rail slot (the Help menu). */
-export const APP_RAIL_GLYPH_CLASS_NAME = "size-5";
+/** Rail glyph size (M3 nav icon is 24dp), shared with controls rendered into the rail
+ *  slot (the Help menu). */
+export const APP_RAIL_GLYPH_CLASS_NAME = "size-6";
 
-/** Rail button box and active/idle tone, shared with controls rendered into the rail slot.
- *  Idle glyphs rest on the section-label grey; hover and the active item are full ink. */
-export function appRailButtonClassName(active: boolean): string {
+/** Rail item box, indicator, and tone in Material 3 terms.
+ *
+ *  M3 NavigationRail puts each icon in a 56×32dp full-round indicator that sits in
+ *  `secondary-container` while the item is the current destination; the glyph rests on
+ *  `on-surface-variant` and turns to `on-secondary-container`. That class set is the M3
+ *  layer — see theme/m3.material.css — and every state (idle, hover, pressed, focus) is
+ *  defined once in `.app-rail-item` in index.css, so a caller only has to say which
+ *  item is active.
+ *
+ *  Shared with the controls rendered into the rail slot (Help, the usage rings, the
+ *  update pill), which is why it takes the flag rather than reading context.
+ */
+export function appRailButtonClassName(): string {
+  // Geometry and the focus ring are Tailwind utilities, not CSS in index.css.
+  // SidebarIconButton puts `size-*` and `focus-visible:outline-none` on the same element,
+  // and utilities live in a later cascade layer than components, so anything declared in
+  // `.app-rail-item` would lose to both. 56×32dp is M3's active indicator; the 3px/2px
+  // outline is M3's focus indicator.
   return cn(
-    "size-9 rounded-lg",
-    active
-      ? SIDEBAR_ROW_ACTIVE_CLASS_NAME
-      : cn(SIDEBAR_SECTION_LABEL_TONE_CLASS_NAME, SIDEBAR_ROW_HOVER_CLASS_NAME),
+    "app-rail-item h-8 w-14 rounded-full p-0",
+    // Undo `.sidebar-icon-button`'s 1px focus ring, then set M3's: a 3px secondary
+    // outline 2px outside.
+    "focus-visible:ring-0 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-secondary)]",
   );
 }
 
 function AppRailButton({ item }: { item: AppRailItem }) {
   const label = item.badge ? `${item.label} · ${item.badge.accessibleLabel}` : item.label;
   const glyphs = item.glyphs;
+  // Resolved once: the same component identity has to render in both the icon slot and
+  // the indicator, or React unmounts and remounts the glyph on every active change.
+  const Glyph = item.active ? glyphs.active : glyphs.idle;
   return (
-    <div className="relative shrink-0">
+    <div className="app-rail-item-wrap relative shrink-0">
       <SidebarIconButton
-        icon={item.active ? glyphs.active : glyphs.idle}
+        icon={Glyph}
         iconClassName={APP_RAIL_GLYPH_CLASS_NAME}
         label={label}
         size="lg"
         tooltip={label}
         tooltipSide="right"
         aria-current={item.active ? "page" : undefined}
-        className={appRailButtonClassName(item.active)}
+        // Empty string, not `true`: the CSS and the ripple's settle observer both test
+        // for presence, and React renders a boolean data attribute as "true".
+        data-active={item.active ? "" : undefined}
+        className={appRailButtonClassName()}
         onClick={item.onSelect}
         {...(item.onMouseEnter ? { onMouseEnter: item.onMouseEnter } : {})}
         {...(item.onFocus ? { onFocus: item.onFocus } : {})}
-      />
+      >
+        <span className="app-rail-indicator" aria-hidden>
+          <Ripple />
+        </span>
+        <span className="app-rail-glyph">
+          <Glyph />
+        </span>
+      </SidebarIconButton>
       {/* Same corner dot as the Activity bell's unread marker; the count is in the tooltip. */}
       {item.badge ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute top-1 right-1 size-1.5 rounded-full bg-[var(--color-text-accent)]"
+          className="app-rail-badge pointer-events-none absolute top-1.5 right-2.5 size-1.5 rounded-full"
         />
       ) : null}
     </div>

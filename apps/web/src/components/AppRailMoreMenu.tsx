@@ -53,7 +53,10 @@ export function AppRailMoreMenu({
         tooltip="More"
         tooltipSide="right"
         aria-current={active ? "page" : undefined}
-        className={appRailButtonClassName(active)}
+        // Empty string, not `true`: the M3 CSS and the ripple's settle observer both
+        // test for presence, and React renders a boolean data attribute as "true".
+        data-active={active ? "" : undefined}
+        className={appRailButtonClassName()}
       />
       <ComposerPickerMenuPopup
         align="start"

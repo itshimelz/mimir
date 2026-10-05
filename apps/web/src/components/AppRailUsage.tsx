@@ -43,12 +43,13 @@ const RING_TONE_CLASS_NAME: Record<RailUsageRingTone, { stroke: string; dot: str
   critical: { stroke: "stroke-red-500", dot: "bg-red-500" },
 };
 
-// Geometry in px inside the rail's 36px button. Two tracks take a larger box, thinner
-// strokes and a smaller glyph, so the tracks keep a 2.25px gap and the glyph clears the
-// inner one.
+// Geometry in px inside the rail's 56×32 Material 3 item, which bounds the ring on both
+// axes — the 32dp height is what caps it. Two tracks take a marginally larger box,
+// thinner strokes and a smaller glyph, so the tracks keep a 2px gap and the glyph clears
+// the inner one.
 const SINGLE_RING = { size: 28, stroke: 2.5, svgClassName: "size-7", iconClassName: "size-3.5" };
-const DOUBLE_RING = { size: 34, stroke: 2.25, svgClassName: "size-8.5", iconClassName: "size-3" };
-const RING_SPACING = 4.5;
+const DOUBLE_RING = { size: 30, stroke: 2, svgClassName: "size-7.5", iconClassName: "size-2.5" };
+const RING_SPACING = 4;
 
 function AppRailUsageRing({
   provider,
@@ -94,7 +95,7 @@ function AppRailUsageRing({
             type="button"
             aria-label={`${summary.ariaLabel}. Open usage settings`}
             className={cn(
-              appRailButtonClassName(false),
+              appRailButtonClassName(),
               "relative flex shrink-0 items-center justify-center",
             )}
             onClick={onOpenUsageSettings}

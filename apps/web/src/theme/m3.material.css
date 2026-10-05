@@ -1,0 +1,351 @@
+/*
+ * Material 3 token layer for the Mimir theme, plus the bridge that lets M3-styled
+ * components render under every other pack in the catalog.
+ *
+ * Two layers, both raw CSS custom properties (never Tailwind tokens):
+ *
+ *   --md-sys-color-*   the 45 M3 color roles. Mimir pins them to the M3 Expressive
+ *                      violet palette; every other pack BRIDGES the roles it needs
+ *                      onto its own Codex tokens so a converted component still
+ *                      paints correctly under a pack that has no M3 palette.
+ *   --md-sys-shape-*   the M3 corner scale. Scale-free of the palette, so it applies
+ *                      to every pack: the shape system is not theme-specific.
+ *   --md-sys-motion-*  M3 easing and the expressive springs, as `linear()` so the
+ *                      browser interpolates the physical curve rather than an
+ *                      approximation of it.
+ *   --md-sys-state-*   the M3 state-layer opacities (hover / focus / pressed / dragged).
+ *
+ * Tailwind colors are registered under an `m3-` prefix (see index.css) rather than on
+ * the bare role names: index.css already owns --color-primary, --color-secondary,
+ * --color-ring and ~40 more for the shadcn layer, and overwriting those would repaint
+ * every unconverted component at once. The prefix keeps the migration explicit —
+ * `bg-m3-secondary-container` is M3 by construction, `bg-accent` is still Codex.
+ */
+
+/* ---------- shape: M3 corner scale ---------- */
+
+:root {
+  --md-sys-shape-scale: 1;
+  --md-sys-shape-corner-none: 0px;
+  --md-sys-shape-corner-extra-small: calc(4px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-small: calc(8px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-medium: calc(12px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-large: calc(16px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-large-increased: calc(20px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-extra-large: calc(28px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-extra-large-increased: calc(32px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-extra-extra-large: calc(48px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-full: 9999px;
+
+  /* ---------- state-layer opacities (Compose StateLayer) ---------- */
+  --md-sys-state-hover-opacity: 0.08;
+  --md-sys-state-focus-opacity: 0.1;
+  --md-sys-state-pressed-opacity: 0.1;
+  --md-sys-state-dragged-opacity: 0.16;
+
+  /* ---------- easing (M3 standard set) ---------- */
+  --md-sys-motion-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --md-sys-motion-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --md-sys-motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --md-sys-motion-easing-standard-decelerate: cubic-bezier(0, 0, 0, 1);
+  --md-sys-motion-easing-standard-accelerate: cubic-bezier(0.3, 0, 1, 1);
+}
+
+/* ---------- springs (M3 Expressive) ----------
+   Two only. Spatial drives shape and size changes (the rail's active indicator
+   growing in), effects drives color and opacity. The remaining four springs land
+   with the components that need them; adding them here unread would be dead CSS. */
+
+:root {
+  --md-sys-motion-spring-fast-spatial: linear(
+    0,
+    0.0206,
+    0.0754,
+    0.1544,
+    0.2492,
+    0.3524,
+    0.458,
+    0.5613,
+    0.6588,
+    0.7479,
+    0.8269,
+    0.895,
+    0.952,
+    0.9981,
+    1.0338,
+    1.0603,
+    1.0783,
+    1.0893,
+    1.0942,
+    1.0943,
+    1.0906,
+    1.0842,
+    1.0759,
+    1.0665,
+    1.0565,
+    1.0465,
+    1.037,
+    1.0281,
+    1.0201,
+    1.0131,
+    1.0072,
+    1.0023,
+    0.9984,
+    0.9955,
+    0.9934,
+    0.992,
+    0.9912,
+    0.991,
+    0.9912,
+    0.9917,
+    0.9924,
+    0.9932,
+    0.9942,
+    0.9951,
+    0.996,
+    0.9969,
+    0.9977,
+    0.9984,
+    1
+  );
+  --md-sys-motion-spring-fast-spatial-duration: 360ms;
+  --md-sys-motion-spring-fast-effects: linear(
+    0,
+    0.0576,
+    0.1807,
+    0.3214,
+    0.4558,
+    0.5737,
+    0.6718,
+    0.7508,
+    0.8128,
+    0.8606,
+    0.897,
+    0.9244,
+    0.9448,
+    0.9599,
+    0.9709,
+    0.979,
+    0.9849,
+    0.9892,
+    0.9923,
+    0.9945,
+    0.9961,
+    0.9972,
+    0.998,
+    0.9986,
+    1
+  );
+  --md-sys-motion-spring-fast-effects-duration: 150ms;
+}
+
+/* ---------- color: the bridge ----------
+   M3 roles for every pack, derived from that pack's Codex tokens. Only the roles
+   components actually consume today are bridged; the rest arrive with the component
+   that needs them, so this stays a map rather than a guess. Anything a component
+   reads must be listed here or it will resolve to nothing under a non-Mimir pack. */
+
+/* Each role reads the Codex token that carries it, and falls back to the equivalent
+   shadcn token in index.css. The fallback is not defensive padding: the `--color-*`
+   tokens are set from JS by useTheme on mount, so before that lands (and in a test that
+   renders a component without the provider) they resolve to nothing and a converted
+   component would paint with an empty color. The shadcn tokens have `:root` defaults. */
+:root,
+.dark {
+  --md-sys-color-surface: var(--color-background-surface, var(--background));
+  --md-sys-color-surface-dim: var(--color-background-surface-under, var(--background));
+  --md-sys-color-surface-bright: var(--color-background-surface, var(--background));
+  --md-sys-color-surface-container-lowest: var(--color-background-surface, var(--background));
+  --md-sys-color-surface-container-low: var(--color-background-surface, var(--background));
+  --md-sys-color-surface-container: var(--color-background-elevated-secondary, var(--muted));
+  --md-sys-color-surface-container-high: var(--color-background-elevated-secondary, var(--muted));
+  --md-sys-color-surface-container-highest: var(
+    --color-background-elevated-secondary,
+    var(--muted)
+  );
+  --md-sys-color-on-surface: var(--color-text-foreground, var(--foreground));
+  --md-sys-color-on-surface-variant: var(
+    --color-text-foreground-secondary,
+    var(--muted-foreground)
+  );
+  --md-sys-color-outline: var(--color-border, var(--border));
+  --md-sys-color-outline-variant: color-mix(
+    in srgb,
+    var(--color-border, var(--border)) 62%,
+    transparent
+  );
+  --md-sys-color-primary: var(--color-text-accent, var(--color-blue-500));
+  --md-sys-color-on-primary: var(--color-background-surface, var(--background));
+  --md-sys-color-primary-container: var(--color-background-button-secondary-hover, var(--accent));
+  --md-sys-color-on-primary-container: var(--color-text-foreground, var(--foreground));
+  --md-sys-color-secondary-container: var(--sidebar-selected, var(--accent));
+  --md-sys-color-on-secondary-container: var(--sidebar-accent-foreground, var(--foreground));
+  --md-sys-color-tertiary-container: var(--color-background-elevated-secondary, var(--muted));
+  --md-sys-color-on-tertiary-container: var(--color-text-foreground, var(--foreground));
+  --md-sys-color-error: var(--destructive, var(--color-red-500));
+  --md-sys-color-error-container: color-mix(
+    in srgb,
+    var(--destructive, var(--color-red-500)) 22%,
+    transparent
+  );
+  --md-sys-color-on-error-container: var(--color-text-foreground, var(--foreground));
+  --md-sys-color-surface-variant: var(--color-background-elevated-secondary, var(--muted));
+  --md-sys-color-surface-tint: var(--color-text-accent, var(--color-blue-500));
+}
+
+/* ---------- color: Mimir's M3 Expressive palette ----------
+   The authoritative palette for the Mimir pack, in both variants. Pinned here
+   rather than derived because M3 roles are a tonal scheme, not a set of mixes:
+   the derivation in theme.logic.ts cannot reach these, exactly as
+   ChromeTheme.chromeSurface cannot. index.css and the theme seed agree on which
+   hexes are canonical — the seed supplies surface/ink/accent, this block supplies
+   the roles the seed has no field for. */
+
+:root[data-code-theme-id="synara"] {
+  --md-sys-color-background: #fcf8ff;
+  --md-sys-color-on-background: #32313d;
+  --md-sys-color-surface: #fcf8ff;
+  --md-sys-color-surface-dim: #dbd8e7;
+  --md-sys-color-surface-bright: #fcf8ff;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f5f2fc;
+  --md-sys-color-surface-container: #efecf8;
+  --md-sys-color-surface-container-high: #e9e6f3;
+  --md-sys-color-surface-container-highest: #e3e1f0;
+  --md-sys-color-on-surface: #32313d;
+  --md-sys-color-on-surface-variant: #5f5e6a;
+  --md-sys-color-outline: #7b7986;
+  --md-sys-color-outline-variant: #b2b0be;
+  --md-sys-color-inverse-surface: #0e0e13;
+  --md-sys-color-inverse-on-surface: #9e9ca3;
+  --md-sys-color-primary: #6341d9;
+  --md-sys-color-primary-dim: #5732cc;
+  --md-sys-color-on-primary: #fcf7ff;
+  --md-sys-color-primary-container: #7e5ff5;
+  --md-sys-color-on-primary-container: #000000;
+  --md-sys-color-primary-fixed: #7e5ff5;
+  --md-sys-color-primary-fixed-dim: #7151e8;
+  --md-sys-color-on-primary-fixed: #ffffff;
+  --md-sys-color-on-primary-fixed-variant: #f4edff;
+  --md-sys-color-inverse-primary: #967cff;
+  --md-sys-color-secondary: #615b78;
+  --md-sys-color-secondary-dim: #544f6c;
+  --md-sys-color-on-secondary: #fcf7ff;
+  --md-sys-color-secondary-container: #e6deff;
+  --md-sys-color-on-secondary-container: #534e6a;
+  --md-sys-color-secondary-fixed: #e6deff;
+  --md-sys-color-secondary-fixed-dim: #d7d0f2;
+  --md-sys-color-on-secondary-fixed: #403c57;
+  --md-sys-color-on-secondary-fixed-variant: #5d5875;
+  --md-sys-color-tertiary: #795273;
+  --md-sys-color-tertiary-dim: #6c4767;
+  --md-sys-color-on-tertiary: #fff7f9;
+  --md-sys-color-tertiary-container: #fdcbf2;
+  --md-sys-color-on-tertiary-container: #654060;
+  --md-sys-color-tertiary-fixed: #fdcbf2;
+  --md-sys-color-tertiary-fixed-dim: #eebde3;
+  --md-sys-color-on-tertiary-fixed: #512e4c;
+  --md-sys-color-on-tertiary-fixed-variant: #704a6a;
+  --md-sys-color-error: #a8364b;
+  --md-sys-color-error-dim: #6b0221;
+  --md-sys-color-on-error: #fff7f7;
+  --md-sys-color-error-container: #f97386;
+  --md-sys-color-on-error-container: #6e0523;
+  --md-sys-color-surface-variant: #e3e1f0;
+  --md-sys-color-surface-tint: #6341d9;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+}
+
+:root.dark[data-code-theme-id="synara"] {
+  --md-sys-color-background: #0e0e13;
+  --md-sys-color-on-background: #e6e4f3;
+  --md-sys-color-surface: #0e0e13;
+  --md-sys-color-surface-dim: #0e0e13;
+  --md-sys-color-surface-bright: #2b2b36;
+  --md-sys-color-surface-container-lowest: #000000;
+  --md-sys-color-surface-container-low: #13131a;
+  --md-sys-color-surface-container: #191921;
+  --md-sys-color-surface-container-high: #1f1f28;
+  --md-sys-color-surface-container-highest: #252530;
+  --md-sys-color-on-surface: #e6e4f3;
+  --md-sys-color-on-surface-variant: #aba9b7;
+  --md-sys-color-outline: #757481;
+  --md-sys-color-outline-variant: #474753;
+  --md-sys-color-inverse-surface: #fcf8ff;
+  --md-sys-color-inverse-on-surface: #55545b;
+  --md-sys-color-primary: #cbbeff;
+  --md-sys-color-primary-dim: #795af0;
+  --md-sys-color-on-primary: #4312b9;
+  --md-sys-color-primary-container: #5631cb;
+  --md-sys-color-on-primary-container: #e7dfff;
+  --md-sys-color-primary-fixed: #7e5ff5;
+  --md-sys-color-primary-fixed-dim: #7151e8;
+  --md-sys-color-on-primary-fixed: #ffffff;
+  --md-sys-color-on-primary-fixed-variant: #f4edff;
+  --md-sys-color-inverse-primary: #6341d8;
+  --md-sys-color-secondary: #c9c2e4;
+  --md-sys-color-secondary-dim: #bbb4d6;
+  --md-sys-color-on-secondary: #413d58;
+  --md-sys-color-secondary-container: #3c3853;
+  --md-sys-color-on-secondary-container: #c2bbdc;
+  --md-sys-color-secondary-fixed: #e6deff;
+  --md-sys-color-secondary-fixed-dim: #d7d0f2;
+  --md-sys-color-on-secondary-fixed: #403c57;
+  --md-sys-color-on-secondary-fixed-variant: #5d5875;
+  --md-sys-color-tertiary: #ffdff6;
+  --md-sys-color-tertiary-dim: #fdcbf2;
+  --md-sys-color-on-tertiary: #6f4969;
+  --md-sys-color-tertiary-container: #fdcbf2;
+  --md-sys-color-on-tertiary-container: #654060;
+  --md-sys-color-tertiary-fixed: #fdcbf2;
+  --md-sys-color-tertiary-fixed-dim: #eebde3;
+  --md-sys-color-on-tertiary-fixed: #512e4c;
+  --md-sys-color-on-tertiary-fixed-variant: #704a6a;
+  --md-sys-color-error: #f97386;
+  --md-sys-color-error-dim: #c44b5f;
+  --md-sys-color-on-error: #490013;
+  --md-sys-color-error-container: #871c34;
+  --md-sys-color-on-error-container: #ff97a3;
+  --md-sys-color-surface-variant: #252530;
+  --md-sys-color-surface-tint: #cbbeff;
+  --md-sys-color-shadow: #000000;
+  --md-sys-color-scrim: #000000;
+}
+
+/* ---------- ripple ----------
+   Material Web's <md-ripple> paint (Apache-2.0,
+   material-components/material-web ripple/internal/_ripple.scss): a soft-edged
+   radial gradient fading in over 105ms and out over 375ms. The grow animation is
+   driven from components/m3/Ripple.tsx, which owns the pointer geometry. */
+
+@layer components {
+  .m3-ripple-host {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .m3-ripple {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    transform-origin: center center;
+    background: radial-gradient(
+      closest-side,
+      var(--ripple-color, currentColor) max(calc(100% - 70px), 65%),
+      transparent 100%
+    );
+    transition: opacity 375ms linear;
+  }
+
+  .m3-ripple[data-pressed] {
+    opacity: var(--md-sys-state-pressed-opacity);
+    transition-duration: 105ms;
+  }
+}

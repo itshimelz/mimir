@@ -919,7 +919,7 @@ function ProjectSortMenu({
   );
 }
 
-const SYNARA_DOCS_URL = "https://trysynara.com/docs";
+const MIMIR_DOCS_URL = "https://mimir.himelz.studio/docs";
 
 // Latest curated releases surfaced directly in the help menu. Static data, so
 // computed once at module scope rather than per render.
@@ -966,7 +966,7 @@ function SidebarHelpMenu({
             ? {
                 tooltipSide: "right" as const,
                 iconClassName: APP_RAIL_GLYPH_CLASS_NAME,
-                className: appRailButtonClassName(false),
+                className: appRailButtonClassName(),
               }
             : {})}
         />
@@ -1024,7 +1024,7 @@ function SidebarHelpMenu({
             ) : null}
             <MenuItem
               className={SIDEBAR_CONTEXT_MENU_ITEM_CLASS_NAME}
-              onClick={() => openExternalLink(SYNARA_DOCS_URL)}
+              onClick={() => openExternalLink(MIMIR_DOCS_URL)}
             >
               <SidebarContextMenuIcon icon={BookIcon} />
               <span>Docs</span>
@@ -4974,7 +4974,7 @@ export default function Sidebar() {
   }, [activeSidebarThreadId, visibleSidebarThreadIds]);
 
   // Pinned rows share the thread-container label rule (project name, or
-  // "Synara" for project-less chats) with the hover cards and Activity rows.
+  // "Mimir" for project-less chats) with the hover cards and Activity rows.
   function resolvePinnedThreadProjectLabel(projectId: ProjectId): string {
     return resolveThreadProjectLabel(projectById.get(projectId));
   }

@@ -305,11 +305,11 @@ describe("chromeSurface override", () => {
 
   it.each(["light", "dark"] as const)("pins the %s chrome plane", (variant) => {
     const tokens = buildResolvedThemeTokens(packWith("synara", variant), variant);
-    const expected = variant === "light" ? "#f3f3f3" : "#202020";
+    // Mimir's chrome plane is the Material 3 surface-container-low step. The derivation
+    // cannot reach it: in light mode the mix clamps to zero, and in dark it only ever
+    // moves toward black, while this plane sits *above* the surface in both variants.
+    const expected = variant === "light" ? "#f5f2fc" : "#13131a";
 
-    // Mimir pins the rail plane to Whirl's --background. Without the override the derivation
-    // returns the surface itself in light mode (its mix clamps to zero) and mixes toward black
-    // in dark, so neither can reach Whirl's value.
     expect(tokens.computed.surfaceUnder).toBe(expected);
     expect(tokens.codexVariables["--color-background-surface-under"]).toBe(expected);
   });
@@ -318,7 +318,7 @@ describe("chromeSurface override", () => {
     // Only Mimir pins it; the rest of the catalog must render exactly as before.
     for (const variant of ["light", "dark"] as const) {
       const tokens = buildResolvedThemeTokens(packWith("nord", variant), variant);
-      expect(tokens.computed.surfaceUnder).not.toBe(variant === "light" ? "#f3f3f3" : "#202020");
+      expect(tokens.computed.surfaceUnder).not.toBe(variant === "light" ? "#f5f2fc" : "#13131a");
     }
   });
 

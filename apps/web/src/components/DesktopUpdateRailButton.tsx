@@ -32,7 +32,7 @@ export function DesktopUpdateRailButton({
       aria-disabled={disabled || undefined}
       disabled={disabled}
       className={cn(
-        appRailButtonClassName(false),
+        appRailButtonClassName(),
         "w-auto min-w-9 max-w-full",
         disabled && "cursor-not-allowed",
       )}

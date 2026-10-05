@@ -126,47 +126,52 @@ export const THEME_SEED_CATALOG: Record<string, Partial<Record<ThemeVariant, Chr
       surface: "#ffffff",
     },
   },
-  // Mimir follows Whirl's product theme (github.com/whirlchat/whirl,
-  // apps/v2/app/globals.css): strictly monochrome, tonal structure instead of hue, with the
-  // content plane as the floor and chrome stepping away from it. Whirl publishes a blue
-  // (#0C82F2) for the logo and banners only — its own UI ships graphite, so this does too.
-  // The semantic colors are the one place Whirl publishes nothing at all (it has no diff or
-  // skill tokens), so these are lightness steps lifted from Whirl's own grey ladder rather
-  // than invented hues: added reads as present/strong, removed as absent/weak.
+  // Mimir is the Material 3 Expressive violet palette. The four seed fields carry the
+  // roles theme.logic.ts derives the Codex layer from, so they track the M3 primaries:
+  // `surface` is M3 surface, `ink` is on-surface, `accent` is primary, and
+  // `chromeSurface` is the window plane behind the content — surface-container-low, the
+  // step the M3 rail layout's chrome band sits at. The full role set (containers,
+  // secondary/tertiary, error, inverses) has no field here and lives in
+  // theme/m3.material.css, which is the authoritative copy of the palette.
+  //
+  // The semantic colors are the one place M3 publishes nothing comparable: it has no diff
+  // or skill tokens. Rather than invent hues, they are lightness steps off the new ink —
+  // added reads as present/strong, removed as absent/weak, skill takes a violet-leaning
+  // step so it sits with the palette instead of against it.
   synara: {
     dark: {
-      accent: "#dedede",
-      chromeSurface: "#202020",
+      accent: "#cbbeff",
+      chromeSurface: "#13131a",
       contrast: 0,
       fonts: {
         code: null,
         ui: null,
       },
-      ink: "#f0f0f0",
+      ink: "#e6e4f3",
       opaqueWindows: false,
       semanticColors: {
-        diffAdded: "#f0f0f0",
-        diffRemoved: "#7a7a7a",
-        skill: "#b0b0b0",
+        diffAdded: "#e6e4f3",
+        diffRemoved: "#7a7a86",
+        skill: "#c2bbdc",
       },
-      surface: "#181818",
+      surface: "#0e0e13",
     },
     light: {
-      accent: "#0f0f0f",
-      chromeSurface: "#f3f3f3",
+      accent: "#6341d9",
+      chromeSurface: "#f5f2fc",
       contrast: 0,
       fonts: {
         code: null,
         ui: null,
       },
-      ink: "#141414",
+      ink: "#32313d",
       opaqueWindows: false,
       semanticColors: {
-        diffAdded: "#141414",
-        diffRemoved: "#8a8a8a",
-        skill: "#4a4a4a",
+        diffAdded: "#32313d",
+        diffRemoved: "#8a8a93",
+        skill: "#534e6a",
       },
-      surface: "#ffffff",
+      surface: "#fcf8ff",
     },
   },
   dracula: {

@@ -27,7 +27,7 @@ import {
 } from "@synara/contracts";
 import { Cause, Effect, FileSystem, Layer, Option, Path, Stream } from "effect";
 import { makeDrainableWorker, startDrainableWorkerProducers } from "@synara/shared/DrainableWorker";
-import { isGroupContainerKind } from "@synara/shared/projectContainers";
+import { participatesInStudioOutputs } from "@synara/shared/studioOutputs";
 
 import { resolveThreadWorkspaceCwd } from "../../checkpointing/Utils.ts";
 import { isGitRepository } from "../../git/isRepo.ts";
@@ -85,8 +85,10 @@ const make = Effect.gen(function* () {
   const baselineByTurn = new Map<string, ActiveStudioTurnBaseline>();
 
   // Resolves the Studio workspace root to scan for a thread, or null when this
-  // reactor should stay out of the way: non-Studio projects, unresolvable cwds,
-  // and Git roots (checkpoint capture already attributes those precisely).
+  // reactor should stay out of the way: projects that do not take part in Studio
+  // attribution, unresolvable cwds, and Git roots (checkpoint capture already
+  // attributes those precisely). Shares the gate with the listing RPC so the two
+  // cannot disagree — see `participatesInStudioOutputs`.
   // Shell reads keep this cheap: it runs on every turn boundary of every thread.
   const resolveStudioScanRoot = Effect.fnUntraced(function* (threadId: ThreadId) {
     const threadOption = yield* projectionSnapshotQuery
@@ -100,7 +102,7 @@ const make = Effect.gen(function* () {
       .getProjectShellById(thread.projectId)
       .pipe(Effect.catch(() => Effect.succeed(Option.none())));
     const project = Option.getOrUndefined(projectOption);
-    if (!project || !isGroupContainerKind(project.kind)) {
+    if (!project || !participatesInStudioOutputs(project.kind)) {
       return null;
     }
     const cwd = resolveThreadWorkspaceCwd({ thread, projects: [project] });

@@ -91,7 +91,7 @@ import { CheckpointDiffQuery } from "./checkpointing/Services/CheckpointDiffQuer
 import { resolveThreadWorkspaceCwd } from "./checkpointing/Utils";
 import { ServerConfig, type ServerConfigShape } from "./config";
 import { realpathNearestExisting } from "./realpathNearestExisting";
-import { isGroupContainerKind } from "@synara/shared/projectContainers";
+import { participatesInStudioOutputs } from "@synara/shared/studioOutputs";
 import { workspaceRootsEqual } from "@synara/shared/threadWorkspace";
 import { WORKSPACE_FILE_WRITE_CONFLICT_CODE } from "@synara/shared/workspaceFileWrite";
 import {
@@ -1807,7 +1807,10 @@ const makeWsRpcHandlersLayer = () =>
                 input.threadId,
                 { includeFileChangeActivityPayloads: true },
               );
-              if (Option.isNone(context) || !isGroupContainerKind(context.value.projectKind)) {
+              if (
+                Option.isNone(context) ||
+                !participatesInStudioOutputs(context.value.projectKind)
+              ) {
                 return { entries: [] };
               }
               const workspaceCwd = resolveThreadWorkspaceCwd({

@@ -126,38 +126,47 @@ export const THEME_SEED_CATALOG: Record<string, Partial<Record<ThemeVariant, Chr
       surface: "#ffffff",
     },
   },
+  // Mimir follows Whirl's product theme (github.com/whirlchat/whirl,
+  // apps/v2/app/globals.css): strictly monochrome, tonal structure instead of hue, with the
+  // content plane as the floor and chrome stepping away from it. Whirl publishes a blue
+  // (#0C82F2) for the logo and banners only — its own UI ships graphite, so this does too.
+  // The semantic colors are the one place Whirl publishes nothing at all (it has no diff or
+  // skill tokens), so these are lightness steps lifted from Whirl's own grey ladder rather
+  // than invented hues: added reads as present/strong, removed as absent/weak.
   synara: {
     dark: {
-      accent: "#6073cc",
+      accent: "#dedede",
+      chromeSurface: "#202020",
       contrast: 0,
       fonts: {
         code: null,
         ui: null,
       },
-      ink: "#f5f5f5",
+      ink: "#f0f0f0",
       opaqueWindows: false,
       semanticColors: {
-        diffAdded: "#40c977",
-        diffRemoved: "#fa423e",
-        skill: "#ad7bf9",
+        diffAdded: "#f0f0f0",
+        diffRemoved: "#7a7a7a",
+        skill: "#b0b0b0",
       },
-      surface: "#0e0e0e",
+      surface: "#181818",
     },
     light: {
-      accent: "#526fff",
+      accent: "#0f0f0f",
+      chromeSurface: "#f3f3f3",
       contrast: 0,
       fonts: {
         code: null,
         ui: null,
       },
-      ink: "#262626",
+      ink: "#141414",
       opaqueWindows: false,
       semanticColors: {
-        diffAdded: "#00a240",
-        diffRemoved: "#ba2623",
-        skill: "#924ff7",
+        diffAdded: "#141414",
+        diffRemoved: "#8a8a8a",
+        skill: "#4a4a4a",
       },
-      surface: "#fcfcfc",
+      surface: "#ffffff",
     },
   },
   dracula: {

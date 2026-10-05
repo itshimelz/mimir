@@ -3,6 +3,20 @@ import type { ContextMenuItem } from "@synara/contracts";
 import { createCentralIconElement } from "./lib/central-icons";
 import { isInlineSvgMenuIcon } from "./lib/nativeMenuIcons";
 
+/**
+ * The browser-side context menu, styled with the Material 3 menu tokens the rest of the
+ * migrated surfaces use (theme/m3.material.css). This is the fallback for when no desktop
+ * bridge can show a native OS menu — see wsNativeApi.contextMenu.show — so it has to look
+ * like the app rather than like the platform. Geometry stays the app's: this builds raw
+ * DOM imperatively and is measured against a min-h-7 row, so it keeps its denser rows
+ * instead of M3E's 44dp ones.
+ */
+
+/** M3 draws the focused/selected row as an `on-surface` state layer, not a filled pill. */
+const HIGHLIGHT_CLASS = "bg-m3-on-surface/12";
+const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-md border border-m3-outline-variant shadow-elevation-2 animate-in fade-in zoom-in-95`;
+const VIEWPORT_MARGIN = 4;
+
 function createMenuIconElement(icon: string): HTMLElement | null {
   if (!isInlineSvgMenuIcon(icon)) return createCentralIconElement(icon, "opacity-60");
   const wrapper = document.createElement("span");
@@ -11,9 +25,6 @@ function createMenuIconElement(icon: string): HTMLElement | null {
   return wrapper;
 }
 
-const HIGHLIGHT_CLASS = "bg-[var(--sidebar-accent)]";
-const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-sm border border-[color:var(--overlay-border)] shadow-sm animate-in fade-in zoom-in-95`;
-const VIEWPORT_MARGIN = 4;
 /** Small overlap so the pointer never crosses a gap between a row and its submenu. */
 const SUBMENU_OVERLAP = 4;
 /**
@@ -187,15 +198,17 @@ export function showContextMenuFallback<T extends string>(
         // Keep explicit groups visible in the browser fallback; destructive items remain isolated by default.
         if ((item.separatorBefore === true || isDestructive) && i > 0) {
           const sep = document.createElement("div");
-          sep.className = "mx-2.5 my-1 h-px bg-border";
+          sep.className = "mx-2.5 my-1 h-px bg-m3-outline-variant";
           inner.appendChild(sep);
         }
 
         const btn = document.createElement("button");
         btn.type = "button";
+        // M3 menu row: full-round at the small corner, `on-surface` ink, and a
+        // destructive row on the `error` role rather than plain foreground text.
         btn.className = isDestructive
-          ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-ui text-foreground/86 transition-colors"
-          : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-ui text-foreground/86 transition-colors";
+          ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-full px-3.5 py-1.5 text-left text-ui text-m3-error transition-colors duration-[var(--md-sys-motion-spring-fast-effects-duration)]"
+          : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-full px-3.5 py-1.5 text-left text-ui text-m3-on-surface transition-colors duration-[var(--md-sys-motion-spring-fast-effects-duration)]";
 
         const icon = item.icon ? createMenuIconElement(item.icon) : null;
         if (icon) {

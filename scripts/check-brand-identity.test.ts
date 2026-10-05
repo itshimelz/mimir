@@ -1,7 +1,7 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -273,12 +273,48 @@ describe("brand identity guard", () => {
         "apps/web/src/example.browser.tsx",
         "docs/release.md",
         "README.md",
-        "apps/marketing/src/app/page.tsx",
       ]) {
         expect(findBrandIdentityViolations([{ path, contents: 'const a = "Synara";' }])).toEqual(
           [],
         );
       }
+    });
+
+    it("scans the marketing site now that it is Mimir's", () => {
+      // The marketing site used to carry a blanket directory exemption while it
+      // was still Synara's. It is rebranded, so a regression there must fail.
+      for (const path of [
+        "apps/marketing/src/app/page.tsx",
+        "apps/marketing/src/lib/seo.ts",
+        "apps/marketing/src/data/product.ts",
+      ]) {
+        expect(
+          findBrandIdentityViolations([{ path, contents: 'const a = "Synara";' }]),
+        ).toHaveLength(1);
+      }
+    });
+
+    it("still exempts the marketing files that keep the retired name as provenance", () => {
+      for (const path of [
+        "apps/marketing/src/data/changelog.ts",
+        "apps/marketing/src/data/testimonials.ts",
+      ]) {
+        expect(findBrandIdentityViolations([{ path, contents: 'const a = "Synara";' }])).toEqual(
+          [],
+        );
+      }
+    });
+
+    it("keeps the marketing changelog on Mimir's own first release", () => {
+      // Mimir started at 0.0.1. The pre-Mimir version line belongs to the
+      // project Mimir was forked from, so inheriting it would misstate what this
+      // product has actually shipped.
+      const source = readFileSync(
+        resolve(import.meta.dirname, "../apps/marketing/src/data/changelog.ts"),
+        "utf8",
+      );
+      const versions = [...source.matchAll(/version: "([^"]+)"/g)].map((match) => match[1]);
+      expect(versions).toEqual(["0.0.1"]);
     });
 
     it("keeps the older forbidden-identity check active on exempted files", () => {

@@ -231,8 +231,10 @@ export function SegmentedPicker<T extends string>({
                 // fill or hovering reads as "nothing here is clickable".
                 !active && !disabled && !option.disabled ? "hover:bg-foreground/6" : null,
                 headerVariant
-                  ? // Roomier padding than the compact variant. Safe because the header track is
-                    // `w-max`: the control grows to fit rather than clipping its own label.
+                  ? // Roomier horizontal padding than the compact variant. Safe because the header
+                    // track is `w-max`: the control grows to fit rather than clipping its own label.
+                    // The vertical padding stays `py-2`: once the row below is tightened the button
+                    // lands at 32px and the 44px header keeps a 4px margin above and below.
                     "squircle gap-2 rounded-lg px-4 py-2 text-ui"
                   : "min-w-0 flex-1 rounded-md px-2.5 py-1 text-ui-sm",
                 active
@@ -247,6 +249,13 @@ export function SegmentedPicker<T extends string>({
               <span
                 className={cn(
                   "flex shrink-0 items-center gap-1.5",
+                  headerVariant
+                    ? // A single-line row needs no relaxed leading. `leading-none` drops the row
+                      // from the 24px text line-height to the 16px icon, so the 44px header keeps
+                      // a margin above and below instead of the toggle filling the bar. Safe
+                      // because the row is one `whitespace-nowrap` line and nothing clips it.
+                      "leading-none"
+                    : null,
                   // Gated like the chip: the first measurement must not animate the label into
                   // place on mount.
                   animate

@@ -132,11 +132,26 @@ const approvedRetiredBrandFiles: readonly { readonly path: string; readonly reas
   },
   {
     path: "apps/marketing/src/data/changelog.ts",
-    reason: "Published Synara changelog, retained for provenance.",
+    reason:
+      "The 0.0.1 entry credits the MIT-licensed project Mimir was built on. That attribution is a licensing and provenance obligation, not a brand regression.",
   },
   {
     path: "apps/marketing/src/data/latest-release-downloads.json",
-    reason: "Recorded Synara release checksums; factual provenance.",
+    reason: "Recorded release checksums; regenerated from Mimir releases, not hand-edited.",
+  },
+  {
+    path: "apps/marketing/src/data/installer-downloads.json",
+    reason:
+      "Recorded Synara release download totals and the upstream releases API it was scraped from; factual provenance.",
+  },
+  {
+    path: "apps/marketing/docs/source-evidence.md",
+    reason:
+      "Dated evidence record of the Synara checkouts and claims the docs were written against; a historical audit trail.",
+  },
+  {
+    path: "apps/marketing/RECAP-seo-ai-indexing.md",
+    reason: "Dated recap of the Synara-era SEO work; a historical record, not live copy.",
   },
   {
     path: "apps/desktop/src/betaChannel.ts",
@@ -171,37 +186,15 @@ const approvedRetiredBrandFiles: readonly { readonly path: string; readonly reas
     reason: "This guard names the retired patterns it forbids.",
   },
   {
-    path: "packages/shared/src/providerMetadata.ts",
-    reason:
-      "setupDocsHref points at Synara's published per-provider guides. Accurate third-party setup docs; Mimir has no docs site yet.",
-  },
-  {
-    path: "apps/web/src/onboarding/tourContent.ts",
-    reason: "Onboarding links to Synara's published docs. Mimir has no docs site yet.",
-  },
-  {
-    path: "apps/web/src/components/Sidebar.tsx",
-    reason: "SYNARA_DOCS_URL links to Synara's published docs, plus one stale comment.",
-  },
-  {
-    path: "apps/web/src/feedback.ts",
-    reason:
-      "Posts feedback to Synara's public endpoint. Needs a Mimir endpoint decision; flagged deliberately rather than silently repointed.",
-  },
-  {
-    path: "apps/web/src/components/profile/shareCardExport.ts",
-    reason: "Share card URL still points at Synara's site. Needs a Mimir domain decision.",
-  },
-  {
     path: "apps/desktop/scripts/dev-electron.mjs",
     reason: "Dev launcher naming for the Synara Beta flavor. Mimir ships production only.",
   },
 ];
 
-// Whole directories that are still the retired product. The marketing site is
-// Synara's, points at Synara's domain, and is not part of the Mimir app; it is
-// a separate rewrite decision rather than a rebrand oversight.
-const approvedRetiredBrandPrefixes: readonly string[] = ["apps/marketing/"];
+// The marketing site is now Mimir's, so it no longer needs a blanket directory
+// exemption. The entries below are the only marketing files that keep the
+// retired name, each with the specific reason it is not a rebrand regression.
+const approvedRetiredBrandPrefixes: readonly string[] = [];
 
 interface ApprovedIdentityLine {
   readonly path: string;
@@ -498,7 +491,7 @@ function main(): void {
     ...findVisualBrandAssetViolations(trackedFiles),
   ];
   if (violations.length === 0) {
-    console.log("Synara identity check passed.");
+    console.log("Mimir identity check passed.");
     return;
   }
 

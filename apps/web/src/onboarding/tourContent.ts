@@ -5,7 +5,7 @@
 import type { LucideIcon } from "~/lib/icons";
 import { BrainIcon, FolderIcon, KeyboardIcon, MessageCircleIcon, SparkleIcon } from "~/lib/icons";
 
-export const SYNARA_DOCS_URL = "https://trysynara.com/docs";
+export const MIMIR_DOCS_URL = "https://mimir.himelz.studio/docs";
 
 export interface TourCard {
   readonly id: string;
@@ -60,7 +60,7 @@ export const TOUR_CARDS: ReadonlyArray<TourCard> = [
       "Hand a session to another agent",
       "Usage for every agent",
     ],
-    docsHref: `${SYNARA_DOCS_URL}/getting-started/providers`,
+    docsHref: `${MIMIR_DOCS_URL}/getting-started/providers`,
     icon: BrainIcon,
   },
   {
@@ -79,7 +79,7 @@ export const TOUR_CARDS: ReadonlyArray<TourCard> = [
     description:
       "Everything in the workspace has a shortcut, and the keymap is editable from Settings. A few worth learning on day one:",
     highlights: [],
-    docsHref: `${SYNARA_DOCS_URL}/reference/keyboard-shortcuts`,
+    docsHref: `${MIMIR_DOCS_URL}/reference/keyboard-shortcuts`,
     icon: KeyboardIcon,
   },
 ];

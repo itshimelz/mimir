@@ -1,7 +1,7 @@
 // FILE: feedback.ts
 // Purpose: Owns feedback categories, privacy-safe diagnostics, and delivery.
 // Layer: Web feature logic
-// Depends on: The public trysynara feedback endpoint.
+// Depends on: The public Mimir feedback endpoint.
 
 import { APP_VERSION } from "./branding";
 
@@ -55,7 +55,7 @@ export interface FeedbackSubmission {
   diagnostics: FeedbackDiagnostics;
 }
 
-const DEFAULT_FEEDBACK_ENDPOINT = "https://www.trysynara.com/api/feedback";
+const DEFAULT_FEEDBACK_ENDPOINT = "https://mimir.himelz.studio/api/feedback";
 const FEEDBACK_REQUEST_TIMEOUT_MS = 20_000;
 
 function formatStateFlags(diagnostics: FeedbackThreadContext): string {

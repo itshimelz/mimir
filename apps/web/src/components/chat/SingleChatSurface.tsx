@@ -1094,7 +1094,11 @@ export function SingleChatSurface(props: {
               onAskWhyInChat={handleAskWhyInChat}
               onCommentInChat={handleCommentInChat}
               onSelectProject={handleSelectEditorProject}
-              studioOutputs={editorStudioOutputs.data?.entries}
+              // `?? []` rather than leaving it undefined: the prop is optional, and
+              // `exactOptionalPropertyTypes` distinguishes "absent" from "explicitly
+              // undefined", so passing the possibly-undefined query result through fails
+              // typecheck even though the component already handles the missing case.
+              studioOutputs={editorStudioOutputs.data?.entries ?? []}
               studioOutputsLoading={editorStudioOutputs.isPending}
               leaveGuardRef={editorLeaveGuardRef}
               diffPanel={

@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   classifyProviderSetup,
+  DEFAULT_LEARNER_ROLE_ID,
   describeOnboardingAgentSummary,
+  findLearnerRole,
   isOnboardingSetupStep,
+  LEARNER_ROLES,
   nextOnboardingStep,
   previousOnboardingStep,
   resolveLocalOnboardingCompletion,
@@ -36,17 +39,38 @@ const RECONCILE_BASE = {
 
 describe("onboarding steps", () => {
   it("clamps navigation at both ends", () => {
-    expect(nextOnboardingStep("welcome")).toBe("tour");
+    expect(nextOnboardingStep("welcome")).toBe("role");
+    expect(nextOnboardingStep("role")).toBe("tour");
     expect(nextOnboardingStep("done")).toBe("done");
-    expect(previousOnboardingStep("tour")).toBe("welcome");
+    expect(previousOnboardingStep("role")).toBe("welcome");
     expect(previousOnboardingStep("welcome")).toBe("welcome");
   });
 
-  it("treats everything after the tour as a setup step", () => {
+  it("treats only the real setup steps as engaged", () => {
+    // The role step commits nothing yet, so reaching it must not suppress the first-run gate.
     expect(isOnboardingSetupStep("welcome")).toBe(false);
+    expect(isOnboardingSetupStep("role")).toBe(false);
     expect(isOnboardingSetupStep("tour")).toBe(false);
     expect(isOnboardingSetupStep("providers")).toBe(true);
     expect(isOnboardingSetupStep("done")).toBe(true);
+  });
+});
+
+describe("learner roles", () => {
+  it("offers the three roles in a stable order", () => {
+    expect(LEARNER_ROLES.map((role) => role.id)).toEqual(["student", "teacher", "researcher"]);
+  });
+
+  it("names and dresses each role's space distinctly", () => {
+    const labels = LEARNER_ROLES.map((role) => role.spaceLabel);
+    const icons = LEARNER_ROLES.map((role) => role.spaceIcon);
+    expect(new Set(labels).size).toBe(LEARNER_ROLES.length);
+    expect(new Set(icons).size).toBe(LEARNER_ROLES.length);
+  });
+
+  it("falls back to the default role for an unknown id", () => {
+    expect(findLearnerRole(DEFAULT_LEARNER_ROLE_ID).id).toBe(DEFAULT_LEARNER_ROLE_ID);
+    expect(findLearnerRole("student").spaceLabel).toBe("Courses");
   });
 });
 

@@ -109,15 +109,18 @@ export function FeatureTourStep() {
             ))}
           </ul>
         )}
-        <a
-          href={selectedCard.docsHref}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-2 inline-flex items-center gap-1.5 self-start text-ui text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
-        >
-          Read the guide
-          <ExternalLinkIcon className="size-3" aria-hidden />
-        </a>
+        {/* Only rendered where a guide page actually covers what this card claims. */}
+        {selectedCard.docsHref ? (
+          <a
+            href={selectedCard.docsHref}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 self-start text-ui text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+          >
+            Read the guide
+            <ExternalLinkIcon className="size-3" aria-hidden />
+          </a>
+        ) : null}
       </div>
     </div>
   );

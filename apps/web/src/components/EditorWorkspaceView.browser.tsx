@@ -217,6 +217,56 @@ it("switches between the Study and Studio surfaces from the header", async () =>
   await screen.unmount();
 });
 
+it("never clips a surface label, at the largest text scale", async () => {
+  // The switch used to be a fixed `w-[9.5rem]`, so a longer label or a larger text scale was
+  // truncated inside its own cell. It is `w-max` now; assert that with real layout metrics at
+  // the top of the typography range rather than trusting the class names.
+  const root = document.documentElement;
+  const previousScale = root.getAttribute("style");
+  const scale = getAppTypographyScale(22);
+  for (const [key, value] of Object.entries(scale)) {
+    const token = key.replace(/Px$/, "").replace(/[C-Z]/g, (letter) => `-${letter.toLowerCase()}`);
+    root.style.setProperty(`--app-font-size-${token}`, `${value}px`);
+  }
+  try {
+    await render(makeView()());
+
+    for (const label of ["Study", "Studio"]) {
+      const radio = page.getByRole("radio", { name: label, exact: true });
+      // Inside the radio: the label row holds an optional icon span, then the text span.
+      const text = radio.element().querySelector("span > span:last-child")!;
+      expect(text.textContent).toBe(label);
+      expect(text.scrollWidth, `${label} is horizontally clipped`).toBeLessThanOrEqual(
+        text.clientWidth,
+      );
+      const track = radio.element().parentElement!;
+      expect(track.scrollWidth, `${label} track overflows its own box`).toBeLessThanOrEqual(
+        track.clientWidth,
+      );
+    }
+
+    // The switch is centred in the header, so it must sit between the two side columns
+    // rather than flush against either of them.
+    const group = page.getByRole("radiogroup", { name: "Surface" });
+    const header = group.element().parentElement!.parentElement!;
+    const centre =
+      (group.element().getBoundingClientRect().left +
+        group.element().getBoundingClientRect().right) /
+      2;
+    expect(
+      Math.abs(
+        centre - (header.getBoundingClientRect().left + header.getBoundingClientRect().right) / 2,
+      ),
+    ).toBeLessThan(2);
+
+    await page.getByRole("radio", { name: "Studio", exact: true }).click();
+    await expect.element(page.getByTestId("studio-artifacts-sidebar")).toBeInTheDocument();
+  } finally {
+    if (previousScale === null) root.removeAttribute("style");
+    else root.setAttribute("style", previousScale);
+  }
+});
+
 it("groups Studio artifacts by their Outbox category and previews the selected one", async () => {
   window.localStorage.setItem("synara.editor.surface", "studio");
   try {

@@ -357,6 +357,7 @@ export {
   CornerDownRightIcon as SteerIcon,
   Key01Icon,
   MoreHorizontalIcon,
+  SparklingIcon as SparkleIcon,
   LinkSquare02Icon as ExternalLinkIcon,
   LayoutAlignLeftIcon,
   LayoutAlignRightIcon,

@@ -3,7 +3,7 @@
 // Layer: Hooks
 // Exports: useRadioGroupKeyboardNav
 
-import { type KeyboardEvent, type Ref, useRef } from "react";
+import { type KeyboardEvent, type RefCallback, useRef } from "react";
 
 const ARROW_KEY_DELTAS: Record<string, 1 | -1> = {
   ArrowRight: 1,
@@ -13,7 +13,12 @@ const ARROW_KEY_DELTAS: Record<string, 1 | -1> = {
 };
 
 export type RadioGroupItemProps = {
-  ref: Ref<HTMLButtonElement>;
+  /**
+   * Always a callback ref, never an object or string ref, so a caller that also needs the node
+   * (for layout measurement, say) can compose this with its own ref instead of having to choose
+   * between them. Spreading it straight onto a button still works.
+   */
+  ref: RefCallback<HTMLButtonElement>;
   tabIndex: number;
   onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
 };

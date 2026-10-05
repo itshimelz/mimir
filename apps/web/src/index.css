@@ -833,12 +833,12 @@ label:has(> select#reasoning-effort) select {
 }
 
 .chat-markdown ul {
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
   list-style-type: disc;
 }
 
 .chat-markdown ol {
-  padding-left: 1.25rem;
+  padding-inline-start: 1.25rem;
   list-style-type: decimal;
 }
 
@@ -871,7 +871,9 @@ label:has(> select#reasoning-effort) select {
 .chat-markdown .chat-markdown-task-checkbox {
   width: 0.95em;
   height: 0.95em;
-  margin: 0 0.4em 0.1em -1.4em;
+  margin-block: 0 0.1em;
+  /* Start is negative to hang the box in the list gutter where the bullet was. */
+  margin-inline: -1.4em 0.4em;
   vertical-align: middle;
   accent-color: var(--primary);
 }
@@ -975,16 +977,16 @@ label:has(> select#reasoning-effort) select {
 }
 
 .chat-markdown blockquote {
-  border-left: 2px solid var(--border);
-  padding-left: 0.8rem;
+  border-inline-start: 2px solid var(--border);
+  padding-inline-start: 0.8rem;
   color: var(--muted-foreground);
 }
 
 /* GitHub `> [!NOTE]` alerts (tagged by remarkGithubAlerts). */
 .chat-markdown blockquote[data-github-alert] {
   --github-alert-color: var(--info);
-  border-left-width: 3px;
-  border-left-color: var(--github-alert-color);
+  border-inline-start-width: 3px;
+  border-inline-start-color: var(--github-alert-color);
   color: var(--foreground);
 }
 .chat-markdown blockquote[data-github-alert="tip"] {
@@ -1515,71 +1517,79 @@ label:has(> select#reasoning-effort) select {
   padding-bottom: 3rem;
 }
 
-.editor-markdown-preview__body > :first-child {
-  margin-top: 0;
-}
-
 /* Document typography for full-file markdown previews (dock file pane and
    editor center pane share this wrapper). Scoped here so the chat transcript
    keeps its compact message styling; Tailwind's preflight otherwise leaves
-   headings indistinguishable from body text. */
-.editor-markdown-preview .chat-markdown h1,
-.editor-markdown-preview .chat-markdown h2,
-.editor-markdown-preview .chat-markdown h3,
-.editor-markdown-preview .chat-markdown h4,
-.editor-markdown-preview .chat-markdown h5,
-.editor-markdown-preview .chat-markdown h6 {
+   headings indistinguishable from body text.
+
+   The leading/trailing block reset is not restated here: `.chat-markdown >
+   :first-child` covers it and out-specifies these rules. It used to be, which
+   is why it was removed.
+
+   `.chat-markdown` is wrapped in `:where()` so it adds no specificity. The base
+   rules that are *more* specific than a bare element selector still win here:
+   `.chat-markdown > :first-child` (no leading gap on the first block) and the
+   `h1 + h2` family (a section heading stays coupled to the heading above it).
+   Written as a plain descendant selector those two were silently out-specified
+   by the rules below, which left every document with ~37px of dead space above
+   its title and broke heading pairs apart. */
+.editor-markdown-preview :where(.chat-markdown) h1,
+.editor-markdown-preview :where(.chat-markdown) h2,
+.editor-markdown-preview :where(.chat-markdown) h3,
+.editor-markdown-preview :where(.chat-markdown) h4,
+.editor-markdown-preview :where(.chat-markdown) h5,
+.editor-markdown-preview :where(.chat-markdown) h6 {
   margin: 1.5em 0 0.6em;
   font-weight: 600;
   line-height: 1.25;
   letter-spacing: -0.01em;
 }
 
-.editor-markdown-preview .chat-markdown h1 {
+.editor-markdown-preview :where(.chat-markdown) h1 {
   font-size: 1.75em;
   padding-bottom: 0.3em;
   border-bottom: 1px solid var(--border);
 }
 
-.editor-markdown-preview .chat-markdown h2 {
+.editor-markdown-preview :where(.chat-markdown) h2 {
   font-size: 1.4em;
   padding-bottom: 0.25em;
   border-bottom: 1px solid var(--border);
 }
 
-.editor-markdown-preview .chat-markdown h3 {
+.editor-markdown-preview :where(.chat-markdown) h3 {
   font-size: 1.2em;
 }
 
-.editor-markdown-preview .chat-markdown h4 {
+.editor-markdown-preview :where(.chat-markdown) h4 {
   font-size: 1.05em;
 }
 
-.editor-markdown-preview .chat-markdown h5 {
+.editor-markdown-preview :where(.chat-markdown) h5 {
   font-size: 0.95em;
 }
 
-.editor-markdown-preview .chat-markdown h6 {
+.editor-markdown-preview :where(.chat-markdown) h6 {
   font-size: 0.9em;
   color: var(--muted-foreground);
 }
 
 /* Documents breathe more than chat replies. */
-.editor-markdown-preview .chat-markdown p,
-.editor-markdown-preview .chat-markdown ul,
-.editor-markdown-preview .chat-markdown ol,
-.editor-markdown-preview .chat-markdown blockquote,
-.editor-markdown-preview .chat-markdown pre,
-.editor-markdown-preview .chat-markdown table {
+.editor-markdown-preview :where(.chat-markdown) p,
+.editor-markdown-preview :where(.chat-markdown) ul,
+.editor-markdown-preview :where(.chat-markdown) ol,
+.editor-markdown-preview :where(.chat-markdown) blockquote,
+.editor-markdown-preview :where(.chat-markdown) pre,
+.editor-markdown-preview :where(.chat-markdown) table {
   margin: 0.85rem 0;
 }
 
-.editor-markdown-preview .chat-markdown ul,
-.editor-markdown-preview .chat-markdown ol {
-  padding-left: 1.5rem;
+.editor-markdown-preview :where(.chat-markdown) ul,
+.editor-markdown-preview :where(.chat-markdown) ol {
+  padding-inline-start: 1.5rem;
 }
 
-.editor-markdown-preview .chat-markdown li + li {
+.editor-markdown-preview :where(.chat-markdown) li + li {
   margin-top: 0.35rem;
 }
 

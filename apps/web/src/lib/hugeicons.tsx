@@ -606,3 +606,12 @@ export const CornerDownRightIcon = createHugeicon("CornerDownRightIcon", [
   { d: "M19 15H12C8.22876 15 6.34315 15 5.17157 13.8284C4 12.6569 4 10.7712 4 7V4", round: true },
   { d: "M15 20C15 20 20 16.3176 20 15C20 13.6824 15 10 15 10", round: true },
 ]);
+
+/** Sparkle: the Studio surface mark (`sparkling` four-point star). */
+export const SparklingIcon = createHugeicon("SparklingIcon", [
+  {
+    d: "M12 3C12.38 8.4 14.6 10.62 20 11C14.6 11.38 12.38 13.6 12 19C11.62 13.6 9.4 11.38 4 11C9.4 10.62 11.62 8.4 12 3Z",
+    round: true,
+    roundJoin: true,
+  },
+]);

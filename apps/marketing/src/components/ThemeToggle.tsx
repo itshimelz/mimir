@@ -1,7 +1,9 @@
+// FILE: ThemeToggle.tsx
+// Purpose: Light/dark switch as an M3E standard icon button.
 "use client";
 import { useSyncExternalStore } from "react";
-import { MIconButton } from "@/components/m3e/icon-button";
-import { MIcon } from "@/components/m3e/icon";
+import { Button } from "@/components/m3e/button";
+import { Icon } from "@/components/m3e/icon";
 
 const THEME_KEY = "mimir-theme";
 const THEME_CHANGE_EVENT = "mimir-theme-change";
@@ -30,8 +32,14 @@ export function ThemeToggle() {
     window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
   }
   return (
-    <MIconButton type="button" onClick={toggle} aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}>
-      <MIcon name={isDark ? "light_mode" : "dark_mode"} size={20} />
-    </MIconButton>
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      onClick={toggle}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      <Icon name={isDark ? "light_mode" : "dark_mode"} />
+    </Button>
   );
 }

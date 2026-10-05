@@ -1,8 +1,6 @@
 // FILE: AskAISection.tsx
-// Purpose: Lets visitors ask external AI assistants whether Synara fits them.
-// Layer: Marketing UI section
-// Exports: AskAISection
-// Depends on: react-icons brand glyphs and homepage design tokens
+// Purpose: Lets visitors ask external AI assistants whether Mimir fits them.
+// Layer: Marketing UI section (M3E assist chips)
 
 "use client";
 
@@ -10,6 +8,7 @@ import type { MouseEvent } from "react";
 import { useState } from "react";
 import type { IconType } from "react-icons";
 import { SiClaude, SiGooglegemini, SiOpenai } from "react-icons/si";
+import { Chip } from "@/components/m3e/chip";
 
 interface AiLink {
   readonly label: string;
@@ -22,7 +21,7 @@ interface AiLink {
 }
 
 const ASK_AI_PROMPT =
-  "Evaluate Synara (https://www.trysynara.com) as a serious desktop command center for agentic software development. It is free, open-source, local-first, and runs Claude Code, Codex, OpenCode, Cursor, Antigravity, Grok, Devin CLI, Pi, and Droid in one workspace with parallel sessions, terminals, browser previews, diffs, Git worktrees, handoffs, and pull-request flow. Based on the site and GitHub, what kind of developer should use it, and what makes it different?";
+  "Evaluate Mimir (https://mimir.himelz.studio) as a serious desktop command center for agentic software development. It is free, open-source, local-first, and runs Claude Code, Codex, OpenCode, Cursor, Antigravity, Grok, Devin CLI, Pi, and Droid in one workspace with parallel sessions, terminals, browser previews, diffs, Git worktrees, handoffs, and pull-request flow. Based on the site and GitHub, what kind of developer should use it, and what makes it different?";
 
 const encodedPrompt = encodeURIComponent(ASK_AI_PROMPT);
 
@@ -32,7 +31,7 @@ const aiLinks: readonly AiLink[] = [
     appHref: `https://chatgpt.com/?q=${encodedPrompt}`,
     webHref: `https://chatgpt.com/?q=${encodedPrompt}`,
     icon: SiOpenai,
-    iconClass: "text-[var(--text-primary)]",
+    iconClass: "text-on-surface",
   },
   {
     label: "Ask Claude",
@@ -53,10 +52,8 @@ const aiLinks: readonly AiLink[] = [
   },
 ];
 
-const heading =
-  "text-[1.65rem] font-medium leading-[1.12] tracking-[-0.035em] text-[var(--text-primary)] sm:text-[2rem]";
-const body =
-  "mx-auto mt-5 max-w-xl text-[15px] leading-[1.65] text-[var(--text-secondary)] sm:text-[16px]";
+const heading = "text-headline-medium text-on-surface sm:text-headline-large";
+const body = "mx-auto mt-5 max-w-xl text-body-large text-on-surface-variant";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 function openMobileDeepLink(
@@ -112,48 +109,55 @@ export default function AskAISection() {
   const [copiedLabel, setCopiedLabel] = useState<string | null>(null);
 
   return (
-    <section className="border-t border-[var(--divide)] py-14 sm:py-20">
+    <section className="border-t border-outline-variant py-14 sm:py-20">
       <div className={container}>
         <div className="text-center">
-          <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-            Ask the models directly
-          </p>
+          <p className="text-label-large text-primary">Ask the models directly</p>
           <h2 className={`${heading} mt-3`}>Let the models verify the fit.</h2>
           <p className={body}>
-            Ask ChatGPT, Claude, or Gemini to evaluate Synara from the source of truth—this site and
-            the GitHub repo. The prompt is specific so the answer reflects what Synara actually
-            does, not a generic AI-app summary. Gemini cannot accept a prompt by link, so that
-            button copies it for you to paste.
+            Ask ChatGPT, Claude, or Gemini to evaluate Mimir from the source of truth—this site and
+            the GitHub repo. The prompt is specific so the answer reflects what Mimir actually does,
+            not a generic AI-app summary. Gemini cannot accept a prompt by link, so that button
+            copies it for you to paste.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">
-            {aiLinks.map(({ label, appHref, webHref, icon: Icon, iconClass, copyPrompt }) => (
-              <a
-                key={label}
-                href={webHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => {
-                  if (copyPrompt) {
-                    void copyPromptToClipboard().then((copied) => {
-                      if (!copied) return;
-                      setCopiedLabel(label);
-                      window.setTimeout(() => setCopiedLabel(null), 2500);
-                    });
+            {aiLinks.map(({ label, appHref, webHref, icon: Icon, iconClass, copyPrompt }) => {
+              const copied = copiedLabel === label;
+              return (
+                <Chip
+                  key={label}
+                  size="md"
+                  variant="elevated"
+                  className="w-full max-w-[270px] justify-center sm:w-auto sm:max-w-none"
+                  icon={<Icon className={`size-5 ${iconClass}`} aria-hidden="true" />}
+                  aria-label={
+                    copyPrompt
+                      ? `${label} about Mimir — copies the prompt to paste`
+                      : `${label} about Mimir`
                   }
-                  openMobileDeepLink(event, appHref, webHref);
-                }}
-                className="inline-flex h-11 w-full max-w-[270px] items-center justify-center gap-2.5 rounded-full border border-[var(--divide)] bg-[var(--page-bg)] px-5 text-[13px] font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--mock-row)] sm:w-auto sm:max-w-none"
-                aria-label={
-                  copyPrompt
-                    ? `${label} about Synara — copies the prompt to paste`
-                    : `${label} about Synara`
-                }
-              >
-                <Icon className={`size-[17px] shrink-0 ${iconClass}`} aria-hidden="true" />
-                <span>{copiedLabel === label ? "Prompt copied — paste it" : label}</span>
-              </a>
-            ))}
+                  render={
+                    <a
+                      href={webHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(event) => {
+                        if (copyPrompt) {
+                          void copyPromptToClipboard().then((didCopy) => {
+                            if (!didCopy) return;
+                            setCopiedLabel(label);
+                            window.setTimeout(() => setCopiedLabel(null), 2500);
+                          });
+                        }
+                        openMobileDeepLink(event, appHref, webHref);
+                      }}
+                    />
+                  }
+                >
+                  {copied ? "Prompt copied — paste it" : label}
+                </Chip>
+              );
+            })}
           </div>
         </div>
       </div>

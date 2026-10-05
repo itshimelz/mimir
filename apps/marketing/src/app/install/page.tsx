@@ -13,14 +13,14 @@ import { INSTALL_JSONLD, breadcrumbJsonLd, jsonLdScript, pageMetadata } from "@/
 const INSTALL_PAGE_JSONLD = [
   INSTALL_JSONLD,
   breadcrumbJsonLd([
-    { name: "Synara", path: "/" },
+    { name: "Mimir", path: "/" },
     { name: "Download", path: "/install" },
   ]),
 ];
 
 export const metadata = pageMetadata({
-  title: "Download Synara — Coding Agent Workspace",
-  description: `Download Synara for macOS, Windows, and Linux. ${PRODUCT_CATEGORY}`,
+  title: "Download Mimir — Coding Agent Workspace",
+  description: `Download Mimir for macOS, Windows, and Linux. ${PRODUCT_CATEGORY}`,
   path: "/install",
 });
 
@@ -31,7 +31,7 @@ export default async function InstallPage() {
   const [downloads, installerCount] = [await getReleaseDownloads(), getStoredInstallerCount()];
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--text-primary)]">
+    <div className="flex min-h-screen flex-col bg-surface text-on-surface">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(INSTALL_PAGE_JSONLD) }}
@@ -41,16 +41,14 @@ export default async function InstallPage() {
       <main id="main-content">
         <section aria-labelledby="install-heading" className="pt-10 pb-16 sm:pt-16 sm:pb-24">
           <div className="mx-auto w-full max-w-4xl px-4 text-center sm:px-6">
-            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-              {PRODUCT_CATEGORY}
-            </p>
+            <p className="text-label-large text-primary">{PRODUCT_CATEGORY}</p>
             <h1
               id="install-heading"
-              className="mt-4 text-[2rem] font-medium leading-[1.08] tracking-[-0.04em] text-[var(--text-primary)] sm:text-[3rem]"
+              className="mt-4 text-display-small text-on-surface sm:text-display-medium"
             >
-              Download Synara
+              Download Mimir
             </h1>
-            <p className="mx-auto mt-5 max-w-xl text-[14px] leading-[1.7] text-[var(--text-secondary)] sm:text-[16px]">
+            <p className="mx-auto mt-5 max-w-xl text-body-large text-on-surface-variant">
               Install the desktop app, connect a coding-agent runtime already authenticated on your
               machine, and start with one repository and one bounded task.
             </p>

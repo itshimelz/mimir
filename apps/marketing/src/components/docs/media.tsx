@@ -5,7 +5,7 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/m3e/cn";
 
 type MediaProvenance = "real" | "derived" | "diagram";
 
@@ -69,7 +69,7 @@ function ImageFrame({
       rel="noopener noreferrer"
       aria-label={`${alt} — open full-size image`}
       className={cn(
-        "group/docs-media block overflow-hidden rounded-xl bg-[var(--block-elevated)] ring-1 ring-[var(--divide)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-link)]",
+        "group/docs-media block overflow-hidden rounded-xl bg-surface-container-low ring-1 ring-outline-variant focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
         theme === "light" && "dark:hidden",
         theme === "dark" && "hidden dark:block",
       )}
@@ -114,8 +114,8 @@ export function DocsImage({
 
   return (
     <figure data-docs-media="image" data-provenance={provenance} className="not-prose my-6">
-      <div className="mb-2 flex items-center justify-between gap-3 text-[11px] text-muted-foreground">
-        <span className="font-medium text-foreground">{PROVENANCE_LABEL[provenance]}</span>
+      <div className="mb-2 flex items-center justify-between gap-3 text-[11px] text-on-surface-variant">
+        <span className="font-medium text-on-surface">{PROVENANCE_LABEL[provenance]}</span>
         <span className="font-mono tabular-nums">
           {width} × {height}
         </span>
@@ -157,7 +157,7 @@ export function DocsImage({
       )}
 
       {caption ? (
-        <figcaption className="mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
+        <figcaption className="mt-2 text-[12.5px] leading-relaxed text-on-surface-variant">
           {caption}
         </figcaption>
       ) : null}
@@ -244,7 +244,7 @@ export function DocsVideo({
         height={height}
         aria-label={title}
         className={cn(
-          "block h-auto w-full rounded-xl bg-black ring-1 ring-[var(--divide)]",
+          "block h-auto w-full rounded-xl bg-black ring-1 ring-outline-variant",
           className,
         )}
       >
@@ -254,13 +254,13 @@ export function DocsVideo({
       </video>
 
       {caption ? (
-        <figcaption className="mt-2 text-[12.5px] leading-relaxed text-muted-foreground">
+        <figcaption className="mt-2 text-[12.5px] leading-relaxed text-on-surface-variant">
           {caption}
         </figcaption>
       ) : null}
 
-      <details className="mt-3 rounded-lg border border-border px-3 py-2 text-[12.5px] text-muted-foreground">
-        <summary className="cursor-pointer font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-link)]">
+      <details className="mt-3 rounded-lg border border-outline-variant px-3 py-2 text-[12.5px] text-on-surface-variant">
+        <summary className="cursor-pointer font-medium text-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
           Video transcript
         </summary>
         <div className="mt-2 leading-relaxed">{transcript}</div>

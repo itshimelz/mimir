@@ -1,6 +1,6 @@
 // FILE: Features.tsx
 // Purpose: Renders homepage provider and product-system sections.
-// Layer: Marketing UI section
+// Layer: Marketing UI section (M3E cards, badges, type scale)
 
 import type { ComponentType } from "react";
 import { SiOpenai } from "react-icons/si";
@@ -19,14 +19,13 @@ import { WorktreeMock } from "@/components/WorktreeMock";
 import { MultiProjectShowcase } from "@/components/MultiProjectShowcase";
 import { OneClickPrMock } from "@/components/OneClickPrMock";
 import { PRODUCT_PILLARS } from "@/data/product";
-import { MCard } from "@/components/m3e/card";
-import { MHeadline, MBody, MLabel } from "@/components/m3e/type";
+import { Badge } from "@/components/m3e/badge";
+import { Card } from "@/components/m3e/card";
 
 type GenericIcon = ComponentType<{ className?: string }>;
 
-const heading =
-  "text-[1.65rem] font-medium leading-[1.12] tracking-[-0.035em] text-[var(--text-primary)] sm:text-[2rem]";
-const body = "mt-5 max-w-2xl text-[15px] leading-[1.7] text-[var(--text-secondary)] sm:text-[16px]";
+const heading = "text-headline-medium text-on-surface sm:text-headline-large";
+const body = "mt-5 max-w-2xl text-body-large text-on-surface-variant";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 type Harness = {
@@ -50,21 +49,21 @@ const activeHarnesses: Harness[] = [
     tagline:
       "Run Codex tasks with the authenticated CLI, repository, and review surfaces together.",
     Icon: SiOpenai,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "CLI + account",
   },
   {
     name: "OpenCode",
     tagline: "Bring OpenCode and its configured provider catalog into the same task system.",
     Icon: OpencodeIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "Configured models",
   },
   {
     name: "Cursor",
     tagline: "Use Cursor Agent beside other runtimes without moving the work to another workspace.",
     Icon: CursorIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "Agent CLI",
   },
   {
@@ -78,7 +77,7 @@ const activeHarnesses: Harness[] = [
     name: "Grok Build",
     tagline: "Use Grok Build through its local runtime and Agent Client Protocol integration.",
     Icon: GrokIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "grok CLI",
   },
   {
@@ -86,21 +85,21 @@ const activeHarnesses: Harness[] = [
     tagline:
       "Run Devin locally through ACP with its account, models, commands, plan mode, and compaction.",
     Icon: DevinIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "ACP + account",
   },
   {
     name: "Pi",
     tagline: "Run Pi with its provider registry, thinking levels, skills, and native steering.",
     Icon: PiIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "Model registry",
   },
   {
     name: "Factory Droid",
     tagline: "Use Droid through its authenticated runtime, model controls, and ACP session.",
     Icon: DroidIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "droid CLI",
   },
 ];
@@ -108,11 +107,9 @@ const activeHarnesses: Harness[] = [
 export default function Features() {
   return (
     <div>
-      <section className="border-t border-[var(--divide)] py-14 sm:py-20">
+      <section className="border-t border-outline-variant py-14 sm:py-20">
         <div className={container}>
-          <p className="font-mono text-[12px] leading-relaxed uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
-            Provider portability
-          </p>
+          <p className="text-label-large text-primary">Provider portability</p>
           <h2 className={`${heading} mt-3`}>Keep the runtimes you already trust.</h2>
           <p className={body}>
             Mimir sits around your coding agents rather than replacing them. Each provider keeps its
@@ -120,60 +117,43 @@ export default function Features() {
             consistent task, environment, review, and delivery layer.
           </p>
 
-          <div className="mt-12 grid grid-cols-1 border-t border-[var(--divide)] sm:grid-cols-2">
+          <div className="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {activeHarnesses.map(({ name, tagline, Icon, accent, status }) => (
-              <MCard
-                key={name}
-                variant="elevated"
-                className="rounded-[20px] p-6"
-              >
+              <Card key={name} variant="outlined" className="rounded-lg p-6">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--block-elevated)]">
-                      <Icon className={`size-[18px] ${accent}`} aria-hidden="true" />
+                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-surface-container-high">
+                      <Icon className={`size-5 ${accent}`} aria-hidden="true" />
                     </span>
-                    <span className="truncate text-[15px] font-medium text-[var(--text-primary)]">
-                      {name}
-                    </span>
+                    <span className="truncate text-title-medium text-on-surface">{name}</span>
                   </div>
-                  <span className="shrink-0 text-[12px] font-medium tabular-nums text-[var(--text-secondary)]">
+                  <Badge variant="outline" className="shrink-0">
                     {status}
-                  </span>
+                  </Badge>
                 </div>
-                <p className="mt-3 text-[13px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)] sm:text-[13.5px]">
-                  {tagline}
-                </p>
-              </MCard>
+                <p className="mt-3 text-body-medium text-on-surface-variant">{tagline}</p>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-[var(--divide)] py-14 sm:py-20">
+      <section className="border-t border-outline-variant py-14 sm:py-20">
         <div className={container}>
-          <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
-            Durable task ownership
-          </p>
-          <h2 className={`${heading} mt-3 max-w-2xl`}>
-            One workspace. Separate tasks. Shared control.
-          </h2>
+          <p className="text-label-large text-primary">Durable task ownership</p>
+          <h2 className={`${heading} mt-3 max-w-2xl`}>One workspace. Separate tasks. Shared control.</h2>
           <p className={body}>
             A coding agent is only one part of the job. Mimir keeps the objective, environment, live
             processes, verification evidence, and delivery state attached to the work from first
             prompt to pull request.
           </p>
 
-          <div className="mt-12 grid grid-cols-1 border-t border-[var(--divide)] sm:grid-cols-2">
+          <div className="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {PRODUCT_PILLARS.map(({ title, description }) => (
-              <div
-                key={title}
-                className="border-b border-[var(--divide)] p-6 sm:p-7 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:border-[var(--divide)]"
-              >
-                <h3 className="text-[15px] font-medium text-[var(--text-primary)]">{title}</h3>
-                <p className="mt-3 text-[13px] leading-relaxed text-[var(--text-secondary)] sm:text-[13.5px]">
-                  {description}
-                </p>
-              </div>
+              <Card key={title} variant="outlined" className="rounded-lg p-6">
+                <h3 className="text-title-medium text-on-surface">{title}</h3>
+                <p className="mt-2 text-body-medium text-on-surface-variant">{description}</p>
+              </Card>
             ))}
           </div>
 

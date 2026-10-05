@@ -19,11 +19,17 @@ const MONTHS: Record<string, string> = {
   Dec: "12",
 };
 
-/** Fallbacks only; dynamic route helpers prefer changelog and Git metadata. */
-export const SITE_LATEST_UPDATE = new Date("2026-08-02T00:00:00.000Z");
-export const PRIVACY_LAST_UPDATED = new Date("2026-06-04T00:00:00.000Z");
-export const DOCS_LAST_UPDATED = new Date("2026-08-04T00:00:00.000Z");
-export const SPONSOR_LAST_UPDATED = new Date("2026-08-07T00:00:00.000Z");
+/**
+ * Fallbacks only; dynamic route helpers prefer changelog and Git metadata.
+ *
+ * Mimir's first release is 0.0.1 (see CHANGELOG.md). These predate it only as
+ * defensive defaults for a build with no changelog entries or git dates, so
+ * they are pinned to that release rather than to the previous product's dates.
+ */
+export const SITE_LATEST_UPDATE = new Date("2026-10-04T00:00:00.000Z");
+export const PRIVACY_LAST_UPDATED = new Date("2026-10-04T00:00:00.000Z");
+export const DOCS_LAST_UPDATED = new Date("2026-10-04T00:00:00.000Z");
+export const SPONSOR_LAST_UPDATED = new Date("2026-10-04T00:00:00.000Z");
 
 export function releaseDateIso(dateLabel: string) {
   const [monthName, day] = dateLabel.split(" ");

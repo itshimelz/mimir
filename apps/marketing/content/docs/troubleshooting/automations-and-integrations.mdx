@@ -15,7 +15,7 @@ Check:
 4. Provider authentication still succeeds.
 5. The previous run is not still active or blocked on approval.
 6. A stop condition did not disable the automation.
-7. Synara was running when the automation depended on the local desktop runtime.
+7. Mimir was running when the automation depended on the local desktop runtime.
 
 Read the run history before editing the schedule. A missing visible response can still have a recorded dispatch or failure.
 
@@ -80,7 +80,7 @@ The internal Agent Gateway is thread-scoped and capability-scoped.
 
 Check:
 
-- The caller is a provider session running inside Synara
+- The caller is a provider session running inside Mimir
 - The caller turn is still active for write operations
 - The provider received the gateway capability
 - The requested tool is allowed for that thread
@@ -126,7 +126,7 @@ Open **Settings → Integrations** and inspect the integration.
 - Use **Continue setup** for an integration that is already paired
 - Complete the generated setup prompt in the intended MCP client
 - Confirm the client reaches `synara_overview`
-- Verify the setup targets the currently running Synara installation and data directory
+- Verify the setup targets the currently running Mimir installation and data directory
 
 A new pairing code does not replace an already paired credential.
 
@@ -138,16 +138,16 @@ Check:
 
 - The MCP client configuration launches the generated local bridge command
 - The configured runtime and server paths still exist
-- The explicit Synara data directory is correct
+- The explicit Mimir data directory is correct
 - The intended integration ID is selected when more than one credential exists
-- Synara is running and loopback-only
+- Mimir is running and loopback-only
 - The credential is not expired or revoked
 
 Do not copy the raw integration credential into the client configuration. The generated launcher reads the private local credential file.
 
 ## External MCP reports no allowed projects
 
-Review the integration’s project scope in Synara.
+Review the integration’s project scope in Mimir.
 
 The external tool surface lists only projects explicitly allowed by the integration. System-managed containers such as Chats and Studio are not ordinary projects.
 
@@ -172,13 +172,13 @@ Wait for the current rate window or active task to clear. Do not create another 
 
 An active task slot remains occupied while its current turn is pending or running. An idempotent retry of the same creation request does not consume a second slot.
 
-## Integration targets the wrong Synara instance
+## Integration targets the wrong Mimir instance
 
 Stop the client before sending more requests.
 
 Generated setup includes the exact executable and data directory of the running installation. A manually written bridge configuration must do the same.
 
-When several Synara installations or credentials exist:
+When several Mimir installations or credentials exist:
 
 - Use the intended integration ID explicitly
 - Verify the `--home-dir` path
@@ -200,7 +200,7 @@ Do not restore a revoked credential file from backup as a recovery method. The s
 - [ ] Agent Gateway context and capabilities were read
 - [ ] Stable request IDs were preserved for exact retries
 - [ ] External MCP pairing and connected state were distinguished
-- [ ] The explicit Synara installation and data directory were verified
+- [ ] The explicit Mimir installation and data directory were verified
 - [ ] Project, capability, rate, and active-task limits were respected
 - [ ] No raw integration credential was shared
 - [ ] Revoked credentials were replaced rather than restored

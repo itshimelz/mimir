@@ -1,9 +1,9 @@
-// FILE: DownloadButton.tsx — OS-aware hero CTA as M3E filled button.
+// FILE: DownloadButton.tsx — OS-aware hero CTA as an M3E filled button.
 "use client";
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
-import { MButton } from "@/components/m3e/button";
-import { MIcon } from "@/components/m3e/icon";
+import { Button } from "@/components/m3e/button";
+import { Icon } from "@/components/m3e/icon";
 import { detectOS, type OS } from "@/lib/platform";
 
 const LABEL: Record<OS, string> = {
@@ -24,6 +24,16 @@ export default function DownloadButton({ className = "" }: { className?: string 
     () => LABEL.unknown,
   );
   return (
-    <MButton variant="filled" size="md" className={className} render={<Link href="/install">{label}<MIcon name="download" size={20} /></Link>} />
+    <Button
+      variant="filled"
+      size="md"
+      className={className}
+      render={
+        <Link href="/install">
+          {label}
+          <Icon name="download" data-icon="inline-end" />
+        </Link>
+      }
+    />
   );
 }

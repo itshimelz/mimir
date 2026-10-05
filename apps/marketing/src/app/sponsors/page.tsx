@@ -1,19 +1,18 @@
 // FILE: sponsors/page.tsx
 // Purpose: The sponsor wall — a public thank-you listing everyone funding
-//          Synara, grouped by tier. The pitch and the tiers live at /sponsor.
-// Layer: App Router page (static)
-// Depends on: Navbar, SiteFooter, SectionEyebrow, SponsorRow, data/sponsors, lib/sponsors
+//          Mimir, grouped by tier. The pitch and the tiers live at /sponsor.
+// Layer: App Router page (static, M3E buttons + labels)
 // Note: Only public GitHub sponsors belong in data/sponsors.ts — see the note
 //       there before adding anyone.
 
 import Link from "next/link";
-import { LuArrowUpRight, LuHeart } from "react-icons/lu";
 import Navbar from "@/components/Navbar";
 import { SectionEyebrow } from "@/components/SectionEyebrow";
 import SiteFooter from "@/components/SiteFooter";
 import { SponsorRow } from "@/components/SponsorRow";
+import { Button } from "@/components/m3e/button";
+import { Icon } from "@/components/m3e/icon";
 import { SPONSORS } from "@/data/sponsors";
-import { ctaButtonClass } from "@/lib/ctaButton";
 import { groupSponsors, orderedSponsors, sponsorLink } from "@/lib/sponsors";
 import {
   GITHUB_SPONSORS_URL,
@@ -24,9 +23,9 @@ import {
 } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "Sponsors — Synara",
+  title: "Sponsors — Mimir",
   description:
-    "The people and companies funding Synara, the free and open-source command center for agentic development. Thank you to every sponsor and one-time donor.",
+    "The people and companies funding Mimir, the free and open-source command center for agentic development. Thank you to every sponsor and one-time donor.",
   path: "/sponsors",
 });
 
@@ -40,7 +39,7 @@ const SPONSORS_JSONLD = [
     })),
   ),
   breadcrumbJsonLd([
-    { name: "Synara", path: "/" },
+    { name: "Mimir", path: "/" },
     { name: "Sponsors", path: "/sponsors" },
   ]),
 ];
@@ -50,7 +49,7 @@ export default function SponsorsPage() {
   const count = ORDERED_SPONSORS.length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[var(--page-bg)] text-[var(--text-primary)]">
+    <div className="flex min-h-screen flex-col bg-surface text-on-surface">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdScript(SPONSORS_JSONLD) }}
@@ -63,13 +62,13 @@ export default function SponsorsPage() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-10 pb-20 sm:px-6 sm:pt-14">
         <header>
           <SectionEyebrow as="p">Sponsors</SectionEyebrow>
-          <h1 className="mt-2.5 text-[1.35rem] font-medium leading-[1.2] tracking-[-0.03em] sm:text-[1.5rem]">
-            The people keeping Synara free
+          <h1 className="mt-2.5 text-headline-medium text-on-surface">
+            The people keeping Mimir free
           </h1>
-          <p className="mt-3 max-w-3xl text-[13.5px] leading-[1.65] text-[var(--text-secondary)]">
+          <p className="mt-3 max-w-3xl text-body-medium text-on-surface-variant">
             {count === 0
-              ? "Synara is funded entirely by sponsorship. This page is where sponsors get listed — it's empty right now, so the first name on it is available."
-              : "Synara is funded entirely by sponsorship — there's no paid tier and no company behind it. Everyone below chose to fund work they could otherwise use for free. Thank you."}
+              ? "Mimir is funded entirely by sponsorship. This page is where sponsors get listed — it's empty right now, so the first name on it is available."
+              : "Mimir is funded entirely by sponsorship — there's no paid tier and no company behind it. Everyone below chose to fund work they could otherwise use for free. Thank you."}
           </p>
         </header>
 
@@ -89,36 +88,32 @@ export default function SponsorsPage() {
             ))}
           </div>
         ) : (
-          <p className="mt-10 text-[13px] text-[var(--text-tertiary)]">
+          <p className="mt-10 text-body-medium text-on-surface-variant">
             No sponsors yet — the first slot is open.
           </p>
         )}
 
-        <section className="mt-12 border-t border-[var(--divide)] pt-8">
-          <h2 className="text-[14px] font-medium tracking-[-0.01em]">
-            Your name could be on this page
-          </h2>
-          <p className="mt-2 max-w-3xl text-[13px] leading-[1.65] text-[var(--text-secondary)]">
-            Sponsoring Synara gets you listed here. Every tier runs through GitHub Sponsors — the
+        <section className="mt-12 border-t border-outline-variant pt-8">
+          <h2 className="text-title-medium text-on-surface">Your name could be on this page</h2>
+          <p className="mt-2 max-w-3xl text-body-medium text-on-surface-variant">
+            Sponsoring Mimir gets you listed here. Every tier runs through GitHub Sponsors — the
             full breakdown is on the sponsor page.
           </p>
           <div className="mt-5 flex flex-col gap-2.5 sm:flex-row">
-            <Link
-              href="/sponsor"
-              className={ctaButtonClass({ variant: "primary", width: "responsive" })}
-            >
-              <LuHeart className="size-4" aria-hidden="true" />
+            <Button variant="filled" className="w-full sm:w-auto" render={<Link href="/sponsor" />}>
+              <Icon name="favorite" data-icon="inline-start" />
               See the tiers
-            </Link>
-            <a
-              href={GITHUB_SPONSORS_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={ctaButtonClass({ variant: "secondary", width: "responsive" })}
+            </Button>
+            <Button
+              variant="outlined"
+              className="w-full sm:w-auto"
+              render={
+                <a href={GITHUB_SPONSORS_URL} target="_blank" rel="noopener noreferrer" />
+              }
             >
               Sponsor on GitHub
-              <LuArrowUpRight className="size-4" aria-hidden="true" />
-            </a>
+              <Icon name="arrow_outward" data-icon="inline-end" />
+            </Button>
           </div>
         </section>
       </main>

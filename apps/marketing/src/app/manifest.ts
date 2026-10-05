@@ -1,5 +1,5 @@
 // FILE: manifest.ts
-// Purpose: Generates the web app manifest with Synara identity, icons, and screenshots.
+// Purpose: Generates the web app manifest with Mimir identity, icons, and screenshots.
 // Layer: Next.js metadata route.
 
 import type { MetadataRoute } from "next";

@@ -21,7 +21,7 @@ export default function InstallerCount({ initialCount }: InstallerCountProps) {
   return (
     <span>
       Already downloaded by{" "}
-      <span className="font-medium text-[var(--text-primary)]">
+      <span className="font-medium text-on-surface">
         {formatInstallerCount(initialCount)} people
       </span>
     </span>

@@ -2,15 +2,19 @@
 // Purpose: Renders the three platform download cards (macOS / Windows / Linux),
 //          detects the visitor's OS to highlight the recommended one, and lets
 //          Mac users switch between the Apple Silicon and Intel builds.
-// Layer: Client component
+// Layer: Client component (M3E cards, buttons, segmented toggle group)
 // Depends on: src/lib/platform, src/lib/releases (ReleaseDownloads type), InstallerCount
 
 "use client";
 
 import { useState, useSyncExternalStore, type ReactNode } from "react";
 import { FaApple, FaWindows, FaLinux } from "react-icons/fa";
-import { LuArrowDownToLine, LuCheck } from "react-icons/lu";
 import InstallerCount from "@/components/InstallerCount";
+import { Badge } from "@/components/m3e/badge";
+import { Button } from "@/components/m3e/button";
+import { Card } from "@/components/m3e/card";
+import { Icon } from "@/components/m3e/icon";
+import { ToggleGroup, ToggleGroupItem } from "@/components/m3e/toggle-group";
 import { detectCurrentOS, detectMacArch, type MacArch, type OS } from "@/lib/platform";
 import type { ReleaseDownloads } from "@/lib/releases";
 
@@ -56,11 +60,11 @@ export default function InstallOptions({
 
   return (
     <div className="flex flex-col items-center text-center">
-      <p className="mb-6 min-h-[18px] text-[12px] text-[var(--text-tertiary)]">
+      <p className="mb-6 min-h-[18px] text-body-small text-on-surface-variant">
         {os !== "unknown" ? (
           <>
-            Detected <span className="text-[var(--text-secondary)]">{OS_LABEL[os]}</span> —
-            recommended option highlighted below.
+            Detected <span className="text-on-surface">{OS_LABEL[os]}</span> — recommended option
+            highlighted below.
           </>
         ) : (
           "Pick your platform to download the latest build."
@@ -70,7 +74,7 @@ export default function InstallOptions({
       <div className="grid w-full gap-4 sm:grid-cols-3">
         <PlatformCard
           index={0}
-          icon={<FaApple className="size-6" aria-hidden="true" />}
+          glyph={<FaApple className="size-6" aria-hidden="true" />}
           name="macOS"
           subtitle=".dmg · Apple Silicon & Intel"
           href={macHref}
@@ -81,7 +85,7 @@ export default function InstallOptions({
 
         <PlatformCard
           index={1}
-          icon={<FaWindows className="size-[22px]" aria-hidden="true" />}
+          glyph={<FaWindows className="size-[22px]" aria-hidden="true" />}
           name="Windows"
           subtitle=".exe installer · 64-bit"
           href={downloads.windows}
@@ -90,7 +94,7 @@ export default function InstallOptions({
 
         <PlatformCard
           index={2}
-          icon={<FaLinux className="size-6" aria-hidden="true" />}
+          glyph={<FaLinux className="size-6" aria-hidden="true" />}
           name="Linux"
           subtitle=".AppImage · x86_64"
           href={downloads.linux}
@@ -98,18 +102,18 @@ export default function InstallOptions({
         />
       </div>
 
-      <p className="mt-8 text-[12px] text-[var(--text-tertiary)]">
+      <p className="mt-8 text-body-small text-on-surface-variant">
         <InstallerCount initialCount={installerCount} />
       </p>
 
-      <p className="mt-2 text-[12px] leading-[1.6] text-[var(--text-tertiary)]">
+      <p className="mt-2 text-body-small leading-[1.6] text-on-surface-variant">
         {downloads.version ? `Latest release ${downloads.version}. ` : ""}
         Looking for an older version or the checksums?{" "}
         <a
           href={downloads.releasesUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-[var(--accent-link)] underline decoration-[var(--accent-link)] underline-offset-2 transition-colors hover:text-[var(--accent-link-hover)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-link)]"
+          className="text-primary underline decoration-primary/30 underline-offset-2 transition-colors hover:decoration-primary focus-ring rounded-sm"
         >
           Browse all releases
         </a>
@@ -121,7 +125,7 @@ export default function InstallOptions({
 
 function PlatformCard({
   index,
-  icon,
+  glyph,
   name,
   subtitle,
   href,
@@ -129,7 +133,7 @@ function PlatformCard({
   children,
 }: {
   index: number;
-  icon: ReactNode;
+  glyph: ReactNode;
   name: string;
   subtitle: string;
   href: string;
@@ -137,42 +141,39 @@ function PlatformCard({
   children?: ReactNode;
 }) {
   return (
-    <div
+    <Card
+      variant="outlined"
       style={{ animationDelay: `${index * 90}ms` }}
-      className={`animate-rise-in relative flex flex-col items-center rounded-2xl border bg-[var(--block-elevated)] px-5 pb-5 pt-7 text-center transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 ${
-        recommended
-          ? "border-[var(--accent-link)]/40 ring-1 ring-[var(--accent-link)]/30"
-          : "border-[var(--divide)]"
+      className={`animate-rise-in relative flex flex-col items-center rounded-2xl px-5 pt-7 pb-5 text-center ${
+        recommended ? "border-primary ring-2 ring-primary" : ""
       }`}
     >
       {recommended ? (
-        <span className="absolute -top-2.5 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full border border-[var(--accent-link)]/30 bg-[var(--page-bg)] px-2.5 py-0.5 text-[10.5px] font-medium text-[var(--accent-link)]">
-          <LuCheck className="size-3" aria-hidden="true" />
+        <Badge className="absolute -top-2.5 left-1/2 -translate-x-1/2 gap-1 whitespace-nowrap border-primary bg-surface text-primary">
+          <Icon name="check" size={14} aria-hidden="true" />
           For your device
-        </span>
+        </Badge>
       ) : null}
 
-      <span className="flex h-7 items-center justify-center text-[var(--text-primary)]">
-        {icon}
-      </span>
+      <span className="flex h-7 items-center justify-center text-on-surface">{glyph}</span>
 
-      <h2 className="mt-3 text-[15px] font-medium tracking-[-0.02em] text-[var(--text-primary)]">
-        {name}
-      </h2>
-      <p className="mt-1 text-[12px] text-[var(--text-tertiary)]">{subtitle}</p>
+      <h2 className="mt-3 text-title-medium text-on-surface">{name}</h2>
+      <p className="mt-1 text-body-small text-on-surface-variant">{subtitle}</p>
 
       {/* Pinned to the bottom so every card's Download button lines up. */}
       <div className="mt-auto w-full pt-6">
         {children ? <div className="mb-3 flex justify-center">{children}</div> : null}
-        <a
-          href={href}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--btn-primary-bg)] px-4 py-2.5 text-[13px] font-medium text-[var(--btn-primary-fg)] transition-opacity hover:opacity-90"
+        <Button
+          variant="filled"
+          className="w-full"
+          render={<a href={href} />}
+          aria-label={`Download Mimir for ${name}`}
         >
           Download
-          <LuArrowDownToLine className="size-4" aria-hidden="true" />
-        </a>
+          <Icon name="download" data-icon="inline-end" />
+        </Button>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -182,41 +183,21 @@ const ARCH_OPTIONS = [
 ] as const;
 
 function ArchToggle({ arch, onChange }: { arch: MacArch; onChange: (arch: MacArch) => void }) {
-  const activeIndex = arch === "arm64" ? 0 : 1;
-
   return (
-    <div
-      className="relative inline-grid grid-cols-2 rounded-full border border-[var(--divide)] p-0.5 text-[12px]"
-      role="group"
+    <ToggleGroup
+      value={[arch]}
+      onValueChange={(value) => {
+        const next = value[0];
+        if (next) onChange(next as MacArch);
+      }}
       aria-label="macOS chip"
+      className="text-label-large"
     >
-      {/* Dark indicator that slides to the selected segment. */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-y-0.5 left-0.5 rounded-full bg-[var(--btn-primary-bg)] transition-transform duration-300 ease-out"
-        style={{
-          width: "calc((100% - 0.25rem) / 2)",
-          transform: `translateX(${activeIndex * 100}%)`,
-        }}
-      />
-      {ARCH_OPTIONS.map((option) => {
-        const active = arch === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onChange(option.value)}
-            className={`relative z-10 rounded-full px-3 py-1 font-medium transition-colors duration-200 ${
-              active
-                ? "text-[var(--btn-primary-fg)]"
-                : "text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
+      {ARCH_OPTIONS.map((option) => (
+        <ToggleGroupItem key={option.value} value={option.value} size="sm">
+          {option.label}
+        </ToggleGroupItem>
+      ))}
+    </ToggleGroup>
   );
 }

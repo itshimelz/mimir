@@ -6,6 +6,6 @@
 
 export function ParallelChatMock() {
   return (
-    <div className="overflow-hidden rounded-lg ring-1 ring-black/5 sm:rounded-xl dark:ring-white/10" />
+    <div className="overflow-hidden rounded-lg border border-outline-variant bg-surface-container" />
   );
 }

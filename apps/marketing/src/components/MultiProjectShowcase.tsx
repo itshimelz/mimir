@@ -1,11 +1,9 @@
 // FILE: MultiProjectShowcase.tsx
 // Purpose: Shows persistent project and task organization across repositories.
-// Layer: Marketing UI section
+// Layer: Marketing UI section (M3E type scale)
 
-const sectionHeading =
-  "text-[1.35rem] font-medium leading-[1.14] tracking-[-0.03em] text-[var(--text-primary)] sm:text-[1.6rem]";
-const sectionBody =
-  "mt-3 max-w-xl text-[13px] leading-[1.6] text-[var(--text-secondary)] sm:mt-4 sm:text-[14px]";
+const sectionHeading = "text-headline-small text-on-surface sm:text-headline-medium";
+const sectionBody = "mt-3 max-w-xl text-body-medium text-on-surface-variant sm:mt-4 sm:text-body-large";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 export function MultiProjectShowcase() {
@@ -23,7 +21,7 @@ export function MultiProjectShowcase() {
           </div>
 
           <div className="relative min-w-0">
-            <div className="relative isolate overflow-hidden rounded-xl p-2 ring-1 ring-black/5 sm:rounded-2xl sm:p-3 dark:ring-white/10">
+            <div className="relative isolate overflow-hidden rounded-xl p-2 ring-1 ring-outline-variant sm:rounded-2xl sm:p-3">
               <div aria-hidden className="shot-card-bg absolute inset-0 -z-10" />
             </div>
           </div>

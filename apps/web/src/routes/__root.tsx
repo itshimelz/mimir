@@ -185,6 +185,7 @@ import {
   getProjectFileInvalidationThreadIdForEvent,
   getStudioOutputInvalidationThreadIdForEvent,
   resolveGitInvalidationCwdForThreadId,
+  resolveSpaceIdForThreadId,
   shouldInvalidateGitQueriesForEvent,
   shouldInvalidateProviderQueriesForEvent,
 } from "./-rootEventInvalidation";
@@ -1858,11 +1859,24 @@ function EventRouter() {
         }
       }
       if (pendingStudioOutputInvalidationThreadIds.size > 0) {
-        // File-change activities cover non-Git Studio chats; finalized checkpoints cover Git.
+        // File-change activities cover non-Git workspaces; finalized checkpoints cover Git.
+        //
+        // Two keys are invalidated per thread. The thread-scoped list backs the chat
+        // Environment panel, and the space-scoped list backs the Studio surface, whose
+        // entries aggregate every thread in the space — so a capture in one conversation
+        // changes what another conversation's Studio column shows. Resolving the thread's
+        // project here (rather than only the active thread's space) is what keeps a course's
+        // artifact list live while the student is looking at a different conversation.
         for (const threadId of pendingStudioOutputInvalidationThreadIds) {
           void queryClient.invalidateQueries({
             queryKey: serverQueryKeys.studioThreadOutputs(threadId),
           });
+          const spaceId = resolveSpaceIdForThreadId(useStore.getState(), threadId);
+          if (spaceId) {
+            void queryClient.invalidateQueries({
+              queryKey: serverQueryKeys.studioSpaceOutputs(spaceId),
+            });
+          }
         }
         pendingStudioOutputInvalidationThreadIds = new Set();
       }

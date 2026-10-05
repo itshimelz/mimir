@@ -3,7 +3,7 @@
 // Layer: Route utility unit tests
 // Depends on: rootEventInvalidation predicates and Vitest assertions.
 
-import { ProjectId, ThreadId, type OrchestrationEvent } from "@synara/contracts";
+import { ProjectId, SpaceId, ThreadId, type OrchestrationEvent } from "@synara/contracts";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -11,6 +11,7 @@ import {
   getProjectFileInvalidationThreadIdForEvent,
   getStudioOutputInvalidationThreadIdForEvent,
   resolveGitInvalidationCwdForThreadId,
+  resolveSpaceIdForThreadId,
   shouldInvalidateGitQueriesForEvent,
   shouldInvalidateProviderQueriesForEvent,
 } from "./-rootEventInvalidation";
@@ -192,6 +193,39 @@ describe("root event invalidation", () => {
 
     expect(resolveGitInvalidationCwdForThreadId(state, localThreadId)).toBe("/repo/main");
     expect(resolveGitInvalidationCwdForThreadId(state, worktreeThreadId)).toBe("/repo/worktree");
+  });
+
+  it("resolves the space a thread's artifacts belong to, for the space-scoped Studio list", () => {
+    // The Studio surface reads the space's list, which aggregates every thread in it, so a
+    // capture in one conversation has to invalidate what another conversation shows. That
+    // means resolving the *thread's* project space rather than the active thread's.
+    const spaceId = SpaceId.makeUnsafe("course-1");
+    const threadId = ThreadId.makeUnsafe("thread-in-space");
+    const voidThreadId = ThreadId.makeUnsafe("thread-in-void");
+    const projectId = ProjectId.makeUnsafe("course-project");
+    const thread = makeThread({ id: threadId, projectId, envMode: "local", worktreePath: null });
+    const voidThread = makeThread({
+      id: voidThreadId,
+      projectId: ProjectId.makeUnsafe("unfiled"),
+      envMode: "local",
+      worktreePath: null,
+    });
+    const state: AppState = {
+      spaces: [],
+      projects: [
+        { id: projectId, cwd: "/courses/cell", spaceId },
+        { id: ProjectId.makeUnsafe("unfiled"), cwd: "/courses/loose", spaceId: null },
+      ] as AppState["projects"],
+      sidebarThreadSummaryById: {},
+      threadsHydrated: true,
+      threadIds: [threadId, voidThreadId],
+      threadShellById: { [threadId]: thread, [voidThreadId]: voidThread },
+    };
+
+    expect(resolveSpaceIdForThreadId(state, threadId)).toBe(spaceId);
+    // A folder still in Void has no space list to invalidate.
+    expect(resolveSpaceIdForThreadId(state, voidThreadId)).toBeNull();
+    expect(resolveSpaceIdForThreadId(state, ThreadId.makeUnsafe("missing"))).toBeNull();
   });
 });
 

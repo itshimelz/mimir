@@ -75,7 +75,9 @@ export function StudioArtifactsSidebar(props: {
     props.onSelectOutput(entry);
   };
 
-  if (props.isLoading) {
+  // Only a first load shows a spinner. A refetch of an already-populated list must not
+  // replace the student's artifacts with a loading state — they may be reading one.
+  if (props.isLoading && groups.length === 0) {
     return (
       <aside className={containerClassName} data-testid="studio-artifacts-sidebar">
         <PanelStateMessage density="compact">Loading your work…</PanelStateMessage>
@@ -84,6 +86,9 @@ export function StudioArtifactsSidebar(props: {
   }
 
   if (groups.length === 0) {
+    // Reached only once the query has actually resolved: the loading branch above owns the
+    // pending case, so this message cannot claim "nothing here yet" about work that has
+    // simply not arrived from the server yet.
     return (
       <aside className={containerClassName} data-testid="studio-artifacts-sidebar">
         <PanelStateMessage density="compact">

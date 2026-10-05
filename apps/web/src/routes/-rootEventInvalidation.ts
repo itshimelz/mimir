@@ -6,6 +6,7 @@
 import {
   STUDIO_OUTPUTS_ACTIVITY_KIND,
   type OrchestrationEvent,
+  type SpaceId,
   type ThreadId,
 } from "@synara/contracts";
 import { resolveThreadWorkspaceCwd } from "@synara/shared/threadEnvironment";
@@ -121,6 +122,19 @@ export function getGitInvalidationThreadIdForEvent(event: OrchestrationEvent): T
     return null;
   }
   return "threadId" in event.payload ? (event.payload.threadId as ThreadId) : null;
+}
+
+/**
+ * The space a thread's project is filed in, or null when it is not in one (still Void) or the
+ * thread is unknown. Used to invalidate the space-scoped Studio output list, which aggregates
+ * every thread in the space.
+ */
+export function resolveSpaceIdForThreadId(state: AppState, threadId: ThreadId): SpaceId | null {
+  const thread = getThreadFromState(state, threadId);
+  if (!thread) {
+    return null;
+  }
+  return state.projects.find((project) => project.id === thread.projectId)?.spaceId ?? null;
 }
 
 // Resolve after domain events apply, so worktree metadata changes target the new cwd.

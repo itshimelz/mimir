@@ -43,7 +43,11 @@ import { editorCenterModeFamily, type EditorCenterMode } from "../../lib/editorC
 import { gitBranchesQueryOptions } from "../../lib/gitReactQuery";
 import { canComposerHandlePanelWidth } from "../../lib/panelResize";
 import { projectListDirectoriesQueryOptions } from "../../lib/projectReactQuery";
-import { studioThreadOutputsQueryOptions } from "../../lib/serverReactQuery";
+import {
+  studioSpaceOutputsQueryOptions,
+  studioThreadOutputsQueryOptions,
+} from "../../lib/serverReactQuery";
+import { resolveStudioOutputEntries, resolveStudioOutputScope } from "./studioOutputScope";
 import { serverConfigQueryOptions } from "../../lib/serverReactQuery";
 import { useSidechatShortcut } from "./useSidechatShortcut";
 import { waitForSidechatCreator } from "../../lib/sidechatCreatorRegistry";
@@ -300,13 +304,39 @@ export function SingleChatSurface(props: {
   const [editorDiffFilesLoading, setEditorDiffFilesLoading] = useState(false);
   const [editorDiffOptionsControl, setEditorDiffOptionsControl] = useState<ReactNode | null>(null);
   const [editorDiffVisibleFilePath, setEditorDiffVisibleFilePath] = useState<string | null>(null);
-  // Backs the Studio surface's artifact column. The server attributes outputs to this
-  // thread from checkpoints, file-change activity, and its per-turn scan, for any project
-  // kind that participates in Studio output (see `participatesInStudioOutputs`) — which
-  // includes ordinary course folders, not just the legacy group/studio containers.
+  // Backs the Studio surface's artifact column. Two scopes, because a course has to
+  // accumulate: the server attributes outputs to a thread from checkpoints, file-change
+  // activity, and its per-turn scan, for any project kind that participates in Studio output
+  // (see `participatesInStudioOutputs`) — which includes ordinary course folders. Reading
+  // only this thread's list meant a student's work vanished when they started a new chat.
+  //
+  // A project filed in a space therefore reads the space-scoped list; a project not in one
+  // (still Void) falls back to this thread. Both queries are declared unconditionally so the
+  // hook order never changes with the surface, and only the matching one is enabled.
+  const studioOutputScope = resolveStudioOutputScope({
+    spaceId: activeProject?.spaceId,
+    threadId: props.threadId,
+  });
   const editorStudioOutputs = useQuery(
-    studioThreadOutputsQueryOptions({ threadId: props.threadId }),
+    studioThreadOutputsQueryOptions({
+      threadId: props.threadId,
+      enabled: studioOutputScope.kind === "thread",
+    }),
   );
+  const editorStudioSpaceOutputs = useQuery(
+    studioSpaceOutputsQueryOptions({
+      spaceId: studioOutputScope.kind === "space" ? studioOutputScope.spaceId : null,
+    }),
+  );
+  // A space entry is a structural superset of a thread entry (same four fields plus the
+  // producing thread and project), so the sidebar consumes either without branching.
+  const resolvedStudioOutputs = resolveStudioOutputEntries({
+    scope: studioOutputScope,
+    spaceEntries: editorStudioSpaceOutputs.data?.entries,
+    spaceIsPending: editorStudioSpaceOutputs.isPending,
+    threadEntries: editorStudioOutputs.data?.entries,
+    threadIsPending: editorStudioOutputs.isPending,
+  });
   const [searchPaletteOpen, setSearchPaletteOpen] = useState(false);
   const [searchPaletteMode, setSearchPaletteMode] = useState<WorkspaceSearchPaletteMode>("files");
   const floatingBrowserRequested = useFloatingBrowserRequestStore(
@@ -1099,8 +1129,8 @@ export function SingleChatSurface(props: {
               // `exactOptionalPropertyTypes` distinguishes "absent" from "explicitly
               // undefined", so passing the possibly-undefined query result through fails
               // typecheck even though the component already handles the missing case.
-              studioOutputs={editorStudioOutputs.data?.entries ?? []}
-              studioOutputsLoading={editorStudioOutputs.isPending}
+              studioOutputs={resolvedStudioOutputs.entries}
+              studioOutputsLoading={resolvedStudioOutputs.isPending}
               leaveGuardRef={editorLeaveGuardRef}
               diffPanel={
                 <LazyDiffPanel

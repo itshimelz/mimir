@@ -64,12 +64,24 @@ afterEach(async () => {
   window.localStorage.removeItem("synara.editor.surface");
 });
 
+type StudioOutput = NonNullable<
+  React.ComponentProps<typeof EditorWorkspaceView>["studioOutputs"]
+>[number];
+
+const LESSON: StudioOutput = {
+  name: "2026-07-08_cell-division_lesson.md",
+  relativePath: "Outbox/Lessons/2026-07-08_cell-division_lesson.md",
+  fullPath: `${WORKSPACE_ROOT}/Outbox/Lessons/2026-07-08_cell-division_lesson.md`,
+  modifiedAt: "2026-07-08T10:00:00.000Z",
+};
+
 function makeView() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
     centerMode: "file" | "diff" | "fileEdit" = "file",
     filePath = "README.md",
     workspaceRoot = WORKSPACE_ROOT,
+    studioOutputs: ReadonlyArray<StudioOutput> = [LESSON],
   ) => (
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
@@ -92,14 +104,7 @@ function makeView() {
           onEditFile={vi.fn()}
           onCloseEdit={vi.fn()}
           onExitEditorView={vi.fn()}
-          studioOutputs={[
-            {
-              name: "2026-06-09_cell_division_lesson.md",
-              relativePath: "Outbox/Content/2026-06-09_cell_division_lesson.md",
-              fullPath: `${WORKSPACE_ROOT}/Outbox/Content/2026-06-09_cell_division_lesson.md`,
-              modifiedAt: "2026-06-09T10:00:00.000Z",
-            },
-          ]}
+          studioOutputs={studioOutputs}
         />
       </SidebarProvider>
     </QueryClientProvider>
@@ -274,7 +279,7 @@ it("groups Studio artifacts by their Outbox category and previews the selected o
     await expect
       .element(page.getByRole("radio", { name: "Studio", exact: true }))
       .toHaveAttribute("aria-checked", "true");
-    await expect.element(page.getByText("Content", { exact: true })).toBeInTheDocument();
+    await expect.element(page.getByText("Lessons", { exact: true })).toBeInTheDocument();
 
     // Nothing is previewed until the student picks an artifact.
     await expect.element(page.getByText("Select an artifact to review it.")).toBeInTheDocument();
@@ -287,6 +292,44 @@ it("groups Studio artifacts by their Outbox category and previews the selected o
       .element(page.getByText("Select an artifact to review it."))
       .not.toBeInTheDocument();
     await expect.element(artifactRow).toHaveAttribute("aria-pressed", "true");
+
+    await screen.unmount();
+  } finally {
+    window.localStorage.removeItem("synara.editor.surface");
+  }
+});
+
+it("shows space-scoped artifacts across categories and never flashes a spinner over them", async () => {
+  // The artifact column now lists everything a course has produced, across every
+  // conversation in it, so the entries here stand in for a space-scoped response: several
+  // categories, and a list that must stay visible while it refetches.
+  try {
+    const view = makeView();
+    const screen = await render(
+      view("file", "README.md", WORKSPACE_ROOT, [
+        LESSON,
+        {
+          name: "2026-07-08_quiz_cells.md",
+          relativePath: "Outbox/Quizzes/2026-07-08_quiz_cells.md",
+          fullPath: `${WORKSPACE_ROOT}/Outbox/Quizzes/2026-07-08_quiz_cells.md`,
+          modifiedAt: "2026-07-08T11:00:00.000Z",
+        },
+      ]),
+    );
+    // Switched by click rather than by seeding localStorage, so the assertion does not
+    // depend on the stored-preference read happening before first paint.
+    await page.getByRole("radio", { name: "Studio", exact: true }).click();
+
+    // Both course categories the agent is taught to use.
+    await expect.element(page.getByText("Lessons", { exact: true })).toBeInTheDocument();
+    await expect.element(page.getByText("Quizzes", { exact: true })).toBeInTheDocument();
+    await expect.element(page.getByRole("button", { name: /Cell division lesson/ })).toBeVisible();
+    await expect.element(page.getByRole("button", { name: /Quiz cells/ })).toBeVisible();
+
+    // A space with genuinely nothing yet says so, and does not claim to be loading.
+    await screen.rerender(view("file", "README.md", WORKSPACE_ROOT, []));
+    await expect.element(page.getByText(/Nothing here yet/)).toBeInTheDocument();
+    await expect.element(page.getByText("Loading your work…")).not.toBeInTheDocument();
 
     await screen.unmount();
   } finally {

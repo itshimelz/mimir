@@ -6,6 +6,7 @@ import type {
   ServerListProviderUsageInput,
   ServerProviderStatus,
   ServerStopLocalServerInput,
+  SpaceId,
   StatsGetRecapInput,
   ThreadId,
 } from "@synara/contracts";
@@ -36,6 +37,8 @@ export const serverQueryKeys = {
     ["server", "recap", input.from, input.to, input.slotBoundaries.join(",")] as const,
   studioThreadOutputs: (threadId: ThreadId | null) =>
     ["server", "studioThreadOutputs", threadId] as const,
+  studioSpaceOutputs: (spaceId: SpaceId | null) =>
+    ["server", "studioSpaceOutputs", spaceId] as const,
   computerStatus: () => ["server", "computerStatus"] as const,
   computerAuditHistory: () => ["server", "computerAuditHistory"] as const,
 };
@@ -285,6 +288,10 @@ const STUDIO_THREAD_OUTPUTS_STALE_TIME_MS = 10_000;
 /**
  * Outbox files attributed server-side to one Studio chat. Domain events invalidate this
  * query after checkpoint and non-Git file-change updates.
+ *
+ * Per-conversation: this is what the chat Environment panel shows, and it is the fallback
+ * for a project that is not filed in a space. The Studio surface itself uses the
+ * space-scoped query below so a course accumulates its artifacts.
  */
 export function studioThreadOutputsQueryOptions(input: {
   threadId: ThreadId | null;
@@ -301,6 +308,36 @@ export function studioThreadOutputsQueryOptions(input: {
       return api.studio.listThreadOutputs({ threadId });
     },
     enabled: (input.enabled ?? true) && threadId !== null,
+    staleTime: STUDIO_THREAD_OUTPUTS_STALE_TIME_MS,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    ...EXPENSIVE_READ_RETRY_OPTIONS,
+  });
+}
+
+/**
+ * Outbox files attributed server-side across every project and thread in one space, each
+ * entry naming the thread and project that produced it.
+ *
+ * A space aggregates, so `isPending` only reflects the first fetch of this space's list; once
+ * resolved, a refetch keeps the previous entries on screen rather than flashing the loading
+ * state. The sidebar distinguishes the two by using `isPending` rather than `isFetching`.
+ */
+export function studioSpaceOutputsQueryOptions(input: {
+  spaceId: SpaceId | null;
+  enabled?: boolean;
+}) {
+  const spaceId = input.spaceId;
+  return queryOptions({
+    queryKey: serverQueryKeys.studioSpaceOutputs(spaceId),
+    queryFn: async () => {
+      const api = ensureNativeApi();
+      if (!spaceId) {
+        return { entries: [] };
+      }
+      return api.studio.listSpaceOutputs({ spaceId });
+    },
+    enabled: (input.enabled ?? true) && spaceId !== null,
     staleTime: STUDIO_THREAD_OUTPUTS_STALE_TIME_MS,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,

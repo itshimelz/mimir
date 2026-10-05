@@ -10,6 +10,8 @@
      share frames instead of repeatedly recompositing the translucent sidebar
      and composer. Keep 1300ms / 26 steps equal to shimmer's 2000ms / 40 steps. */
   --animate-spin-stepped: spin-stepped 1.3s steps(26, end) infinite;
+  --ease-spatial-default: var(--md-sys-motion-spring-default-spatial);
+  --ease-spatial-fast: var(--md-sys-motion-spring-fast-spatial);
   --font-sans: var(--font-ui-family);
   /* Font sizes that follow the size chosen in Settings (useAppTypography). */
   --text-ui: var(--app-font-size-ui);
@@ -85,6 +87,9 @@
   --color-m3-on-error-container: var(--md-sys-color-on-error-container);
   --color-m3-secondary: var(--md-sys-color-secondary);
   --color-m3-on-secondary: var(--md-sys-color-on-secondary);
+  --color-m3-inverse-surface: var(--md-sys-color-inverse-surface);
+  --color-m3-inverse-on-surface: var(--md-sys-color-inverse-on-surface);
+  --color-m3-surface-bright: var(--md-sys-color-surface-bright);
   --color-m3-on-error: var(--md-sys-color-on-error);
   --color-m3-surface-variant: var(--md-sys-color-surface-variant);
   --color-claude: var(--claude);
@@ -3216,6 +3221,85 @@ diffs-container {
       corner-shape: squircle;
     }
   }
+}
+
+/* ---------- M3 state layer & interactive utilities ---------- */
+
+@utility state-layer {
+  position: relative;
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-color: var(--state-layer-color, currentColor);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--md-sys-motion-spring-fast-effects-duration, 150ms)
+      var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1));
+  }
+  @media (hover: hover) {
+    &:hover::before {
+      opacity: var(--md-sys-state-hover-opacity, 0.08);
+    }
+  }
+  &:focus-visible::before,
+  &[data-highlighted]::before {
+    opacity: var(--md-sys-state-focus-opacity, 0.1);
+  }
+  &:active:not(:has(> [data-slot="ripple"]))::before,
+  &[data-popup-open]::before {
+    opacity: var(--md-sys-state-pressed-opacity, 0.1);
+  }
+  &:disabled::before,
+  &[data-disabled]::before,
+  &[aria-disabled="true"]::before {
+    opacity: 0;
+  }
+}
+
+@utility state-layer-* {
+  --state-layer-color: --value(--color-*);
+}
+
+@utility focus-ring-inset {
+  outline: none;
+  &:focus-visible {
+    outline: 3px solid var(--md-sys-color-secondary);
+    outline-offset: -3px;
+  }
+}
+
+@utility transition-shape {
+  transition-property:
+    border-radius, background-color, color, border-color, box-shadow, outline-color, padding, width,
+    min-width, flex-grow;
+  transition-duration:
+    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
+    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
+    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
+    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
+    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
+    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
+    var(--md-sys-motion-spring-fast-spatial-duration, 360ms),
+    var(--md-sys-motion-spring-fast-spatial-duration, 360ms),
+    var(--md-sys-motion-spring-fast-spatial-duration, 360ms),
+    var(--md-sys-motion-spring-fast-spatial-duration, 360ms);
+  transition-timing-function:
+    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1)),
+    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1));
+}
+
+@utility ease-spatial-default {
+  transition-timing-function: var(--md-sys-motion-spring-default-spatial);
 }
 
 /* Pull request description/comment prose: long-form reading, roomier than chat bubbles.

@@ -138,6 +138,59 @@
     1
   );
   --md-sys-motion-spring-fast-effects-duration: 150ms;
+  --md-sys-motion-spring-default-spatial: linear(
+    0,
+    0.014,
+    0.0504,
+    0.1021,
+    0.1637,
+    0.2307,
+    0.3,
+    0.369,
+    0.436,
+    0.4998,
+    0.5596,
+    0.6147,
+    0.6652,
+    0.7108,
+    0.7517,
+    0.788,
+    0.8202,
+    0.8483,
+    0.8728,
+    0.8941,
+    0.9124,
+    0.928,
+    0.9413,
+    0.9525,
+    0.962,
+    0.9699,
+    0.9764,
+    0.9818,
+    0.9862,
+    0.9898,
+    0.9927,
+    0.9949,
+    0.9967,
+    0.9981,
+    0.9992,
+    1,
+    1.0006,
+    1.001,
+    1.0013,
+    1.0014,
+    1.0015,
+    1.0015,
+    1.0015,
+    1.0015,
+    1.0014,
+    1.0014,
+    1.0013,
+    1.0012,
+    1.0011,
+    1
+  );
+  --md-sys-motion-spring-default-spatial-duration: 320ms;
 }
 
 /* ---------- color: the bridge ----------
@@ -199,6 +252,9 @@
   --md-sys-color-secondary: var(--color-text-foreground-secondary, var(--muted-foreground));
   --md-sys-color-on-secondary: var(--color-text-foreground, var(--foreground));
   --md-sys-color-on-error: var(--color-background-surface, var(--background));
+  --md-sys-color-surface-bright: var(--color-background-surface, var(--background));
+  --md-sys-color-inverse-surface: var(--color-text-foreground, var(--foreground));
+  --md-sys-color-inverse-on-surface: var(--color-background-surface, var(--background));
 }
 
 /* ---------- color: Mimir's M3 Expressive palette ----------

@@ -28,6 +28,9 @@ const headerButtonDarkBorderClassName =
 // pseudo-element edge glints. Buttons are solid color + border + hover-bg only.
 // If you need depth, add a single new variant rather than reintroducing shadows
 // piecewise; the flat look is the project default and what most surfaces expect.
+// That stays the rule under Material 3 too: the roles below are M3's, but the
+// elevation M3E puts on its filled buttons is deliberately not adopted, because
+// this axis has 137 call sites that were composed against a flat surface.
 //
 // Adding a new variant? Mirror an existing one's border/focus treatment so the
 // family stays visually coherent. Prefer adding a variant over passing a
@@ -36,6 +39,9 @@ const headerButtonDarkBorderClassName =
 // The `shape` axis is orthogonal to variant × size: `capsule` turns any
 // variant into a fully rounded pill (dialog footers detect the `rounded-full`
 // class and skip their radius/sizing override for capsules).
+//
+// Sizes and type stay on the `text-ui*` scale (AGENTS.md — UI text follows the
+// size chosen in Settings); M3E's fixed label-large/title-medium are not used.
 const buttonVariants = cva(
   extendButtonIconChildSelectors(
     "[&_svg]:-mx-0.5 relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-lg border font-medium text-ui outline-none pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 focus-visible:ring-1 focus-visible:ring-ring/60 focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-64 sm:text-ui [&_svg:not([class*='opacity-'])]:opacity-80 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
@@ -78,32 +84,42 @@ const buttonVariants = cva(
         ),
       },
       variant: {
+        // Ghost chrome: M3's container surface steps under on-surface-variant ink.
         chrome:
-          "border-transparent bg-transparent text-[var(--color-text-foreground-secondary)] focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-[var(--color-background-elevated-secondary)] [:hover,[data-pressed]]:text-[var(--color-text-foreground)] data-pressed:bg-[var(--color-background-elevated-secondary)] data-pressed:text-[var(--color-text-foreground)]",
+          "border-transparent bg-transparent text-m3-on-surface-variant focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-m3-surface-container-highest [:hover,[data-pressed]]:text-m3-on-surface data-pressed:bg-m3-surface-container-highest data-pressed:text-m3-on-surface",
         "chrome-outline": extendButtonIconChildSelectors(
-          `border-[color:var(--color-border)] bg-transparent text-[var(--color-text-foreground)] focus-visible:ring-[color:var(--color-border-focus)]/60 [:hover,[data-pressed]]:bg-secondary ${headerButtonDarkBorderClassName} dark:[:hover,[data-pressed]]:bg-secondary [&_svg]:mx-0`,
+          `border-m3-outline-variant bg-transparent text-m3-on-surface focus-visible:ring-[color:var(--color-border-focus)]/60 [:hover,[data-pressed]]:bg-m3-surface-container ${headerButtonDarkBorderClassName} dark:[:hover,[data-pressed]]:bg-m3-surface-container-highest [&_svg]:mx-0`,
         ),
+        // M3's filled button: primary / on-primary.
         default:
-          "border-transparent bg-primary text-primary-foreground [:hover,[data-pressed]]:bg-primary/90",
+          "border-transparent bg-m3-primary text-m3-on-primary [:hover,[data-pressed]]:bg-m3-primary/90",
+        // M3's error button is error / on-error, not white on a raw destructive red.
         destructive:
-          "border-destructive bg-destructive text-white [:hover,[data-pressed]]:bg-destructive/90",
-        "destructive-outline":
-          "border-[color:var(--color-border)] bg-[var(--color-background-elevated-primary-opaque)] text-destructive [:hover,[data-pressed]]:border-destructive/32 [:hover,[data-pressed]]:bg-destructive/4 [:hover,[data-pressed]]:text-destructive",
+          "border-transparent bg-m3-error text-m3-on-error [:hover,[data-pressed]]:bg-m3-error/90",
+        // M3 has no second solid accent for destructive, so the outlined treatment is
+        // the error role with its own tinted hover — the same shape M3E uses.
+        "destructive-outline": extendButtonIconChildSelectors(
+          "border-m3-outline-variant bg-transparent text-m3-error [:hover,[data-pressed]]:border-m3-error/32 [:hover,[data-pressed]]:bg-m3-error/10",
+        ),
         ghost:
-          "border-transparent bg-transparent text-[var(--color-text-foreground-secondary)] focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-[var(--color-background-button-secondary-hover)] [:hover,[data-pressed]]:text-[var(--color-text-foreground)] data-pressed:bg-[var(--color-background-button-secondary)] data-pressed:text-[var(--color-text-foreground)]",
-        link: "border-transparent underline-offset-4 [:hover,[data-pressed]]:underline",
+          "border-transparent bg-transparent text-m3-on-surface-variant focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-m3-surface-container-highest [:hover,[data-pressed]]:text-m3-on-surface data-pressed:bg-m3-surface-container-high data-pressed:text-m3-on-surface",
+        link: "border-transparent text-m3-primary underline-offset-4 [:hover,[data-pressed]]:underline",
         outline:
-          "border-[color:var(--color-border)] bg-transparent text-[var(--color-text-foreground)] focus-visible:ring-[color:var(--color-border-focus)]/60 [:hover,[data-pressed]]:bg-[var(--color-background-elevated-secondary)] dark:[:hover,[data-pressed]]:bg-[var(--color-background-elevated-secondary)]",
-        "primary-outline":
-          "border-[color:var(--color-border)] bg-[var(--color-background-elevated-primary-opaque)] text-primary [:hover,[data-pressed]]:border-primary/32 [:hover,[data-pressed]]:bg-primary/4",
+          "border-m3-outline-variant bg-transparent text-m3-on-surface focus-visible:ring-[color:var(--color-border-focus)]/60 [:hover,[data-pressed]]:bg-m3-surface-container-highest dark:[:hover,[data-pressed]]:bg-m3-surface-container",
+        "primary-outline": extendButtonIconChildSelectors(
+          "border-m3-outline-variant bg-transparent text-m3-primary [:hover,[data-pressed]]:border-m3-primary/32 [:hover,[data-pressed]]:bg-m3-primary/10",
+        ),
+        // M3's inverse pair: the one button on a page that reads as its own surface.
         prominent:
-          "rounded-full border-transparent bg-[var(--color-text-foreground)] text-[var(--color-background-surface)] transition-[transform,opacity] duration-150 hover:scale-105 disabled:opacity-20 disabled:hover:scale-100",
+          "rounded-full border-transparent bg-m3-inverse-surface text-m3-inverse-on-surface transition-[transform,opacity] duration-150 hover:scale-105 disabled:opacity-20 disabled:hover:scale-100",
+        // M3's filled (tonal) button is a container surface, not a washed accent.
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground [:active,[data-pressed]]:bg-secondary/80 [:hover,[data-pressed]]:bg-secondary/90",
-        "secondary-outline":
-          "border-[color:var(--color-border)] bg-[var(--color-background-elevated-primary-opaque)] text-[var(--color-text-foreground)] [:hover,[data-pressed]]:bg-secondary/12",
+          "border-transparent bg-m3-surface-container-highest text-m3-on-surface-variant [:active,[data-pressed]]:bg-m3-surface-container-high [:hover,[data-pressed]]:bg-m3-surface-container-high",
+        "secondary-outline": extendButtonIconChildSelectors(
+          "border-m3-outline-variant bg-transparent text-m3-on-surface [:hover,[data-pressed]]:bg-m3-surface-container/60",
+        ),
         subtle:
-          "border-transparent bg-[var(--color-background-button-secondary)] text-[var(--color-text-foreground)] focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-[var(--color-background-button-secondary-hover)]",
+          "border-transparent bg-m3-surface-container text-m3-on-surface focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-m3-surface-container-highest",
       },
     },
     compoundVariants: [

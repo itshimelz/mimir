@@ -9,11 +9,15 @@ import { Switch as SwitchPrimitive } from "@base-ui/react/switch";
 
 import { cn } from "~/lib/utils";
 
+// M3's switch: the selected track is the primary role, the unselected track is
+// surface-container-highest with an outline border, and the thumb swaps from `outline`
+// to `on-primary` so it always reads against its own track. Geometry, the press squash,
+// and the transition timings are the app's own — only the roles are M3's.
 const SWITCH_TRACK_CLASS_NAME =
-  "inline-flex h-[calc(var(--thumb-size)+4px)] w-[calc(var(--thumb-size)*2)] shrink-0 cursor-pointer items-center rounded-full border p-px outline-none transition-[background-color,box-shadow,border-color] duration-200 [--thumb-size:--spacing(5)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-1 focus-visible:ring-offset-background data-checked:border-[color:var(--color-text-accent)] data-checked:bg-[var(--color-text-accent)] data-unchecked:border-[color:color-mix(in_srgb,var(--color-text-foreground)_14%,transparent)] data-unchecked:bg-[color-mix(in_srgb,var(--color-text-foreground)_20%,var(--color-background-control-opaque))] data-disabled:cursor-not-allowed data-disabled:opacity-64 sm:[--thumb-size:--spacing(4)]";
+  "inline-flex h-[calc(var(--thumb-size)+4px)] w-[calc(var(--thumb-size)*2)] shrink-0 cursor-pointer items-center rounded-full border p-px outline-none transition-[background-color,box-shadow,border-color] duration-200 [--thumb-size:--spacing(5)] focus-visible:ring-2 focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-1 focus-visible:ring-offset-background data-checked:border-m3-primary data-checked:bg-m3-primary data-unchecked:border-m3-outline-variant data-unchecked:bg-m3-surface-container-highest data-disabled:cursor-not-allowed data-disabled:opacity-64 sm:[--thumb-size:--spacing(4)]";
 
 const SWITCH_THUMB_CLASS_NAME =
-  "pointer-events-none block aspect-square h-full origin-left translate-x-0 rounded-full bg-white shadow-sm ring-1 ring-black/5 will-change-transform [transition:translate_.2s_ease-out,border-radius_.15s,scale_.1s_.1s,transform-origin_.15s]";
+  "pointer-events-none block aspect-square h-full origin-left translate-x-0 rounded-full bg-m3-outline shadow-sm ring-1 ring-black/5 will-change-transform [transition:translate_.2s_ease-out,border-radius_.15s,scale_.1s_.1s,transform-origin_.15s] data-checked:bg-m3-on-primary";
 
 function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
   return (

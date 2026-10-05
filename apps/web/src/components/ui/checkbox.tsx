@@ -5,10 +5,12 @@ import { Checkbox as CheckboxPrimitive } from "@base-ui/react/checkbox";
 import { cn } from "~/lib/utils";
 
 // Box + fill skins, shared with the menu's checkbox rows (`MenuCheckboxItem variant="checkbox"`).
+// M3 checkbox: the box is `surface-container-lowest` bordered in `outline`, and the
+// selected fill is the `primary` role rather than a small square inside a larger box.
 export const CHECKBOX_BOX_CLASS_NAME =
-  "relative inline-flex size-4.5 shrink-0 items-center justify-center rounded-[.25rem] border border-[color:var(--color-border-light)] bg-background outline-none ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-background aria-invalid:border-destructive/36 focus-visible:aria-invalid:border-destructive/64 focus-visible:aria-invalid:ring-destructive/48 data-disabled:opacity-64 sm:size-4 dark:not-data-checked:bg-input/32 dark:aria-invalid:ring-destructive/24";
+  "relative inline-flex size-4.5 shrink-0 items-center justify-center rounded-xs border border-m3-outline bg-m3-surface-container-lowest outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-secondary)] aria-invalid:border-m3-error/36 focus-visible:aria-invalid:border-m3-error data-disabled:opacity-64 data-disabled:border-m3-on-surface/12 sm:size-4";
 export const CHECKBOX_INDICATOR_CLASS_NAME =
-  "-inset-px absolute flex items-center justify-center rounded-[.25rem] text-primary-foreground data-unchecked:hidden data-checked:bg-primary data-indeterminate:text-foreground";
+  "-inset-px absolute flex items-center justify-center rounded-xs text-m3-on-primary data-unchecked:hidden data-checked:bg-m3-primary data-indeterminate:bg-m3-primary data-indeterminate:text-m3-on-primary";
 
 export function CheckboxCheckGlyph({ className }: { className?: string }) {
   return (

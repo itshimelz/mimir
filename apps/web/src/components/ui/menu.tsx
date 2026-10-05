@@ -199,7 +199,7 @@ function MenuCheckboxItem({
           "grid in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] py-1 ps-2",
         ),
         variant === "switch"
-          ? "grid-cols-[1fr_auto] gap-4 pe-1.5"
+          ? "group/switch grid-cols-[1fr_auto] gap-4 pe-1.5"
           : variant === "checkbox"
             ? "flex gap-2 pe-2"
             : "grid-cols-[1fr_auto] gap-3 px-2.5",
@@ -224,16 +224,18 @@ function MenuCheckboxItem({
           <MenuPrimitive.CheckboxItemIndicator
             className={cn(
               SWITCH_TRACK_CLASS_NAME,
-              "inset-shadow-[0_1px_--theme(--color-black/4%)] [--thumb-size:--spacing(4)] focus-visible:ring-1 sm:[--thumb-size:--spacing(3)]",
+              // A menu row is denser than a settings row, so the switch takes M3's
+              // proportions at a smaller knob: 24×39 rather than 32×52.
+              "inset-shadow-[0_1px_--theme(--color-black/4%)] [--thumb-size:12px] focus-visible:outline-0",
+              // The indicator carries no state of its own — the item above it does — so the
+              // selected track is styled through the parent. The handle needs no such
+              // override: it reads `group/switch`, which the item now provides.
+              "[data-slot=menu-checkbox-item][data-checked]_&:border-m3-primary",
+              "[data-slot=menu-checkbox-item][data-checked]_&:bg-m3-primary",
             )}
             keepMounted
           >
-            <span
-              className={cn(
-                SWITCH_THUMB_CLASS_NAME,
-                "in-[[data-slot=menu-checkbox-item][data-checked]]:origin-[var(--thumb-size)_50%] in-[[data-slot=menu-checkbox-item][data-checked]]:translate-x-[calc(var(--thumb-size)-4px)] in-[[data-slot=menu-checkbox-item]:active]:not-data-disabled:scale-x-110 in-[[data-slot=menu-checkbox-item]:active]:rounded-[var(--thumb-size)/calc(var(--thumb-size)*1.10)]",
-              )}
-            />
+            <span className={SWITCH_THUMB_CLASS_NAME} />
           </MenuPrimitive.CheckboxItemIndicator>
         </>
       ) : (

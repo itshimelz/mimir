@@ -38,7 +38,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const unstyled = unstyledProp ?? false;
   const nativeInput = nativeInputProp ?? false;
   const inputClassName = cn(
-    "font-system-ui h-full w-full min-w-0 rounded-[inherit] border-0 bg-transparent px-3 py-1.5 text-ui leading-normal outline-none placeholder:text-muted-foreground/72 [transition:background-color_5000000s_ease-in-out_0s] sm:text-ui",
+    "font-system-ui h-full w-full min-w-0 rounded-[inherit] border-0 bg-transparent px-3 py-1.5 text-ui leading-normal text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant/60 [transition:background-color_5000000s_ease-in-out_0s] sm:text-ui",
     size === "sm" && "px-2.5 py-1 text-ui-sm sm:text-ui-sm",
     size === "lg" && "px-3.5 py-2",
     shape === "capsule" && "px-4",
@@ -53,7 +53,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const capsule = shape === "capsule";
   const controlClassName = cn(
     !unstyled &&
-      `${capsule ? "" : GLASS_RAISED_SURFACE_CLASS_NAME} relative inline-flex w-full min-h-9 items-center rounded-lg border border-border bg-background text-ui text-foreground has-aria-invalid:border-destructive/30 has-focus-visible:has-aria-invalid:border-destructive/50 has-focus-visible:border-foreground/30 has-autofill:bg-foreground/4 has-disabled:opacity-64 sm:min-h-8 sm:text-ui dark:bg-input/32 dark:has-autofill:bg-foreground/8`,
+      `${capsule ? "" : GLASS_RAISED_SURFACE_CLASS_NAME} relative inline-flex w-full min-h-9 items-center rounded-md border border-m3-outline-variant bg-m3-surface text-ui text-m3-on-surface has-aria-invalid:border-m3-error/40 has-focus-visible:has-aria-invalid:border-m3-error has-focus-visible:border-m3-primary has-autofill:bg-m3-surface-container-low has-disabled:opacity-64 sm:min-h-8 sm:text-ui dark:bg-m3-surface-container-low dark:has-autofill:bg-m3-surface-container`,
     size === "sm" && "min-h-8 sm:min-h-7",
     size === "lg" && "min-h-10 sm:min-h-9",
     variant === "soft" && SOFT_SURFACE_FILL_CLASS_NAME,

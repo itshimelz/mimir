@@ -41,9 +41,9 @@ const selectTriggerVariants = cva(
     },
     variants: {
       variant: {
-        default: `${GLASS_RAISED_SURFACE_CLASS_NAME} w-full min-w-36 border-[color:var(--color-border)] bg-[var(--color-background-control-opaque)] text-[var(--color-text-foreground)] ring-[color:var(--color-border-focus)]/16 pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 focus-visible:border-[color:var(--color-border-focus)] focus-visible:ring-2 aria-invalid:border-destructive/30 focus-visible:aria-invalid:border-destructive/50 focus-visible:aria-invalid:ring-destructive/12 dark:aria-invalid:ring-destructive/20 [&_svg:not([class*='opacity-'])]:opacity-80`,
+        default: `${GLASS_RAISED_SURFACE_CLASS_NAME} w-full min-w-36 border-m3-outline-variant bg-m3-surface text-m3-on-surface ring-m3-primary/16 pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 focus-visible:border-m3-primary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-secondary)] focus-visible:ring-0 aria-invalid:border-m3-error/40 focus-visible:aria-invalid:border-m3-error [&_svg:not([class*='opacity-'])]:opacity-80`,
         ghost:
-          "border-transparent text-[var(--color-text-foreground-secondary)] focus-visible:ring-1 focus-visible:ring-[color:var(--color-border-focus)]/60 data-pressed:bg-[var(--color-background-elevated-secondary)] [:hover,[data-pressed]]:bg-[var(--color-background-elevated-secondary)] [:hover,[data-pressed]]:text-[var(--color-text-foreground)]",
+          "border-transparent text-m3-on-surface-variant focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-secondary)] data-pressed:bg-m3-surface-container-highest [:hover,[data-pressed]]:bg-m3-surface-container-highest [:hover,[data-pressed]]:text-m3-on-surface",
       },
       size: {
         default: "min-h-9 px-[calc(--spacing(3)-1px)] sm:min-h-8",
@@ -284,7 +284,7 @@ function SelectItem({
 function SelectSeparator({ className, ...props }: SelectPrimitive.Separator.Props) {
   return (
     <SelectPrimitive.Separator
-      className={cn("mx-2 my-1 h-px bg-border", className)}
+      className={cn("mx-2 my-1 h-px bg-m3-outline-variant", className)}
       data-slot="select-separator"
       {...props}
     />

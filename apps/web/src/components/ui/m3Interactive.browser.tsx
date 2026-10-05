@@ -142,7 +142,8 @@ describe("M3E interactive primitives", () => {
       try {
         const track = page.getByTestId("sw").element();
         expect(getComputedStyle(track).backgroundColor).toBe("rgb(227, 225, 240)");
-        expect(getComputedStyle(track).borderTopColor).toBe("rgb(178, 176, 190)");
+        // M3 borders the unselected track in `outline`, not the fainter outline-variant.
+        expect(getComputedStyle(track).borderTopColor).toBe("rgb(123, 121, 134)");
         const thumb = track.querySelector("[data-slot='switch-thumb']")!;
         // M3's unselected thumb is `outline`, not white.
         expect(getComputedStyle(thumb).backgroundColor).toBe("rgb(123, 121, 134)");
@@ -151,11 +152,54 @@ describe("M3E interactive primitives", () => {
       }
     });
 
-    it("keeps the switch thumb square while selected and round at rest", async () => {
+    it("grows the handle 16 to 24dp when selected, on M3's 52x32 track", async () => {
+      restore = useMimirPalette("light");
+      const screen = await render(<Switch data-testid="sw" />);
+      try {
+        const track = page.getByTestId("sw").element();
+        // M3's default switch: a 52x32 track.
+        expect(Math.round(track.getBoundingClientRect().width)).toBe(52);
+        expect(Math.round(track.getBoundingClientRect().height)).toBe(32);
+        const handle = track.querySelector("[data-slot='switch-thumb']")!.getBoundingClientRect();
+        expect(Math.round(handle.width)).toBe(16);
+      } finally {
+        await screen.unmount();
+      }
+
+      const screen2 = await render(<Switch data-testid="sw2" defaultChecked />);
+      try {
+        const track = page.getByTestId("sw2").element();
+        const thumb = track.querySelector("[data-slot='switch-thumb']")!.getBoundingClientRect();
+        // The handle grows as it travels; that growth is the M3 signature.
+        expect(Math.round(thumb.width)).toBe(24);
+        expect(Math.round(thumb.height)).toBe(24);
+        // It grows toward the track's inside edge, never past it.
+        expect(thumb.right).toBeLessThanOrEqual(track.getBoundingClientRect().right);
+      } finally {
+        await screen2.unmount();
+      }
+    });
+
+    it("animates the handle on M3's spatial spring and honours reduced motion", async () => {
       const screen = await render(<Switch data-testid="sw" defaultChecked />);
       try {
         const thumb = page.getByTestId("sw").element().querySelector("[data-slot='switch-thumb']")!;
-        expect(getComputedStyle(thumb).borderTopLeftRadius).not.toBe("0px");
+        const style = getComputedStyle(thumb);
+        // M3 Expressive ships its spatial spring as a `linear()` easing, so the browser
+        // interpolates the physical curve rather than an approximation of it.
+        expect(style.transitionTimingFunction).toContain("linear(");
+        expect(style.transitionProperty).toContain("width");
+      } finally {
+        await screen.unmount();
+      }
+    });
+
+    it("gives the handle a ripple host so presses have feedback", async () => {
+      const screen = await render(<Switch data-testid="sw" />);
+      try {
+        expect(
+          page.getByTestId("sw").element().querySelector('[data-slot="ripple"]'),
+        ).not.toBeNull();
       } finally {
         await screen.unmount();
       }

@@ -19,6 +19,8 @@ import { WorktreeMock } from "@/components/WorktreeMock";
 import { MultiProjectShowcase } from "@/components/MultiProjectShowcase";
 import { OneClickPrMock } from "@/components/OneClickPrMock";
 import { PRODUCT_PILLARS } from "@/data/product";
+import { MCard } from "@/components/m3e/card";
+import { MHeadline, MBody, MLabel } from "@/components/m3e/type";
 
 type GenericIcon = ComponentType<{ className?: string }>;
 
@@ -113,16 +115,17 @@ export default function Features() {
           </p>
           <h2 className={`${heading} mt-3`}>Keep the runtimes you already trust.</h2>
           <p className={body}>
-            Synara sits around your coding agents rather than replacing them. Each provider keeps
-            its own authentication, models, tools, and permissions while Synara gives the work a
+            Mimir sits around your coding agents rather than replacing them. Each provider keeps its
+            own authentication, models, tools, and permissions while Mimir gives the work a
             consistent task, environment, review, and delivery layer.
           </p>
 
           <div className="mt-12 grid grid-cols-1 border-t border-[var(--divide)] sm:grid-cols-2">
             {activeHarnesses.map(({ name, tagline, Icon, accent, status }) => (
-              <div
+              <MCard
                 key={name}
-                className="border-b border-[var(--divide)] p-6 transition-colors hover:bg-[var(--mock-row)] sm:p-7 sm:[&:nth-child(odd):not(:last-child)]:border-r sm:[&:nth-child(odd):not(:last-child)]:border-[var(--divide)]"
+                variant="elevated"
+                className="rounded-[20px] p-6"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
@@ -137,10 +140,10 @@ export default function Features() {
                     {status}
                   </span>
                 </div>
-                <p className="mt-3 text-[13px] leading-relaxed text-[var(--text-secondary)] sm:text-[13.5px]">
+                <p className="mt-3 text-[13px] leading-relaxed text-[var(--md-sys-color-on-surface-variant)] sm:text-[13.5px]">
                   {tagline}
                 </p>
-              </div>
+              </MCard>
             ))}
           </div>
         </div>
@@ -155,9 +158,9 @@ export default function Features() {
             One workspace. Separate tasks. Shared control.
           </h2>
           <p className={body}>
-            A coding agent is only one part of the job. Synara keeps the objective, environment,
-            live processes, verification evidence, and delivery state attached to the work from
-            first prompt to pull request.
+            A coding agent is only one part of the job. Mimir keeps the objective, environment, live
+            processes, verification evidence, and delivery state attached to the work from first
+            prompt to pull request.
           </p>
 
           <div className="mt-12 grid grid-cols-1 border-t border-[var(--divide)] sm:grid-cols-2">

@@ -192,6 +192,13 @@
   --md-sys-color-on-error-container: var(--color-text-foreground, var(--foreground));
   --md-sys-color-surface-variant: var(--color-background-elevated-secondary, var(--muted));
   --md-sys-color-surface-tint: var(--color-text-accent, var(--color-blue-500));
+
+  /* Roles a converted component reads that are not surface/error/ink pairs. Mimir's own
+     palette block below is the full authoritative set; these four exist in the bridge so
+     a non-Mimir pack still resolves them. */
+  --md-sys-color-secondary: var(--color-text-foreground-secondary, var(--muted-foreground));
+  --md-sys-color-on-secondary: var(--color-text-foreground, var(--foreground));
+  --md-sys-color-on-error: var(--color-background-surface, var(--background));
 }
 
 /* ---------- color: Mimir's M3 Expressive palette ----------
@@ -312,6 +319,73 @@
   --md-sys-color-surface-tint: #cbbeff;
   --md-sys-color-shadow: #000000;
   --md-sys-color-scrim: #000000;
+}
+
+/* ---------- circular progress (Material Web) ----------
+   The indeterminate spinner: the ring rotates once while the arc grows to ~75% and
+   shrinks back, so the motion never looks static. A CSS animation rather than the old
+   `Loader2Icon` spin, because M3's shape is a single capped arc that travels, not a
+   rotating glyph. */
+
+@keyframes m3-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes m3-spinner-arc {
+  0% {
+    stroke-dashoffset: 97;
+    transform: rotate(0deg);
+  }
+  50% {
+    stroke-dashoffset: 25;
+    transform: rotate(90deg);
+  }
+  100% {
+    stroke-dashoffset: 97;
+    transform: rotate(360deg);
+  }
+}
+
+/* One rotation per arc cycle, at the 1333ms the arc runs for, so the two stay locked. */
+.m3-spinner {
+  animation: m3-spinner-rotate 1.333s linear infinite;
+}
+
+.m3-spinner-arc {
+  animation: m3-spinner-arc 1.333s var(--md-sys-motion-easing-standard) infinite;
+}
+
+.m3-skeleton {
+  animation: m3-skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes m3-skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Reduced motion holds both shapes still: the spinner keeps a static arc so it still
+   reads as busy, and the skeleton stops pulsing so a loading row never flickers. */
+@media (prefers-reduced-motion: reduce) {
+  .m3-spinner,
+  .m3-spinner-arc {
+    animation: none;
+  }
+
+  .m3-spinner-arc {
+    stroke-dashoffset: 61;
+  }
+
+  .m3-skeleton {
+    animation: none;
+  }
 }
 
 /* ---------- ripple ----------

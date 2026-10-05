@@ -73,6 +73,7 @@
   --color-m3-outline: var(--md-sys-color-outline);
   --color-m3-outline-variant: var(--md-sys-color-outline-variant);
   --color-m3-primary: var(--md-sys-color-primary);
+  --color-m3-on-primary: var(--md-sys-color-on-primary);
   --color-m3-primary-container: var(--md-sys-color-primary-container);
   --color-m3-on-primary-container: var(--md-sys-color-on-primary-container);
   --color-m3-secondary-container: var(--md-sys-color-secondary-container);
@@ -82,6 +83,9 @@
   --color-m3-error: var(--md-sys-color-error);
   --color-m3-error-container: var(--md-sys-color-error-container);
   --color-m3-on-error-container: var(--md-sys-color-on-error-container);
+  --color-m3-secondary: var(--md-sys-color-secondary);
+  --color-m3-on-secondary: var(--md-sys-color-on-secondary);
+  --color-m3-on-error: var(--md-sys-color-on-error);
   --color-m3-surface-variant: var(--md-sys-color-surface-variant);
   --color-claude: var(--claude);
   --color-sidebar: var(--sidebar);

@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 
 import * as NodeServices from "@effect/platform-node/NodeServices";
+import { ProjectId, ThreadId, type StudioOutputEntry } from "@synara/contracts";
 import { Effect, FileSystem, Layer, Path } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -14,6 +15,7 @@ import {
   MAX_SCAN_ENTRIES,
   MAX_SCAN_FILES,
   MAX_THREAD_OUTPUT_FILES,
+  mergeStudioThreadOutputEntries,
   scanStudioWorkspaceFiles,
   STAT_CONCURRENCY,
 } from "./studioOutputs";
@@ -480,5 +482,142 @@ describe("listStudioThreadOutputs", () => {
       "output/pdf/absolute.pdf",
       "Outbox/Content/relative.md",
     ]);
+  });
+});
+
+describe("mergeStudioThreadOutputEntries", () => {
+  const entry = (overrides: Partial<StudioOutputEntry> & { readonly fullPath: string }) => ({
+    name: overrides.fullPath.split("/").at(-1)!,
+    relativePath: overrides.fullPath,
+    modifiedAt: "2026-07-08T00:00:00.000Z",
+    ...overrides,
+  });
+
+  it("merges every thread's outputs into one list, newest first", () => {
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("t1"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Cell Biology",
+        entries: [
+          entry({
+            fullPath: "/course/Outbox/Lessons/a.md",
+            modifiedAt: "2026-07-08T01:00:00.000Z",
+          }),
+        ],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("t2"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Cell Biology",
+        entries: [
+          entry({
+            fullPath: "/course/Outbox/Quizzes/b.md",
+            modifiedAt: "2026-07-08T03:00:00.000Z",
+          }),
+        ],
+      },
+    ]);
+
+    expect(merged.map((item) => item.fullPath)).toEqual([
+      "/course/Outbox/Quizzes/b.md",
+      "/course/Outbox/Lessons/a.md",
+    ]);
+  });
+
+  it("attributes each artifact to the project and thread that produced it", () => {
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("bio"),
+        projectId: ProjectId.makeUnsafe("cell"),
+        projectName: "Cell Biology",
+        entries: [entry({ fullPath: "/bio/Outbox/Lessons/mitosis.md" })],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("stats"),
+        projectId: ProjectId.makeUnsafe("stats"),
+        projectName: "Statistics",
+        entries: [entry({ fullPath: "/stats/Outbox/Lessons/mean.md" })],
+      },
+    ]);
+
+    const bio = merged.find((item) => item.fullPath.startsWith("/bio"));
+    expect(bio).toMatchObject({
+      threadId: "bio",
+      projectId: "cell",
+      projectName: "Cell Biology",
+    });
+    const stats = merged.find((item) => item.fullPath.startsWith("/stats"));
+    expect(stats).toMatchObject({
+      threadId: "stats",
+      projectId: "stats",
+      projectName: "Statistics",
+    });
+  });
+
+  it("keeps identically named files from two projects separate", () => {
+    // The whole reason a space aggregates: two courses can each have Outbox/Lessons/week1.md.
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("t1"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Biology",
+        entries: [entry({ fullPath: "/bio/Outbox/Lessons/week1.md" })],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("t2"),
+        projectId: ProjectId.makeUnsafe("p2"),
+        projectName: "Physics",
+        entries: [entry({ fullPath: "/phys/Outbox/Lessons/week1.md" })],
+      },
+    ]);
+
+    expect(merged).toHaveLength(2);
+  });
+
+  it("deduplicates one file claimed by several threads, keeping the first seen", () => {
+    // Concurrent turns over a shared root can both claim a file. Attribution is generous
+    // rather than lossy (the reactor's own tradeoff), so the newest wins and the rest are
+    // dropped rather than shown twice.
+    const shared = { fullPath: "/course/Outbox/Lessons/shared.md" };
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("newest"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Course",
+        entries: [entry(shared)],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("older"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Course",
+        entries: [entry(shared)],
+      },
+    ]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.threadId).toBe("newest");
+  });
+
+  it("caps the merged list so one chatty project cannot make the response unbounded", () => {
+    const merged = mergeStudioThreadOutputEntries(
+      [
+        {
+          threadId: ThreadId.makeUnsafe("t1"),
+          projectId: ProjectId.makeUnsafe("p1"),
+          projectName: "Course",
+          entries: Array.from({ length: 30 }, (_unused, index) =>
+            entry({ fullPath: `/course/Outbox/Lessons/f${index}.md` }),
+          ),
+        },
+      ],
+      10,
+    );
+
+    expect(merged).toHaveLength(10);
+  });
+
+  it("returns nothing for a space that has produced nothing", () => {
+    expect(mergeStudioThreadOutputEntries([])).toEqual([]);
   });
 });

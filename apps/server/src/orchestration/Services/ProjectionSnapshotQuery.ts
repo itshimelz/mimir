@@ -203,6 +203,30 @@ export interface ProjectionSnapshotQueryShape {
   ) => Effect.Effect<Option.Option<ThreadId>, ProjectionRepositoryError>;
 
   /**
+   * Active projects filed in one space. Threads have no `space_id` of their own
+   * (`projection_threads` carries only `project_id`), so a space-scoped read is a two-hop
+   * join through the project, which is why this exists rather than a direct thread query.
+   */
+  readonly listProjectsBySpaceId: (
+    spaceId: SpaceId,
+  ) => Effect.Effect<
+    ReadonlyArray<Pick<OrchestrationProject, "id" | "kind" | "title" | "workspaceRoot">>,
+    ProjectionRepositoryError
+  >;
+
+  /**
+   * Active threads for the given projects, newest first, for attributing artifacts across a
+   * space. Capped so a space holding one very chatty project cannot make a listing unbounded.
+   */
+  readonly listRecentActiveThreadIdsByProjectIds: (
+    projectIds: ReadonlyArray<ProjectId>,
+    limit: number,
+  ) => Effect.Effect<
+    ReadonlyArray<Pick<ProjectionThreadCheckpointContext, "threadId" | "projectId">>,
+    ProjectionRepositoryError
+  >;
+
+  /**
    * Read the checkpoint context needed to resolve a single thread diff.
    */
   readonly getThreadCheckpointContext: (

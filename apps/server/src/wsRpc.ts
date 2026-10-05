@@ -107,7 +107,14 @@ import {
   isThreadDetailEventFor,
   THREAD_DETAIL_EVENT_TYPES,
 } from "@synara/shared/threadDetailEvents";
-import { listStudioThreadOutputs } from "./studioOutputs";
+import {
+  listStudioThreadOutputs,
+  MAX_SPACE_OUTPUT_THREADS,
+  mergeStudioThreadOutputEntries,
+} from "./studioOutputs";
+
+/** Threads resolved concurrently while aggregating a space's artifacts. */
+const SPACE_OUTPUT_LOOKUP_CONCURRENCY = 8;
 import {
   courseWorkspaceSubdirectories,
   DEFAULT_LEARNER_ROLE,
@@ -1873,6 +1880,87 @@ const makeWsRpcHandlersLayer = () =>
               });
             }),
             "Failed to list studio thread outputs",
+          ),
+        // Aggregates every project and thread in one space, so a student's artifacts
+        // accumulate across conversations instead of vanishing with each new chat.
+        [WS_METHODS.studioListSpaceOutputs]: (input) =>
+          rpcEffect(
+            Effect.gen(function* () {
+              const projects = yield* projectionReadModelQuery.listProjectsBySpaceId(input.spaceId);
+              // An unknown or empty space is not an error: it simply has produced nothing.
+              if (projects.length === 0) {
+                return { entries: [] };
+              }
+              const projectById = new Map(projects.map((project) => [project.id, project]));
+              const threads = yield* projectionReadModelQuery.listRecentActiveThreadIdsByProjectIds(
+                projects.map((project) => project.id),
+                MAX_SPACE_OUTPUT_THREADS,
+              );
+
+              const listings = yield* Effect.forEach(
+                threads,
+                (thread) =>
+                  Effect.gen(function* () {
+                    const context = yield* projectionReadModelQuery.getThreadCheckpointContext(
+                      thread.threadId,
+                      { includeFileChangeActivityPayloads: true },
+                    );
+                    // Skip kinds that do not participate rather than returning an empty
+                    // listing for each; the shared gate is the same one capture and the
+                    // per-thread listing use.
+                    if (
+                      Option.isNone(context) ||
+                      !participatesInStudioOutputs(context.value.projectKind)
+                    ) {
+                      return null;
+                    }
+                    const workspaceCwd = resolveThreadWorkspaceCwd({
+                      thread: {
+                        projectId: context.value.projectId,
+                        envMode: context.value.envMode,
+                        worktreePath: context.value.worktreePath,
+                        workingDirectory: context.value.workingDirectory,
+                      },
+                      projects: [
+                        {
+                          id: context.value.projectId,
+                          kind: context.value.projectKind,
+                          workspaceRoot: context.value.workspaceRoot,
+                        },
+                      ],
+                    });
+                    if (!workspaceCwd) {
+                      return null;
+                    }
+                    // Self-heal each project's own workspace, exactly as the per-thread
+                    // listing does, so an accepted create whose scaffold failed recovers.
+                    const project = projectById.get(context.value.projectId);
+                    yield* (
+                      project && studioWorkspaceLayoutFor(context.value.projectKind) === "studio"
+                        ? prepareStudioWorkspaceRoot(workspaceCwd)
+                        : prepareCourseWorkspaceRoot(workspaceCwd, DEFAULT_LEARNER_ROLE)
+                    ).pipe(Effect.catch(() => Effect.void));
+                    const { entries } = yield* listStudioThreadOutputs({
+                      workspaceRoot: workspaceCwd,
+                      checkpoints: context.value.checkpoints,
+                      ...(context.value.fileChangeActivityPayloads
+                        ? { fileChangeActivityPayloads: context.value.fileChangeActivityPayloads }
+                        : {}),
+                    });
+                    return {
+                      threadId: thread.threadId,
+                      projectId: context.value.projectId,
+                      projectName: project?.title ?? context.value.workspaceRoot,
+                      entries,
+                    };
+                  }),
+                { concurrency: SPACE_OUTPUT_LOOKUP_CONCURRENCY },
+              );
+
+              const present = listings.filter((listing) => listing !== null);
+              return { entries: mergeStudioThreadOutputEntries(present) };
+            }),
+            "Failed to list studio space outputs",
           ),
         [WS_METHODS.filesystemBrowse]: (input) =>
           rpcEffect(workspaceEntries.browse(input), "Failed to browse filesystem"),

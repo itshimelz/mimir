@@ -274,7 +274,12 @@ import type {
   ThreadComputerState,
 } from "./computer";
 import type { ComputerGetAuditHistoryInput, ComputerGetAuditHistoryResult } from "./computerAudit";
-import type { StudioListThreadOutputsInput, StudioListThreadOutputsResult } from "./studio";
+import type {
+  StudioListSpaceOutputsInput,
+  StudioListSpaceOutputsResult,
+  StudioListThreadOutputsInput,
+  StudioListThreadOutputsResult,
+} from "./studio";
 import type {
   ServerConfig,
   ServerDiagnosticsResult,
@@ -1131,6 +1136,8 @@ export interface NativeApi {
     listThreadOutputs: (
       input: StudioListThreadOutputsInput,
     ) => Promise<StudioListThreadOutputsResult>;
+    /** Aggregated across every project and thread in a space, each entry attributed. */
+    listSpaceOutputs: (input: StudioListSpaceOutputsInput) => Promise<StudioListSpaceOutputsResult>;
   };
   shell: {
     openInEditor: (cwd: string, editor: EditorId) => Promise<void>;

@@ -167,7 +167,12 @@ import {
   GitHubProjectProvisionInput,
   GitHubProjectProvisionProgressEvent,
 } from "./githubProjectProvisioning";
-import { StudioListThreadOutputsInput, StudioListThreadOutputsResult } from "./studio";
+import {
+  StudioListSpaceOutputsInput,
+  StudioListSpaceOutputsResult,
+  StudioListThreadOutputsInput,
+  StudioListThreadOutputsResult,
+} from "./studio";
 import {
   GitCheckoutInput,
   GitActionProgressEvent,
@@ -678,6 +683,12 @@ export const WsProjectsProvisionFromGitHubRpc = Rpc.make(WS_METHODS.projectsProv
 export const WsStudioListThreadOutputsRpc = Rpc.make(WS_METHODS.studioListThreadOutputs, {
   payload: StudioListThreadOutputsInput,
   success: StudioListThreadOutputsResult,
+  error: WsRpcError,
+});
+
+export const WsStudioListSpaceOutputsRpc = Rpc.make(WS_METHODS.studioListSpaceOutputs, {
+  payload: StudioListSpaceOutputsInput,
+  success: StudioListSpaceOutputsResult,
   error: WsRpcError,
 });
 
@@ -1917,6 +1928,7 @@ export const WsFeatureRpcGroup = RpcGroup.make(
   WsSubscribeProjectDevServerEventsRpc,
   WsProjectsProvisionFromGitHubRpc,
   WsStudioListThreadOutputsRpc,
+  WsStudioListSpaceOutputsRpc,
   WsFilesystemBrowseRpc,
   WsShellOpenInEditorRpc,
   WsGitGithubRepositoryRpc,

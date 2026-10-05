@@ -72,6 +72,17 @@ describe("Studio output gates", () => {
     );
   });
 
+  it("exposes the space-scoped listing through the same admission list and handler map", () => {
+    // A new WS method that is not admitted, or has no handler, fails at runtime rather than
+    // at build time. Both are cheap to pin.
+    const admission = readServerSource("./wsRequestAdmission.ts");
+    expect(admission, "space listing is not admitted").toContain(
+      "WS_METHODS.studioListSpaceOutputs",
+    );
+    const rpc = readServerSource("./wsRpc.ts");
+    expect(rpc, "space listing has no handler").toContain("[WS_METHODS.studioListSpaceOutputs]");
+  });
+
   it("excludes the generated directories a repository accumulates", () => {
     const source = readServerSource("./studioOutputs.ts");
     for (const directory of ["dist", "build", "target", "out", "coverage", "venv", "__pycache__"]) {

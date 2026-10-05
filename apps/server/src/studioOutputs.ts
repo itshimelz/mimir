@@ -6,7 +6,12 @@
 // Layer: Server workspace helper
 // Exports: Pure attribution/scan-diff helpers + listStudioThreadOutputs (Effect I/O).
 
-import type { StudioOutputEntry } from "@synara/contracts";
+import type {
+  ProjectId,
+  StudioOutputEntry,
+  StudioSpaceOutputEntry,
+  ThreadId,
+} from "@synara/contracts";
 import { Effect, FileSystem, Path } from "effect";
 
 // Managed Studio subtrees that hold inputs or infrastructure, never produced content.
@@ -445,3 +450,57 @@ export const listStudioThreadOutputs = Effect.fnUntraced(function* (input: {
 
   return { entries };
 });
+
+/**
+ * Upper bound on entries returned for one space. A space aggregates every thread in every
+ * project, so the per-thread cap cannot bound it; this keeps the response predictable for a
+ * space holding one very chatty project. Newest wins, matching the per-thread listing.
+ */
+export const MAX_SPACE_OUTPUT_FILES = 500;
+
+/** Threads examined per space listing, newest first. Bounds the work, not the result. */
+export const MAX_SPACE_OUTPUT_THREADS = 50;
+
+/**
+ * Merge per-thread listings into one space-wide list, newest first and deduplicated by
+ * absolute path.
+ *
+ * Deduplication is by `fullPath` rather than relative path because two projects in one space
+ * can legitimately hold different files with the same relative name, and because several
+ * threads sharing a root may both claim the same file. Attribution is deliberately generous
+ * rather than lossy — the same tradeoff the per-turn reactor makes — so the newest thread that
+ * produced a file wins and the rest are dropped rather than shown as duplicates.
+ */
+export function mergeStudioThreadOutputEntries(
+  listings: ReadonlyArray<{
+    readonly threadId: ThreadId;
+    readonly projectId: ProjectId;
+    readonly projectName: string;
+    readonly entries: ReadonlyArray<StudioOutputEntry>;
+  }>,
+  limit: number = MAX_SPACE_OUTPUT_FILES,
+): ReadonlyArray<StudioSpaceOutputEntry> {
+  const byFullPath = new Map<string, StudioSpaceOutputEntry>();
+  for (const listing of listings) {
+    for (const entry of listing.entries) {
+      const existing = byFullPath.get(entry.fullPath);
+      // The first listing seen is the newest, since callers pass threads newest-first and
+      // each listing is itself newest-first, so an already-present path needs no replacement.
+      if (existing) {
+        continue;
+      }
+      byFullPath.set(entry.fullPath, {
+        name: entry.name,
+        relativePath: entry.relativePath,
+        fullPath: entry.fullPath,
+        modifiedAt: entry.modifiedAt,
+        threadId: listing.threadId,
+        projectId: listing.projectId,
+        projectName: listing.projectName,
+      });
+    }
+  }
+  return [...byFullPath.values()]
+    .toSorted((left, right) => right.modifiedAt.localeCompare(left.modifiedAt))
+    .slice(0, limit);
+}

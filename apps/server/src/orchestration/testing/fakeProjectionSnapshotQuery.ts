@@ -31,6 +31,8 @@ export function fakeProjectionSnapshotQuery(
     getProjectShellsByIds: unused,
     getSpaceShellById: unused,
     getFirstActiveThreadIdByProjectId: unused,
+    listProjectsBySpaceId: unused,
+    listRecentActiveThreadIdsByProjectIds: unused,
     getThreadCheckpointContext: unused,
     listGeneratedImageActivitiesByTurn: unused,
     getFullThreadDiffContext: unused,

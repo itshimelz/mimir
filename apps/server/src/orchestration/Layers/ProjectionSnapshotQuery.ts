@@ -1637,6 +1637,44 @@ const makeProjectionSnapshotQuery = Effect.gen(function* () {
       `,
   });
 
+  const listProjectsBySpace = SqlSchema.findAll({
+    Request: SpaceIdLookupInput,
+    Result: Schema.Struct({
+      id: Schema.String,
+      kind: Schema.String,
+      title: Schema.String,
+      workspaceRoot: Schema.String,
+    }),
+    execute: ({ spaceId }) =>
+      sql`
+        SELECT
+          project_id AS "id",
+          kind,
+          title,
+          workspace_root AS "workspaceRoot"
+        FROM projection_projects
+        WHERE space_id = ${spaceId}
+          AND deleted_at IS NULL
+        ORDER BY created_at ASC, project_id ASC
+      `,
+  });
+
+  const listRecentActiveThreadIdRowsByProjectIds = SqlSchema.findAll({
+    Request: Schema.Struct({ projectIds: Schema.Array(Schema.String), limit: Schema.Number }),
+    Result: Schema.Struct({ threadId: Schema.String, projectId: Schema.String }),
+    execute: ({ projectIds, limit }) =>
+      sql`
+        SELECT
+          thread_id AS "threadId",
+          project_id AS "projectId"
+        FROM projection_threads
+        WHERE project_id IN ${sql.in(projectIds)}
+          AND deleted_at IS NULL
+        ORDER BY updated_at DESC, thread_id ASC
+        LIMIT ${limit}
+      `,
+  });
+
   const getProjectRowById = SqlSchema.findOneOption({
     Request: ProjectIdLookupInput,
     Result: ProjectionProjectLookupRowSchema,
@@ -3027,6 +3065,44 @@ const makeProjectionSnapshotQuery = Effect.gen(function* () {
         Effect.map(Option.map((row) => row.threadId)),
       );
 
+  const listProjectsBySpaceId: ProjectionSnapshotQueryShape["listProjectsBySpaceId"] = (spaceId) =>
+    listProjectsBySpace({ spaceId }).pipe(
+      Effect.mapError(
+        toPersistenceSqlOrDecodeError(
+          "ProjectionSnapshotQuery.listProjectsBySpaceId:query",
+          "ProjectionSnapshotQuery.listProjectsBySpaceId:decodeRows",
+        ),
+      ),
+      Effect.map((rows) =>
+        rows.map((row) => ({
+          id: ProjectId.makeUnsafe(row.id),
+          kind: row.kind as OrchestrationProject["kind"],
+          title: row.title,
+          workspaceRoot: row.workspaceRoot,
+        })),
+      ),
+    );
+
+  const listRecentActiveThreadIdsByProjectIds: ProjectionSnapshotQueryShape["listRecentActiveThreadIdsByProjectIds"] =
+    (projectIds, limit) =>
+      // An empty `IN ()` is a syntax error on some engines and meaningless here anyway.
+      projectIds.length === 0
+        ? Effect.succeed([])
+        : listRecentActiveThreadIdRowsByProjectIds({ projectIds, limit }).pipe(
+            Effect.mapError(
+              toPersistenceSqlOrDecodeError(
+                "ProjectionSnapshotQuery.listRecentActiveThreadIdsByProjectIds:query",
+                "ProjectionSnapshotQuery.listRecentActiveThreadIdsByProjectIds:decodeRows",
+              ),
+            ),
+            Effect.map((rows) =>
+              rows.map((row) => ({
+                threadId: ThreadId.makeUnsafe(row.threadId),
+                projectId: ProjectId.makeUnsafe(row.projectId),
+              })),
+            ),
+          );
+
   const getThreadCheckpointContext: ProjectionSnapshotQueryShape["getThreadCheckpointContext"] = (
     threadId,
     options,
@@ -3630,6 +3706,8 @@ const makeProjectionSnapshotQuery = Effect.gen(function* () {
     getProjectShellsByIds,
     getSpaceShellById,
     getFirstActiveThreadIdByProjectId,
+    listProjectsBySpaceId,
+    listRecentActiveThreadIdsByProjectIds,
     getThreadCheckpointContext,
     listGeneratedImageActivitiesByTurn,
     getFullThreadDiffContext,

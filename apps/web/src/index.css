@@ -11,6 +11,20 @@
 
 @custom-variant dark (&:is(.dark, .dark *));
 
+/* Bridge the @m3e registry's orientation variants to this repo's Base UI.
+   The registry components are written against a Base UI build that emitted
+   `data-horizontal`; this repo's Base UI emits `data-orientation="horizontal"`
+   (see @base-ui/react/internals/getStateAttributesProps, which renders
+   `data-${stateKey}`). Tailwind compiles `data-horizontal:` to `[data-horizontal]`,
+   which never matched, so the M3E slider's control, track, handle and fill
+   received none of their sizing classes and rendered invisible — while the
+   step-mark overlay around it, written in plain utilities, still showed.
+   These two variants let the registry markup work unmodified. They match the
+   element itself and its descendants so `group-data-horizontal/slider:` on a
+   handle still resolves. */
+@custom-variant data-horizontal (&:where([data-orientation="horizontal"], [data-orientation="horizontal"] *));
+@custom-variant data-vertical (&:where([data-orientation="vertical"], [data-orientation="vertical"] *));
+
 @theme inline {
   --animate-skeleton: skeleton 2s -1s infinite linear;
   /* Status spinners and shimmer labels share 50ms steps (20 fps), aligned by

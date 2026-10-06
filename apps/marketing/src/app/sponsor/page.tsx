@@ -75,9 +75,7 @@ export default function SponsorPage() {
             <Button
               variant="filled"
               className="w-full sm:w-auto"
-              render={
-                <a href={GITHUB_SPONSORS_URL} target="_blank" rel="noopener noreferrer" />
-              }
+              render={<a href={GITHUB_SPONSORS_URL} target="_blank" rel="noopener noreferrer" />}
             >
               <Icon name="favorite" data-icon="inline-start" />
               Become a sponsor

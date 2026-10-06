@@ -16,16 +16,38 @@ export default function Workflow() {
           Direct several tasks, move work between providers, observe live processes, and verify the
           result without losing which task owns what.
         </p>
-        <SplitShowcase kicker="03 / task ownership" title="Run parallel tasks with explicit ownership" description="Open a task for each objective and keep its conversation, runtime, environment, and status visible instead of mixing unrelated work into one thread." stacked prominentMedia>
+        <SplitShowcase
+          kicker="03 / task ownership"
+          title="Run parallel tasks with explicit ownership"
+          description="Open a task for each objective and keep its conversation, runtime, environment, and status visible instead of mixing unrelated work into one thread."
+          stacked
+          prominentMedia
+        >
           <ParallelChatMock />
         </SplitShowcase>
-        <SplitShowcase kicker="04 / provider handoff" title="Hand the same task to another provider" description="Change the provider while preserving the task environment and the context Mimir passes forward. Review the working tree before and after every handoff." reverse>
+        <SplitShowcase
+          kicker="04 / provider handoff"
+          title="Hand the same task to another provider"
+          description="Change the provider while preserving the task environment and the context Mimir passes forward. Review the working tree before and after every handoff."
+          reverse
+        >
           <HandoffChatMock />
         </SplitShowcase>
-        <SplitShowcase kicker="05 / live processes" title="Keep long-running processes attached to the work" description="Run development servers, test watchers, log tails, and one-off commands beside the task that started them." reverse={false}>
+        <SplitShowcase
+          kicker="05 / live processes"
+          title="Keep long-running processes attached to the work"
+          description="Run development servers, test watchers, log tails, and one-off commands beside the task that started them."
+          reverse={false}
+        >
           <TerminalTabsMock />
         </SplitShowcase>
-        <SplitShowcase kicker="06 / verification" title="Verify the behavior, not only the diff" description="Use the built-in browser to inspect the rendered result, capture evidence, check console output, and return findings to the same task." stacked prominentMedia>
+        <SplitShowcase
+          kicker="06 / verification"
+          title="Verify the behavior, not only the diff"
+          description="Use the built-in browser to inspect the rendered result, capture evidence, check console output, and return findings to the same task."
+          stacked
+          prominentMedia
+        >
           <div className="overflow-hidden rounded-lg bg-surface-container-high" />
         </SplitShowcase>
       </div>

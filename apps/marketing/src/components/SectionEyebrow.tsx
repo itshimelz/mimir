@@ -19,9 +19,5 @@ export function SectionEyebrow({
   as?: "h2" | "h3" | "p";
   className?: string;
 }) {
-  return (
-    <Tag className={cn("text-label-large text-primary", className)}>
-      {children}
-    </Tag>
-  );
+  return <Tag className={cn("text-label-large text-primary", className)}>{children}</Tag>;
 }

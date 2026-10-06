@@ -28,10 +28,17 @@ export default async function Home() {
   const installerCount = await getInstallerCount();
   return (
     <div className="min-h-screen overflow-x-clip bg-surface text-on-surface">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(FAQ_JSONLD) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(FAQ_JSONLD) }}
+      />
       <Navbar />
       <main>
-        <section id="overview" aria-labelledby="homepage-title" className="hero-section scroll-mt-20 pt-10 pb-12 sm:pt-16 sm:pb-20">
+        <section
+          id="overview"
+          aria-labelledby="homepage-title"
+          className="hero-section scroll-mt-20 pt-10 pb-12 sm:pt-16 sm:pb-20"
+        >
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
             <Card
               variant="elevated"
@@ -62,7 +69,10 @@ export default async function Home() {
                   <Icon name="star" data-icon="inline-end" />
                 </Button>
               </div>
-              <p data-live-hero-color="true" className="mt-4 text-body-small text-on-surface-variant">
+              <p
+                data-live-hero-color="true"
+                className="mt-4 text-body-small text-on-surface-variant"
+              >
                 <InstallerCount initialCount={installerCount} />
               </p>
             </Card>
@@ -72,18 +82,28 @@ export default async function Home() {
                 size="lg"
                 className="min-h-[320px] items-center justify-center rounded-2xl bg-surface-container p-6 sm:min-h-[420px]"
               >
-                <p className="text-center text-body-large text-on-surface-variant">Product preview</p>
+                <p className="text-center text-body-large text-on-surface-variant">
+                  Product preview
+                </p>
               </Card>
             </div>
           </div>
         </section>
-        <div id="providers" className="scroll-mt-20"><Features /></div>
-        <div id="workflow" className="scroll-mt-20"><Workflow /></div>
-        <div id="privacy" className="scroll-mt-20"><PrivacySection /></div>
+        <div id="providers" className="scroll-mt-20">
+          <Features />
+        </div>
+        <div id="workflow" className="scroll-mt-20">
+          <Workflow />
+        </div>
+        <div id="privacy" className="scroll-mt-20">
+          <PrivacySection />
+        </div>
         <AskAISection />
         <FAQ />
         <Testimonials />
-        <div id="download" className="scroll-mt-20"><ClosingCTA initialInstallerCount={installerCount} /></div>
+        <div id="download" className="scroll-mt-20">
+          <ClosingCTA initialInstallerCount={installerCount} />
+        </div>
       </main>
       <SiteFooter />
       <HomepageRail />

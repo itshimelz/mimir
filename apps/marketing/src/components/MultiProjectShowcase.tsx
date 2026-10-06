@@ -3,7 +3,8 @@
 // Layer: Marketing UI section (M3E type scale)
 
 const sectionHeading = "text-headline-small text-on-surface sm:text-headline-medium";
-const sectionBody = "mt-3 max-w-xl text-body-medium text-on-surface-variant sm:mt-4 sm:text-body-large";
+const sectionBody =
+  "mt-3 max-w-xl text-body-medium text-on-surface-variant sm:mt-4 sm:text-body-large";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 export function MultiProjectShowcase() {

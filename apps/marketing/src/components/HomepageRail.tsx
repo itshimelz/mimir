@@ -6,10 +6,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  NavigationRail,
-  NavigationRailItem,
-} from "@/components/m3e/navigation";
+import { NavigationRail, NavigationRailItem } from "@/components/m3e/navigation";
 import { scrollToAnchor } from "@/lib/scrollToAnchor";
 
 const SECTIONS = [

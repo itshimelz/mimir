@@ -48,8 +48,7 @@ export default function MobileNav() {
         <DropdownMenuItem
           render={<a href="https://x.com/trymimir" target="_blank" rel="noopener noreferrer" />}
         >
-          <SiX />
-          X
+          <SiX />X
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

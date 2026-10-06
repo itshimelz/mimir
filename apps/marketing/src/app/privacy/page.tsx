@@ -66,7 +66,9 @@ export default function PrivacyPage() {
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-20 sm:px-6 sm:pt-14">
         <p className="text-label-large text-primary">Privacy</p>
-        <h1 className="mt-3 text-display-small text-on-surface">Private by default. Clear by design.</h1>
+        <h1 className="mt-3 text-display-small text-on-surface">
+          Private by default. Clear by design.
+        </h1>
         <p className="mt-5 text-body-large text-on-surface-variant">
           Mimir is a desktop app that runs on your machine and connects straight to the providers
           you already use. There&apos;s no Mimir account, no Mimir server holding your work, and
@@ -113,7 +115,11 @@ export default function PrivacyPage() {
           </p>
 
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
-            <DataCard tone="receive" title="If you opt in, we receive" items={RECEIVED_IF_OPTED_IN} />
+            <DataCard
+              tone="receive"
+              title="If you opt in, we receive"
+              items={RECEIVED_IF_OPTED_IN}
+            />
             <DataCard tone="never" title="Analytics never receives" items={NEVER_COLLECTED} />
           </div>
 
@@ -188,11 +194,7 @@ export default function PrivacyPage() {
             </a>
             .
           </p>
-          <Button
-            variant="filled"
-            className="w-fit"
-            render={<Link href="/install" />}
-          >
+          <Button variant="filled" className="w-fit" render={<Link href="/install" />}>
             Download Mimir
             <Icon name="download" data-icon="inline-end" />
           </Button>

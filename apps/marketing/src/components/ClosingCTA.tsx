@@ -5,7 +5,11 @@ import ProviderMarkRow from "@/components/ProviderMarkRow";
 import { Card } from "@/components/m3e/card";
 import { PRODUCT_CATEGORY, PRODUCT_HERO_TITLE } from "@/data/product";
 
-export default function ClosingCTA({ initialInstallerCount }: { initialInstallerCount: number | null }) {
+export default function ClosingCTA({
+  initialInstallerCount,
+}: {
+  initialInstallerCount: number | null;
+}) {
   return (
     <section className="py-16 sm:py-24">
       <div className="mx-auto w-full max-w-6xl px-4 text-center sm:px-6">

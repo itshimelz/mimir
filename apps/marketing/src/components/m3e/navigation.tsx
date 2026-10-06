@@ -1,13 +1,13 @@
-"use client"
-import * as React from "react"
-import { mergeProps } from "@base-ui/react/merge-props"
-import { useRender } from "@base-ui/react/use-render"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/m3e/cn"
+"use client";
+import * as React from "react";
+import { mergeProps } from "@base-ui/react/merge-props";
+import { useRender } from "@base-ui/react/use-render";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/m3e/cn";
 
-import { Icon } from "@/components/m3e/icon"
-import { NotificationBadge } from "@/components/m3e/badge"
-import { Ripple } from "@/components/m3e/ripple"
+import { Icon } from "@/components/m3e/icon";
+import { NotificationBadge } from "@/components/m3e/badge";
+import { Ripple } from "@/components/m3e/ripple";
 
 /*
  * M3 Expressive navigation bar and navigation rail (Compose
@@ -23,28 +23,28 @@ import { Ripple } from "@/components/m3e/ripple"
  * The active item's indicator is secondary-container and fills its icon
  * (`<Icon fill="auto" />`); it grows in on the fast spatial spring.
  */
-type NavLayout = "vertical" | "horizontal"
+type NavLayout = "vertical" | "horizontal";
 const NavContext = React.createContext<{
-  layout: NavLayout
-  rail: boolean
-  compact?: boolean
+  layout: NavLayout;
+  rail: boolean;
+  compact?: boolean;
 }>({
   layout: "vertical",
   rail: false,
-})
+});
 
 /* ---------- item ---------- */
 
 type NavItemProps = useRender.ComponentProps<"button"> & {
   /** Material Symbols name or a node; strings are outlined and fill while active */
-  icon: React.ReactNode
-  label?: React.ReactNode
-  active?: boolean
+  icon: React.ReactNode;
+  label?: React.ReactNode;
+  active?: boolean;
   /** true = dot, number/string = counter */
-  badge?: boolean | number | string
+  badge?: boolean | number | string;
   /** override the layout inherited from the bar / rail */
-  layout?: NavLayout
-}
+  layout?: NavLayout;
+};
 
 function NavItem({
   icon,
@@ -56,11 +56,10 @@ function NavItem({
   render,
   ...props
 }: NavItemProps) {
-  const ctx = React.useContext(NavContext)
-  const layout = layoutProp ?? ctx.layout
-  const horizontal = layout === "horizontal"
-  const glyph =
-    typeof icon === "string" ? <Icon name={icon} fill="auto" size={24} /> : icon
+  const ctx = React.useContext(NavContext);
+  const layout = layoutProp ?? ctx.layout;
+  const horizontal = layout === "horizontal";
+  const glyph = typeof icon === "string" ? <Icon name={icon} fill="auto" size={24} /> : icon;
 
   const badgeNode =
     badge != null && badge !== false ? (
@@ -73,21 +72,21 @@ function NavItem({
               : "top-0.5 left-9"
             : horizontal
               ? "top-0 left-3.5"
-              : "top-0 left-8"
+              : "top-0 left-8",
         )}
         count={badge === true ? undefined : badge}
       />
-    ) : null
+    ) : null;
 
   const indicatorState =
-    "group-data-active/nav-item:bg-secondary-container group-focus-visible/nav-item:outline-3 group-focus-visible/nav-item:outline-offset-2 group-focus-visible/nav-item:outline-secondary"
+    "group-data-active/nav-item:bg-secondary-container group-focus-visible/nav-item:outline-3 group-focus-visible/nav-item:outline-offset-2 group-focus-visible/nav-item:outline-secondary";
 
   const content = horizontal ? (
     // icon and label share one pill (bar: 40dp, rail: 56dp)
     <span
       className={cn(
         "relative flex items-center gap-2 rounded-full px-4",
-        ctx.rail ? (ctx.compact ? "h-10 w-full" : "h-14 w-full") : "h-10"
+        ctx.rail ? (ctx.compact ? "h-10 w-full" : "h-14 w-full") : "h-10",
       )}
     >
       <span
@@ -95,7 +94,7 @@ function NavItem({
         className={cn(
           "pointer-events-none absolute inset-0 overflow-hidden rounded-full transition-[background-color] duration-75 ease-out group-hover/nav-item:bg-on-surface/8 group-data-active/nav-item:motion-effects-fast",
           indicatorState,
-          "group-data-active/nav-item:group-hover/nav-item:bg-[color-mix(in_srgb,var(--md-sys-color-on-secondary-container)_8%,var(--md-sys-color-secondary-container))]"
+          "group-data-active/nav-item:group-hover/nav-item:bg-[color-mix(in_srgb,var(--md-sys-color-on-secondary-container)_8%,var(--md-sys-color-secondary-container))]",
         )}
       >
         <Ripple />
@@ -118,7 +117,7 @@ function NavItem({
           aria-hidden
           className={cn(
             "pointer-events-none absolute inset-0 origin-center scale-x-0 overflow-hidden rounded-full bg-secondary-container transition-transform duration-100 ease-out group-data-active/nav-item:scale-x-100 group-data-active/nav-item:motion-spatial-fast",
-            indicatorState
+            indicatorState,
           )}
         >
           <Ripple />
@@ -136,7 +135,7 @@ function NavItem({
         </span>
       )}
     </>
-  )
+  );
 
   return useRender({
     defaultTagName: "button",
@@ -152,20 +151,20 @@ function NavItem({
               : "h-full min-w-0 flex-1 justify-center"
             : cn(
                 "flex-col justify-center gap-1 px-1",
-                ctx.rail ? "h-16 w-full" : "min-w-0 flex-1 py-1.5"
+                ctx.rail ? "h-16 w-full" : "min-w-0 flex-1 py-1.5",
               ),
-          className
+          className,
         ),
         children: content,
       },
       {
         ...props,
         "data-active": active || undefined,
-      } as React.ComponentProps<"button">
+      } as React.ComponentProps<"button">,
     ),
     render,
     state: { slot: "nav-item", active: !!active },
-  })
+  });
 }
 
 /* ---------- bar ---------- */
@@ -181,14 +180,14 @@ const navigationBarVariants = cva(
       elevated: { true: "shadow-elevation-2", false: "" },
     },
     defaultVariants: { height: "default", elevated: false },
-  }
-)
+  },
+);
 
 type NavigationBarProps = React.ComponentProps<"nav"> &
   VariantProps<typeof navigationBarVariants> & {
     /** horizontal items (icon beside label) for medium windows */
-    layout?: NavLayout
-  }
+    layout?: NavLayout;
+  };
 
 function NavigationBar({
   className,
@@ -205,30 +204,30 @@ function NavigationBar({
         className={cn(
           navigationBarVariants({ height, elevated }),
           layout === "horizontal" && "items-center gap-2 px-2",
-          className
+          className,
         )}
         {...props}
       />
     </NavContext.Provider>
-  )
+  );
 }
 
 function NavigationBarItem(props: NavItemProps) {
-  return <NavItem {...props} />
+  return <NavItem {...props} />;
 }
 
 /* ---------- rail ---------- */
 
 type NavigationRailProps = React.ComponentProps<"nav"> & {
   /** 220–360dp with horizontal items */
-  expanded?: boolean
+  expanded?: boolean;
   /** 80dp instead of 96dp when collapsed */
-  narrow?: boolean
+  narrow?: boolean;
   /** expanded rail floating over content */
-  modal?: boolean
+  modal?: boolean;
   /** 40dp items, for long lists (documentation, settings) */
-  compact?: boolean
-}
+  compact?: boolean;
+};
 
 function NavigationRail({
   className,
@@ -256,56 +255,47 @@ function NavigationRail({
             : narrow
               ? "w-20 items-center"
               : "w-24 items-center",
-          modal && expanded
-            ? "rounded-r-lg bg-surface-container shadow-elevation-2"
-            : "bg-surface",
-          className
+          modal && expanded ? "rounded-r-lg bg-surface-container shadow-elevation-2" : "bg-surface",
+          className,
         )}
         {...props}
       />
     </NavContext.Provider>
-  )
+  );
 }
 
 /** a menu button / FAB area above the items */
-function NavigationRailHeader({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
+function NavigationRailHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="navigation-rail-header"
       className={cn(
         "flex flex-col gap-3 pb-6 group-data-expanded:items-stretch",
         "in-data-[expanded]:items-start",
-        className
+        className,
       )}
       {...props}
     />
-  )
+  );
 }
 
 function NavigationRailItem(props: NavItemProps) {
-  return <NavItem {...props} />
+  return <NavItem {...props} />;
 }
 
-function NavigationRailSection({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<"div">) {
+function NavigationRailSection({ className, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="navigation-rail-section"
       className={cn(
         "hidden px-4 pt-4 pb-2 text-title-small text-on-surface-variant in-data-[expanded]:block",
-        className
+        className,
       )}
       {...props}
     >
       {children}
     </div>
-  )
+  );
 }
 
 export {
@@ -316,5 +306,4 @@ export {
   NavigationRailItem,
   NavigationRailSection,
   navigationBarVariants,
-}
-
+};

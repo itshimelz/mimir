@@ -1,12 +1,12 @@
-"use client"
-import * as React from "react"
-import { Button as ButtonPrimitive } from "@base-ui/react/button"
-import { Toggle as TogglePrimitive } from "@base-ui/react/toggle"
-import { cva, type VariantProps } from "class-variance-authority"
+"use client";
+import * as React from "react";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
+import { cva, type VariantProps } from "class-variance-authority";
 
-import { Icon } from "@/components/m3e/icon"
-import { Ripple } from "@/components/m3e/ripple"
-import { cn } from "@/lib/m3e/cn"
+import { Icon } from "@/components/m3e/icon";
+import { Ripple } from "@/components/m3e/ripple";
+import { cn } from "@/lib/m3e/cn";
 
 /*
  * M3 chips (Compose AssistChip / FilterChip / InputChip / SuggestionChip
@@ -31,32 +31,27 @@ const chipVariants = cva(
       },
     },
     defaultVariants: { variant: "flat", size: "default" },
-  }
-)
+  },
+);
 
 const SELECTED =
-  "data-pressed:border-transparent data-pressed:bg-secondary-container data-pressed:text-on-secondary-container data-pressed:[&_[data-slot=chip-leading]]:text-on-secondary-container"
+  "data-pressed:border-transparent data-pressed:bg-secondary-container data-pressed:text-on-secondary-container data-pressed:[&_[data-slot=chip-leading]]:text-on-secondary-container";
 
 type ChipBaseProps = VariantProps<typeof chipVariants> & {
   /** leading icon (Material Symbols name or a node) */
-  icon?: React.ReactNode
-}
+  icon?: React.ReactNode;
+};
 
 /** icons step up with the height: 18dp at 32, 20 at 40, 24 at 56 */
-const iconSizeOf = (size: ChipBaseProps["size"]) =>
-  size === "lg" ? 24 : size === "md" ? 20 : 18
+const iconSizeOf = (size: ChipBaseProps["size"]) => (size === "lg" ? 24 : size === "md" ? 20 : 18);
 
 function leading(icon: React.ReactNode, size: ChipBaseProps["size"]) {
-  if (!icon) return null
+  if (!icon) return null;
   return (
     <span data-slot="chip-leading" className="inline-flex">
-      {typeof icon === "string" ? (
-        <Icon name={icon} size={iconSizeOf(size)} />
-      ) : (
-        icon
-      )}
+      {typeof icon === "string" ? <Icon name={icon} size={iconSizeOf(size)} /> : icon}
     </span>
-  )
+  );
 }
 
 /** Assist / suggestion chip: a small action. */
@@ -71,18 +66,14 @@ function Chip({
   return (
     <ButtonPrimitive
       data-slot="chip"
-      className={cn(
-        chipVariants({ variant, size }),
-        "text-on-surface",
-        className
-      )}
+      className={cn(chipVariants({ variant, size }), "text-on-surface", className)}
       {...props}
     >
       <Ripple />
       {leading(icon, size)}
       {children}
     </ButtonPrimitive>
-  )
+  );
 }
 
 /** Filter chip: toggles; shows a check while selected. */
@@ -97,12 +88,7 @@ function FilterChip({
   return (
     <TogglePrimitive
       data-slot="filter-chip"
-      className={cn(
-        chipVariants({ variant, size }),
-        SELECTED,
-        "group",
-        className
-      )}
+      className={cn(chipVariants({ variant, size }), SELECTED, "group", className)}
       {...props}
     >
       <Ripple />
@@ -110,9 +96,7 @@ function FilterChip({
         data-slot="chip-leading"
         className={cn(
           "inline-grid items-center transition-[grid-template-columns] duration-(--md-sys-motion-spring-fast-spatial-duration) ease-spatial-fast",
-          icon
-            ? "grid-cols-[1fr]"
-            : "grid-cols-[0fr] group-data-pressed:grid-cols-[1fr]"
+          icon ? "grid-cols-[1fr]" : "grid-cols-[0fr] group-data-pressed:grid-cols-[1fr]",
         )}
       >
         <span className="flex overflow-hidden">
@@ -120,17 +104,13 @@ function FilterChip({
             <Icon name="check" size={iconSizeOf(size)} />
           </span>
           <span className="flex group-data-pressed:hidden">
-            {typeof icon === "string" ? (
-              <Icon name={icon} size={iconSizeOf(size)} />
-            ) : (
-              icon
-            )}
+            {typeof icon === "string" ? <Icon name={icon} size={iconSizeOf(size)} /> : icon}
           </span>
         </span>
       </span>
       {children}
     </TogglePrimitive>
-  )
+  );
 }
 
 /** Input chip: a piece of user input, with an optional remove button. */
@@ -143,16 +123,11 @@ function InputChip({
   onRemove,
   removeLabel = "Remove",
   ...props
-}: React.ComponentProps<"span"> &
-  ChipBaseProps & { onRemove?: () => void; removeLabel?: string }) {
+}: React.ComponentProps<"span"> & ChipBaseProps & { onRemove?: () => void; removeLabel?: string }) {
   return (
     <span
       data-slot="input-chip"
-      className={cn(
-        chipVariants({ variant, size }),
-        "cursor-default before:hidden",
-        className
-      )}
+      className={cn(chipVariants({ variant, size }), "cursor-default before:hidden", className)}
       {...props}
     >
       {leading(icon, size)}
@@ -169,8 +144,7 @@ function InputChip({
         </button>
       )}
     </span>
-  )
+  );
 }
 
-export { Chip, FilterChip, InputChip, chipVariants }
-
+export { Chip, FilterChip, InputChip, chipVariants };

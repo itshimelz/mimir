@@ -47,9 +47,7 @@ export function Callout({
     >
       <Icon name={CALLOUT_ICONS[type] ?? "info"} />
       {title ? <AlertTitle className="text-title-small">{title}</AlertTitle> : null}
-      <AlertDescription className="text-body-medium leading-relaxed">
-        {children}
-      </AlertDescription>
+      <AlertDescription className="text-body-medium leading-relaxed">{children}</AlertDescription>
     </Alert>
   );
 }

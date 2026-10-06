@@ -19,7 +19,9 @@ export default function DownloadButton({ className = "" }: { className?: string 
     () => () => undefined,
     () => {
       const nav = navigator as NavigatorWithUserAgentData;
-      return LABEL[detectOS(navigator.userAgent, nav.userAgentData?.platform ?? navigator.platform)];
+      return LABEL[
+        detectOS(navigator.userAgent, nav.userAgentData?.platform ?? navigator.platform)
+      ];
     },
     () => LABEL.unknown,
   );

@@ -141,7 +141,9 @@ export default function Features() {
       <section className="border-t border-outline-variant py-14 sm:py-20">
         <div className={container}>
           <p className="text-label-large text-primary">Durable task ownership</p>
-          <h2 className={`${heading} mt-3 max-w-2xl`}>One workspace. Separate tasks. Shared control.</h2>
+          <h2 className={`${heading} mt-3 max-w-2xl`}>
+            One workspace. Separate tasks. Shared control.
+          </h2>
           <p className={body}>
             A coding agent is only one part of the job. Mimir keeps the objective, environment, live
             processes, verification evidence, and delivery state attached to the work from first

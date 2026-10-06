@@ -1,9 +1,9 @@
-"use client"
-import { Button as ButtonPrimitive } from "@base-ui/react/button"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/m3e/cn"
+"use client";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/m3e/cn";
 
-import { Ripple } from "@/components/m3e/ripple"
+import { Ripple } from "@/components/m3e/ripple";
 
 /*
  * M3 Expressive button.
@@ -21,8 +21,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         /* M3 names */
-        filled:
-          "bg-primary text-on-primary hover:shadow-elevation-1 data-press:shadow-none",
+        filled: "bg-primary text-on-primary hover:shadow-elevation-1 data-press:shadow-none",
         tonal:
           "bg-secondary-container text-on-secondary-container hover:shadow-elevation-1 data-press:shadow-none",
         elevated:
@@ -31,8 +30,7 @@ const buttonVariants = cva(
           "border-outline-variant bg-transparent text-on-surface-variant disabled:border-on-surface/12!",
         text: "bg-transparent text-primary disabled:bg-transparent!",
         /* shadcn names */
-        default:
-          "bg-primary text-on-primary hover:shadow-elevation-1 data-press:shadow-none",
+        default: "bg-primary text-on-primary hover:shadow-elevation-1 data-press:shadow-none",
         secondary:
           "bg-secondary-container text-on-secondary-container hover:shadow-elevation-1 data-press:shadow-none",
         tertiary:
@@ -41,8 +39,7 @@ const buttonVariants = cva(
           "border-outline-variant bg-transparent text-on-surface-variant disabled:border-on-surface/12! aria-expanded:bg-on-surface-variant/8",
         ghost:
           "bg-transparent text-on-surface-variant disabled:bg-transparent! aria-expanded:bg-on-surface-variant/8",
-        destructive:
-          "bg-error text-on-error hover:shadow-elevation-1 data-press:shadow-none",
+        destructive: "bg-error text-on-error hover:shadow-elevation-1 data-press:shadow-none",
         link: "state-layer-transparent bg-transparent text-primary underline-offset-4 hover:underline disabled:bg-transparent!",
       },
       size: {
@@ -97,13 +94,13 @@ const buttonVariants = cva(
       shape: "round",
       width: "default",
     },
-  }
-)
+  },
+);
 
 type ButtonProps = ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & {
-    disableRipple?: boolean
-  }
+    disableRipple?: boolean;
+  };
 
 function Button({
   className,
@@ -126,9 +123,8 @@ function Button({
       <Ripple disabled={disableRipple || variant === "link"} />
       {children}
     </ButtonPrimitive>
-  )
+  );
 }
 
-export { Button, buttonVariants }
-export type { ButtonProps }
-
+export { Button, buttonVariants };
+export type { ButtonProps };

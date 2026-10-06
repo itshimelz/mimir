@@ -1,7 +1,7 @@
-"use client"
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/m3e/cn"
+"use client";
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/m3e/cn";
 
 /*
  * M3 Expressive top app bars (Compose AppBar* tokens):
@@ -23,28 +23,28 @@ const appBarVariants = cva(
       },
     },
     defaultVariants: { size: "small" },
-  }
-)
+  },
+);
 
 /** the height of the title block below the icon row (medium / large) */
 const TITLE_BLOCK = {
   medium: { plain: 48, subtitle: 72 },
   large: { plain: 56, subtitle: 88 },
-} as const
+} as const;
 
 type AppBarProps = Omit<React.ComponentProps<"header">, "title"> &
   VariantProps<typeof appBarVariants> & {
-    title: React.ReactNode
-    subtitle?: React.ReactNode
+    title: React.ReactNode;
+    subtitle?: React.ReactNode;
     /** navigation icon / back button */
-    leading?: React.ReactNode
+    leading?: React.ReactNode;
     /** action buttons */
-    trailing?: React.ReactNode
+    trailing?: React.ReactNode;
     /** content is scrolling under the bar */
-    scrolled?: boolean
+    scrolled?: boolean;
     /** center the title (small bars) */
-    centered?: boolean
-  }
+    centered?: boolean;
+  };
 
 function AppBar({
   className,
@@ -57,9 +57,8 @@ function AppBar({
   centered,
   ...props
 }: AppBarProps) {
-  const small = size === "small"
-  const block =
-    !small && TITLE_BLOCK[size ?? "medium"][subtitle ? "subtitle" : "plain"]
+  const small = size === "small";
+  const block = !small && TITLE_BLOCK[size ?? "medium"][subtitle ? "subtitle" : "plain"];
 
   const titleText = (
     <>
@@ -70,7 +69,7 @@ function AppBar({
             ? "text-title-large"
             : size === "medium"
               ? "text-headline-medium"
-              : "text-display-small"
+              : "text-display-small",
         )}
       >
         {title}
@@ -83,14 +82,14 @@ function AppBar({
               ? "text-label-medium"
               : size === "medium"
                 ? "text-label-large"
-                : "text-title-medium"
+                : "text-title-medium",
           )}
         >
           {subtitle}
         </p>
       )}
     </>
-  )
+  );
 
   return (
     <header
@@ -107,13 +106,7 @@ function AppBar({
           </div>
         )}
         {small && (
-          <div
-            className={cn(
-              "min-w-0 flex-1 px-3",
-              centered && "text-center",
-              !leading && "pl-4"
-            )}
-          >
+          <div className={cn("min-w-0 flex-1 px-3", centered && "text-center", !leading && "pl-4")}>
             {titleText}
           </div>
         )}
@@ -133,7 +126,7 @@ function AppBar({
         </div>
       )}
     </header>
-  )
+  );
 }
 
 /**
@@ -141,18 +134,16 @@ function AppBar({
  * `scrolled` prop.
  */
 function useScrolled(target?: React.RefObject<HTMLElement | null>, offset = 0) {
-  const [scrolled, setScrolled] = React.useState(false)
+  const [scrolled, setScrolled] = React.useState(false);
   React.useEffect(() => {
-    const el = target?.current
-    const read = () =>
-      setScrolled((el ? el.scrollTop : window.scrollY) > offset)
-    read()
-    const source: HTMLElement | Window = el ?? window
-    source.addEventListener("scroll", read, { passive: true })
-    return () => source.removeEventListener("scroll", read)
-  }, [target, offset])
-  return scrolled
+    const el = target?.current;
+    const read = () => setScrolled((el ? el.scrollTop : window.scrollY) > offset);
+    read();
+    const source: HTMLElement | Window = el ?? window;
+    source.addEventListener("scroll", read, { passive: true });
+    return () => source.removeEventListener("scroll", read);
+  }, [target, offset]);
+  return scrolled;
 }
 
-export { AppBar, appBarVariants, useScrolled }
-
+export { AppBar, appBarVariants, useScrolled };

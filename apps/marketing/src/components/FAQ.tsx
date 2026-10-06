@@ -2,7 +2,12 @@
 // Purpose: Renders homepage FAQs from the shared answer contract as an M3E accordion.
 // Layer: Marketing UI section
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/m3e/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/m3e/accordion";
 import { FAQ_ITEMS } from "@/data/faqs";
 
 export default function FAQ() {

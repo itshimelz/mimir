@@ -41,7 +41,12 @@ export function docsLayoutOptions(): BaseLayoutProps {
       {
         type: "custom",
         children: (
-          <Button variant="outlined" size="sm" className="mx-2 mt-1" render={<Link href="/install" />}>
+          <Button
+            variant="outlined"
+            size="sm"
+            className="mx-2 mt-1"
+            render={<Link href="/install" />}
+          >
             Download
           </Button>
         ),

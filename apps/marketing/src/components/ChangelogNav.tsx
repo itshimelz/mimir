@@ -49,10 +49,16 @@ export default function ChangelogNav({ items }: { items: ChangelogNavItem[] }) {
               }
             >
               <ItemContent className="flex-row items-baseline justify-between gap-2">
-                <span className={isActive ? "text-label-large" : "text-label-large text-on-surface-variant"}>
+                <span
+                  className={
+                    isActive ? "text-label-large" : "text-label-large text-on-surface-variant"
+                  }
+                >
                   {item.version}
                 </span>
-                <span className="shrink-0 text-body-small text-on-surface-variant">{item.date}</span>
+                <span className="shrink-0 text-body-small text-on-surface-variant">
+                  {item.date}
+                </span>
               </ItemContent>
             </Item>
           );

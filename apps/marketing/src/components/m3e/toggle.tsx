@@ -1,10 +1,10 @@
-"use client"
-import { Toggle as TogglePrimitive } from "@base-ui/react/toggle"
-import { cva, type VariantProps } from "class-variance-authority"
-import type { ReactNode } from "react"
-import { cn } from "@/lib/m3e/cn"
+"use client";
+import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
+import { cva, type VariantProps } from "class-variance-authority";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/m3e/cn";
 
-import { Ripple } from "@/components/m3e/ripple"
+import { Ripple } from "@/components/m3e/ripple";
 
 /*
  * M3 Expressive toggle button. Selecting it swaps its shape
@@ -39,8 +39,7 @@ const toggleVariants = cva(
       shape: {
         round: "",
         /* square at rest, round when selected */
-        square:
-          "[--btn-r:var(--btn-r-square,var(--radius-md))] data-pressed:rounded-(--btn-h2)",
+        square: "[--btn-r:var(--btn-r-square,var(--radius-md))] data-pressed:rounded-(--btn-h2)",
       },
     },
     defaultVariants: {
@@ -48,8 +47,8 @@ const toggleVariants = cva(
       size: "default",
       shape: "round",
     },
-  }
-)
+  },
+);
 
 function Toggle({
   className,
@@ -64,11 +63,11 @@ function Toggle({
   VariantProps<typeof toggleVariants> & {
     /** shown instead of the icon while selected (play ↔ pause); icons of selected
      *  toggles are already filled when you use `<Icon fill="auto" />` */
-    selectedIcon?: ReactNode
+    selectedIcon?: ReactNode;
     /** shown instead of the label while selected */
-    selectedLabel?: ReactNode
+    selectedLabel?: ReactNode;
   }) {
-  const swaps = selectedIcon !== undefined || selectedLabel !== undefined
+  const swaps = selectedIcon !== undefined || selectedLabel !== undefined;
   return (
     <TogglePrimitive
       data-slot="toggle"
@@ -78,9 +77,7 @@ function Toggle({
       <Ripple />
       {swaps ? (
         <>
-          <span className="contents group-data-pressed/toggle:hidden">
-            {children}
-          </span>
+          <span className="contents group-data-pressed/toggle:hidden">{children}</span>
           <span className="hidden items-center gap-[inherit] group-data-pressed/toggle:inline-flex">
             {selectedIcon}
             {selectedLabel}
@@ -90,8 +87,7 @@ function Toggle({
         children
       )}
     </TogglePrimitive>
-  )
+  );
 }
 
-export { Toggle, toggleVariants }
-
+export { Toggle, toggleVariants };

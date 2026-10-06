@@ -1,7 +1,16 @@
 // FILE: ProviderMarkRow.tsx — provider marks as M3E assist chips.
 import { SiOpenai } from "react-icons/si";
 import { Chip } from "@/components/m3e/chip";
-import { AntigravityIcon, ClaudeIcon, CursorIcon, DevinIcon, DroidIcon, GrokIcon, OpencodeIcon, PiIcon } from "@/components/BrandIcons";
+import {
+  AntigravityIcon,
+  ClaudeIcon,
+  CursorIcon,
+  DevinIcon,
+  DroidIcon,
+  GrokIcon,
+  OpencodeIcon,
+  PiIcon,
+} from "@/components/BrandIcons";
 
 const marks = [
   { name: "Claude Code", Icon: ClaudeIcon, className: "text-[#D97757]" },
@@ -15,7 +24,13 @@ const marks = [
   { name: "Factory Droid", Icon: DroidIcon, className: "text-on-surface" },
 ] as const;
 
-export default function ProviderMarkRow({ centered = false, showLabels = false }: { centered?: boolean; showLabels?: boolean }) {
+export default function ProviderMarkRow({
+  centered = false,
+  showLabels = false,
+}: {
+  centered?: boolean;
+  showLabels?: boolean;
+}) {
   return (
     <div
       role="list"
@@ -30,13 +45,13 @@ export default function ProviderMarkRow({ centered = false, showLabels = false }
           title={name}
           variant="elevated"
           className={
-            showLabels
-              ? "gap-2"
-              : "size-11 justify-center px-0 has-data-[slot=chip-leading]:pl-0"
+            showLabels ? "gap-2" : "size-11 justify-center px-0 has-data-[slot=chip-leading]:pl-0"
           }
           icon={<Icon className={`size-5 ${className}`} aria-hidden="true" />}
         >
-          <span className={showLabels ? "text-label-large text-on-surface" : "sr-only"}>{name}</span>
+          <span className={showLabels ? "text-label-large text-on-surface" : "sr-only"}>
+            {name}
+          </span>
         </Chip>
       ))}
     </div>

@@ -22,12 +22,8 @@
   --md-sys-shape-corner-large: calc(16px * var(--md-sys-shape-scale));
   --md-sys-shape-corner-large-increased: calc(20px * var(--md-sys-shape-scale));
   --md-sys-shape-corner-extra-large: calc(28px * var(--md-sys-shape-scale));
-  --md-sys-shape-corner-extra-large-increased: calc(
-    32px * var(--md-sys-shape-scale)
-  );
-  --md-sys-shape-corner-extra-extra-large: calc(
-    48px * var(--md-sys-shape-scale)
-  );
+  --md-sys-shape-corner-extra-large-increased: calc(32px * var(--md-sys-shape-scale));
+  --md-sys-shape-corner-extra-extra-large: calc(48px * var(--md-sys-shape-scale));
   --md-sys-shape-corner-full: 9999px;
 
   /* M3 state layer opacities */
@@ -119,11 +115,9 @@
 /* ---------- Tailwind theme ---------- */
 
 @theme inline {
-  --font-sans:
-    "Roboto Flex Variable", Roboto, "Noto Sans JP", system-ui, sans-serif;
+  --font-sans: "Roboto Flex Variable", Roboto, "Noto Sans JP", system-ui, sans-serif;
   --font-heading: var(--font-sans);
-  --font-mono:
-    "JetBrains Mono Variable", ui-monospace, "Cascadia Code", monospace;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, "Cascadia Code", monospace;
 
   /* shadcn semantic colors */
   --color-background: var(--background);
@@ -166,9 +160,7 @@
   --color-primary-fixed: var(--md-sys-color-primary-fixed);
   --color-primary-fixed-dim: var(--md-sys-color-primary-fixed-dim);
   --color-on-primary-fixed: var(--md-sys-color-on-primary-fixed);
-  --color-on-primary-fixed-variant: var(
-    --md-sys-color-on-primary-fixed-variant
-  );
+  --color-on-primary-fixed-variant: var(--md-sys-color-on-primary-fixed-variant);
   --color-inverse-primary: var(--md-sys-color-inverse-primary);
   --color-secondary: var(--md-sys-color-secondary);
   --color-secondary-dim: var(--md-sys-color-secondary-dim);
@@ -178,9 +170,7 @@
   --color-secondary-fixed: var(--md-sys-color-secondary-fixed);
   --color-secondary-fixed-dim: var(--md-sys-color-secondary-fixed-dim);
   --color-on-secondary-fixed: var(--md-sys-color-on-secondary-fixed);
-  --color-on-secondary-fixed-variant: var(
-    --md-sys-color-on-secondary-fixed-variant
-  );
+  --color-on-secondary-fixed-variant: var(--md-sys-color-on-secondary-fixed-variant);
   --color-tertiary: var(--md-sys-color-tertiary);
   --color-tertiary-dim: var(--md-sys-color-tertiary-dim);
   --color-on-tertiary: var(--md-sys-color-on-tertiary);
@@ -189,9 +179,7 @@
   --color-tertiary-fixed: var(--md-sys-color-tertiary-fixed);
   --color-tertiary-fixed-dim: var(--md-sys-color-tertiary-fixed-dim);
   --color-on-tertiary-fixed: var(--md-sys-color-on-tertiary-fixed);
-  --color-on-tertiary-fixed-variant: var(
-    --md-sys-color-on-tertiary-fixed-variant
-  );
+  --color-on-tertiary-fixed-variant: var(--md-sys-color-on-tertiary-fixed-variant);
   --color-error: var(--md-sys-color-error);
   --color-error-dim: var(--md-sys-color-error-dim);
   --color-on-error: var(--md-sys-color-on-error);
@@ -200,15 +188,11 @@
   --color-surface: var(--md-sys-color-surface);
   --color-surface-dim: var(--md-sys-color-surface-dim);
   --color-surface-bright: var(--md-sys-color-surface-bright);
-  --color-surface-container-lowest: var(
-    --md-sys-color-surface-container-lowest
-  );
+  --color-surface-container-lowest: var(--md-sys-color-surface-container-lowest);
   --color-surface-container-low: var(--md-sys-color-surface-container-low);
   --color-surface-container: var(--md-sys-color-surface-container);
   --color-surface-container-high: var(--md-sys-color-surface-container-high);
-  --color-surface-container-highest: var(
-    --md-sys-color-surface-container-highest
-  );
+  --color-surface-container-highest: var(--md-sys-color-surface-container-highest);
   --color-surface-variant: var(--md-sys-color-surface-variant);
   --color-surface-tint: var(--md-sys-color-surface-tint);
   --color-on-surface: var(--md-sys-color-on-surface);
@@ -235,25 +219,16 @@
 
   /* M3 elevation */
   --shadow-elevation-0: none;
-  --shadow-elevation-1:
-    0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
-  --shadow-elevation-2:
-    0 1px 2px 0 rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15);
-  --shadow-elevation-3:
-    0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15);
-  --shadow-elevation-4:
-    0 2px 3px 0 rgb(0 0 0 / 0.3), 0 6px 10px 4px rgb(0 0 0 / 0.15);
-  --shadow-elevation-5:
-    0 4px 4px 0 rgb(0 0 0 / 0.3), 0 8px 12px 6px rgb(0 0 0 / 0.15);
+  --shadow-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
+  --shadow-elevation-2: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15);
+  --shadow-elevation-3: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15);
+  --shadow-elevation-4: 0 2px 3px 0 rgb(0 0 0 / 0.3), 0 6px 10px 4px rgb(0 0 0 / 0.15);
+  --shadow-elevation-5: 0 4px 4px 0 rgb(0 0 0 / 0.3), 0 8px 12px 6px rgb(0 0 0 / 0.15);
 
   /* M3 easing */
   --ease-emphasized: var(--md-sys-motion-easing-emphasized);
-  --ease-emphasized-decelerate: var(
-    --md-sys-motion-easing-emphasized-decelerate
-  );
-  --ease-emphasized-accelerate: var(
-    --md-sys-motion-easing-emphasized-accelerate
-  );
+  --ease-emphasized-decelerate: var(--md-sys-motion-easing-emphasized-decelerate);
+  --ease-emphasized-accelerate: var(--md-sys-motion-easing-emphasized-accelerate);
   --ease-standard: var(--md-sys-motion-easing-standard);
   --ease-spatial-fast: var(--md-sys-motion-spring-fast-spatial);
   --ease-spatial-default: var(--md-sys-motion-spring-default-spatial);
@@ -427,8 +402,7 @@
     var(--md-sys-motion-spring-default-effects-duration),
     var(--md-sys-motion-spring-fast-spatial-duration);
   transition-timing-function:
-    var(--md-sys-motion-spring-default-effects),
-    var(--md-sys-motion-spring-fast-spatial);
+    var(--md-sys-motion-spring-default-effects), var(--md-sys-motion-spring-fast-spatial);
   &[data-starting-style] {
     opacity: 0;
     scale: 0.85;
@@ -437,9 +411,7 @@
     opacity: 0;
     scale: 0.95;
     transition-duration: 150ms;
-    transition-timing-function: var(
-      --md-sys-motion-easing-emphasized-accelerate
-    );
+    transition-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
   }
 }
 
@@ -451,8 +423,7 @@
     var(--md-sys-motion-spring-fast-effects-duration),
     var(--md-sys-motion-spring-default-spatial-duration);
   transition-timing-function:
-    var(--md-sys-motion-spring-fast-effects),
-    var(--md-sys-motion-spring-default-spatial);
+    var(--md-sys-motion-spring-fast-effects), var(--md-sys-motion-spring-default-spatial);
   &[data-starting-style] {
     opacity: 0;
     scale: 1 0.6;
@@ -461,9 +432,7 @@
     opacity: 0;
     scale: 1 0.9;
     transition-duration: 120ms;
-    transition-timing-function: var(
-      --md-sys-motion-easing-emphasized-accelerate
-    );
+    transition-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
   }
 }
 
@@ -473,8 +442,7 @@
     var(--md-sys-motion-spring-default-effects-duration),
     var(--md-sys-motion-spring-default-spatial-duration);
   transition-timing-function:
-    var(--md-sys-motion-spring-default-effects),
-    var(--md-sys-motion-spring-default-spatial);
+    var(--md-sys-motion-spring-default-effects), var(--md-sys-motion-spring-default-spatial);
   &[data-starting-style] {
     opacity: 0;
     scale: 0.8;
@@ -483,9 +451,7 @@
     opacity: 0;
     scale: 0.9;
     transition-duration: 150ms;
-    transition-timing-function: var(
-      --md-sys-motion-easing-emphasized-accelerate
-    );
+    transition-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
   }
 }
 
@@ -505,17 +471,14 @@
     var(--md-sys-motion-spring-slow-spatial-duration),
     var(--md-sys-motion-spring-default-effects-duration);
   transition-timing-function:
-    var(--md-sys-motion-spring-slow-spatial),
-    var(--md-sys-motion-spring-default-effects);
+    var(--md-sys-motion-spring-slow-spatial), var(--md-sys-motion-spring-default-effects);
   &[data-starting-style],
   &[data-ending-style] {
     translate: var(--sheet-from, 0 100%);
   }
   &[data-ending-style] {
     transition-duration: 200ms;
-    transition-timing-function: var(
-      --md-sys-motion-easing-emphasized-accelerate
-    );
+    transition-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
   }
 }
 
@@ -609,8 +572,8 @@
  */
 @utility transition-shape {
   transition-property:
-    border-radius, background-color, color, border-color, box-shadow,
-    outline-color, padding, width, min-width, flex-grow;
+    border-radius, background-color, color, border-color, box-shadow, outline-color, padding, width,
+    min-width, flex-grow;
   transition-duration:
     var(--md-sys-motion-spring-default-effects-duration),
     var(--md-sys-motion-spring-fast-effects-duration),
@@ -623,16 +586,11 @@
     var(--md-sys-motion-spring-fast-spatial-duration),
     var(--md-sys-motion-spring-fast-spatial-duration);
   transition-timing-function:
-    var(--md-sys-motion-spring-default-effects),
-    var(--md-sys-motion-spring-fast-effects),
-    var(--md-sys-motion-spring-fast-effects),
-    var(--md-sys-motion-spring-fast-effects),
-    var(--md-sys-motion-spring-fast-effects),
-    var(--md-sys-motion-spring-fast-effects),
-    var(--md-sys-motion-spring-fast-spatial),
-    var(--md-sys-motion-spring-fast-spatial),
-    var(--md-sys-motion-spring-fast-spatial),
-    var(--md-sys-motion-spring-fast-spatial);
+    var(--md-sys-motion-spring-default-effects), var(--md-sys-motion-spring-fast-effects),
+    var(--md-sys-motion-spring-fast-effects), var(--md-sys-motion-spring-fast-effects),
+    var(--md-sys-motion-spring-fast-effects), var(--md-sys-motion-spring-fast-effects),
+    var(--md-sys-motion-spring-fast-spatial), var(--md-sys-motion-spring-fast-spatial),
+    var(--md-sys-motion-spring-fast-spatial), var(--md-sys-motion-spring-fast-spatial);
 }
 
 /* M3 focus indicator: 3px secondary outline, 2px outside */
@@ -772,8 +730,7 @@
   animation: m3-cp-linear-rotate calc(1333ms * 360 / 306) linear infinite;
 }
 .m3-cp-spinner {
-  animation: m3-cp-rotate-arc calc(4 * 1333ms) cubic-bezier(0.4, 0, 0.2, 1)
-    infinite both;
+  animation: m3-cp-rotate-arc calc(4 * 1333ms) cubic-bezier(0.4, 0, 0.2, 1) infinite both;
 }
 .m3-cp-circle {
   animation: m3-cp-expand-arc 1333ms cubic-bezier(0.4, 0, 0.2, 1) infinite both;
@@ -895,4 +852,3 @@
     transition-duration: 1ms !important;
   }
 }
-

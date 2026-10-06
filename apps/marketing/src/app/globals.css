@@ -31,11 +31,7 @@
   --color-fd-accent: var(--md-sys-color-secondary-container);
   --color-fd-accent-foreground: var(--md-sys-color-on-secondary-container);
   --color-fd-ring: var(--md-sys-color-secondary);
-  --color-fd-overlay: color-mix(
-    in oklab,
-    var(--md-sys-color-surface-tint) 42%,
-    transparent
-  );
+  --color-fd-overlay: color-mix(in oklab, var(--md-sys-color-surface-tint) 42%, transparent);
   --fd-layout-width: 90rem;
   --fd-nav-height: 3.25rem;
 }
@@ -217,11 +213,7 @@
 #nd-docs-layout .prose a:not([data-card], .not-prose a) {
   font-weight: 500;
   text-decoration-line: underline;
-  text-decoration-color: color-mix(
-    in oklab,
-    var(--md-sys-color-primary) 30%,
-    transparent
-  );
+  text-decoration-color: color-mix(in oklab, var(--md-sys-color-primary) 30%, transparent);
   text-underline-offset: 3px;
   transition: text-decoration-color 150ms ease;
 }
@@ -316,11 +308,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(
-    in oklab,
-    var(--md-sys-color-primary) 28%,
-    transparent
-  );
+  background: color-mix(in oklab, var(--md-sys-color-primary) 28%, transparent);
   color: inherit;
 }
 
@@ -360,16 +348,8 @@ body {
 .dark .shot-card-bg {
   background-image:
     linear-gradient(
-      color-mix(
-        in oklab,
-        var(--md-sys-color-surface-container-high) 40%,
-        transparent
-      ),
-      color-mix(
-        in oklab,
-        var(--md-sys-color-surface-container-high) 40%,
-        transparent
-      )
+      color-mix(in oklab, var(--md-sys-color-surface-container-high) 40%, transparent),
+      color-mix(in oklab, var(--md-sys-color-surface-container-high) 40%, transparent)
     ),
     url("/hero-bg.jpg");
   background-size: cover;

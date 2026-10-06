@@ -24,7 +24,11 @@ function getServerThemeSnapshot() {
 }
 
 export function ThemeToggle() {
-  const isDark = useSyncExternalStore(subscribeToThemeChanges, getThemeSnapshot, getServerThemeSnapshot);
+  const isDark = useSyncExternalStore(
+    subscribeToThemeChanges,
+    getThemeSnapshot,
+    getServerThemeSnapshot,
+  );
   function toggle() {
     const nextDark = !document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", nextDark);

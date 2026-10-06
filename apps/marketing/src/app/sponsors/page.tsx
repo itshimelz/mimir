@@ -107,9 +107,7 @@ export default function SponsorsPage() {
             <Button
               variant="outlined"
               className="w-full sm:w-auto"
-              render={
-                <a href={GITHUB_SPONSORS_URL} target="_blank" rel="noopener noreferrer" />
-              }
+              render={<a href={GITHUB_SPONSORS_URL} target="_blank" rel="noopener noreferrer" />}
             >
               Sponsor on GitHub
               <Icon name="arrow_outward" data-icon="inline-end" />

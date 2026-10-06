@@ -59,9 +59,7 @@ export default function AppBarChrome({ stars }: { stars: number | null }) {
                 variant="ghost"
                 size="sm"
                 aria-label={`GitHub stars: ${formatStars(stars)}`}
-                render={
-                  <a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" />
-                }
+                render={<a href={GITHUB_REPO_URL} target="_blank" rel="noopener noreferrer" />}
               >
                 <FaGithub data-icon="inline-start" />
                 {formatStars(stars)}

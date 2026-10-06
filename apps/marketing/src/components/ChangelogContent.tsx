@@ -104,11 +104,7 @@ export default function ChangelogContent({
                 </a>
                 .
               </p>
-              <Button
-                variant="filled"
-                className="w-fit"
-                render={<Link href="/install" />}
-              >
+              <Button variant="filled" className="w-fit" render={<Link href="/install" />}>
                 Download Mimir
                 <Icon name="download" data-icon="inline-end" />
               </Button>

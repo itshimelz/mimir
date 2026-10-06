@@ -1,25 +1,25 @@
-"use client"
-import * as React from "react"
-import { Toggle as TogglePrimitive } from "@base-ui/react/toggle"
-import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group"
-import { type VariantProps } from "class-variance-authority"
-import { cn } from "@/lib/m3e/cn"
+"use client";
+import * as React from "react";
+import { Toggle as TogglePrimitive } from "@base-ui/react/toggle";
+import { ToggleGroup as ToggleGroupPrimitive } from "@base-ui/react/toggle-group";
+import { type VariantProps } from "class-variance-authority";
+import { cn } from "@/lib/m3e/cn";
 
-import { Ripple } from "@/components/m3e/ripple"
-import { toggleVariants } from "@/components/m3e/toggle"
-import { useStandardGroup } from "@/components/m3e/use-standard-group"
+import { Ripple } from "@/components/m3e/ripple";
+import { toggleVariants } from "@/components/m3e/toggle";
+import { useStandardGroup } from "@/components/m3e/use-standard-group";
 
 const ToggleGroupContext = React.createContext<
   VariantProps<typeof toggleVariants> & {
-    spacing?: number
-    orientation?: "horizontal" | "vertical"
+    spacing?: number;
+    orientation?: "horizontal" | "vertical";
   }
 >({
   size: "default",
   variant: "default",
   spacing: 3,
   orientation: "horizontal",
-})
+});
 
 /*
  * M3 Expressive button group.
@@ -39,12 +39,12 @@ function ToggleGroup({
   ...props
 }: ToggleGroupPrimitive.Props &
   VariantProps<typeof toggleVariants> & {
-    spacing?: number
-    orientation?: "horizontal" | "vertical"
+    spacing?: number;
+    orientation?: "horizontal" | "vertical";
   }) {
-  const groupRef = React.useRef<HTMLDivElement>(null)
-  React.useImperativeHandle(ref, () => groupRef.current!)
-  useStandardGroup(groupRef, spacing > 0 && orientation === "horizontal")
+  const groupRef = React.useRef<HTMLDivElement>(null);
+  React.useImperativeHandle(ref, () => groupRef.current!);
+  useStandardGroup(groupRef, spacing > 0 && orientation === "horizontal");
   return (
     <ToggleGroupPrimitive
       ref={groupRef}
@@ -56,17 +56,15 @@ function ToggleGroup({
       style={{ "--gap": spacing } as React.CSSProperties}
       className={cn(
         "group/toggle-group flex w-fit flex-row items-center gap-[--spacing(var(--gap))] data-[spacing=0]:gap-0.5 data-vertical:flex-col data-vertical:items-stretch",
-        className
+        className,
       )}
       {...props}
     >
-      <ToggleGroupContext.Provider
-        value={{ variant, size, spacing, orientation }}
-      >
+      <ToggleGroupContext.Provider value={{ variant, size, spacing, orientation }}>
         {children}
       </ToggleGroupContext.Provider>
     </ToggleGroupPrimitive>
-  )
+  );
 }
 
 function ToggleGroupItem({
@@ -76,7 +74,7 @@ function ToggleGroupItem({
   size = "default",
   ...props
 }: TogglePrimitive.Props & VariantProps<typeof toggleVariants>) {
-  const context = React.useContext(ToggleGroupContext)
+  const context = React.useContext(ToggleGroupContext);
 
   return (
     <TogglePrimitive
@@ -96,15 +94,14 @@ function ToggleGroupItem({
         "group-data-vertical/toggle-group:data-[spacing=0]:first:rounded-t-(--btn-h2) group-data-vertical/toggle-group:data-[spacing=0]:last:rounded-b-(--btn-h2)",
         // connected groups default to M3E filled toggles: surface-container → primary
         "group-data-[spacing=0]/toggle-group:data-[variant=default]:bg-surface-container group-data-[spacing=0]/toggle-group:data-[variant=default]:data-pressed:bg-primary group-data-[spacing=0]/toggle-group:data-[variant=default]:data-pressed:text-on-primary",
-        className
+        className,
       )}
       {...props}
     >
       <Ripple />
       {children}
     </TogglePrimitive>
-  )
+  );
 }
 
-export { ToggleGroup, ToggleGroupItem }
-
+export { ToggleGroup, ToggleGroupItem };

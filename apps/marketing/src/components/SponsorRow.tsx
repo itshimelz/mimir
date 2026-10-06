@@ -24,9 +24,7 @@ export function SponsorRow({ sponsor }: { sponsor: Sponsor }) {
   return (
     <Item
       size="sm"
-      render={
-        <a href={sponsorLink(sponsor)} target="_blank" rel="noopener noreferrer" />
-      }
+      render={<a href={sponsorLink(sponsor)} target="_blank" rel="noopener noreferrer" />}
       className="-mx-2 rounded-xl hover:bg-on-surface/8"
     >
       {sponsor.logoUrl ? (

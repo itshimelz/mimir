@@ -343,6 +343,11 @@ export function CreateProjectDialog(props: {
     pickedPath !== null && trimmedPath === pickedPath
       ? (pickedPath.split(/[/\\]/).filter(Boolean).at(-1) ?? pickedPath)
       : null;
+  // The course name is the folder name almost every time, so seed the Space editor from
+  // whatever the box currently holds — including a typed path, which is how a student
+  // usually opens a course folder. Safe to recompute on every keystroke because
+  // SpaceEditorDialog reads `initialValue` only on its closed -> open transition.
+  const folderNameSeed = trimmedPath.split(/[/\\]/).filter(Boolean).at(-1) ?? null;
   const finalClonePath = joinProjectPath(trimmedDestinationParent, trimmedDirectoryName);
 
   return (
@@ -565,9 +570,7 @@ export function CreateProjectDialog(props: {
           // The folder name is the course name nine times out of ten, and asking for it
           // again is the step that turns "open a folder" into two dialogs.
           initialValue={
-            pickedFolderName === null
-              ? undefined
-              : { name: pickedFolderName, icon: DEFAULT_SPACE_ICON }
+            folderNameSeed === null ? undefined : { name: folderNameSeed, icon: DEFAULT_SPACE_ICON }
           }
           existingNames={[...spaces.map((space) => space.name), voidSpace.name]}
           onOpenChange={setSpaceEditorOpen}

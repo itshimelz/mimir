@@ -12,7 +12,7 @@
 //      two different primitives. Centralizing every shared characteristic here is
 //      what keeps the two reading as one component instead of two look-alikes.
 
-import { APP_TOOLTIP_SURFACE_CLASS_NAME } from "./chat/composerPickerStyles";
+import { APP_HOVER_CARD_M3_SURFACE_CLASS_NAME } from "./chat/composerPickerStyles";
 
 /** Outer inset on the hover-card content container (sits inside the popup surface). */
 export const SIDEBAR_HOVER_CARD_CONTAINER_PADDING_CLASS_NAME = "p-0.5";
@@ -29,14 +29,18 @@ export const SIDEBAR_HOVER_CARD_ROW_PADDING_CLASS_NAME = "px-1.5 py-1";
 export const SIDEBAR_HOVER_CARD_ROW_CLASS_NAME = `flex w-full min-w-0 items-center gap-2.5 rounded-md ${SIDEBAR_HOVER_CARD_ROW_PADDING_CLASS_NAME} text-ui-sm leading-none`;
 
 /**
- * Frosted surface chrome shared by both hover-card popups: the same shared tooltip
- * surface every plain tooltip uses (APP_TOOLTIP_SURFACE_CLASS_NAME) plus a single
- * fixed width so the thread and project cards are always exactly the same size.
- * Width is owned here (not on either card's content) so neither surface can set its
- * own, and the surface itself is sourced from the tooltip token so the cards and
- * plain tooltips can never drift apart.
+ * Surface chrome shared by both hover-card popups: M3's hover card (a raised
+ * `surface-container` at elevation 2, with a medium corner and an `outline-variant`
+ * hairline) plus a single fixed width so the thread and project cards are always
+ * exactly the same size. Width is owned here (not on either card's content) so
+ * neither surface can set its own, and the surface itself is sourced from the shared
+ * overlay token so the cards can never drift apart.
+ *
+ * Deliberately NOT the tooltip surface any more: M3 draws a plain tooltip as an
+ * `inverse-surface` chip, and a card holding clickable rows as a raised surface. Keeping
+ * the two coupled is what made both of them read as the same washed-out popup.
  */
-export const SIDEBAR_HOVER_CARD_SURFACE_CLASS_NAME = `${APP_TOOLTIP_SURFACE_CLASS_NAME} w-[16rem]`;
+export const SIDEBAR_HOVER_CARD_SURFACE_CLASS_NAME = `${APP_HOVER_CARD_M3_SURFACE_CLASS_NAME} w-[16rem]`;
 
 /**
  * Open/close timing spread onto BOTH cards' triggers. In Base UI v1.5 `delay`/

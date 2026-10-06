@@ -367,8 +367,8 @@ export function CreateProjectDialog(props: {
           {source === "local" ? (
             <>
               <InputGroup className={PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME}>
-                <InputGroupAddon className="w-10 self-stretch border-e border-foreground/12 ps-0">
-                  <FolderIcon className="size-4 text-muted-foreground/70" aria-hidden="true" />
+                <InputGroupAddon className="w-10 self-stretch border-e border-m3-outline-variant ps-0">
+                  <FolderIcon className="size-4 text-m3-on-surface-variant" aria-hidden="true" />
                 </InputGroupAddon>
                 <InputGroupInput
                   id={pathInputId}
@@ -390,30 +390,31 @@ export function CreateProjectDialog(props: {
 
               {isElectron ? (
                 <div className="space-y-2">
-                  <span
-                    id={sourceFolderLabelId}
-                    className={cn("block", dialogFieldLabelClassName, "text-ui text-foreground")}
-                  >
+                  <span id={sourceFolderLabelId} className={cn("block", dialogFieldLabelClassName)}>
                     Source folder
                   </span>
                   <button
                     type="button"
                     aria-labelledby={sourceFolderLabelId}
                     disabled={isPickingFolder || submitting}
+                    // M3 outlined button used as a drop target: the outline is
+                    // `outline-variant`, the label is `on-surface`, and the drop-active
+                    // state moves the outline to `primary` with a faint `primary` wash
+                    // rather than a hand-mixed fill. `state-layer` supplies the hover
+                    // and pressed feedback so it matches every other button in the app.
                     className={cn(
-                      "flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl border border-foreground/12 px-3.5 text-start text-ui text-[var(--color-text-foreground)] transition-colors outline-none hover:bg-foreground/4 focus-visible:border-foreground/30 disabled:opacity-50",
-                      isDropTarget &&
-                        "border-[color:var(--color-border-focus)] bg-foreground/6 text-[var(--color-text-foreground)]",
+                      "state-layer flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl border border-m3-outline-variant bg-transparent px-3.5 text-start text-m3-on-surface text-ui outline-none transition-shape state-layer-on-surface focus-ring-inset hover:bg-m3-surface-container-high/60 disabled:pointer-events-none disabled:cursor-default disabled:text-m3-on-surface/38",
+                      isDropTarget && "border-m3-primary bg-m3-primary/8",
                     )}
                     onClick={() => void handleBrowse()}
                   >
-                    <FolderAddIcon className="size-4.5" aria-hidden="true" />
+                    <FolderAddIcon aria-hidden="true" />
                     {isPickingFolder ? (
                       "Opening the folder picker…"
                     ) : pickedFolderName ? (
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate">{pickedFolderName}</span>
-                        <span className="truncate text-ui-xs text-muted-foreground/70">
+                        <span className="truncate text-ui-xs text-m3-on-surface-variant">
                           {pickedPath}
                         </span>
                       </span>
@@ -462,10 +463,7 @@ export function CreateProjectDialog(props: {
           )}
 
           <div className="space-y-2">
-            <span
-              id={spaceLabelId}
-              className={cn("block", dialogFieldLabelClassName, "text-ui text-foreground")}
-            >
+            <span id={spaceLabelId} className={cn("block", dialogFieldLabelClassName)}>
               Space
             </span>
             <div className="flex items-center gap-2">
@@ -521,9 +519,11 @@ export function CreateProjectDialog(props: {
 
           {formError ? (
             <div id={errorId} role="alert" className="space-y-1">
-              <p className="text-ui-xs text-destructive">{formError}</p>
+              {/* M3 error ink: the `error` role itself, because this text sits directly on the
+                  dialog's surface container rather than on a filled error surface. */}
+              <p className="text-m3-error text-ui-xs">{formError}</p>
               {formErrorMeaning ? (
-                <p className="text-ui-xs text-muted-foreground/70">{formErrorMeaning}</p>
+                <p className="text-m3-on-surface-variant text-ui-xs">{formErrorMeaning}</p>
               ) : null}
             </div>
           ) : null}

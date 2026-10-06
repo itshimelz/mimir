@@ -26,7 +26,7 @@ import {
 } from "react";
 import { cn } from "~/lib/utils";
 import { DISCLOSURE_CONTENT_MOTION_CLASS } from "~/lib/disclosureMotion";
-import { APP_TOOLTIP_SURFACE_CLASS_NAME } from "./composerPickerStyles";
+import { APP_HOVER_CARD_M3_SURFACE_CLASS_NAME } from "./composerPickerStyles";
 import {
   clampNumber,
   clampTooltipTop,
@@ -706,7 +706,7 @@ export function MessageTrail({
         role="tooltip"
         id={tooltipId}
         className={cn(
-          APP_TOOLTIP_SURFACE_CLASS_NAME,
+          APP_HOVER_CARD_M3_SURFACE_CLASS_NAME,
           "pointer-events-none invisible absolute z-30 w-64 -translate-y-1/2 rounded-xl p-2",
         )}
         style={{ left: RAIL_WIDTH_PX + TOOLTIP_OFFSET_X_PX, top: 0 }}

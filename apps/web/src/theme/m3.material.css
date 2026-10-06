@@ -706,3 +706,20 @@
     transition-duration: 105ms;
   }
 }
+
+/* Flat surfaces: no Material elevation shadows, no backdrop blur.
+   The @m3e registry paints raised surfaces with `shadow-elevation-*` (buttons,
+   dialogs, the command palette, autocomplete popups), and several of those add
+   a 1px `before:shadow-[...]` inner highlight. This product is flat, so the
+   elevation scale is zeroed here rather than edited out of the registry files:
+   the tokens stay defined, every consumer becomes shadowless, and a future
+   `shadcn add --overwrite` cannot resurrect the shadows. Backdrop blur on the
+   window material is already off by default via --app-settings-backdrop-filter. */
+:root {
+  --shadow-elevation-0: none;
+  --shadow-elevation-1: none;
+  --shadow-elevation-2: none;
+  --shadow-elevation-3: none;
+  --shadow-elevation-4: none;
+  --shadow-elevation-5: none;
+}

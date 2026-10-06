@@ -5,7 +5,7 @@
 //          workspace and one chat rail; only the left column and center swap.
 // Layer: Chat route presentation
 
-import type { ProjectId, StudioOutputEntry } from "@synara/contracts";
+import type { ProjectId, SpaceIconName, SpaceId, StudioOutputEntry } from "@synara/contracts";
 import type { FileDiffMetadata } from "@pierre/diffs/react";
 import {
   type CSSProperties,
@@ -52,6 +52,7 @@ import {
   type EditorSurface,
 } from "~/lib/editorCenterMode";
 import type { FileCommentSelection } from "~/lib/fileComments";
+import { DEFAULT_SPACE_ICON } from "~/lib/spaceGrouping";
 import { cn } from "~/lib/utils";
 import { useTheme } from "~/hooks/useTheme";
 import { Skeleton } from "./ui/skeleton";
@@ -75,6 +76,8 @@ import {
 } from "./chat/workspaceExplorer";
 import { Button } from "@/components/m3e/button";
 import { ProjectMenuPicker, type ProjectMenuPickerOption } from "./ProjectMenuPicker";
+import { SpaceIcon } from "./SpaceIcon";
+import { SpaceMenuPicker } from "./SpaceMenuPicker";
 import { SegmentedPicker } from "./SegmentedPicker";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { WorkspaceFileDiffEditorPane } from "./chat/WorkspaceFileDiffEditorPane";
@@ -97,6 +100,11 @@ interface EditorWorkspaceViewProps {
   projectName: string | null;
   currentProjectId?: ProjectId | null;
   projectOptions?: ReadonlyArray<ProjectMenuPickerOption>;
+  /** The Space (course) this workspace belongs to; shown above the project row. */
+  spaceId?: SpaceId | null;
+  spaceName?: string | null;
+  spaceIcon?: SpaceIconName;
+  onSelectSpace?: (spaceId: SpaceId | null) => void;
   selectedFilePath: string | null;
   expandedDirectories: ReadonlySet<string>;
   centerMode: EditorCenterMode;
@@ -685,6 +693,36 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             it collide with a long workspace name or the chat controls on a narrow window. */}
         <div className="grid w-full min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className={cn("flex min-w-0 items-center gap-1.5", trafficLightGutterClassName)}>
+            {/* The Space (course) leads and the project sits under it in the reading order:
+                the course is the unit you navigate by, the folder is a detail inside it.
+                Prepended rather than stacked because the header is a fixed 44px, and kept
+                on one row with truncation because this column shares `1fr` with an
+                absolutely centred switch that it must never grow into. */}
+            {props.onSelectSpace ? (
+              <SpaceMenuPicker
+                selectedSpaceId={props.spaceId ?? null}
+                onSpaceIdChange={(spaceId) =>
+                  guardLeavingEdit(() => props.onSelectSpace?.(spaceId))
+                }
+                popupClassName="min-w-56"
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    className="h-8 min-w-0 max-w-48 shrink gap-1.5 px-2 text-ui font-semibold text-foreground hover:bg-m3-surface-container-high"
+                    title={props.spaceName ? `${props.spaceName} — switch course` : "Switch course"}
+                  >
+                    <SpaceIcon
+                      icon={props.spaceIcon ?? DEFAULT_SPACE_ICON}
+                      className="size-3.5 shrink-0 opacity-80"
+                    />
+                    <span className="truncate">{props.spaceName ?? "No course"}</span>
+                    <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" />
+                  </Button>
+                }
+              />
+            ) : null}
+            <span aria-hidden="true" className="h-4 w-px shrink-0 bg-border opacity-60" />
             {isMimirTheme ? (
               props.onSelectProject && (props.projectOptions?.length ?? 0) > 0 ? (
                 <ProjectMenuPicker

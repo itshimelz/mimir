@@ -127,6 +127,9 @@ import {
 } from "../../routes/-chatThreadRoute.logic";
 import { matchesFixedShortcut } from "~/fixedShortcuts";
 import { isShortcutDispatchSuspended } from "~/keybindings";
+import { spaceDisplayIcon, spaceDisplayName, toSpaceIconName } from "~/lib/spaceGrouping";
+import { useSpacesUiStore } from "~/spacesUiStore";
+import { useVoidSpace } from "~/voidSpaceStore";
 import { cn } from "~/lib/utils";
 
 const PullRequestDockPane = lazy(() => import("../pullRequest/PullRequestDockPane"));
@@ -239,6 +242,18 @@ export function SingleChatSurface(props: {
   });
   const availableDockPaneKinds = dockLauncherItems.map(({ kind }) => kind);
   const projects = useStore((store) => store.projects);
+  // The course (Space) the workspace header leads with. Read from the same snapshot and
+  // stores the sidebar's space switcher uses, so the two cannot disagree.
+  const activeSpaceId = useSpacesUiStore((store) => store.activeSpaceId);
+  const setActiveSpaceId = useSpacesUiStore((store) => store.setActiveSpaceId);
+  const spaces = useStore((store) => store.spaces);
+  const activeSpacePresentation = useVoidSpace();
+  const activeSpaceName = spaceDisplayName(activeSpaceId, spaces, activeSpacePresentation);
+  // Void wears a black hole that a stored Space cannot hold, so narrow it here rather than
+  // teaching the header about Void's presentation.
+  const activeSpaceIcon = toSpaceIconName(
+    spaceDisplayIcon(activeSpaceId, spaces, activeSpacePresentation),
+  );
   const threadsHydrated = useStore((store) => store.threadsHydrated);
   const { settings: appSettings } = useAppSettings();
   const { handleNewThread } = useHandleNewThread();
@@ -1094,6 +1109,10 @@ export function SingleChatSurface(props: {
               projectName={activeProject?.name ?? null}
               currentProjectId={activeProject?.id ?? null}
               projectOptions={editorProjectOptions}
+              spaceId={activeSpaceId}
+              spaceName={activeSpaceName}
+              spaceIcon={activeSpaceIcon}
+              onSelectSpace={setActiveSpaceId}
               selectedFilePath={selectedEditorFilePath}
               expandedDirectories={editorExpandedDirectories}
               centerMode={editorCenterMode}

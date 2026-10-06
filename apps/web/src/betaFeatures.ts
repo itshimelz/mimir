@@ -35,8 +35,20 @@ export const GROUPS_ON = isBetaFeatureOn(GROUPS_BETA_FEATURE);
 /**
  * Inbox is Beta-only. Off, its rail and sidebar entries are gone and its route
  * redirects home; the server refuses its recap RPC regardless.
+ *
+ * Currently forced off in *every* flavor, not just Stable: the Inbox is hidden
+ * from the UI while it is reworked, the same way Computer Use is hidden. The
+ * Beta gate alone is not enough because a dev host and the Beta build both
+ * resolve to a flavor that keeps Beta-only features on, so the rail entry
+ * stayed visible there. Every consumer already respects this flag — the app
+ * rail, sidebar ordering, the badge poller, the route guard and the view
+ * itself — so one flip hides all of it and no entry point is left dangling.
+ *
+ * Delete this override to fall back to the plain Beta gate.
  */
-export const INBOX_ON = isBetaFeatureOn(INBOX_BETA_FEATURE);
+const INBOX_HIDDEN_PENDING_REWORK = true;
+
+export const INBOX_ON = !INBOX_HIDDEN_PENDING_REWORK && isBetaFeatureOn(INBOX_BETA_FEATURE);
 
 /**
  * Auto-fix CI is Beta-only. Off, the PR menu has no Auto-fix CI checkbox; the server refuses

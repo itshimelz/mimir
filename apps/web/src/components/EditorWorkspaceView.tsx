@@ -816,7 +816,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                   variant={chatPaneVisible ? "tonal" : "outlined"}
                   size="xs"
                   title={chatPaneVisible ? "Widen the agent chat" : "Show the agent chat"}
-                  className="h-8 w-[7.5rem] gap-1.5"
+                  className="h-8 w-[5.5rem] gap-1.5"
                   onClick={widenChatPane}
                 >
                   <ChatBubbleIcon className="size-3.5" />

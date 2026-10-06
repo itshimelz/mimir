@@ -4816,15 +4816,20 @@ export default function Sidebar() {
       return;
     }
 
+    // Records which surface the student was on, so a restart returns them to it rather than
+    // always to chat. Omitted when unset: the restore search is built against the route schema,
+    // where an absent key and a present-but-undefined one differ.
     const nextLastThreadRoute = {
       threadId: routeThreadId,
       ...(routeSearch.splitViewId ? { splitViewId: routeSearch.splitViewId } : {}),
+      ...(routeSearch.view ? { view: routeSearch.view } : {}),
     };
     const settle = window.setTimeout(() => {
       setLastThreadRoute((current) => {
         if (
           current?.threadId === nextLastThreadRoute.threadId &&
-          current?.splitViewId === nextLastThreadRoute.splitViewId
+          current?.splitViewId === nextLastThreadRoute.splitViewId &&
+          current?.view === nextLastThreadRoute.view
         ) {
           return current;
         }
@@ -4832,7 +4837,7 @@ export default function Sidebar() {
       });
     }, 0);
     return () => window.clearTimeout(settle);
-  }, [isOnSettings, routeSearch.splitViewId, routeThreadId]);
+  }, [isOnSettings, routeSearch.splitViewId, routeSearch.view, routeThreadId]);
 
   const handleThreadClick = useCallback(
     (event: MouseEvent, threadId: ThreadId, orderedProjectThreadIds: readonly ThreadId[]) => {

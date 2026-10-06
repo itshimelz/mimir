@@ -73,6 +73,32 @@ describe("Sidebar.uiState", () => {
     });
   });
 
+  it("round-trips the surface the student was last on, and drops an unknown one", () => {
+    persistSidebarUiState({
+      chatSectionExpanded: false,
+      chatThreadListExtraPages: 0,
+      projectThreadListExtraPagesByCwd: {},
+      dismissedThreadStatusKeyByThreadId: {},
+      lastThreadRoute: { threadId: "thread-1", view: "editor" },
+      activityViewEnabled: false,
+      activityScope: null,
+    });
+    expect(readSidebarUiState().lastThreadRoute).toEqual({
+      threadId: "thread-1",
+      view: "editor",
+    });
+
+    // localStorage is user-writable, so an unrecognised value must not survive into a
+    // navigation the thread route's search schema would reject.
+    window.localStorage.setItem(
+      "synara:sidebar-ui:v1",
+      JSON.stringify({
+        lastThreadRoute: { threadId: "thread-1", view: "../../etc/passwd" },
+      }),
+    );
+    expect(readSidebarUiState().lastThreadRoute).toEqual({ threadId: "thread-1" });
+  });
+
   it("persists project thread list paging by normalized cwd", () => {
     persistSidebarUiState({
       chatSectionExpanded: true,

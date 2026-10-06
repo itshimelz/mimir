@@ -6,7 +6,28 @@
 export type LastThreadRoute = {
   threadId: string;
   splitViewId?: string | undefined;
+  /**
+   * Which surface the student was last on for this thread: the chat transcript, or the
+   * workspace editor (which carries the Study/Studio switch and the chat rail).
+   *
+   * Without it a restart always dropped the student into chat — `view=editor` lived only in
+   * the URL, which is gone by the time the app cold-starts — so a workspace-heavy session was
+   * silently returned to the heaviest surface.
+   */
+  view?: EditorView | undefined;
 };
+
+/**
+ * `EditorView` mirrors the thread route's `view` search param. Duplicated as a literal union
+ * rather than imported from the route module: `chatRouteRestore` is imported by startup paths
+ * that must not pull in the router graph, and the validator below is what keeps the two from
+ * drifting — an unrecognised persisted value is dropped rather than trusted.
+ */
+export type EditorView = "editor";
+
+export function parseEditorView(value: unknown): EditorView | undefined {
+  return value === "editor" ? "editor" : undefined;
+}
 
 export type EmptyRouteRestoreRecoveryState = "idle" | "pending" | "done";
 
@@ -31,10 +52,33 @@ export function resolveRestorableThreadRoute(input: {
     availableSplitViewIds &&
     !availableSplitViewIds.has(lastThreadRoute.splitViewId)
   ) {
-    return { threadId: lastThreadRoute.threadId };
+    // Carries `view` across: dropping a stale split must not also drop the surface the
+    // student was on, or a workspace-heavy session lands in chat anyway.
+    return {
+      threadId: lastThreadRoute.threadId,
+      ...(lastThreadRoute.view ? { view: lastThreadRoute.view } : {}),
+    };
   }
 
   return lastThreadRoute;
+}
+
+/**
+ * The search a remembered route should restore with.
+ *
+ * Split and editor are independent: a workspace can be open inside a split view. `view` is
+ * omitted when unset rather than sent as `undefined`, because TanStack Router validates the
+ * search object against the route schema and a present-but-undefined key is not the same as an
+ * absent one.
+ */
+export function lastThreadRouteSearch(route: LastThreadRoute): {
+  splitViewId?: string | undefined;
+  view?: EditorView | undefined;
+} {
+  return {
+    ...(route.splitViewId ? { splitViewId: route.splitViewId } : {}),
+    ...(route.view ? { view: route.view } : {}),
+  };
 }
 
 // Route fallback guards separate a stale URL from a temporarily empty startup snapshot.

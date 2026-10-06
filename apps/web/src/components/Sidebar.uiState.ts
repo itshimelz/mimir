@@ -4,7 +4,7 @@
 // Exports: sidebar UI state read/write helpers.
 
 import { normalizeWorkspaceRootForComparison } from "@synara/shared/threadWorkspace";
-import type { LastThreadRoute } from "../chatRouteRestore";
+import { parseEditorView, type LastThreadRoute } from "../chatRouteRestore";
 import type { ActivityScopeSelection } from "./SidebarActivityView.logic";
 
 const SIDEBAR_UI_STATE_STORAGE_KEY = "synara:sidebar-ui:v1";
@@ -95,6 +95,7 @@ export function readSidebarUiState(): SidebarUiState {
       lastThreadRoute?: {
         threadId?: unknown;
         splitViewId?: unknown;
+        view?: unknown;
       } | null;
       activityViewEnabled?: boolean;
       activityScope?: unknown;
@@ -109,6 +110,11 @@ export function readSidebarUiState(): SidebarUiState {
             ...(typeof parsed.lastThreadRoute.splitViewId === "string" &&
             parsed.lastThreadRoute.splitViewId.length > 0
               ? { splitViewId: parsed.lastThreadRoute.splitViewId }
+              : {}),
+            // An unrecognised value is dropped rather than trusted: this is localStorage, and
+            // an unknown `view` would navigate to a route the thread schema does not accept.
+            ...(parseEditorView(parsed.lastThreadRoute.view)
+              ? { view: parseEditorView(parsed.lastThreadRoute.view) }
               : {}),
           }
         : null;
@@ -235,6 +241,11 @@ export function persistSidebarUiState(input: SidebarUiState): void {
               threadId: input.lastThreadRoute.threadId,
               ...(input.lastThreadRoute.splitViewId
                 ? { splitViewId: input.lastThreadRoute.splitViewId }
+                : {}),
+              // Which surface the student was on. Without this a restart always returns to
+              // chat, so a workspace session loses its place on every launch.
+              ...(parseEditorView(input.lastThreadRoute.view)
+                ? { view: parseEditorView(input.lastThreadRoute.view) }
                 : {}),
             }
           : null,

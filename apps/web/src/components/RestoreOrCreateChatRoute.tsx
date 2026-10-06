@@ -13,6 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { SplashScreen } from "./SplashScreen";
 import {
   type EmptyRouteRestoreRecoveryState,
+  lastThreadRouteSearch,
   type LastThreadRoute,
   shouldHoldRememberedRouteFallback,
   shouldStartRememberedRouteRecovery,
@@ -140,9 +141,7 @@ export function RestoreOrCreateChatRoute({
           to: "/$threadId",
           params: { threadId: ThreadId.makeUnsafe(restorableRoute.threadId) },
           replace: true,
-          search: () => ({
-            splitViewId: restorableRoute.splitViewId,
-          }),
+          search: () => lastThreadRouteSearch(restorableRoute),
         });
         return;
       }

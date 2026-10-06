@@ -419,6 +419,8 @@ it("shows only project name with M3E button and hides full workspace path in Mim
             onSelectDiffFile={vi.fn()}
             onToggleDirectory={vi.fn()}
             onCenterModeChange={vi.fn()}
+            editFilePath={null}
+            editDiffBaseRev={null}
             onEditFile={vi.fn()}
             onCloseEdit={vi.fn()}
             onSelectProject={vi.fn()}
@@ -481,6 +483,8 @@ it("keeps project and workspace switching reachable from the editor header", asy
           onSelectDiffFile={vi.fn()}
           onToggleDirectory={vi.fn()}
           onCenterModeChange={vi.fn()}
+          editFilePath={null}
+          editDiffBaseRev={null}
           onEditFile={vi.fn()}
           onCloseEdit={vi.fn()}
           onSelectProject={onSelectProject}

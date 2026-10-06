@@ -474,7 +474,10 @@ import {
 import { selectSplitView, useSplitViewStore } from "../splitViewStore";
 import { useRightDockStore } from "../rightDockStore";
 import { useTemporaryThreadStore } from "../temporaryThreadStore";
-import { useThreadActivationController } from "../hooks/useThreadActivationController";
+import {
+  resolveThreadActivationView,
+  useThreadActivationController,
+} from "../hooks/useThreadActivationController";
 import {
   firstLocalServerUrl,
   useSidebarProjectRunController,
@@ -3861,6 +3864,16 @@ export default function Sidebar() {
       threadListExtraPagesByProjectCwd,
     ],
   );
+  // Course work lands in the workspace; a home chat or an unfiled folder stays on chat.
+  const resolveActivationView = useCallback(
+    (threadId: ThreadId) =>
+      resolveThreadActivationView(
+        projects.find((project) => project.id === sidebarThreadSummaryById[threadId]?.projectId)
+          ?.spaceId,
+      ),
+    [projects, sidebarThreadSummaryById],
+  );
+
   const { activateThreadFromSidebarIntent } = useThreadActivationController({
     activeSplitView,
     clearSelection,
@@ -3874,6 +3887,7 @@ export default function Sidebar() {
     openTerminalThreadPage,
     prewarmThreadDetailForIntent,
     rememberLastThreadRouteNow,
+    resolveActivationView,
     routeSplitViewId: routeSearch.splitViewId,
     routeThreadId,
     selectedThreadCount: selectedThreadIds.size,

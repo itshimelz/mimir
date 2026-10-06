@@ -4,6 +4,7 @@ import { ProjectId, ThreadId } from "@synara/contracts";
 import type { SplitView } from "../splitViewStore";
 import {
   activateThreadFromSidebarIntent,
+  resolveThreadActivationView,
   type ThreadActivationControllerInput,
 } from "./useThreadActivationController";
 
@@ -69,6 +70,7 @@ function makeControllerInput(
     openTerminalThreadPage: vi.fn(),
     prewarmThreadDetailForIntent: vi.fn(),
     rememberLastThreadRouteNow: vi.fn(),
+    resolveActivationView: vi.fn(() => undefined),
     routeSplitViewId: undefined,
     routeThreadId: THREAD_A,
     selectedThreadCount: 0,
@@ -374,6 +376,64 @@ describe("activateThreadFromSidebarIntent", () => {
     expect(input.setSplitFocusedPane).not.toHaveBeenCalled();
     expect(getFirstNavigateArgs(input).search({ splitViewId: splitView.id })).toEqual({
       splitViewId: undefined,
+    });
+  });
+});
+
+describe("resolveThreadActivationView", () => {
+  it("opens the workspace for a thread whose folder is in a Space", () => {
+    expect(resolveThreadActivationView("space-1")).toBe("editor");
+  });
+
+  it("keeps chat for an unfiled folder, a home chat, and an unknown project", () => {
+    for (const spaceId of [null, undefined, ""]) {
+      expect(resolveThreadActivationView(spaceId)).toBeUndefined();
+    }
+  });
+});
+
+describe("activation view routing", () => {
+  // `search` is a spread callback, so it must be invoked to see the navigation it produces.
+  const resolvedSearch = (
+    input: { navigate: ReturnType<typeof vi.fn> },
+    previous: Record<string, unknown> = {},
+  ) => {
+    const search = getFirstNavigateArgs(input).search as (
+      previous: Record<string, unknown>,
+    ) => unknown;
+    return search(previous) as Record<string, unknown>;
+  };
+
+  it("navigates a course thread into the workspace", () => {
+    const input = makeControllerInput({ resolveActivationView: vi.fn(() => "editor" as const) });
+
+    activateThreadFromSidebarIntent(input, THREAD_B);
+
+    expect(resolvedSearch(input)).toMatchObject({ view: "editor" });
+    expect(input.resolveActivationView).toHaveBeenCalledWith(THREAD_B);
+  });
+
+  it("leaves a home chat on the chat surface, omitting the key rather than sending undefined", () => {
+    const input = makeControllerInput({ resolveActivationView: vi.fn(() => undefined) });
+
+    activateThreadFromSidebarIntent(input, THREAD_B);
+
+    // TanStack Router validates the search object against the route schema, where a
+    // present-but-undefined key is not the same as an absent one.
+    expect("view" in resolvedSearch(input)).toBe(false);
+  });
+
+  it("preserves a view the student is already in, and overrides it for a course thread", () => {
+    const input = makeControllerInput({ resolveActivationView: vi.fn(() => undefined) });
+    activateThreadFromSidebarIntent(input, THREAD_B);
+    expect(resolvedSearch(input, { view: "editor" })).toMatchObject({
+      view: "editor",
+    });
+
+    const course = makeControllerInput({ resolveActivationView: vi.fn(() => "editor" as const) });
+    activateThreadFromSidebarIntent(course, THREAD_B);
+    expect(resolvedSearch(course, { view: undefined })).toMatchObject({
+      view: "editor",
     });
   });
 });

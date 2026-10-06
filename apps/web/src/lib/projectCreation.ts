@@ -1,7 +1,7 @@
 // FILE: projectCreation.ts
 // Purpose: Shared project-create flow for UI entrypoints that need duplicate recovery.
 // Layer: Web orchestration helper
-// Exports: createOrRecoverProjectFromPath
+// Exports: createOrRecoverProjectFromPath, resolveProjectCreationDestination
 
 import {
   type NativeApi,
@@ -30,6 +30,37 @@ export const PROJECT_CREATE_SYNC_ERROR =
 
 function buildProjectTitleFromWorkspaceRoot(workspaceRoot: string): string {
   return workspaceRoot.split(/[/\\]/).findLast((segment) => segment.length > 0) ?? workspaceRoot;
+}
+
+/**
+ * Where "Create project" should leave the sidebar, and whether an already-linked
+ * folder has to be moved into the chosen Space afterwards.
+ *
+ * The move is the whole point of opening a folder as a course, and it has to be
+ * explicit: `project.create` never runs for a folder that is already a project,
+ * so the Space chosen in the dialog would otherwise be dropped and the folder
+ * would stay in Void — which is what a student sees as "it did not work".
+ *
+ * Void is deliberately never applied as a move. Ignoring the destination is not
+ * the same as asking to un-file a folder, and doing it silently would be a
+ * surprise rather than an intent.
+ */
+export function resolveProjectCreationDestination(input: {
+  readonly existingProject: { readonly id: ProjectId; readonly spaceId?: SpaceId | null } | null;
+  readonly requestedSpaceId: SpaceId | null;
+}): {
+  readonly destinationSpaceId: SpaceId | null;
+  readonly refileExistingProjectId: ProjectId | null;
+} {
+  const existing = input.existingProject;
+  const requested = input.requestedSpaceId;
+  if (existing && requested !== null && (existing.spaceId ?? null) !== requested) {
+    return { destinationSpaceId: requested, refileExistingProjectId: existing.id };
+  }
+  return {
+    destinationSpaceId: existing ? (existing.spaceId ?? null) : requested,
+    refileExistingProjectId: null,
+  };
 }
 
 // Creates a project row for a folder, recovering the existing server project when

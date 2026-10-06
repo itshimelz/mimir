@@ -146,7 +146,7 @@ import {
   newThreadId,
   randomUUID,
 } from "../lib/utils";
-import { isOrdinarySpaceProject } from "../lib/spaces";
+import { isOrdinarySpaceProject, moveProjectToSpace } from "../lib/spaces";
 import { expandProjectHomePath, joinProjectPath } from "../lib/projectPaths";
 import { reconcileDeletedThreadsFromClient } from "../lib/deletedThreadClientReconciliation";
 import { deleteProjectFromClient } from "../lib/projectDelete";
@@ -500,6 +500,7 @@ import { useFocusedChatContext } from "../focusedChatContext";
 import { waitForRecoverableProjectInReadModel } from "../lib/projectCreateRecovery";
 import {
   createOrRecoverProjectFromPath,
+  resolveProjectCreationDestination,
   PROJECT_CREATE_EXISTING_SYNC_ERROR,
 } from "../lib/projectCreation";
 import { useSpacesUiStore } from "../spacesUiStore";
@@ -3971,11 +3972,12 @@ export default function Sidebar() {
         value.source === "local"
           ? findWorkspaceRootMatch(projects, value.workspaceRoot, (project) => project.cwd)
           : null;
-      // Reopening an existing project must follow the Space where that project
-      // actually lives. New projects use the destination selected in the dialog.
-      const destinationSpaceId = existingProject
-        ? (existingProject.spaceId ?? null)
-        : value.spaceId;
+      // Reopening an existing project follows the Space where it already lives, unless a
+      // different course was chosen on purpose — see resolveProjectCreationDestination.
+      const { destinationSpaceId, refileExistingProjectId } = resolveProjectCreationDestination({
+        existingProject: existingProject ?? null,
+        requestedSpaceId: value.spaceId,
+      });
       const runCreateProject = async () => {
         if (value.source === "github") {
           const api = readNativeApi();
@@ -4049,6 +4051,17 @@ export default function Sidebar() {
             createIfMissing: value.createIfMissing,
             spaceId: value.spaceId,
           });
+          if (refileExistingProjectId) {
+            // `addProjectFromPath` returns nothing, but the linked project was already
+            // in hand, so the move needs no round trip to learn its id.
+            const api = readNativeApi();
+            if (!api) throw new Error("The app server is unavailable.");
+            await moveProjectToSpace({
+              api,
+              projectId: refileExistingProjectId,
+              spaceId: value.spaceId,
+            });
+          }
         }
       };
 

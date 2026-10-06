@@ -11,7 +11,12 @@ import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } f
 
 import { isElectron } from "../env";
 import { useWindowFolderDrop } from "../hooks/useWindowFolderDrop";
-import { VOID_SPACE_KEY, spaceKey, toSpaceIconName } from "../lib/spaceGrouping";
+import {
+  DEFAULT_SPACE_ICON,
+  VOID_SPACE_KEY,
+  spaceKey,
+  toSpaceIconName,
+} from "../lib/spaceGrouping";
 import { createSpace } from "../lib/spaces";
 import { readNativeApi } from "../nativeApi";
 import { randomUUID } from "../lib/utils";
@@ -557,6 +562,13 @@ export function CreateProjectDialog(props: {
         <SpaceEditorDialog
           open={spaceEditorOpen}
           mode="create"
+          // The folder name is the course name nine times out of ten, and asking for it
+          // again is the step that turns "open a folder" into two dialogs.
+          initialValue={
+            pickedFolderName === null
+              ? undefined
+              : { name: pickedFolderName, icon: DEFAULT_SPACE_ICON }
+          }
           existingNames={[...spaces.map((space) => space.name), voidSpace.name]}
           onOpenChange={setSpaceEditorOpen}
           onSubmit={handleCreateSpace}

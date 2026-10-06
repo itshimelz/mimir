@@ -577,3 +577,85 @@ it("keeps dollar filenames separate from math and rejects escaped delimiters", a
   expect(markup).not.toContain("alias.md");
   expect(markup.match(/href=/g)).toHaveLength(1);
 });
+
+describe("agent directives rendering", () => {
+  it("renders codex and generic file citations as openable file chips without purpose badge", async () => {
+    const markup = await renderMarkdown(
+      ':codex-file-citation{path="/home/user/project/file.pdf" purpose="output"}',
+      "/home/user/project",
+    );
+    expect(markup).toContain('data-agent-file-citation="true"');
+    expect(markup).toContain('data-file-path="/home/user/project/file.pdf"');
+    expect(markup).toContain("file.pdf");
+    expect(markup).not.toContain("output");
+    expect(markup).not.toContain("OUTPUT");
+  });
+
+  it("renders generic file citations without purpose", async () => {
+    const markup = await renderMarkdown(
+      ':file-citation{path="src/index.ts"}',
+      "/home/user/project",
+    );
+    expect(markup).toContain('data-agent-file-citation="true"');
+    expect(markup).toContain('data-file-path="src/index.ts"');
+    expect(markup).toContain("index.ts");
+  });
+
+  it("does not render follow-up suggestions inside the agent response markdown", async () => {
+    const markup = await renderMarkdown(
+      'Here is the result.\n\n:codex-followup[Make a design checklist]{prompt="Make a Mimir-specific design checklist"}',
+      "/home/user/project",
+    );
+    expect(markup).toContain("Here is the result.");
+    expect(markup).not.toContain("Make a design checklist");
+    expect(markup).not.toContain("data-agent-followup");
+  });
+
+  it("strips bullet lists that only contain follow-up suggestions from agent response", async () => {
+    const text = [
+      "Done with task.",
+      "",
+      '- :codex-followup[Option A]{prompt="Do A"}',
+      '- :codex-followup[Option B]{prompt="Do B"}',
+    ].join("\n");
+    const markup = await renderMarkdown(text, "/home/user/project");
+    expect(markup).toContain("Done with task.");
+    expect(markup).not.toContain("Option A");
+    expect(markup).not.toContain("Option B");
+    expect(markup).not.toContain("<ul");
+    expect(markup).not.toContain("<li");
+  });
+
+  it("extracts follow-up suggestions from markdown text for composer display", async () => {
+    const { extractAgentFollowups } = await import("../lib/remarkAgentDirectives");
+    const text = [
+      "Primer created.",
+      ':codex-file-citation{path="/path/file.pdf"}',
+      '- :codex-followup[Make a checklist]{prompt="Checklist prompt"}',
+      '- :codex-followup[Create mockup]{prompt="Mockup prompt"}',
+    ].join("\n");
+    const followups = extractAgentFollowups(text);
+    expect(followups).toEqual([
+      { label: "Make a checklist", prompt: "Checklist prompt" },
+      { label: "Create mockup", prompt: "Mockup prompt" },
+    ]);
+  });
+
+  it("renders follow-up suggestions in ComposerFollowUpSuggestions component", async () => {
+    const { ComposerFollowUpSuggestions } = await import("./chat/ComposerFollowUpSuggestions");
+    const onApply = vi.fn();
+    const markup = renderToStaticMarkup(
+      <ComposerFollowUpSuggestions
+        suggestions={[
+          { label: "Make a checklist", prompt: "Checklist prompt" },
+          { label: "Create mockup", prompt: "Mockup prompt" },
+        ]}
+        onApply={onApply}
+      />,
+    );
+    expect(markup).toContain("Make a checklist");
+    expect(markup).toContain("Create mockup");
+    expect(markup).toContain('data-prompt="Checklist prompt"');
+    expect(markup).toContain('data-prompt="Mockup prompt"');
+  });
+});

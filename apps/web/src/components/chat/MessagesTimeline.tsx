@@ -528,6 +528,8 @@ interface MessagesTimelineProps {
   contentInsetBottomClearancePx?: number | undefined;
   /** In-thread find highlight; matching itself lives on projected messages, not the DOM. */
   findHighlight?: ThreadFindHighlight | null;
+  /** Invoked when a follow-up directive button is clicked in markdown. */
+  onFollowUpClick?: (prompt: string) => void;
 }
 
 export const MessagesTimeline = memo(function MessagesTimeline({
@@ -604,6 +606,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
   contentInsetBottomPx,
   contentInsetBottomClearancePx,
   findHighlight: findHighlightProp,
+  onFollowUpClick,
 }: MessagesTimelineProps) {
   // Prop defaults are resolved in the body rather than in the destructuring pattern:
   // an `AssignmentPattern` in the parameter list makes React Compiler bail out on the
@@ -1572,6 +1575,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
                   isStreaming={false}
                   style={chatTypographyStyle}
                   onImageExpand={onImageExpand}
+                  onFollowUpClick={onFollowUpClick}
                   {...threadFindMarkdownProps(findHighlight, row.message.id, row.segmentIndex)}
                 />
               </div>
@@ -2186,6 +2190,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
                   style={chatTypographyStyle}
                   onImageExpand={onImageExpand}
                   knownAbsoluteFilePaths={knownAbsoluteFilePaths}
+                  onFollowUpClick={onFollowUpClick}
                   {...threadFindMarkdownProps(findHighlight, item.message.id)}
                 />
               </div>
@@ -2319,6 +2324,7 @@ export const MessagesTimeline = memo(function MessagesTimeline({
                       style={chatTypographyStyle}
                       onImageExpand={onImageExpand}
                       knownAbsoluteFilePaths={knownAbsoluteFilePaths}
+                      onFollowUpClick={onFollowUpClick}
                       {...(conversationOnly && onOpenThread ? { onOpenThread } : {})}
                       {...threadFindMarkdownProps(findHighlight, row.message.id)}
                     />

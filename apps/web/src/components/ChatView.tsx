@@ -88,6 +88,7 @@ import {
   type ChatLinkActions,
 } from "~/lib/linkContextMenu";
 import { openExternalLink } from "~/lib/linkChips";
+import { extractAgentFollowups } from "~/lib/remarkAgentDirectives";
 import {
   mergeProjectInstructionsIntoThreadNotes,
   useProjectInstructionsStore,
@@ -292,6 +293,7 @@ import { ComposerCommandItem, ComposerCommandMenu } from "./chat/ComposerCommand
 import { ComposerExpiredUserInputNotice } from "./chat/ComposerExpiredUserInputNotice";
 import { ComposerExtrasPanel } from "./chat/ComposerExtrasPanel";
 import { ComposerExtrasTrigger } from "./chat/ComposerExtrasTrigger";
+import { ComposerFollowUpSuggestions } from "./chat/ComposerFollowUpSuggestions";
 import { ComposerGoalHeader } from "./chat/ComposerGoalHeader";
 import { ComposerInputBanners } from "./chat/ComposerInputBanners";
 import { ComposerLiveChangesHeader } from "./chat/ComposerLiveChangesHeader";
@@ -573,6 +575,30 @@ interface ChatViewProps {
 // Builds an ephemeral transcript bubble for the conversational automation-setup
 // exchange. These never reach a provider and are not persisted; they render the
 // back-and-forth (user request, Synara's clarifying questions) inline like Codex.
+
+function resolveActiveFollowUpSuggestions(
+  timelineMessages: readonly TimelineMessageItem[],
+  dismissedId: string | null,
+  prompt: string,
+  isWorking: boolean,
+  activeTurnInProgress: boolean,
+  activePendingApproval: boolean,
+  hasPendingUserInputs: boolean,
+) {
+  if (prompt.trim().length > 0) return [];
+  if (isWorking || activeTurnInProgress) return [];
+  if (activePendingApproval || hasPendingUserInputs) return [];
+
+  for (let i = timelineMessages.length - 1; i >= 0; i--) {
+    const msg = timelineMessages[i];
+    if (msg.role === "user") return [];
+    if (msg.role === "assistant") {
+      if (msg.id === dismissedId) return [];
+      return extractAgentFollowups(msg.text);
+    }
+  }
+  return [];
+}
 
 export default function ChatView({
   threadId,
@@ -4532,6 +4558,35 @@ export default function ChatView({
     },
     [promptRef, setComposerCursor, setComposerTrigger, scheduleComposerFocus, setPrompt],
   );
+
+  const handleApplyFollowUpPrompt = setPromptFromTraits;
+
+  useEffect(() => {
+    const handleCustomFollowup = (event: Event) => {
+      const customEvent = event as CustomEvent<{ prompt?: string }>;
+      const promptText = customEvent.detail?.prompt;
+      if (typeof promptText === "string" && promptText.length > 0) {
+        handleApplyFollowUpPrompt(promptText);
+      }
+    };
+    window.addEventListener("synara:apply-followup-prompt", handleCustomFollowup);
+    return () => {
+      window.removeEventListener("synara:apply-followup-prompt", handleCustomFollowup);
+    };
+  }, [handleApplyFollowUpPrompt]);
+
+  const [dismissedFollowUpMessageId, setDismissedFollowUpMessageId] = useState<string | null>(null);
+
+  const activeFollowUpSuggestions = resolveActiveFollowUpSuggestions(
+    timelineMessages,
+    dismissedFollowUpMessageId,
+    prompt,
+    isWorking,
+    activeTurnInProgress,
+    Boolean(activePendingApproval),
+    pendingUserInputs.length > 0,
+  );
+
   const selectedProviderModelOptions = composerModelOptions?.[selectedProvider];
   const composerTraitSelection = getComposerTraitSelection(
     selectedProvider,
@@ -5938,6 +5993,20 @@ export default function ChatView({
               />
             ) : null}
             {emptyLandingControls}
+            {activeFollowUpSuggestions.length > 0 ? (
+              <ComposerFollowUpSuggestions
+                suggestions={activeFollowUpSuggestions}
+                onApply={handleApplyFollowUpPrompt}
+                onDismiss={() => {
+                  for (let i = timelineMessages.length - 1; i >= 0; i--) {
+                    if (timelineMessages[i].role === "assistant") {
+                      setDismissedFollowUpMessageId(timelineMessages[i].id);
+                      break;
+                    }
+                  }
+                }}
+              />
+            ) : null}
           </div>
           <div
             className={cn(
@@ -6570,6 +6639,7 @@ export default function ChatView({
                     onUndoTurnFiles={onUndoTurnFiles}
                     onEditUserMessage={onEditUserMessage}
                     onRespondToAsyncUserInput={onRespondToAsyncUserInput}
+                    onFollowUpClick={handleApplyFollowUpPrompt}
                     editableUserMessageId={editableUserMessageId}
                     isRevertingCheckpoint={isRevertingCheckpoint}
                     onExpandTimelineImage={onExpandTimelineImage}

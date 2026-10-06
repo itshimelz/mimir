@@ -1,4 +1,12 @@
 @import "tailwindcss";
+/* M3 Expressive token layer from the @m3e registry. Imported BEFORE the app's own
+   m3.material.css on purpose: the two share 85 `--md-sys-color-*` names, and the app
+   layer wires those to theme variables (`var(--color-text-accent)`, …) while the
+   registry file hardcodes Material baseline values. Later import wins, so this order
+   keeps colours following the chosen theme and lets m3e contribute only what the app
+   does not already define — the `rounded-xs` and `ease-spatial-fast` utilities the
+   M3E primitives are written against. Reversing these two lines repaints the app. */
+@import "./lib/m3e/m3e.css";
 @import "./theme/m3.material.css";
 
 @custom-variant dark (&:is(.dark, .dark *));

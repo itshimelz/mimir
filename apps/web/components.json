@@ -22,6 +22,7 @@
     "hooks": "~/hooks"
   },
   "registries": {
-    "@coss": "https://coss.com/ui/r/{name}.json"
+    "@coss": "https://coss.com/ui/r/{name}.json",
+    "@m3e": "https://shadcn-m3e.crystaworld.dev/r/{name}.json"
   }
 }

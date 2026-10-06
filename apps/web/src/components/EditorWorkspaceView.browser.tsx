@@ -453,3 +453,74 @@ it("shows only project name with M3E button and hides full workspace path in Mim
     setCodeThemeId("light", "codex");
   }
 });
+
+// The Phase 2 acceptance criterion: promoting the workspace must not cost the student their
+// way out of it. Editor-rail mode suppresses the chat header's Environment/Hub/Library
+// toggles (ChatView.tsx:3004 and :6391-6393), so the editor header's own switcher is the only
+// place left to change workspace. It groups by Space, which is also the only way to reach a
+// course other than the one you are already in. Without this test the picker could vanish
+// behind a header edit and the loss would be silent — no crash, just no way back.
+it("keeps project and workspace switching reachable from the editor header", async () => {
+  const onSelectProject = vi.fn();
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const screen = await render(
+    <QueryClientProvider client={queryClient}>
+      <SidebarProvider>
+        <EditorWorkspaceView
+          workspaceRoot={WORKSPACE_ROOT}
+          projectName="Biology 101"
+          currentProjectId={"p-bio" as never}
+          selectedFilePath="README.md"
+          expandedDirectories={new Set()}
+          centerMode="file"
+          diffFiles={[]}
+          selectedDiffFilePath={null}
+          diffPanel={<div>Diff pane</div>}
+          chatPanel={<div>Chat pane</div>}
+          onSelectFile={vi.fn()}
+          onSelectDiffFile={vi.fn()}
+          onToggleDirectory={vi.fn()}
+          onCenterModeChange={vi.fn()}
+          onEditFile={vi.fn()}
+          onCloseEdit={vi.fn()}
+          onSelectProject={onSelectProject}
+          projectOptions={[
+            // `spaceId`/`spaceName` are carried on the option itself, so the grouping is
+            // deterministic here and does not depend on the projects/spaces store snapshot.
+            {
+              id: "p-bio" as never,
+              name: "Biology 101",
+              spaceId: "s-term1" as never,
+              spaceName: "Term 1",
+            },
+            {
+              id: "p-calc" as never,
+              name: "Calculus",
+              spaceId: "s-term1" as never,
+              spaceName: "Term 1",
+            },
+            {
+              id: "p-lit" as never,
+              name: "Literature",
+              spaceId: "s-term2" as never,
+              spaceName: "Term 2",
+            },
+          ]}
+        />
+      </SidebarProvider>
+    </QueryClientProvider>,
+  );
+
+  const trigger = page.getByRole("button", { name: "Switch project" });
+  await expect.element(trigger).toBeInTheDocument();
+  await trigger.click();
+
+  // Both courses are listed under their Space, which is how a student leaves this course.
+  await expect.element(page.getByRole("menuitemradio", { name: "Literature" })).toBeInTheDocument();
+
+  const literature = page.getByRole("menuitemradio", { name: "Literature" });
+  await literature.click();
+  expect(onSelectProject).toHaveBeenCalledWith("p-lit");
+
+  await screen.unmount();
+});

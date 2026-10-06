@@ -170,6 +170,7 @@ export default defineConfig({
   ],
   optimizeDeps: {
     include: [
+      "@base-ui/react/button",
       "@pierre/diffs",
       "@pierre/diffs/react",
       "@pierre/diffs/worker/worker.js",

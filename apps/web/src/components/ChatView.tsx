@@ -576,8 +576,13 @@ interface ChatViewProps {
 // exchange. These never reach a provider and are not persisted; they render the
 // back-and-forth (user request, Synara's clarifying questions) inline like Codex.
 
+// Derived from the hook rather than named independently: the timeline carries
+// attachment-preview handoff and optimistic messages, so a hand-written element
+// type here would drift from what the transcript actually renders.
+type ChatTimelineMessage = ReturnType<typeof useChatTimelineMessages>["timelineMessages"][number];
+
 function resolveActiveFollowUpSuggestions(
-  timelineMessages: readonly TimelineMessageItem[],
+  timelineMessages: readonly ChatTimelineMessage[],
   dismissedId: string | null,
   prompt: string,
   isWorking: boolean,
@@ -591,6 +596,7 @@ function resolveActiveFollowUpSuggestions(
 
   for (let i = timelineMessages.length - 1; i >= 0; i--) {
     const msg = timelineMessages[i];
+    if (!msg) continue;
     if (msg.role === "user") return [];
     if (msg.role === "assistant") {
       if (msg.id === dismissedId) return [];
@@ -5999,8 +6005,9 @@ export default function ChatView({
                 onApply={handleApplyFollowUpPrompt}
                 onDismiss={() => {
                   for (let i = timelineMessages.length - 1; i >= 0; i--) {
-                    if (timelineMessages[i].role === "assistant") {
-                      setDismissedFollowUpMessageId(timelineMessages[i].id);
+                    const message = timelineMessages[i];
+                    if (message?.role === "assistant") {
+                      setDismissedFollowUpMessageId(message.id);
                       break;
                     }
                   }

@@ -73,8 +73,10 @@ import {
   WorkspaceFilesSidebar,
   WorkspaceSearchSidebar,
 } from "./chat/workspaceExplorer";
+import { Button } from "@/components/m3e/button";
 import { ProjectMenuPicker, type ProjectMenuPickerOption } from "./ProjectMenuPicker";
 import { SegmentedPicker } from "./SegmentedPicker";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { WorkspaceFileDiffEditorPane } from "./chat/WorkspaceFileDiffEditorPane";
 import { useQueryClient } from "@tanstack/react-query";
 import { flushWorkspaceEditors } from "~/lib/workspaceEditorSession";
@@ -113,7 +115,6 @@ interface EditorWorkspaceViewProps {
   onCenterModeChange: (mode: EditorCenterMode) => void;
   onEditFile: (filePath: string) => void;
   onCloseEdit: () => void;
-  onExitEditorView: () => void;
   /**
    * Lets the owner route its own editor-replacing actions (chat file links,
    * diff toggles) through the same dirty/saving guard as in-view exits.
@@ -424,7 +425,8 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   // global sidebar is collapsed, so it has to clear the macOS traffic lights the
   // same way every other chat-surface header does.
   const trafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
-  const { resolvedTheme: editorResolvedTheme } = useTheme();
+  const { activeTheme, resolvedTheme: editorResolvedTheme } = useTheme();
+  const isMimirTheme = activeTheme?.codeThemeId === "synara";
   const [chatPaneWidth, setChatPaneWidth] = useState(readStoredEditorChatPaneWidth);
   const chatPaneResizeStateRef = useRef<EditorChatPaneResizeState | null>(null);
   // Both side surfaces can be hidden so the main content takes the full width:
@@ -528,6 +530,27 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
       storeEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY, next);
       return next;
     });
+  };
+
+  // Widening for a focused conversation beats leaving the workspace: the transcript is the
+  // same thread, so this is a size change rather than a navigation. Two steps land on the
+  // full pane, and the resize handle still owns fine control.
+  const widenChatPane = () => {
+    if (!chatPaneVisible) {
+      toggleChatPaneVisible();
+      return;
+    }
+    if (chatPaneWidth >= EDITOR_CHAT_PANE_MAX_WIDTH - EDITOR_CHAT_PANE_KEYBOARD_STEP) {
+      setChatPaneWidth(EDITOR_CHAT_PANE_MAX_WIDTH);
+      storeEditorChatPaneWidth(EDITOR_CHAT_PANE_MAX_WIDTH);
+      return;
+    }
+    const next = Math.min(
+      chatPaneWidth + EDITOR_CHAT_PANE_KEYBOARD_STEP,
+      EDITOR_CHAT_PANE_MAX_WIDTH,
+    );
+    setChatPaneWidth(next);
+    storeEditorChatPaneWidth(next);
   };
 
   const stopChatPaneResize = () => {
@@ -662,84 +685,171 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             it collide with a long workspace name or the chat controls on a narrow window. */}
         <div className="grid w-full min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className={cn("flex min-w-0 items-center gap-1.5", trafficLightGutterClassName)}>
-            <div className="flex min-w-0 items-baseline gap-2">
-              <span className="truncate text-ui-lg font-medium text-foreground">
-                {props.projectName ?? "Workspace"}
-              </span>
-              <span className="hidden truncate text-ui-sm text-muted-foreground/70 sm:inline">
-                {props.workspaceRoot ?? "No workspace"}
-              </span>
-            </div>
-            {props.onSelectProject && (props.projectOptions?.length ?? 0) > 0 ? (
-              <ProjectMenuPicker
-                projectOptions={props.projectOptions ?? []}
-                selectedProjectId={props.currentProjectId ?? null}
-                onProjectIdChange={(projectId) =>
-                  guardLeavingEdit(() => props.onSelectProject?.(projectId))
-                }
-                trigger={
-                  <ChatHeaderIconButton
-                    type="button"
-                    tone="plain"
-                    label="Switch project"
-                    title="Switch project"
-                    className="size-6"
-                  >
-                    <ChevronDownIcon className="size-3.5" />
-                  </ChatHeaderIconButton>
-                }
-              />
-            ) : null}
+            {isMimirTheme ? (
+              props.onSelectProject && (props.projectOptions?.length ?? 0) > 0 ? (
+                <ProjectMenuPicker
+                  projectOptions={props.projectOptions ?? []}
+                  selectedProjectId={props.currentProjectId ?? null}
+                  onProjectIdChange={(projectId) =>
+                    guardLeavingEdit(() => props.onSelectProject?.(projectId))
+                  }
+                  trigger={
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      className="h-8 max-w-full gap-1.5 px-2 text-ui-lg font-medium text-foreground hover:bg-m3-surface-container-high"
+                      title="Switch project"
+                    >
+                      <span className="truncate">{props.projectName ?? "Workspace"}</span>
+                      <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" />
+                    </Button>
+                  }
+                />
+              ) : (
+                <span className="truncate text-ui-lg font-medium text-foreground">
+                  {props.projectName ?? "Workspace"}
+                </span>
+              )
+            ) : (
+              <>
+                <div className="flex min-w-0 items-baseline gap-2">
+                  <span className="truncate text-ui-lg font-medium text-foreground">
+                    {props.projectName ?? "Workspace"}
+                  </span>
+                  <span className="hidden truncate text-ui-sm text-muted-foreground/70 sm:inline">
+                    {props.workspaceRoot ?? "No workspace"}
+                  </span>
+                </div>
+                {props.onSelectProject && (props.projectOptions?.length ?? 0) > 0 ? (
+                  <ProjectMenuPicker
+                    projectOptions={props.projectOptions ?? []}
+                    selectedProjectId={props.currentProjectId ?? null}
+                    onProjectIdChange={(projectId) =>
+                      guardLeavingEdit(() => props.onSelectProject?.(projectId))
+                    }
+                    trigger={
+                      <ChatHeaderIconButton
+                        type="button"
+                        tone="plain"
+                        label="Switch project"
+                        title="Switch project"
+                        className="size-6"
+                      >
+                        <ChevronDownIcon className="size-3.5" />
+                      </ChatHeaderIconButton>
+                    }
+                  />
+                ) : null}
+              </>
+            )}
           </div>
-          <SegmentedPicker
-            // The header track is `w-max`, so the switch sizes to its own content and never
-            // clips a label at any text scale. `justify-self-center` keeps it optically
-            // centred in the grid's middle column.
-            className="shrink-0 justify-self-center"
-            ariaLabel="Surface"
-            variant="header"
-            value={surface}
-            onValueChange={handleSelectSurface}
-            options={[
-              {
-                value: "study",
-                label: "Study",
-                icon: <FoldersIcon />,
-                title: "Study — the course's own files",
-              },
-              {
-                value: "studio",
-                label: "Studio",
-                icon: <SparkleIcon />,
-                title: "Studio — what the agent produced",
-              },
-            ]}
-          />
+          {isMimirTheme ? (
+            <Tabs
+              value={surface}
+              onValueChange={(val) => handleSelectSurface(val as EditorSurface)}
+              className="shrink-0 justify-self-center"
+            >
+              <TabsList variant="segmented" aria-label="Surface" className="h-9 p-0.5">
+                <TabsTrigger
+                  value="study"
+                  title="Study — the course's own files"
+                  className="px-3.5"
+                >
+                  <FoldersIcon className="size-4" />
+                  <span>Study</span>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="studio"
+                  title="Studio — what the agent produced"
+                  className="px-3.5"
+                >
+                  <SparkleIcon className="size-4" />
+                  <span>Studio</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          ) : (
+            <SegmentedPicker
+              // The header track is `w-max`, so the switch sizes to its own content and never
+              // clips a label at any text scale. `justify-self-center` keeps it optically
+              // centred in the grid's middle column.
+              className="shrink-0 justify-self-center"
+              ariaLabel="Surface"
+              variant="header"
+              value={surface}
+              onValueChange={handleSelectSurface}
+              options={[
+                {
+                  value: "study",
+                  label: "Study",
+                  icon: <FoldersIcon />,
+                  title: "Study — the course's own files",
+                },
+                {
+                  value: "studio",
+                  label: "Studio",
+                  icon: <SparkleIcon />,
+                  title: "Studio — what the agent produced",
+                },
+              ]}
+            />
+          )}
           <div className="flex min-w-0 items-center justify-end gap-2">
-            <ChatHeaderButton
-              type="button"
-              tone="outline"
-              aria-pressed={chatPaneVisible}
-              title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-              className="gap-1.5"
-              onClick={toggleChatPaneVisible}
-            >
-              <PanelRightCloseIcon className="size-3.5" />
-              <span className="sr-only">
-                {chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-              </span>
-            </ChatHeaderButton>
-            <ChatHeaderButton
-              type="button"
-              tone="outline"
-              aria-pressed={true}
-              title="Switch to chat view"
-              className="w-[5.5rem] gap-1.5"
-              onClick={() => guardLeavingEdit(props.onExitEditorView)}
-            >
-              <ChatBubbleIcon className="size-3.5" />
-              <span className="truncate font-normal">Chat</span>
-            </ChatHeaderButton>
+            {isMimirTheme ? (
+              <>
+                <Button
+                  variant="outlined"
+                  size="icon-xs"
+                  aria-pressed={chatPaneVisible}
+                  title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
+                  className="size-8"
+                  onClick={toggleChatPaneVisible}
+                >
+                  <PanelRightCloseIcon className="size-3.5" />
+                  <span className="sr-only">
+                    {chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
+                  </span>
+                </Button>
+                {/* Focus, not a view switch: the rail already holds the conversation. The
+                    student who wants the full transcript can widen this rail. */}
+                <Button
+                  variant={chatPaneVisible ? "tonal" : "outlined"}
+                  size="xs"
+                  title={chatPaneVisible ? "Widen the agent chat" : "Show the agent chat"}
+                  className="h-8 w-[7.5rem] gap-1.5"
+                  onClick={widenChatPane}
+                >
+                  <ChatBubbleIcon className="size-3.5" />
+                  <span className="truncate font-normal">{chatPaneVisible ? "Widen" : "Chat"}</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <ChatHeaderButton
+                  type="button"
+                  tone="outline"
+                  aria-pressed={chatPaneVisible}
+                  title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
+                  className="gap-1.5"
+                  onClick={toggleChatPaneVisible}
+                >
+                  <PanelRightCloseIcon className="size-3.5" />
+                  <span className="sr-only">
+                    {chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
+                  </span>
+                </ChatHeaderButton>
+                <ChatHeaderButton
+                  type="button"
+                  tone={chatPaneVisible ? "surface" : "outline"}
+                  title={chatPaneVisible ? "Widen the agent chat" : "Show the agent chat"}
+                  className="w-[5.5rem] gap-1.5"
+                  onClick={widenChatPane}
+                >
+                  <ChatBubbleIcon className="size-3.5" />
+                  <span className="truncate font-normal">{chatPaneVisible ? "Widen" : "Chat"}</span>
+                </ChatHeaderButton>
+              </>
+            )}
           </div>
         </div>
       </div>

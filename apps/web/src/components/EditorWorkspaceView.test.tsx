@@ -37,7 +37,6 @@ function makeEditorBaseProps(): ComponentProps<typeof EditorWorkspaceView> {
     editDiffBaseRev: null,
     onEditFile: vi.fn(),
     onCloseEdit: vi.fn(),
-    onExitEditorView: vi.fn(),
   };
 }
 

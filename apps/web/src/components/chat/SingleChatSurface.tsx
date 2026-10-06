@@ -472,14 +472,6 @@ export function SingleChatSurface(props: {
     }
   };
 
-  const handleCloseEditorView = () => {
-    void navigate({
-      to: "/$threadId",
-      params: { threadId: props.threadId },
-      search: (previous) => stripEditorViewSearchParams(stripDiffSearchParams(previous)),
-    });
-  };
-
   const handleSelectEditorFile = (filePath: string) =>
     guardEditorLeave(() => {
       setEditorCenterMode("file");
@@ -1120,7 +1112,6 @@ export function SingleChatSurface(props: {
               onSelectFile={handleSelectEditorFile}
               onToggleDirectory={handleToggleEditorDirectory}
               onCenterModeChange={setEditorCenterMode}
-              onExitEditorView={handleCloseEditorView}
               onReferenceInChat={handleReferenceInChat}
               onAskWhyInChat={handleAskWhyInChat}
               onCommentInChat={handleCommentInChat}

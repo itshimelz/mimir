@@ -18,6 +18,7 @@ import {
   DEFAULT_THEME_STATE,
   resolveThemePack,
 } from "../theme/theme.logic";
+import { setCodeThemeId } from "../hooks/useTheme";
 import { getAppTypographyScale } from "../lib/appTypography";
 
 const WORKSPACE_ROOT = "/Users/tester/project";
@@ -103,7 +104,6 @@ function makeView() {
           editDiffBaseRev={null}
           onEditFile={vi.fn()}
           onCloseEdit={vi.fn()}
-          onExitEditorView={vi.fn()}
           studioOutputs={studioOutputs}
         />
       </SidebarProvider>
@@ -222,6 +222,26 @@ it("switches between the Study and Studio surfaces from the header", async () =>
   await screen.unmount();
 });
 
+it("widens the agent rail instead of leaving the workspace", async () => {
+  // The rail already holds the conversation, so the header control is a focus action rather
+  // than a view switch: there is no way to navigate away from the workspace by clicking it.
+  await render(makeView()());
+
+  const widen = page.getByRole("button", { name: "Widen" });
+  await expect.element(widen).toBeInTheDocument();
+
+  // Asserted on the stored preference rather than a measured box: the rail is a fixed-width
+  // column only at `lg` and above, and this suite runs narrow, so the box would not move even
+  // though the width did.
+  const widthBefore = Number(window.localStorage.getItem("synara.editor.chatPaneWidth"));
+  await widen.click();
+  const widthAfter = Number(window.localStorage.getItem("synara.editor.chatPaneWidth"));
+  expect(widthAfter).toBeGreaterThan(widthBefore);
+
+  // No "switch to chat view" affordance remains in the workspace header.
+  expect(page.getByRole("button", { name: "Switch to chat view" }).elements()).toHaveLength(0);
+});
+
 it("never clips a surface label, at the largest text scale", async () => {
   // The switch used to be a fixed `w-[9.5rem]`, so a longer label or a larger text scale was
   // truncated inside its own cell. It is `w-max` now; assert that with real layout metrics at
@@ -334,5 +354,102 @@ it("shows space-scoped artifacts across categories and never flashes a spinner o
     await screen.unmount();
   } finally {
     window.localStorage.removeItem("synara.editor.surface");
+  }
+});
+
+it("renders M3E segmented tab in Mimir theme and switches surfaces", async () => {
+  setCodeThemeId("dark", "synara");
+  setCodeThemeId("light", "synara");
+  try {
+    const view = makeView();
+    const screen = await render(view("file", "README.md", WORKSPACE_ROOT, [LESSON]));
+
+    // In Mimir theme, M3E segmented tab uses role="tablist" and role="tab"
+    const tablist = page.getByRole("tablist", { name: "Surface" });
+    await expect.element(tablist).toBeInTheDocument();
+
+    const studyTab = page.getByRole("tab", { name: "Study" });
+    const studioTab = page.getByRole("tab", { name: "Studio" });
+    await expect.element(studyTab).toHaveAttribute("aria-selected", "true");
+    await expect.element(studioTab).toHaveAttribute("aria-selected", "false");
+
+    // The list is 36px tall (h-9) with 32px pill indicator inside the 44px header
+    const listEl = tablist.element();
+    const header = listEl.closest<HTMLElement>(".h-\\[44px\\]")!;
+    expect(Math.round(header.getBoundingClientRect().height)).toBe(44);
+    expect(Math.round(listEl.getBoundingClientRect().height)).toBe(36);
+    // Does not overflow the 44px header
+    expect(listEl.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+      header.getBoundingClientRect().top,
+    );
+    expect(listEl.getBoundingClientRect().bottom).toBeLessThanOrEqual(
+      header.getBoundingClientRect().bottom,
+    );
+
+    await studioTab.click();
+    await expect.element(studioTab).toHaveAttribute("aria-selected", "true");
+    await expect.element(page.getByTestId("studio-artifacts-sidebar")).toBeInTheDocument();
+
+    await screen.unmount();
+  } finally {
+    setCodeThemeId("dark", "codex");
+    setCodeThemeId("light", "codex");
+  }
+});
+
+it("shows only project name with M3E button and hides full workspace path in Mimir theme", async () => {
+  setCodeThemeId("dark", "synara");
+  setCodeThemeId("light", "synara");
+  try {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const screen = await render(
+      <QueryClientProvider client={queryClient}>
+        <SidebarProvider>
+          <EditorWorkspaceView
+            workspaceRoot={WORKSPACE_ROOT}
+            projectName="project"
+            selectedFilePath="README.md"
+            expandedDirectories={new Set()}
+            centerMode="file"
+            diffFiles={[]}
+            selectedDiffFilePath={null}
+            diffPanel={<div>Diff pane</div>}
+            chatPanel={<div>Chat pane</div>}
+            onSelectFile={vi.fn()}
+            onSelectDiffFile={vi.fn()}
+            onToggleDirectory={vi.fn()}
+            onCenterModeChange={vi.fn()}
+            onEditFile={vi.fn()}
+            onCloseEdit={vi.fn()}
+            onSelectProject={vi.fn()}
+            projectOptions={[{ id: "p1" as any, name: "project" }]}
+          />
+        </SidebarProvider>
+      </QueryClientProvider>,
+    );
+
+    // Full path is hidden in Mimir theme
+    const workspace = page
+      .getByRole("tablist", { name: "Surface" })
+      .element()
+      .closest<HTMLElement>("[data-editor-workspace]")!;
+    expect(workspace.textContent).not.toContain(WORKSPACE_ROOT);
+    expect(workspace.textContent).toContain("project");
+
+    // Project button has M3E button attributes and displays project name
+    const projectBtn = page.getByRole("button", { name: "project" });
+    await expect.element(projectBtn).toBeInTheDocument();
+    await expect.element(projectBtn).toHaveAttribute("data-variant", "ghost");
+
+    // Right-side actions also use M3E button
+    const hideChatBtn = page.getByRole("button", { name: "Hide chat panel" });
+    await expect.element(hideChatBtn).toBeInTheDocument();
+    await expect.element(hideChatBtn).toHaveAttribute("data-slot", "button");
+    await expect.element(hideChatBtn).toHaveAttribute("data-variant", "outlined");
+
+    await screen.unmount();
+  } finally {
+    setCodeThemeId("dark", "codex");
+    setCodeThemeId("light", "codex");
   }
 });

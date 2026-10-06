@@ -112,7 +112,7 @@ function AutocompletePopup({
       >
         <span
           className={cn(
-            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) rounded-lg border border-[color:var(--color-border-light)] bg-[var(--color-background-surface-under)] shadow-lg/5 transition-[scale,opacity] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
+            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) rounded-lg border border-m3-outline-variant bg-[var(--color-background-surface-under)] text-m3-on-surface-variant shadow-elevation-2 before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:before:shadow-[0_-1px_--theme(--color-white/6%)]",
             className,
           )}
         >
@@ -134,7 +134,10 @@ function AutocompleteItem({ className, children, ...props }: AutocompletePrimiti
   return (
     <AutocompletePrimitive.Item
       className={cn(
-        "flex min-h-8 cursor-default select-none items-center rounded-sm px-2 py-1 text-ui outline-none data-disabled:pointer-events-none data-highlighted:bg-[var(--color-background-button-secondary-hover)] data-highlighted:text-[var(--color-text-foreground)] data-disabled:opacity-64 sm:min-h-7 sm:text-ui",
+        // M3 option row, matching the menu rows (composerPickerStyles): ink on
+        // `on-surface`, highlighted as an `on-surface` state layer rather than a filled
+        // pill. Geometry stays the app's denser row.
+        "flex min-h-8 cursor-default select-none items-center rounded-sm px-2 py-1 text-ui text-m3-on-surface outline-none transition-colors duration-[var(--md-sys-motion-spring-fast-effects-duration)] data-disabled:pointer-events-none data-highlighted:bg-m3-on-surface/12 data-disabled:opacity-64 sm:min-h-7 sm:text-ui",
         className,
       )}
       data-slot="autocomplete-item"
@@ -148,7 +151,7 @@ function AutocompleteItem({ className, children, ...props }: AutocompletePrimiti
 function AutocompleteSeparator({ className, ...props }: AutocompletePrimitive.Separator.Props) {
   return (
     <AutocompletePrimitive.Separator
-      className={cn("mx-2 my-1 h-px bg-border last:hidden", className)}
+      className={cn("mx-2 my-1 h-px bg-m3-outline-variant last:hidden", className)}
       data-slot="autocomplete-separator"
       {...props}
     />
@@ -168,7 +171,7 @@ function AutocompleteGroup({ className, ...props }: AutocompletePrimitive.Group.
 function AutocompleteGroupLabel({ className, ...props }: AutocompletePrimitive.GroupLabel.Props) {
   return (
     <AutocompletePrimitive.GroupLabel
-      className={cn("px-2 py-1.5 font-medium text-muted-foreground text-ui-xs", className)}
+      className={cn("px-2 py-1.5 font-medium text-ui-xs text-m3-on-surface-variant", className)}
       data-slot="autocomplete-group-label"
       {...props}
     />

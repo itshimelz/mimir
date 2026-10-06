@@ -7,6 +7,7 @@ import { render } from "vitest-browser-react";
 import { Button } from "./button";
 import { Label } from "./label";
 import { Switch } from "./switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { Toggle } from "./toggle";
 
 /**
@@ -246,6 +247,116 @@ describe("M3E interactive primitives", () => {
       const screen = await render(<Label data-testid="lbl">Name</Label>);
       try {
         expect(getComputedStyle(page.getByTestId("lbl").element()).color).toBe("rgb(50, 49, 61)");
+      } finally {
+        await screen.unmount();
+      }
+    });
+  });
+
+  describe("Tabs roles and behavior", () => {
+    it("paints the segmented tab list on surface-container with a secondary-container indicator (light)", async () => {
+      restore = useMimirPalette("light");
+      const screen = await render(
+        <Tabs defaultValue="study" data-testid="tabs">
+          <TabsList variant="segmented" data-testid="list">
+            <TabsTrigger value="study" data-testid="tab-study">
+              Study
+            </TabsTrigger>
+            <TabsTrigger value="studio" data-testid="tab-studio">
+              Studio
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="study" data-testid="panel-study">
+            Study content
+          </TabsContent>
+          <TabsContent value="studio" data-testid="panel-studio">
+            Studio content
+          </TabsContent>
+        </Tabs>,
+      );
+      try {
+        const list = page.getByTestId("list").element();
+        // Mimir light: surface-container is #efecf8 -> rgb(239, 236, 248)
+        expect(getComputedStyle(list).backgroundColor).toBe("rgb(239, 236, 248)");
+
+        const tabStudy = page.getByTestId("tab-study").element();
+        const tabStudio = page.getByTestId("tab-studio").element();
+        // Selected tab text: on-secondary-container is #534e6a -> rgb(83, 78, 106)
+        expect(getComputedStyle(tabStudy).color).toBe("rgb(83, 78, 106)");
+        // Unselected tab text: on-surface-variant is #5f5e6a -> rgb(95, 94, 106)
+        expect(getComputedStyle(tabStudio).color).toBe("rgb(95, 94, 106)");
+
+        const indicator = list.querySelector('[data-slot="tabs-indicator"]')!;
+        // Indicator: secondary-container is #e6deff -> rgb(230, 222, 255)
+        expect(getComputedStyle(indicator).backgroundColor).toBe("rgb(230, 222, 255)");
+        expect(parseFloat(getComputedStyle(indicator).borderRadius)).toBeGreaterThan(100);
+
+        // Geometry: M3E segmented tab is 48px tall (h-12) with 40px pill indicator (p-1)
+        expect(Math.round(list.getBoundingClientRect().height)).toBe(48);
+        expect(Math.round(tabStudy.getBoundingClientRect().height)).toBe(40);
+        expect(Math.round(indicator.getBoundingClientRect().height)).toBe(40);
+
+        // Verify ripple host is present inside tab trigger
+        expect(tabStudy.querySelector('[data-slot="ripple"]')).not.toBeNull();
+      } finally {
+        await screen.unmount();
+      }
+    });
+
+    it("paints the segmented tab list on surface-container with a secondary-container indicator (dark)", async () => {
+      restore = useMimirPalette("dark");
+      const screen = await render(
+        <Tabs defaultValue="study" data-testid="tabs">
+          <TabsList variant="segmented" data-testid="list">
+            <TabsTrigger value="study" data-testid="tab-study">
+              Study
+            </TabsTrigger>
+            <TabsTrigger value="studio" data-testid="tab-studio">
+              Studio
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>,
+      );
+      try {
+        const list = page.getByTestId("list").element();
+        // Mimir dark: surface-container is #191921 -> rgb(25, 25, 33)
+        expect(getComputedStyle(list).backgroundColor).toBe("rgb(25, 25, 33)");
+
+        const tabStudy = page.getByTestId("tab-study").element();
+        const tabStudio = page.getByTestId("tab-studio").element();
+        // Selected tab text: on-secondary-container is #c2bbdc -> rgb(194, 187, 220)
+        expect(getComputedStyle(tabStudy).color).toBe("rgb(194, 187, 220)");
+        // Unselected tab text: on-surface-variant is #aba9b7 -> rgb(171, 169, 183)
+        expect(getComputedStyle(tabStudio).color).toBe("rgb(171, 169, 183)");
+
+        const indicator = list.querySelector('[data-slot="tabs-indicator"]')!;
+        // Indicator: secondary-container is #3c3853 -> rgb(60, 56, 83)
+        expect(getComputedStyle(indicator).backgroundColor).toBe("rgb(60, 56, 83)");
+      } finally {
+        await screen.unmount();
+      }
+    });
+
+    it("switches selection and updates content on click", async () => {
+      restore = useMimirPalette("light");
+      const screen = await render(
+        <Tabs defaultValue="study">
+          <TabsList variant="segmented">
+            <TabsTrigger value="study">Study</TabsTrigger>
+            <TabsTrigger value="studio">Studio</TabsTrigger>
+          </TabsList>
+          <TabsContent value="study">Study content</TabsContent>
+          <TabsContent value="studio">Studio content</TabsContent>
+        </Tabs>,
+      );
+      try {
+        await expect.element(page.getByText("Study content")).toBeInTheDocument();
+        await expect.element(page.getByText("Studio content")).not.toBeInTheDocument();
+
+        await page.getByRole("tab", { name: "Studio" }).click();
+
+        await expect.element(page.getByText("Study content")).not.toBeInTheDocument();
+        await expect.element(page.getByText("Studio content")).toBeInTheDocument();
       } finally {
         await screen.unmount();
       }

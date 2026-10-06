@@ -3,7 +3,7 @@
 import { Popover as PopoverPrimitive } from "@base-ui/react/popover";
 
 import { cn } from "~/lib/utils";
-import { APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME } from "../chat/composerPickerStyles";
+import { APP_OVERLAY_SURFACE_M3_CLASS_NAME } from "../chat/composerPickerStyles";
 
 const PopoverCreateHandle = PopoverPrimitive.createHandle;
 
@@ -53,10 +53,12 @@ function PopoverPopup({
       >
         <PopoverPrimitive.Popup
           className={cn(
-            APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME,
-            "relative flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) outline-none transition-[width,height,scale,opacity] has-data-[slot=calendar]:rounded-xl data-starting-style:scale-98 data-starting-style:opacity-0",
+            APP_OVERLAY_SURFACE_M3_CLASS_NAME,
+            // `motion-popup` carries M3's enter/exit curves; the 0.98 scale stays the
+            // app's resting geometry (see TooltipPopup for why).
+            "motion-popup relative flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) outline-none motion-reduce:transition-none has-data-[slot=calendar]:rounded-xl data-starting-style:scale-98",
             tooltipStyle &&
-              "w-fit text-balance rounded-md text-ui leading-snug shadow-md/5 before:rounded-[calc(var(--radius-md)-1px)]",
+              "w-fit text-balance text-ui leading-snug before:rounded-[calc(var(--radius-md)-1px)]",
             className,
           )}
           data-slot="popover-popup"
@@ -86,7 +88,9 @@ function PopoverClose({ ...props }: PopoverPrimitive.Close.Props) {
 function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
   return (
     <PopoverPrimitive.Title
-      className={cn("font-semibold text-lg leading-none", className)}
+      // M3 popover: the headline takes `on-surface` (full ink, not the muted tone the
+      // supporting text below uses) so the two read as a title and its caption.
+      className={cn("font-semibold text-lg leading-none text-m3-on-surface", className)}
       data-slot="popover-title"
       {...props}
     />
@@ -96,7 +100,7 @@ function PopoverTitle({ className, ...props }: PopoverPrimitive.Title.Props) {
 function PopoverDescription({ className, ...props }: PopoverPrimitive.Description.Props) {
   return (
     <PopoverPrimitive.Description
-      className={cn("text-muted-foreground text-ui leading-snug", className)}
+      className={cn("text-ui leading-snug text-m3-on-surface-variant", className)}
       data-slot="popover-description"
       {...props}
     />

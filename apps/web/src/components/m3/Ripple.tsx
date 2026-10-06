@@ -271,3 +271,5 @@ export function Ripple({ disabled, className }: RippleProps) {
     </span>
   );
 }
+
+export { trackPress };

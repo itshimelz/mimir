@@ -24,7 +24,10 @@ function DialogBackdrop({ className, ...props }: DialogPrimitive.Backdrop.Props)
   return (
     <DialogPrimitive.Backdrop
       className={cn(
-        "fixed inset-0 z-50 bg-black/60 transition-all duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0",
+        // M3's scrim: the `scrim` role at 32% over the whole viewport. It only fades —
+        // `motion-scrim` rides the slow effects spring so the scrim does not arrive in
+        // lockstep with the dialog's own spatial motion.
+        "motion-scrim fixed inset-0 z-50 bg-m3-scrim/32 motion-reduce:transition-none",
         className,
       )}
       data-slot="dialog-backdrop"
@@ -47,10 +50,17 @@ function DialogViewport({ className, ...props }: DialogPrimitive.Viewport.Props)
 }
 
 /**
- * Opaque popover fill, theme border, `shadow-sm`. Dialogs have no backdrop blur, so a
- * translucent fill reads muddy over the dark backdrop; keep this surface opaque. */
+ * M3 basic dialog: a raised panel with a large corner at elevation 3, its ink on
+ * `on-surface-variant`.
+ *
+ * The fill is the app's shared overlay material rather than a `bg-m3-surface-container-high`
+ * utility: the unlayered `.app-popup-surface` rule owns `background` on those elements, so
+ * a utility here would be silently dropped (see the M3 overlay note in
+ * composerPickerStyles). What M3 does own is the corner, the elevation, the outline, and
+ * the ink. The nested-dialog offsets stay because they are choreography, not shape.
+ */
 const dialogPopupClassName =
-  "-translate-y-[calc(1.25rem*var(--nested-dialogs))] relative row-start-2 flex max-h-full min-h-0 w-full min-w-0 max-w-lg scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-sm border border-[color:var(--overlay-border)] bg-popover text-[var(--color-text-foreground)] shadow-sm opacity-[calc(1-0.1*var(--nested-dialogs))] transition-[scale,opacity,translate] duration-200 ease-in-out will-change-transform data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-98 data-starting-style:scale-98 data-ending-style:opacity-0 data-starting-style:opacity-0";
+  "-translate-y-[calc(1.25rem*var(--nested-dialogs))] relative row-start-2 flex max-h-full min-h-0 w-full min-w-0 max-w-lg scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-2xl border border-m3-outline-variant bg-popover text-m3-on-surface-variant opacity-[calc(1-0.1*var(--nested-dialogs))] shadow-elevation-3 outline-none will-change-transform motion-dialog motion-reduce:transition-none data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-98 data-starting-style:scale-98";
 
 // Capsule-shaped buttons (class contains `rounded-full`) keep their own pill
 // geometry in footers, so they are excluded from the sizing override.
@@ -63,8 +73,10 @@ const dialogFooterButtonClassName = dialogActionButtonClassName
   .map((className) => `${dialogFooterButtonSlotSelector}:${className.replace(/!/g, "\\!")}`)
   .join(" ");
 
-/** Shared label style for form fields inside dialogs (SpaceEditorDialog, CreateProjectDialog). */
-const dialogFieldLabelClassName = "text-ui-sm font-medium text-foreground/80";
+/** Shared label style for form fields inside dialogs (SpaceEditorDialog, CreateProjectDialog).
+ *  M3 dialog ink: a field label is supporting text, so it sits on `on-surface-variant` —
+ *  one role below the headline and two below the field value it names. */
+const dialogFieldLabelClassName = "font-medium text-m3-on-surface-variant text-ui-sm";
 
 const dialogPanelFieldClassName =
   "[&_[data-slot=textarea-control]]:min-h-24 [&_[data-slot=textarea-control]_[data-slot=textarea]]:px-2.5 [&_[data-slot=textarea-control]_[data-slot=textarea]]:py-2";
@@ -154,7 +166,13 @@ function DialogFooter({
 function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
-      className={cn("font-heading font-semibold text-lg leading-tight", className)}
+      // M3 dialog: the headline takes full `on-surface` ink; the supporting text below
+      // sits one role down at `on-surface-variant`. Keeping the headline on the panel's
+      // body tone is what made it read as body copy.
+      className={cn(
+        "font-heading font-semibold text-lg leading-none text-m3-on-surface",
+        className,
+      )}
       data-slot="dialog-title"
       {...props}
     />
@@ -164,7 +182,7 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
 function DialogDescription({ className, ...props }: DialogPrimitive.Description.Props) {
   return (
     <DialogPrimitive.Description
-      className={cn("text-muted-foreground text-ui leading-snug", className)}
+      className={cn("text-ui leading-snug text-m3-on-surface-variant", className)}
       data-slot="dialog-description"
       {...props}
     />

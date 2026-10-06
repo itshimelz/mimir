@@ -7,7 +7,7 @@ import * as React from "react";
 import { cn } from "~/lib/utils";
 import { observeNativeSurfaceOverlay } from "~/lib/nativeSurfaceOcclusion";
 import {
-  APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME,
+  APP_OVERLAY_SURFACE_M3_CLASS_NAME,
   COMPOSER_PICKER_MENU_OPTION_CLASS_NAME,
   COMPOSER_PICKER_MENU_POPUP_BODY_CLASS_NAME,
   COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME,
@@ -96,7 +96,7 @@ function MenuPopupBase({
   const popupSurfaceClassName =
     surface === "composer"
       ? COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME
-      : APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME;
+      : APP_OVERLAY_SURFACE_M3_CLASS_NAME;
 
   const isComposerSurface = surface === "composer";
 
@@ -115,7 +115,9 @@ function MenuPopupBase({
       >
         <MenuPrimitive.Popup
           className={cn(
-            "relative flex origin-(--transform-origin) text-[var(--color-text-foreground)] outline-none focus:outline-none",
+            // `motion-menu` carries M3's unfold: the popup scales open along its
+            // placement axis from the anchor, on the default spatial spring.
+            "motion-menu relative flex origin-(--transform-origin) text-m3-on-surface-variant outline-none focus:outline-none motion-reduce:transition-none",
             isComposerSurface ? "min-w-0 max-w-[92vw]" : "w-full min-w-full",
             popupSurfaceClassName,
             // Last so a caller's className can override surface tokens (e.g. a rounder radius).
@@ -162,9 +164,10 @@ function MenuItem({
     <MenuPrimitive.Item
       className={cn(
         COMPOSER_PICKER_MENU_OPTION_CLASS_NAME,
-        // text-destructive (not -foreground): these items sit on the popup surface, so they
-        // need the red accent itself — the foreground token is for text on a destructive fill.
-        "data-inset:ps-8 data-[variant=destructive]:text-destructive",
+        // text-m3-error (not on-error): these items sit on the popup surface, so they
+        // need the red accent itself — the on-error role is for text on a filled error
+        // button, which is not what a menu row is.
+        "data-inset:ps-8 data-[variant=destructive]:text-m3-error",
         className,
       )}
       data-inset={inset}
@@ -352,8 +355,10 @@ function MenuGroupLabel({
       // Shared section/group label style: matches the composer picker section
       // headers (e.g. "Effort"). Picker menus may still override padding-block
       // via the `--picker-section-py` token on `[data-slot="menu-label"]`.
+      // M3's menu label is `on-surface-variant` ink — one role down from the rows, so
+      // the group header separates from its items by tone rather than by weight.
       className={cn(
-        "px-2 py-1.5 font-normal text-ui leading-snug text-muted-foreground/45 data-inset:ps-9 sm:data-inset:ps-8",
+        "px-2 py-1.5 font-normal text-ui leading-snug text-m3-on-surface-variant data-inset:ps-9 sm:data-inset:ps-8",
         className,
       )}
       data-inset={inset}
@@ -366,7 +371,9 @@ function MenuGroupLabel({
 function MenuSeparator({ className, ...props }: MenuPrimitive.Separator.Props) {
   return (
     <MenuPrimitive.Separator
-      className={cn("mx-2 my-1 h-px bg-border", className)}
+      // The M3 menu divider is `outline-variant` — the same role the migrated
+      // Separator primitive draws — not a faded `border`.
+      className={cn("mx-2 my-1 h-px bg-m3-outline-variant", className)}
       data-slot="menu-separator"
       {...props}
     />
@@ -387,7 +394,9 @@ function MenuShortcut({ className, children, ...props }: React.ComponentProps<"k
   return (
     <kbd
       className={cn(
-        "ms-auto font-medium font-sans text-muted-foreground/72 text-ui-xs tracking-widest",
+        // Same `on-surface-variant` ink as the group label: a shortcut hint is chrome,
+        // not content, but it is a peer of the group header rather than a faded ghost.
+        "ms-auto font-medium font-sans text-ui-xs tracking-widest text-m3-on-surface-variant",
         className,
       )}
       data-slot="menu-shortcut"
@@ -460,7 +469,7 @@ function MenuSubTrigger({
       className={cn(
         cn(
           COMPOSER_PICKER_MENU_OPTION_CLASS_NAME,
-          "data-popup-open:bg-[var(--color-background-button-secondary-hover)] data-popup-open:text-[var(--color-text-foreground)] data-inset:ps-8",
+          "data-popup-open:bg-m3-on-surface/12 data-inset:ps-8",
         ),
         className,
       )}

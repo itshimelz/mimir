@@ -9,6 +9,7 @@ import {
   BookIcon,
   BotIcon,
   CircleQuestionIcon,
+  ChevronDownIcon,
   ClockIcon,
   CodeReviewIcon,
   CopyIcon,
@@ -471,6 +472,7 @@ import {
   SIDEBAR_SECTION_LABEL_CLASS_NAME,
 } from "../sidebarRowStyles";
 import { SettingsSidebarNav } from "./SettingsSidebarNav";
+import { ProjectMenuPicker, type ProjectMenuPickerOption } from "./ProjectMenuPicker";
 import {
   ComposerPickerMenuPopup,
   ComposerPickerMenuSubPopup,
@@ -4812,6 +4814,16 @@ export default function Sidebar() {
     (focusedProjectId ? (projectById.get(focusedProjectId) ?? null) : null) ??
     (latestProjectId ? (projectById.get(latestProjectId) ?? null) : null) ??
     (allStandardProjectsBase.length > 0 ? allStandardProjectsBase[0] : null);
+  const projectMenuOptions: ReadonlyArray<ProjectMenuPickerOption> = useMemo(
+    () =>
+      allStandardProjectsBase.map((project) => ({
+        id: project.id,
+        name: resolveSidebarProjectRowLabel(project),
+        spaceId: project.spaceId ?? null,
+        spaceName: project.spaceId ? spaceDisplayName(project.spaceId, spaces, voidSpace) : undefined,
+      })),
+    [allStandardProjectsBase, spaces, voidSpace],
+  );
   const railSpacesPagedProjectId = railSpacesProject?.id ?? null;
 
   // Reset per-project preview paging when a folder closes so reopening starts at five rows again.
@@ -5958,26 +5970,6 @@ export default function Sidebar() {
     if (spacesBrowseMode !== "courses" && courseProject) {
       return (
         <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1.5">
-          <div className="my-1 flex h-7 min-w-0 shrink-0 items-center gap-1.5 ps-1 pe-1.5">
-            {allStandardProjectsBase.length > 1 ? (
-              <SidebarIconButton
-                icon={BackArrowIcon}
-                label="Switch course"
-                tooltip="Courses"
-                tooltipSide="bottom"
-                onClick={() => {
-                  setSpacesBrowseMode("courses");
-                  closeRailSpacesProject();
-                }}
-              />
-            ) : null}
-            <span className={cn(SIDEBAR_PROJECT_NAME_CLASS_NAME, "truncate font-semibold")}>
-              {resolveSidebarProjectRowLabel(courseProject)}
-            </span>
-            <SidebarSectionToolbar>
-              {renderProjectThreadActions(courseProject)}
-            </SidebarSectionToolbar>
-          </div>
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
             <WorkspaceFilesSidebar
               workspaceRoot={courseProject.cwd}
@@ -7185,13 +7177,45 @@ export default function Sidebar() {
                   // edge as its first letter is from the side.
                   className="flex items-center gap-1 pt-1.5 pb-1 pr-2.5 pl-1.5"
                 >
-                  <SidebarSurfacePicker
-                    views={["threads", ...(groupsSectionVisible ? (["groups"] as const) : [])]}
-                    activeView={isOnGroups ? "groups" : "threads"}
-                    titleOverride={showRailSpacesPanel ? "Course Workspace" : undefined}
-                    onSelectView={handleSidebarViewChange}
-                    onPrewarmView={prewarmSidebarViewTarget}
-                  />
+                  {showRailSpacesPanel && courseProject ? (
+                    <div className="flex min-w-0 items-center gap-1">
+                      <ProjectMenuPicker
+                        projectOptions={projectMenuOptions}
+                        selectedProjectId={courseProject.id}
+                        onProjectIdChange={(projectId) => {
+                          openRailSpacesProject(projectId);
+                          setSpacesBrowseMode("files");
+                          void navigate({
+                            search: (prev) => ({
+                              ...stripDiffSearchParams(prev as Record<string, unknown>),
+                              view: "editor",
+                            }),
+                          });
+                        }}
+                        trigger={
+                          <button
+                            type="button"
+                            className="inline-flex h-8 max-w-[12rem] items-center gap-1 rounded-md px-1.5 text-ui font-semibold text-foreground hover:bg-m3-surface-container-high focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            title="Switch course"
+                          >
+                            <span className="truncate">{resolveSidebarProjectRowLabel(courseProject)}</span>
+                            <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" />
+                          </button>
+                        }
+                      />
+                      <SidebarSectionToolbar>
+                        {renderProjectThreadActions(courseProject)}
+                      </SidebarSectionToolbar>
+                    </div>
+                  ) : (
+                    <SidebarSurfacePicker
+                      views={["threads", ...(groupsSectionVisible ? (["groups"] as const) : [])]}
+                      activeView={isOnGroups ? "groups" : "threads"}
+                      titleOverride={showRailSpacesPanel ? "Course Workspace" : undefined}
+                      onSelectView={handleSidebarViewChange}
+                      onPrewarmView={prewarmSidebarViewTarget}
+                    />
+                  )}
                   <div className="ml-auto flex items-center gap-1.5">
                     <SidebarIconButton
                       icon={SearchIcon}

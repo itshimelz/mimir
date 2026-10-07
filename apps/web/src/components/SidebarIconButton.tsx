@@ -21,17 +21,15 @@ import { type SidebarGlyphVariant, sidebarGlyphClass } from "./sidebarGlyphs";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "./ui/tooltip";
 
 const SLOT_SIZE = {
-  sm: "size-[18px]",
-  md: "size-5",
+  sm: "size-[18px] rounded-full",
+  md: "size-5 rounded-full",
   /**
    * Sidebar header-bar chrome (Search, Activity bell): a roomier hit target with a
-   * softer radius than row actions. Single source of truth so every header control
-   * keeps the same box — the Activity bell renders its own shell (unread dot +
-   * controlled onboarding tooltip) and reuses this token instead of hardcoding it.
+   * softer radius than row actions.
    */
-  header: "size-6 rounded-md",
+  header: "size-6 rounded-full",
   /** Surface picker row. */
-  lg: "size-7",
+  lg: "size-7 rounded-full",
 } as const;
 
 export type SidebarIconButtonSize = keyof typeof SLOT_SIZE;

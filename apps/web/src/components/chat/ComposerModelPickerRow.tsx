@@ -102,12 +102,20 @@ export function ComposerModelPickerRow(props: {
           className={cn("size-3.5 shrink-0", getProviderIconClassName(row.provider))}
         />
       ) : null}
-      <span className={cn("truncate", row.detail !== null && "max-w-[62%] shrink-0")}>
+      <span
+        className={cn(
+          "truncate font-medium text-ui text-foreground",
+          row.detail !== null && "max-w-[60%] shrink-0",
+        )}
+      >
         {row.name}
       </span>
-      <span className={cn("min-w-0 flex-1 truncate", COMPOSER_MUTED_ACCENT_TEXT_CLASS_NAME)}>
-        {row.detail}
-      </span>
+      {row.detail ? (
+        <span className="inline-flex shrink-0 items-center rounded-full bg-secondary px-2 py-0.5 text-ui-xs font-medium text-secondary-foreground">
+          {row.detail}
+        </span>
+      ) : null}
+      <span className="flex-1" />
       {props.shortcutHint ? (
         <ShortcutKbd
           shortcutLabel={props.shortcutHint}

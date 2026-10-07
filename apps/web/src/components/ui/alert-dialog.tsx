@@ -19,7 +19,7 @@ function AlertDialogBackdrop({ className, ...props }: AlertDialogPrimitive.Backd
   return (
     <AlertDialogPrimitive.Backdrop
       className={cn(
-        "fixed inset-0 z-50 bg-black/60 transition-all duration-200 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0",
+        "motion-scrim fixed inset-0 z-50 bg-black/50 data-ending-style:opacity-0 data-starting-style:opacity-0",
         className,
       )}
       data-slot="alert-dialog-backdrop"
@@ -41,9 +41,9 @@ function AlertDialogViewport({ className, ...props }: AlertDialogPrimitive.Viewp
   );
 }
 
-// Same surface as `dialogPopupClassName` in dialog.tsx — keep in sync.
+// M3 Expressive Alert Dialog: rounded-2xl (28dp corners), elevation-3, motion-dialog.
 const alertDialogPopupClassName =
-  "-translate-y-[calc(1.25rem*var(--nested-dialogs))] relative row-start-2 flex max-h-full min-h-0 w-full min-w-0 max-w-lg scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-sm border border-[color:var(--overlay-border)] bg-popover text-[var(--color-text-foreground)] shadow-sm opacity-[calc(1-0.1*var(--nested-dialogs))] transition-[scale,opacity,translate] duration-200 ease-in-out will-change-transform data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-98 data-starting-style:scale-98 data-ending-style:opacity-0 data-starting-style:opacity-0";
+  "-translate-y-[calc(1.25rem*var(--nested-dialogs))] motion-dialog relative row-start-2 flex max-h-full min-h-0 w-full min-w-0 max-w-lg scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-2xl border border-[color:var(--overlay-border)] bg-[var(--color-surface-container-high,var(--popover))] text-[var(--color-text-foreground)] shadow-elevation-3 opacity-[calc(1-0.1*var(--nested-dialogs))] transition-shape will-change-transform data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0";
 
 function AlertDialogPopup({
   className,

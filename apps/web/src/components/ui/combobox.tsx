@@ -183,7 +183,7 @@ function ComboboxPopup({
         <span
           className={cn(
             APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME,
-            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) not-dark:bg-clip-padding shadow-lg/5 transition-[scale,opacity]",
+            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) not-dark:bg-clip-padding shadow-elevation-2 motion-popup",
             COMPOSER_PICKER_RADIUS_CLASS_NAME,
             className,
           )}
@@ -214,7 +214,7 @@ function ComboboxItem({
   return (
     <ComboboxPrimitive.Item
       className={cn(
-        `grid min-h-[1.625rem] in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] cursor-default grid-cols-[1fr_auto] items-center gap-3 ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} px-2.5 py-px text-ui text-[var(--color-text-foreground)] outline-none data-disabled:pointer-events-none data-highlighted:bg-[var(--color-background-button-secondary-hover)] data-highlighted:text-[var(--color-text-foreground)] data-disabled:opacity-64 sm:min-h-6 sm:text-ui [&_svg:not([class*='size-'])]:size-3 [&_svg]:pointer-events-none [&_svg]:shrink-0`,
+        `grid min-h-[1.625rem] in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] cursor-default grid-cols-[1fr_auto] items-center gap-3 ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} px-2.5 py-px text-ui text-[var(--color-text-foreground)] outline-none transition-colors data-disabled:pointer-events-none data-highlighted:bg-primary/10 data-highlighted:text-primary data-disabled:opacity-64 sm:min-h-6 sm:text-ui [&_svg:not([class*='size-'])]:size-3 [&_svg]:pointer-events-none [&_svg]:shrink-0`,
         className,
       )}
       data-slot="combobox-item"

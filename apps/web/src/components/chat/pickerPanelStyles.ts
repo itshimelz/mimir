@@ -40,8 +40,7 @@ export const PICKER_PANEL_ROW_GEOMETRY_CLASS_NAME = `min-h-7 gap-2 px-1.5 py-0.5
 export const PICKER_PANEL_ROW_ICON_CLASS_NAME = "size-3.5 shrink-0 text-muted-foreground/70";
 
 /** Subtle fill marking the currently selected option row. */
-export const PICKER_PANEL_ROW_SELECTED_CLASS_NAME =
-  "bg-[var(--color-background-elevated-secondary)] text-[var(--color-text-foreground)]";
+export const PICKER_PANEL_ROW_SELECTED_CLASS_NAME = "bg-primary/12 text-primary font-medium";
 
 /** Quiet section header above a plain picker list group. */
 export const PICKER_PANEL_GROUP_LABEL_CLASS_NAME =

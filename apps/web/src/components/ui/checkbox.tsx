@@ -6,9 +6,9 @@ import { cn } from "~/lib/utils";
 
 // Box + fill skins, shared with the menu's checkbox rows (`MenuCheckboxItem variant="checkbox"`).
 export const CHECKBOX_BOX_CLASS_NAME =
-  "relative inline-flex size-4.5 shrink-0 items-center justify-center rounded-[.25rem] border border-[color:var(--color-border-light)] bg-background outline-none ring-ring focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-background aria-invalid:border-destructive/36 focus-visible:aria-invalid:border-destructive/64 focus-visible:aria-invalid:ring-destructive/48 data-disabled:opacity-64 sm:size-4 dark:not-data-checked:bg-input/32 dark:aria-invalid:ring-destructive/24";
+  "relative inline-flex size-4.5 shrink-0 items-center justify-center rounded-xs border border-border bg-background outline-none transition-colors motion-spatial-fast focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background aria-invalid:border-destructive/60 focus-visible:aria-invalid:border-destructive focus-visible:aria-invalid:ring-destructive/48 data-disabled:opacity-64 sm:size-4 dark:not-data-checked:bg-input/32 dark:aria-invalid:ring-destructive/24";
 export const CHECKBOX_INDICATOR_CLASS_NAME =
-  "-inset-px absolute flex items-center justify-center rounded-[.25rem] text-primary-foreground data-unchecked:hidden data-checked:bg-primary data-indeterminate:text-foreground";
+  "-inset-px absolute flex items-center justify-center rounded-xs text-primary-foreground transition-all motion-spatial-fast data-unchecked:hidden data-checked:bg-primary data-indeterminate:text-foreground";
 
 export function CheckboxCheckGlyph({ className }: { className?: string }) {
   return (

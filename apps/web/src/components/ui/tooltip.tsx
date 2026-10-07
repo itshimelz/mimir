@@ -79,10 +79,7 @@ function TooltipPopup({
       >
         <TooltipPrimitive.Popup
           className={cn(
-            // Structure + type are shared by every tooltip; the variant supplies the
-            // surface chrome (frosted card, picker, …) and `className` adds per-tooltip
-            // tweaks like max-width or wrapping.
-            "flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance text-ui-sm transition-[width,height,scale,opacity] data-ending-style:scale-98 data-starting-style:scale-98 data-ending-style:opacity-0 data-starting-style:opacity-0 data-instant:duration-0",
+            "motion-popup flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance rounded-xs shadow-elevation-1 text-ui-sm transition-[width,height,scale,opacity] data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0 data-instant:duration-0",
             TOOLTIP_SURFACE_BY_VARIANT[variant],
             className,
           )}

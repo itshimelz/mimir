@@ -53,7 +53,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const capsule = shape === "capsule";
   const controlClassName = cn(
     !unstyled &&
-      `${capsule ? "" : GLASS_RAISED_SURFACE_CLASS_NAME} relative inline-flex w-full min-h-9 items-center rounded-lg border border-border bg-background text-ui text-foreground has-aria-invalid:border-destructive/30 has-focus-visible:has-aria-invalid:border-destructive/50 has-focus-visible:border-foreground/30 has-autofill:bg-foreground/4 has-disabled:opacity-64 sm:min-h-8 sm:text-ui dark:bg-input/32 dark:has-autofill:bg-foreground/8`,
+      `${capsule ? "" : GLASS_RAISED_SURFACE_CLASS_NAME} relative inline-flex w-full min-h-9 items-center rounded-md border border-border bg-background text-ui text-foreground transition-shape has-aria-invalid:border-destructive/60 has-focus-visible:has-aria-invalid:border-destructive has-focus-visible:border-primary has-focus-visible:ring-1 has-focus-visible:ring-primary/40 has-autofill:bg-foreground/4 has-disabled:opacity-64 sm:min-h-8 sm:text-ui dark:bg-input/32 dark:has-autofill:bg-foreground/8`,
     size === "sm" && "min-h-8 sm:min-h-7",
     size === "lg" && "min-h-10 sm:min-h-9",
     variant === "soft" && SOFT_SURFACE_FILL_CLASS_NAME,

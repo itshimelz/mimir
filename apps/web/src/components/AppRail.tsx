@@ -154,9 +154,9 @@ export const APP_RAIL_GLYPH_CLASS_NAME = "size-5";
  *  Idle glyphs rest on the section-label grey; hover and the active item are full ink. */
 export function appRailButtonClassName(active: boolean): string {
   return cn(
-    "size-9 rounded-lg",
+    "size-9 rounded-full transition-all motion-spatial-fast",
     active
-      ? SIDEBAR_ROW_ACTIVE_CLASS_NAME
+      ? cn(SIDEBAR_ROW_ACTIVE_CLASS_NAME, "bg-primary/15 text-primary")
       : cn(SIDEBAR_SECTION_LABEL_TONE_CLASS_NAME, SIDEBAR_ROW_HOVER_CLASS_NAME),
   );
 }

@@ -119,7 +119,7 @@ export function SidebarShowMoreRow({
 }) {
   if (!canShowMore && !canShowLess) return null;
   const buttonClassName = cn(
-    "h-7 cursor-pointer rounded-lg px-2.5 text-left text-ui text-muted-foreground/79 hover:text-foreground",
+    "h-7 cursor-pointer rounded-full px-3 text-left text-ui text-muted-foreground/80 transition-all motion-spatial-fast hover:bg-foreground/6 hover:text-foreground active:scale-98",
     SIDEBAR_ROW_FOCUS_CLASS_NAME,
     className,
   );

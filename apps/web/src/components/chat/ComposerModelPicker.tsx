@@ -558,33 +558,38 @@ export function ComposerModelPicker(props: ComposerModelPickerProps) {
             onTabChange={setTab}
             onAddProviders={lockedProvider === null ? openProviderSettings : undefined}
           />
-          <div className="flex shrink-0 items-center gap-2 border-b border-border px-3 *:min-w-0">
-            <SearchIcon aria-hidden="true" className={PICKER_PANEL_PLAIN_SEARCH_ICON_CLASS_NAME} />
-            <Input
-              className={PICKER_PANEL_PLAIN_SEARCH_INPUT_CLASS_NAME}
-              nativeInput
-              unstyled
-              ref={searchInputRef}
-              size="sm"
-              type="search"
-              aria-label="Search models"
-              placeholder={tab === STARRED_TAB ? "Search starred…" : "Search models…"}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDownCapture={(event) => {
-                if (event.key === "Enter") {
-                  // Focus is still in the field, so no row is highlighted: take the top hit.
-                  event.preventDefault();
+          <div className="border-b border-border/50 px-2.5 py-1.5">
+            <div className="flex h-8 w-full shrink-0 items-center gap-2 rounded-full border border-border/60 bg-muted/30 px-2.5 transition-colors focus-within:border-primary focus-within:bg-background focus-within:ring-1 focus-within:ring-primary/30 *:min-w-0">
+              <SearchIcon
+                aria-hidden="true"
+                className={PICKER_PANEL_PLAIN_SEARCH_ICON_CLASS_NAME}
+              />
+              <Input
+                className={PICKER_PANEL_PLAIN_SEARCH_INPUT_CLASS_NAME}
+                nativeInput
+                unstyled
+                ref={searchInputRef}
+                size="sm"
+                type="search"
+                aria-label="Search models"
+                placeholder={tab === STARRED_TAB ? "Search starred…" : "Search models…"}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                onKeyDownCapture={(event) => {
+                  if (event.key === "Enter") {
+                    // Focus is still in the field, so no row is highlighted: take the top hit.
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const firstRow = rows[0];
+                    if (firstRow) selectRow(firstRow);
+                    return;
+                  }
+                  if (event.key === "Tab" || MENU_NAVIGATION_KEYS.has(event.key)) return;
+                  // Keep typing out of the menu's typeahead.
                   event.stopPropagation();
-                  const firstRow = rows[0];
-                  if (firstRow) selectRow(firstRow);
-                  return;
-                }
-                if (event.key === "Tab" || MENU_NAVIGATION_KEYS.has(event.key)) return;
-                // Keep typing out of the menu's typeahead.
-                event.stopPropagation();
-              }}
-            />
+                }}
+              />
+            </div>
           </div>
           <div
             role="tabpanel"

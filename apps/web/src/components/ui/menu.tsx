@@ -115,7 +115,7 @@ function MenuPopupBase({
       >
         <MenuPrimitive.Popup
           className={cn(
-            "relative flex origin-(--transform-origin) text-[var(--color-text-foreground)] outline-none focus:outline-none",
+            "motion-menu relative flex origin-(--transform-origin) text-[var(--color-text-foreground)] outline-none focus:outline-none transition-shape",
             isComposerSurface ? "min-w-0 max-w-[92vw]" : "w-full min-w-full",
             popupSurfaceClassName,
             // Last so a caller's className can override surface tokens (e.g. a rounder radius).
@@ -458,7 +458,7 @@ function MenuSubTrigger({
       className={cn(
         cn(
           COMPOSER_PICKER_MENU_OPTION_CLASS_NAME,
-          "data-popup-open:bg-[var(--color-background-button-secondary-hover)] data-popup-open:text-[var(--color-text-foreground)] data-inset:ps-8",
+          "data-popup-open:bg-primary/12 data-popup-open:text-primary data-inset:ps-8",
         ),
         className,
       )}

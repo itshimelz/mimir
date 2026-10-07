@@ -131,15 +131,13 @@
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
 
-  /* Material 3 elevation. Separate from the `shadow-*` scale on purpose: M3 composes
-     two layers per level (a tight contact shadow plus a wide ambient one), which the
-     scale above cannot express. M3E names them `shadow-elevation-0…5`. */
+  /* Material 3 elevation — shadows removed; overlays separate by border alone. */
   --shadow-elevation-0: none;
-  --shadow-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
-  --shadow-elevation-2: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15);
-  --shadow-elevation-3: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15);
-  --shadow-elevation-4: 0 2px 3px 0 rgb(0 0 0 / 0.3), 0 6px 10px 4px rgb(0 0 0 / 0.15);
-  --shadow-elevation-5: 0 4px 4px 0 rgb(0 0 0 / 0.3), 0 8px 12px 6px rgb(0 0 0 / 0.15);
+  --shadow-elevation-1: none;
+  --shadow-elevation-2: none;
+  --shadow-elevation-3: none;
+  --shadow-elevation-4: none;
+  --shadow-elevation-5: none;
 
   @keyframes skeleton {
     to {
@@ -153,15 +151,13 @@
   }
 }
 
-/* Dark themes carry elevation through the surface container tint, not through a black
-   shadow: the light-mode alphas read as heavy smudges once the surface is itself dark.
-   M3's dark levels keep the same geometry at roughly a third of the opacity. */
+/* Dark themes: elevation shadows also removed. */
 .dark {
-  --shadow-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
-  --shadow-elevation-2: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.05);
-  --shadow-elevation-3: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.05);
-  --shadow-elevation-4: 0 2px 3px 0 rgb(0 0 0 / 0.3), 0 6px 10px 4px rgb(0 0 0 / 0.05);
-  --shadow-elevation-5: 0 4px 4px 0 rgb(0 0 0 / 0.3), 0 8px 12px 6px rgb(0 0 0 / 0.05);
+  --shadow-elevation-1: none;
+  --shadow-elevation-2: none;
+  --shadow-elevation-3: none;
+  --shadow-elevation-4: none;
+  --shadow-elevation-5: none;
 }
 
 @layer base {
@@ -3826,8 +3822,10 @@ diffs-container {
     --app-composer-picker-surface,
     color-mix(in oklab, var(--popover) 70%, transparent)
   );
-  -webkit-backdrop-filter: var(--app-composer-picker-backdrop-filter, blur(32px));
-  backdrop-filter: var(--app-composer-picker-backdrop-filter, blur(32px));
+  /* Flat product: no frosted backdrop on picker popups. The token stays so a caller can
+     opt back in per-surface; the default is now `none`. */
+  -webkit-backdrop-filter: var(--app-composer-picker-backdrop-filter, none);
+  backdrop-filter: var(--app-composer-picker-backdrop-filter, none);
 }
 
 /* Density tokens per size modifier (--normal / --small). Width is opt-in below. */

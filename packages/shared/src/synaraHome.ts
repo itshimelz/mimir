@@ -6,8 +6,10 @@
 import * as OS from "node:os";
 import * as Path from "node:path";
 
-export const SYNARA_HOME_ENV_NAME = "SYNARA_HOME";
-export const DEFAULT_SYNARA_HOME_DIRECTORY_NAME = ".mimir";
+export const MIMIR_HOME_ENV_NAME = "MIMIR_HOME";
+export const SYNARA_HOME_ENV_NAME = MIMIR_HOME_ENV_NAME;
+export const DEFAULT_MIMIR_HOME_DIRECTORY_NAME = ".mimir";
+export const DEFAULT_SYNARA_HOME_DIRECTORY_NAME = DEFAULT_MIMIR_HOME_DIRECTORY_NAME;
 
 /** Expands a leading `~` against the user's home directory; other inputs pass through. */
 export function expandHomePath(input: string, homeDirectory: string = OS.homedir()): string {
@@ -38,11 +40,14 @@ export function resolveSynaraHomeDirectory(
   } = {},
 ): string {
   const homeDirectory = options.homeDirectory ?? OS.homedir();
+  const env = options.env ?? process.env;
   const configured = (
-    options.configuredHome ?? (options.env ?? process.env)[SYNARA_HOME_ENV_NAME]
+    options.configuredHome ??
+    env[MIMIR_HOME_ENV_NAME] ??
+    env.SYNARA_HOME
   )?.trim();
   if (!configured) {
-    return Path.join(homeDirectory, options.directoryName ?? DEFAULT_SYNARA_HOME_DIRECTORY_NAME);
+    return Path.join(homeDirectory, options.directoryName ?? DEFAULT_MIMIR_HOME_DIRECTORY_NAME);
   }
   return Path.resolve(expandHomePath(configured, homeDirectory));
 }

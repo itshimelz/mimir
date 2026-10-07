@@ -15,6 +15,7 @@ import {
   type MouseEvent as ReactMouseEvent,
   type ReactNode,
   forwardRef,
+  memo,
 } from "react";
 
 import {
@@ -105,7 +106,7 @@ function shouldShowExplorerEntry(entry: ProjectFileSystemEntry): boolean {
   if (entry.kind !== "directory") {
     return true;
   }
-  if (entry.name.startsWith(".synara")) {
+  if (entry.name.startsWith(".mimir") || entry.name.startsWith(".synara")) {
     return false;
   }
   // Compared lower-cased so an agent-created "tmp" or "logs" variant is hidden too — the
@@ -143,82 +144,87 @@ export function useExplorerEntryPrefetch(cwd: string | null) {
 
 // Forwards its ref and spreads incoming props so directory rows can act as the
 // Collapsible trigger (Base UI injects onClick/aria/data + ref onto this element).
-const ExplorerRow = forwardRef<
-  HTMLButtonElement,
-  {
-    entry: ProjectFileSystemEntry;
-    depth: number;
-    selected: boolean;
-    expanded: boolean;
-    onSelectFile: (path: string) => void;
-    onPrefetchEntry: (entry: ProjectFileSystemEntry) => void;
-    onEntryContextMenu: (entry: ProjectFileSystemEntry, position: { x: number; y: number }) => void;
-  } & ComponentPropsWithoutRef<"button">
->(function ExplorerRow(
-  {
-    entry,
-    depth,
-    selected,
-    expanded,
-    onSelectFile,
-    onPrefetchEntry,
-    onEntryContextMenu,
-    className,
-    onClick,
-    ...rest
-  },
-  ref,
-) {
-  const isDirectory = entry.kind === "directory";
-  // Directory rows are the Collapsible trigger: chain Base UI's injected onClick
-  // (which toggles open/close) and skip file selection. File rows open the preview.
-  const handleClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    onClick?.(event);
-    if (isDirectory) {
-      return;
-    }
-    onSelectFile(entry.path);
-  };
-  const handlePrefetch = () => {
-    onPrefetchEntry(entry);
-  };
-  const handleContextMenu = (event: ReactMouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    onEntryContextMenu(entry, { x: event.clientX, y: event.clientY });
-  };
-  const handleDragStart = (event: ReactDragEvent<HTMLButtonElement>) => {
-    setFileReferenceDragData(event.dataTransfer, entry.path);
-  };
+const ExplorerRow = memo(
+  forwardRef<
+    HTMLButtonElement,
+    {
+      entry: ProjectFileSystemEntry;
+      depth: number;
+      selected: boolean;
+      expanded: boolean;
+      onSelectFile: (path: string) => void;
+      onPrefetchEntry: (entry: ProjectFileSystemEntry) => void;
+      onEntryContextMenu: (
+        entry: ProjectFileSystemEntry,
+        position: { x: number; y: number },
+      ) => void;
+    } & ComponentPropsWithoutRef<"button">
+  >(function ExplorerRow(
+    {
+      entry,
+      depth,
+      selected,
+      expanded,
+      onSelectFile,
+      onPrefetchEntry,
+      onEntryContextMenu,
+      className,
+      onClick,
+      ...rest
+    },
+    ref,
+  ) {
+    const isDirectory = entry.kind === "directory";
+    // Directory rows are the Collapsible trigger: chain Base UI's injected onClick
+    // (which toggles open/close) and skip file selection. File rows open the preview.
+    const handleClick = (event: ReactMouseEvent<HTMLButtonElement>) => {
+      onClick?.(event);
+      if (isDirectory) {
+        return;
+      }
+      onSelectFile(entry.path);
+    };
+    const handlePrefetch = () => {
+      onPrefetchEntry(entry);
+    };
+    const handleContextMenu = (event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      onEntryContextMenu(entry, { x: event.clientX, y: event.clientY });
+    };
+    const handleDragStart = (event: ReactDragEvent<HTMLButtonElement>) => {
+      setFileReferenceDragData(event.dataTransfer, entry.path);
+    };
 
-  return (
-    <button
-      {...rest}
-      {...EXPLORER_ROW_PROPS}
-      ref={ref}
-      type="button"
-      className={fileRowClassName(selected, cn("h-7 pr-2", className))}
-      style={fileRowIndentStyle(depth)}
-      title={entry.path}
-      draggable
-      onDragStart={handleDragStart}
-      onClick={handleClick}
-      onPointerEnter={handlePrefetch}
-      onFocus={handlePrefetch}
-      onContextMenu={handleContextMenu}
-    >
-      {isDirectory ? (
-        <DisclosureChevron open={expanded} className="opacity-75" />
-      ) : (
-        <FileEntryIcon
-          pathValue={entry.path}
-          kind={entry.kind}
-          className="size-3.5 shrink-0 opacity-75"
-        />
-      )}
-      <span className="min-w-0 truncate">{entry.name}</span>
-    </button>
-  );
-});
+    return (
+      <button
+        {...rest}
+        {...EXPLORER_ROW_PROPS}
+        ref={ref}
+        type="button"
+        className={fileRowClassName(selected, cn("h-7 pr-2", className))}
+        style={fileRowIndentStyle(depth)}
+        title={entry.path}
+        draggable
+        onDragStart={handleDragStart}
+        onClick={handleClick}
+        onPointerEnter={handlePrefetch}
+        onFocus={handlePrefetch}
+        onContextMenu={handleContextMenu}
+      >
+        {isDirectory ? (
+          <DisclosureChevron open={expanded} className="opacity-75" />
+        ) : (
+          <FileEntryIcon
+            pathValue={entry.path}
+            kind={entry.kind}
+            className="size-3.5 shrink-0 opacity-75"
+          />
+        )}
+        <span className="min-w-0 truncate">{entry.name}</span>
+      </button>
+    );
+  }),
+);
 
 const EXPLORER_SKELETON_ROW_WIDTHS = ["w-9/12", "w-6/12", "w-7/12"];
 
@@ -413,7 +419,7 @@ export function WorkspaceFilesSidebar(props: {
   );
 }
 
-function WorkspaceSearchResultRow(props: {
+const WorkspaceSearchResultRow = memo(function WorkspaceSearchResultRow(props: {
   entry: ProjectEntry;
   selected: boolean;
   onSelectFile: (path: string) => void;
@@ -453,7 +459,7 @@ function WorkspaceSearchResultRow(props: {
       </div>
     </button>
   );
-}
+});
 
 interface WorkspaceFileSearchState {
   // Trimmed live input — drives the "is the box empty?" decision (tree vs results).

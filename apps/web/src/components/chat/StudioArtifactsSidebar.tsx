@@ -12,6 +12,8 @@
 import type { StudioOutputEntry } from "@synara/contracts";
 import { isSupportedLocalImagePath } from "@synara/shared/localPreviewFiles";
 
+import { memo, useMemo } from "react";
+
 import { formatRelativeTime } from "~/lib/relativeTime";
 import { groupStudioOutputsByCategory, studioOutputCategory } from "~/lib/studioOutputCategory";
 import { humanizeStudioOutputName } from "~/lib/studioOutputDisplay";
@@ -49,6 +51,32 @@ function StudioArtifactIcon({ entry }: { entry: StudioOutputEntry }) {
   );
 }
 
+const StudioArtifactRow = memo(function StudioArtifactRow(props: {
+  readonly entry: StudioOutputEntry;
+  readonly selected: boolean;
+  readonly onSelect: (entry: StudioOutputEntry, forceFinderReveal: boolean) => void;
+  readonly onPrefetch?: ((fullPath: string) => void) | undefined;
+}) {
+  const { entry, selected, onSelect, onPrefetch } = props;
+  return (
+    <button
+      type="button"
+      {...EXPLORER_ROW_PROPS}
+      className={fileRowClassName(selected, "h-8 px-2")}
+      title={entry.relativePath}
+      aria-pressed={selected}
+      onClick={(event) => onSelect(entry, event.metaKey || event.ctrlKey)}
+      onMouseEnter={() => onPrefetch?.(entry.fullPath)}
+    >
+      <StudioArtifactIcon entry={entry} />
+      <span className="min-w-0 flex-1 truncate">{humanizeStudioOutputName(entry.name)}</span>
+      <span className="shrink-0 text-ui-xs tabular-nums text-muted-foreground/70">
+        {formatRelativeTime(entry.modifiedAt)}
+      </span>
+    </button>
+  );
+});
+
 export function StudioArtifactsSidebar(props: {
   entries: ReadonlyArray<StudioOutputEntry>;
   isLoading: boolean;
@@ -61,8 +89,12 @@ export function StudioArtifactsSidebar(props: {
   const handleListKeyDown = useExplorerListNavigation();
   const containerClassName = props.containerClassName ?? EXPLORER_SIDEBAR_CONTAINER_CLASS;
 
-  const groups = groupStudioOutputsByCategory(props.entries, (entry) =>
-    studioOutputCategory(entry.relativePath),
+  const groups = useMemo(
+    () =>
+      groupStudioOutputsByCategory(props.entries, (entry) =>
+        studioOutputCategory(entry.relativePath),
+      ),
+    [props.entries],
   );
 
   // Clicking previews the artifact in the center pane, which is the Studio surface's
@@ -122,35 +154,15 @@ export function StudioArtifactsSidebar(props: {
             >
               {group.category}
             </h3>
-            {group.entries.map((entry) => {
-              const selected = entry.fullPath === props.selectedOutputPath;
-              return (
-                <button
-                  key={entry.fullPath}
-                  type="button"
-                  {...EXPLORER_ROW_PROPS}
-                  // `h-8 px-2` is the explorer file row's own metrics. Studio replaces the
-                  // explorer in this column, so matching them keeps the row height and
-                  // text baseline identical across the two surfaces.
-                  className={fileRowClassName(selected, "h-8 px-2")}
-                  title={entry.relativePath}
-                  aria-pressed={selected}
-                  onClick={(event) => openEntry(entry, event.metaKey || event.ctrlKey)}
-                  onMouseEnter={() => fileOpener?.prefetchFile?.(entry.fullPath)}
-                >
-                  <StudioArtifactIcon entry={entry} />
-                  <span className="min-w-0 flex-1 truncate">
-                    {humanizeStudioOutputName(entry.name)}
-                  </span>
-                  {/* `text-ui-xs` rather than `text-ui-sm`: a timestamp must not compete with
-                      the artifact name for the row's width. Tone lifted off `/50`, which was
-                      too faint to read against the sidebar surface. */}
-                  <span className="shrink-0 text-ui-xs tabular-nums text-muted-foreground/70">
-                    {formatRelativeTime(entry.modifiedAt)}
-                  </span>
-                </button>
-              );
-            })}
+            {group.entries.map((entry) => (
+              <StudioArtifactRow
+                key={entry.fullPath}
+                entry={entry}
+                selected={entry.fullPath === props.selectedOutputPath}
+                onSelect={openEntry}
+                onPrefetch={fileOpener?.prefetchFile}
+              />
+            ))}
           </section>
         ))}
       </div>

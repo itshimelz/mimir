@@ -144,13 +144,11 @@ it.each(["light", "dark"] as const)(
         root.style.setProperty(name, value);
       root.setAttribute("data-window-material", build.material);
       root.setAttribute("data-window-translucency", build.translucencyScope);
-      const workspace = page.getByRole("navigation", { name: "Editor activity bar" }).element()
-        .parentElement!.parentElement!;
-      const surfaces = [
-        workspace,
-        workspace.querySelector("nav")!,
-        ...workspace.querySelectorAll("aside"),
-      ];
+      const workspace = page
+        .getByRole("tablist", { name: "Explorer view" })
+        .element()
+        .closest<HTMLElement>("[data-editor-workspace]")!;
+      const surfaces = [workspace, ...workspace.querySelectorAll("aside")];
       for (const surface of surfaces) {
         const clear = getComputedStyle(surface).backgroundColor === "rgba(0, 0, 0, 0)";
         expect(clear, `${scope} ${surface.tagName}`).toBe(scope === "window");
@@ -163,7 +161,7 @@ it.each(["light", "dark"] as const)(
       await expect.element(source()).not.toBeInTheDocument();
       await screen.rerender(view());
       await expect.element(source()).toHaveAttribute("aria-checked", "true");
-      await page.getByRole("button", { name: "Search files", exact: true }).click();
+      await page.getByRole("tab", { name: "Search", exact: true }).click();
       await page.getByPlaceholder("Search files...").fill("settings");
       await expect.element(page.getByPlaceholder("Search files...")).toHaveValue("settings");
       await page.getByRole("button", { name: "Files", exact: true }).click();
@@ -201,21 +199,21 @@ it("switches between the Study and Studio surfaces from the header", async () =>
   const view = makeView();
   const screen = await render(view());
 
-  // Study is the default surface: the course file tree and its activity bar.
-  const activityBar = page.getByRole("navigation", { name: "Editor activity bar" });
+  // Study is the default surface: the course file tree and its explorer view.
+  const explorerTabs = page.getByRole("tablist", { name: "Explorer view", exact: true });
   await expect
     .element(page.getByRole("radio", { name: "Study", exact: true }))
     .toHaveAttribute("aria-checked", "true");
-  await expect.element(activityBar).toBeInTheDocument();
+  await expect.element(explorerTabs).toBeInTheDocument();
 
   await page.getByRole("radio", { name: "Studio", exact: true }).click();
   await expect.element(page.getByTestId("studio-artifacts-sidebar")).toBeInTheDocument();
-  // Studio's left column is the artifact list, so the Study activity bar steps aside.
-  await expect.element(activityBar).not.toBeInTheDocument();
+  // Studio's left column is the artifact list, so the Study explorer tabs step aside.
+  await expect.element(explorerTabs).not.toBeInTheDocument();
 
   await page.getByRole("radio", { name: "Study", exact: true }).click();
   await expect.element(page.getByTestId("studio-artifacts-sidebar")).not.toBeInTheDocument();
-  await expect.element(activityBar).toBeInTheDocument();
+  await expect.element(explorerTabs).toBeInTheDocument();
 
   // The choice is a stored preference, so it survives leaving the view entirely.
   expect(window.localStorage.getItem("synara.editor.surface")).toBe("study");

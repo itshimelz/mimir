@@ -5,6 +5,7 @@ import {
   courseWorkspaceSubdirectories,
   ensureCourseWorkspaceInstructionsFiles,
   ensureStudioWorkspaceInstructionsFiles,
+  learnerRoleForSpaceIcon,
 } from "./studioWorkspaceScaffold";
 
 function makeFakeFileSystemLayer(existingPaths: ReadonlySet<string>) {
@@ -140,5 +141,15 @@ describe("ensureCourseWorkspaceInstructionsFiles", () => {
       ensureStudioWorkspaceInstructionsFiles("/hub").pipe(Effect.provide(layer)),
     );
     expect(written[0]?.content).not.toContain("Leave their existing files alone");
+  });
+});
+
+describe("learnerRoleForSpaceIcon", () => {
+  it("maps space icon to the matching learner role", () => {
+    expect(learnerRoleForSpaceIcon("school")).toBe("teacher");
+    expect(learnerRoleForSpaceIcon("lab")).toBe("researcher");
+    expect(learnerRoleForSpaceIcon("backpack")).toBe("student");
+    expect(learnerRoleForSpaceIcon(null)).toBe("student");
+    expect(learnerRoleForSpaceIcon(undefined)).toBe("student");
   });
 });

@@ -19,6 +19,7 @@ import {
   useDeferredValue,
   useEffect,
   useEffectEvent,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -389,7 +390,10 @@ export function ComposerModelPicker(props: ComposerModelPickerProps) {
             query: normalizedQuery,
             selectedModel: tabAccount.instanceId === activeInstanceId ? props.model : null,
           });
-  const starredModelSlots = new Set(starredModels.map(starredModelSlotKey));
+  const starredModelSlots = useMemo(
+    () => new Set(starredModels.map(starredModelSlotKey)),
+    [starredModels],
+  );
 
   // Commit a row: `patch` carries the traits to apply on top of the provider's options.
   // `keepOpen` leaves the panel up so the footer slider can tune the model just picked.

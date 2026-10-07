@@ -218,12 +218,16 @@
   --radius-4xl: var(--md-sys-shape-corner-extra-extra-large);
 
   /* M3 elevation */
+  /* Flat surfaces: this product uses borders, not Material elevation. These sit in an
+     `@theme inline` block, so Tailwind bakes the literal into every `shadow-elevation-*`
+     utility at build time — a runtime `:root { --shadow-elevation-*: none }` override in
+     m3.material.css cannot reach them. They must be zeroed here. */
   --shadow-elevation-0: none;
-  --shadow-elevation-1: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 1px 3px 1px rgb(0 0 0 / 0.15);
-  --shadow-elevation-2: 0 1px 2px 0 rgb(0 0 0 / 0.3), 0 2px 6px 2px rgb(0 0 0 / 0.15);
-  --shadow-elevation-3: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15);
-  --shadow-elevation-4: 0 2px 3px 0 rgb(0 0 0 / 0.3), 0 6px 10px 4px rgb(0 0 0 / 0.15);
-  --shadow-elevation-5: 0 4px 4px 0 rgb(0 0 0 / 0.3), 0 8px 12px 6px rgb(0 0 0 / 0.15);
+  --shadow-elevation-1: none;
+  --shadow-elevation-2: none;
+  --shadow-elevation-3: none;
+  --shadow-elevation-4: none;
+  --shadow-elevation-5: none;
 
   /* M3 easing */
   --ease-emphasized: var(--md-sys-motion-easing-emphasized);

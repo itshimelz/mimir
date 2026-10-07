@@ -43,6 +43,7 @@ import {
   courseWorkspaceInstructionText,
   courseWorkspaceSubdirectories,
   DEFAULT_LEARNER_ROLE,
+  learnerRoleForSpaceIcon,
   type LearnerRole,
 } from "../../studioWorkspaceScaffold.ts";
 import { diffStudioWorkspaceScans } from "../../studioOutputs.ts";
@@ -71,6 +72,7 @@ interface StudioTurnBaseline {
   readonly workspaceRoot: string;
   /** Chooses which scaffold the workspace gets, once, on the first real turn. */
   readonly projectKind: ProjectKind;
+  readonly learnerRole?: LearnerRole | undefined;
   readonly files: StudioWorkspaceScan;
 }
 
@@ -163,7 +165,17 @@ const make = Effect.gen(function* () {
     if (!cwd) {
       return null;
     }
-    return { workspaceRoot: cwd, projectKind: project.kind ?? "project" };
+    let learnerRole: LearnerRole = DEFAULT_LEARNER_ROLE;
+    if (project.spaceId) {
+      const spaceOption = yield* projectionSnapshotQuery
+        .getSpaceShellById(project.spaceId)
+        .pipe(Effect.catch(() => Effect.succeed(Option.none())));
+      const space = Option.getOrUndefined(spaceOption);
+      if (space) {
+        learnerRole = learnerRoleForSpaceIcon(space.icon);
+      }
+    }
+    return { workspaceRoot: cwd, projectKind: project.kind ?? "project", learnerRole };
   });
 
   const evictOldestBaseline = () => {
@@ -198,6 +210,7 @@ const make = Effect.gen(function* () {
       threadId,
       workspaceRoot: target.workspaceRoot,
       projectKind: target.projectKind,
+      learnerRole: target.learnerRole,
       files,
     });
   });
@@ -252,6 +265,7 @@ const make = Effect.gen(function* () {
       turnId: event.turnId,
       workspaceRoot: target.workspaceRoot,
       projectKind: target.projectKind,
+      learnerRole: target.learnerRole,
       files,
     });
   });
@@ -268,7 +282,10 @@ const make = Effect.gen(function* () {
     // something the agent produced. Only a course folder is scaffolded here: the legacy
     // Studio and Hub containers keep being prepared by their own create paths.
     if (studioWorkspaceLayoutFor(input.projectKind) === "course") {
-      yield* ensureCourseWorkspaceLayout(input.baseline.workspaceRoot, DEFAULT_LEARNER_ROLE);
+      yield* ensureCourseWorkspaceLayout(
+        input.baseline.workspaceRoot,
+        input.baseline.learnerRole ?? DEFAULT_LEARNER_ROLE,
+      );
     }
     if (changedRelativePaths.length === 0) {
       return;

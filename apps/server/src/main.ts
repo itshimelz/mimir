@@ -166,7 +166,8 @@ export class CliConfig extends ServiceMap.Service<CliConfig, CliConfigShape>()(
 }
 
 const CliEnvConfig = Config.all({
-  mode: Config.string("SYNARA_MODE").pipe(
+  mode: Config.string("MIMIR_MODE").pipe(
+    Config.orElse(() => Config.string("SYNARA_MODE")),
     Config.option,
     Config.map(
       Option.match<RuntimeMode, string>({
@@ -175,18 +176,40 @@ const CliEnvConfig = Config.all({
       }),
     ),
   ),
-  port: Config.port("SYNARA_PORT").pipe(Config.option, Config.map(Option.getOrUndefined)),
-  host: Config.string("SYNARA_HOST").pipe(Config.option, Config.map(Option.getOrUndefined)),
-  synaraHome: Config.string("SYNARA_HOME").pipe(Config.option, Config.map(Option.getOrUndefined)),
-  devUrl: Config.url("VITE_DEV_SERVER_URL").pipe(Config.option, Config.map(Option.getOrUndefined)),
-  publicUrl: Config.url("SYNARA_PUBLIC_URL").pipe(Config.option, Config.map(Option.getOrUndefined)),
-  allowInsecureRemote: optionalBooleanEnvironmentConfig("SYNARA_ALLOW_INSECURE_REMOTE"),
-  noBrowser: optionalBooleanEnvironmentConfig("SYNARA_NO_BROWSER"),
-  authToken: Config.string("SYNARA_AUTH_TOKEN").pipe(
+  port: Config.port("MIMIR_PORT").pipe(
+    Config.orElse(() => Config.port("SYNARA_PORT")),
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  desktopShutdownToken: Config.string("SYNARA_DESKTOP_SHUTDOWN_TOKEN").pipe(
+  host: Config.string("MIMIR_HOST").pipe(
+    Config.orElse(() => Config.string("SYNARA_HOST")),
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  synaraHome: Config.string("MIMIR_HOME").pipe(
+    Config.orElse(() => Config.string("SYNARA_HOME")),
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  devUrl: Config.url("VITE_DEV_SERVER_URL").pipe(Config.option, Config.map(Option.getOrUndefined)),
+  publicUrl: Config.url("MIMIR_PUBLIC_URL").pipe(
+    Config.orElse(() => Config.url("SYNARA_PUBLIC_URL")),
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  allowInsecureRemote: optionalBooleanEnvironmentConfig("MIMIR_ALLOW_INSECURE_REMOTE").pipe(
+    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_ALLOW_INSECURE_REMOTE")),
+  ),
+  noBrowser: optionalBooleanEnvironmentConfig("MIMIR_NO_BROWSER").pipe(
+    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_NO_BROWSER")),
+  ),
+  authToken: Config.string("MIMIR_AUTH_TOKEN").pipe(
+    Config.orElse(() => Config.string("SYNARA_AUTH_TOKEN")),
+    Config.option,
+    Config.map(Option.getOrUndefined),
+  ),
+  desktopShutdownToken: Config.string("MIMIR_DESKTOP_SHUTDOWN_TOKEN").pipe(
+    Config.orElse(() => Config.string("SYNARA_DESKTOP_SHUTDOWN_TOKEN")),
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
@@ -199,14 +222,21 @@ const CliEnvConfig = Config.all({
     Config.map(Option.getOrUndefined),
   ),
   autoBootstrapProjectFromCwd: optionalBooleanEnvironmentConfig(
-    "SYNARA_AUTO_BOOTSTRAP_PROJECT_FROM_CWD",
+    "MIMIR_AUTO_BOOTSTRAP_PROJECT_FROM_CWD",
+  ).pipe(
+    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_AUTO_BOOTSTRAP_PROJECT_FROM_CWD")),
   ),
-  trashDir: Config.string("SYNARA_TRASH_DIR").pipe(
+  trashDir: Config.string("MIMIR_TRASH_DIR").pipe(
+    Config.orElse(() => Config.string("SYNARA_TRASH_DIR")),
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  logProviderEvents: optionalBooleanEnvironmentConfig("SYNARA_LOG_PROVIDER_EVENTS"),
-  logWebSocketEvents: optionalBooleanEnvironmentConfig("SYNARA_LOG_WS_EVENTS"),
+  logProviderEvents: optionalBooleanEnvironmentConfig("MIMIR_LOG_PROVIDER_EVENTS").pipe(
+    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_LOG_PROVIDER_EVENTS")),
+  ),
+  logWebSocketEvents: optionalBooleanEnvironmentConfig("MIMIR_LOG_WS_EVENTS").pipe(
+    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_LOG_WS_EVENTS")),
+  ),
 });
 
 const ServerConfigLive = (input: CliInput) =>

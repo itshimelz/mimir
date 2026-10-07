@@ -5,7 +5,7 @@
 // Layer: Base UI component
 // Exports: Slider
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Slider as M3eSlider } from "@/components/m3e/slider";
 import { cn } from "~/lib/utils";
@@ -86,7 +86,10 @@ function Slider({
   const size = sizeProp ?? "default";
   const showStepMarks = showStepMarksProp ?? false;
   const magnetic = magneticProp ?? false;
-  const marks = showStepMarks ? stepMarkPercents(min, max, step) : [];
+  const marks = useMemo(
+    () => (showStepMarks ? stepMarkPercents(min, max, step) : []),
+    [showStepMarks, min, max, step],
+  );
   const [pressed, setPressed] = useState(false);
   useGrabbingCursor(pressed);
 
@@ -151,7 +154,6 @@ function Slider({
                 index === 0 || index === marks.length - 1 ? "opacity-70" : null,
               )}
               style={{
-                // oxlint-disable-next-line no-unsafe-type-assertion
                 insetInlineStart: `${percent}%`,
                 position: "absolute",
               }}

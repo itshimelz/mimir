@@ -55,7 +55,6 @@ function Slider({
         onValueChange?.(next, details);
       }}
       // custom properties: React's CSSProperties has no `--*` keys
-      // oxlint-disable-next-line no-unsafe-type-assertion
       style={{ "--slider-gap": GAP } as React.CSSProperties}
       {...props}
     >
@@ -82,8 +81,8 @@ function Slider({
             <span
               className={cn(
                 "absolute rounded-xs bg-secondary-container group-data-disabled/slider:bg-on-surface/12",
-                "group-data-horizontal/slider:inset-y-0 group-data-horizontal/slider:left-[calc(100%+var(--slider-gap))] group-data-horizontal/slider:w-[200vw]",
-                "group-data-vertical/slider:inset-x-0 group-data-vertical/slider:bottom-[calc(100%+var(--slider-gap))] group-data-vertical/slider:h-[200vh]",
+                "group-data-horizontal/slider:inset-y-0 group-data-horizontal/slider:left-[calc(100%+var(--slider-gap))] group-data-horizontal/slider:w-[1000px]",
+                "group-data-vertical/slider:inset-x-0 group-data-vertical/slider:bottom-[calc(100%+var(--slider-gap))] group-data-vertical/slider:h-[1000px]",
               )}
             />
             {/* inactive, before the first handle of a range */}
@@ -91,8 +90,8 @@ function Slider({
               <span
                 className={cn(
                   "absolute rounded-xs bg-secondary-container group-data-disabled/slider:bg-on-surface/12",
-                  "group-data-horizontal/slider:inset-y-0 group-data-horizontal/slider:right-[calc(100%+var(--slider-gap))] group-data-horizontal/slider:w-[200vw]",
-                  "group-data-vertical/slider:inset-x-0 group-data-vertical/slider:top-[calc(100%+var(--slider-gap))] group-data-vertical/slider:h-[200vh]",
+                  "group-data-horizontal/slider:inset-y-0 group-data-horizontal/slider:right-[calc(100%+var(--slider-gap))] group-data-horizontal/slider:w-[1000px]",
+                  "group-data-vertical/slider:inset-x-0 group-data-vertical/slider:top-[calc(100%+var(--slider-gap))] group-data-vertical/slider:h-[1000px]",
                 )}
               />
             )}

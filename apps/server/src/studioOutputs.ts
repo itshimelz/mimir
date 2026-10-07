@@ -36,6 +36,12 @@ const EXCLUDED_NESTED_DIRECTORY_NAMES = new Set([
   "out",
   "coverage",
   "venv",
+  "env",
+  "vendor",
+  "cmake-build-debug",
+  "cmake-build-release",
+  "bin",
+  "obj",
   "__pycache__",
 ]);
 

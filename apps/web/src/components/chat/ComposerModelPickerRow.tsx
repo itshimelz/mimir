@@ -6,6 +6,8 @@
 
 import { type ProviderModelDescriptor } from "@synara/contracts";
 
+import { memo } from "react";
+
 import { type StarredModel, starredModelSlotKey } from "~/lib/starredModels";
 import { cn } from "~/lib/utils";
 import { type ProviderOptions } from "../../providerModelOptions";
@@ -34,7 +36,7 @@ import { resolveRuntimeModelDescriptor } from "./runtimeModelCapabilities";
 
 // Each row resolves its own traits, so a long catalog only recomputes the rows whose
 // inputs changed instead of the whole list on every keystroke.
-export function ComposerModelPickerRow(props: {
+export const ComposerModelPickerRow = memo(function ComposerModelPickerRow(props: {
   row: PickerRow;
   /** "⌘1"-style hint, or null beyond the addressable rows. */
   shortcutHint: string | null;
@@ -177,4 +179,4 @@ export function ComposerModelPickerRow(props: {
       </ComposerPickerMenuSubPopup>
     </MenuSub>
   );
-}
+});

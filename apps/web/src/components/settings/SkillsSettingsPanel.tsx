@@ -1,6 +1,6 @@
 // FILE: SkillsSettingsPanel.tsx
 // Purpose: Settings → Skills panel. Lists every skill from the unified cross-provider
-// catalog (~/.synara/skills plus each provider's skills folder), shows which provider
+// catalog (~/.mimir/skills plus each provider's skills folder), shows which provider
 // a skill comes from, and lets the user enable/disable each one. Disabled skills are
 // hidden from the composer skill picker on every provider.
 

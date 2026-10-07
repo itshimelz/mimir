@@ -69,7 +69,6 @@ import { DiffStat } from "./chat/DiffStatLabel";
 import { PanelStateMessage } from "./chat/PanelStateMessage";
 import { StudioArtifactsSidebar } from "./chat/StudioArtifactsSidebar";
 import {
-  ExplorerActivityBarButton,
   setFileReferenceDragData,
   WorkspaceFilesSidebar,
   WorkspaceSearchSidebar,
@@ -94,6 +93,13 @@ const EDITOR_CHAT_PANE_DEFAULT_WIDTH = 384;
 const EDITOR_CHAT_PANE_MIN_WIDTH = 320;
 const EDITOR_CHAT_PANE_MAX_WIDTH = 600;
 const EDITOR_CHAT_PANE_KEYBOARD_STEP = 24;
+
+/**
+ * The Diff left pane is gated as unavailable in the course/studio workspace for now,
+ * to cut the number of left-rail modes a student has to triage. Flip to re-enable the
+ * `centerFamily === "diff"` branch and the DiffFilesSidebar rendering with it.
+ */
+const DIFF_LEFT_PANE_ENABLED: boolean = false;
 
 interface EditorWorkspaceViewProps {
   workspaceRoot: string | null;
@@ -381,46 +387,6 @@ function DiffFilesSidebar(props: {
         )}
       </div>
     </aside>
-  );
-}
-
-function EditorActivityBar(props: {
-  centerMode: EditorCenterMode;
-  searchActive: boolean;
-  sidebarVisible: boolean;
-  onSelectItem: (item: EditorActivityBarItem) => void;
-}) {
-  const centerFamily = editorCenterModeFamily(props.centerMode);
-  const filesActive = props.sidebarVisible && !props.searchActive && centerFamily === "file";
-  const diffActive = props.sidebarVisible && !props.searchActive && centerFamily === "diff";
-  const searchActive = props.sidebarVisible && props.searchActive;
-  return (
-    <nav
-      className="flex w-12 shrink-0 flex-col items-center border-r border-border/65 app-content-surface"
-      aria-label="Editor activity bar"
-    >
-      <ExplorerActivityBarButton
-        label={filesActive ? "Hide files sidebar" : "Files"}
-        active={filesActive}
-        onClick={() => props.onSelectItem("file")}
-      >
-        <FoldersIcon className="size-5" />
-      </ExplorerActivityBarButton>
-      <ExplorerActivityBarButton
-        label={diffActive ? "Hide diff sidebar" : "Diff"}
-        active={diffActive}
-        onClick={() => props.onSelectItem("diff")}
-      >
-        <ChangesIcon className="size-5" />
-      </ExplorerActivityBarButton>
-      <ExplorerActivityBarButton
-        label={searchActive ? "Hide search sidebar" : "Search files"}
-        active={searchActive}
-        onClick={() => props.onSelectItem("search")}
-      >
-        <SearchIcon className="size-5" />
-      </ExplorerActivityBarButton>
-    </nav>
   );
 }
 
@@ -892,18 +858,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
         </div>
       </div>
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
-        {surface === "studio" ? null : (
-          <EditorActivityBar
-            centerMode={props.centerMode}
-            searchActive={searchPaneActive}
-            sidebarVisible={sidebarVisible}
-            onSelectItem={(item) =>
-              editorActivityBarSelectionLeavesEditor(activityBarSelection(item))
-                ? guardLeavingEdit(() => handleActivityBarSelectItem(item))
-                : handleActivityBarSelectItem(item)
-            }
-          />
-        )}
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
           {surface === "studio" ? (
             <StudioArtifactsSidebar
@@ -914,34 +868,65 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                 guardLeavingEdit(() => setSelectedStudioOutputPath(entry.fullPath))
               }
             />
-          ) : !sidebarVisible ? null : searchPaneActive ? (
-            <WorkspaceSearchSidebar
-              workspaceRoot={props.workspaceRoot}
-              query={searchQuery}
-              onQueryChange={setSearchQuery}
-              selectedFilePath={props.selectedFilePath}
-              onSelectFile={guardedSelectFile}
-              onReferenceInChat={props.onReferenceInChat}
-            />
-          ) : centerFamily === "diff" ? (
-            <DiffFilesSidebar
-              files={props.diffFiles}
-              isLoading={props.diffFilesLoading ?? false}
-              selectedFilePath={props.selectedDiffFilePath}
-              optionsControl={props.diffOptionsControl}
-              onSelectFile={guardedSelectDiffFile}
-              onReferenceInChat={props.onReferenceInChat}
-              onAskWhyInChat={props.onAskWhyInChat}
-            />
           ) : (
-            <WorkspaceFilesSidebar
-              workspaceRoot={props.workspaceRoot}
-              selectedFilePath={props.selectedFilePath}
-              expandedDirectories={props.expandedDirectories}
-              onSelectFile={guardedSelectFile}
-              onToggleDirectory={props.onToggleDirectory}
-              onReferenceInChat={props.onReferenceInChat}
-            />
+            <div className="flex h-full min-h-0 min-w-0 shrink-0 flex-col border-border/65 lg:w-56 lg:border-r app-content-surface">
+              {/* Files/Diff/Search moved in from the editor's secondary icon rail, so only one
+                  vertical rail (the app rail) remains. Same three radio states, same leave-edit
+                  guard — only the placement changed. */}
+              {/* Files/Search use the M3E segmented tab control; the Diff left pane is off
+                  behind a disabled feature flag to cut cognitive load. The app rail
+                  remains the only full-height vertical rail. */}
+              <Tabs
+                value={searchPaneActive ? "search" : "file"}
+                onValueChange={(val) => {
+                  const value = val as EditorActivityBarItem;
+                  editorActivityBarSelectionLeavesEditor(activityBarSelection(value))
+                    ? guardLeavingEdit(() => handleActivityBarSelectItem(value))
+                    : handleActivityBarSelectItem(value);
+                }}
+                className="w-full"
+              >
+                <TabsList variant="segmented" aria-label="Explorer view" className="h-9 p-0.5">
+                  <TabsTrigger value="file" className="flex-1 px-2.5">
+                    <FoldersIcon className="size-4" />
+                    <span className="truncate">Files</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="search" className="flex-1 px-2.5">
+                    <SearchIcon className="size-4" />
+                    <span className="truncate">Search</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+              {!sidebarVisible ? null : searchPaneActive ? (
+                <WorkspaceSearchSidebar
+                  workspaceRoot={props.workspaceRoot}
+                  query={searchQuery}
+                  onQueryChange={setSearchQuery}
+                  selectedFilePath={props.selectedFilePath}
+                  onSelectFile={guardedSelectFile}
+                  onReferenceInChat={props.onReferenceInChat}
+                />
+              ) : DIFF_LEFT_PANE_ENABLED && centerFamily === "diff" ? (
+                <DiffFilesSidebar
+                  files={props.diffFiles}
+                  isLoading={props.diffFilesLoading ?? false}
+                  selectedFilePath={props.selectedDiffFilePath}
+                  optionsControl={props.diffOptionsControl}
+                  onSelectFile={guardedSelectDiffFile}
+                  onReferenceInChat={props.onReferenceInChat}
+                  onAskWhyInChat={props.onAskWhyInChat}
+                />
+              ) : (
+                <WorkspaceFilesSidebar
+                  workspaceRoot={props.workspaceRoot}
+                  selectedFilePath={props.selectedFilePath}
+                  expandedDirectories={props.expandedDirectories}
+                  onSelectFile={guardedSelectFile}
+                  onToggleDirectory={props.onToggleDirectory}
+                  onReferenceInChat={props.onReferenceInChat}
+                />
+              )}
+            </div>
           )}
           <main className="flex min-h-[16rem] min-w-0 flex-1 border-b border-border/65 lg:h-full lg:border-b-0">
             {/* Studio reviews what the agent produced, in the same viewer Study uses.

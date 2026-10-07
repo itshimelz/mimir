@@ -107,6 +107,7 @@ import {
 import { listStudioThreadOutputs } from "./studioOutputs";
 import {
   ensureStudioWorkspaceInstructionsFiles,
+  migrateLegacyWorkspaceLayout,
   STUDIO_WORKSPACE_SUBDIRECTORIES,
 } from "./studioWorkspaceScaffold";
 import { ensureGroupWorkspaceInstructionsFiles } from "./groupWorkspaceScaffold";
@@ -288,7 +289,7 @@ const wsRequestAdmissionMiddlewareLayer = Layer.effect(
 
 // Relative subdirectories scaffolded under a freshly created chat container workspace root.
 // The Studio layout lives in studioWorkspaceScaffold.ts alongside its instruction files.
-const CHAT_WORKSPACE_SUBDIRECTORIES = ["work", "outputs"] as const;
+const CHAT_WORKSPACE_SUBDIRECTORIES = [".mimir/work", "outputs"] as const;
 
 interface ProcessTableRow {
   readonly pid: number;
@@ -751,11 +752,43 @@ const makeWsRpcHandlersLayer = () =>
         }
       });
       const prepareChatWorkspaceRoot = (workspaceRoot: string) =>
-        prepareWorkspaceSubdirectories(workspaceRoot, CHAT_WORKSPACE_SUBDIRECTORIES);
+        Effect.gen(function* () {
+          // Migrate legacy work/ to .mimir/work if present
+          const legacyWork = path.join(workspaceRoot, "work");
+          const targetWork = path.join(workspaceRoot, ".mimir", "work");
+          const legacyExists = yield* fileSystem
+            .exists(legacyWork)
+            .pipe(Effect.orElseSucceed(() => false));
+          if (legacyExists) {
+            const targetExists = yield* fileSystem
+              .exists(targetWork)
+              .pipe(Effect.orElseSucceed(() => false));
+            if (!targetExists) {
+              yield* fileSystem
+                .makeDirectory(path.join(workspaceRoot, ".mimir"), { recursive: true })
+                .pipe(Effect.ignore);
+              yield* fileSystem
+                .rename(legacyWork, targetWork)
+                .pipe(Effect.catch(() => Effect.void));
+            }
+          }
+          yield* prepareWorkspaceSubdirectories(workspaceRoot, CHAT_WORKSPACE_SUBDIRECTORIES);
+        });
       // Instruction files are best-effort: they steer agents toward the Outbox layout but
       // must never fail (or retry-loop) the container create that scaffolds the folders.
       const prepareStudioWorkspaceRoot = (workspaceRoot: string) =>
-        prepareWorkspaceSubdirectories(workspaceRoot, STUDIO_WORKSPACE_SUBDIRECTORIES).pipe(
+        migrateLegacyWorkspaceLayout(workspaceRoot).pipe(
+          Effect.catch((cause) =>
+            Effect.logWarning("failed to migrate legacy studio workspace layout", {
+              workspaceRoot,
+              cause,
+            }),
+          ),
+          Effect.provideService(FileSystem.FileSystem, fileSystem),
+          Effect.provideService(Path.Path, path),
+          Effect.andThen(
+            prepareWorkspaceSubdirectories(workspaceRoot, STUDIO_WORKSPACE_SUBDIRECTORIES),
+          ),
           Effect.andThen(
             ensureStudioWorkspaceInstructionsFiles(workspaceRoot).pipe(
               Effect.catch((cause) =>

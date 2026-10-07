@@ -39,7 +39,7 @@ type ComposerEffortSliderCardProps = {
 };
 
 const CARD_ICON_BUTTON_CLASS_NAME =
-  "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-lg transition-colors hover:bg-[color-mix(in_srgb,var(--foreground)_6%,transparent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[color:var(--color-border-focus)]/60 disabled:pointer-events-none disabled:opacity-35";
+  "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all motion-spatial-fast hover:bg-foreground/10 active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-35";
 
 // Effort ladder as a stepped slider. Every level the model exposes is one stop
 // (including prompt-injected ones such as Ultrathink), so the ladder matches the
@@ -98,8 +98,8 @@ export function ComposerEffortSliderCard(props: ComposerEffortSliderCardProps) {
   };
 
   return (
-    <div className="px-1 pt-0.5 pb-1" data-slot="effort-slider-card">
-      <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center gap-1">
+    <div className="px-2 pt-1 pb-2" data-slot="effort-slider-card">
+      <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center gap-1.5 pb-1">
         {supportsFastMode ? (
           <FastModeToggle
             tone="accent"
@@ -109,9 +109,11 @@ export function ComposerEffortSliderCard(props: ComposerEffortSliderCardProps) {
         ) : (
           <span aria-hidden="true" className="size-6" />
         )}
-        <span className="truncate text-center font-medium text-ui text-[var(--color-text-accent)]">
-          {statusLabel}
-        </span>
+        <div className="flex items-center justify-center">
+          <span className="inline-flex items-center justify-center rounded-full bg-primary/12 px-3 py-0.5 text-center font-medium text-ui text-primary">
+            {statusLabel}
+          </span>
+        </div>
         <Tooltip>
           <TooltipTrigger
             render={
@@ -121,7 +123,7 @@ export function ComposerEffortSliderCard(props: ComposerEffortSliderCardProps) {
                 disabled={!canReset}
                 className={cn(
                   CARD_ICON_BUTTON_CLASS_NAME,
-                  "text-muted-foreground/70 hover:text-[var(--color-text-foreground)]",
+                  "text-muted-foreground/70 hover:text-foreground",
                 )}
                 onClick={handleReset}
               />

@@ -15,7 +15,7 @@ import { cn } from "~/lib/utils";
 
 /** Pressed look for a toggle segment: an accent tint on the group's pill (the file tree toggle). */
 export const BUTTON_GROUP_ACTIVE_CLASS_NAME =
-  "bg-[color-mix(in_srgb,var(--color-text-accent)_16%,transparent)] text-[var(--color-text-accent)] [:hover,[data-pressed]]:bg-[color-mix(in_srgb,var(--color-text-accent)_22%,transparent)] [:hover,[data-pressed]]:text-[var(--color-text-accent)]";
+  "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary";
 
 /** The capsule's own surface: a soft fill and hairline border on a full pill. Shared by the group
  *  and by any lone pill (a picker trigger) that has to read as the same element beside it. */

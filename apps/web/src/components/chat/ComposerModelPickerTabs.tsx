@@ -55,14 +55,16 @@ function PickerTabButton(props: {
             // why the tab is closed.
             aria-disabled={props.disabled ?? false}
             className={cn(
-              "relative flex h-7 min-w-7 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-lg px-1.5 text-muted-foreground/70 outline-none transition-colors hover:bg-[var(--color-background-button-secondary-hover)] hover:text-foreground focus-visible:ring-1 focus-visible:ring-ring/60 aria-disabled:cursor-default aria-disabled:hover:bg-transparent aria-disabled:hover:text-muted-foreground/70",
+              "relative flex h-7 min-w-7 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2 text-muted-foreground/70 outline-none transition-all motion-spatial-fast hover:bg-foreground/8 hover:text-foreground focus-visible:ring-1 focus-visible:ring-primary aria-disabled:cursor-default aria-disabled:hover:bg-transparent aria-disabled:hover:text-muted-foreground/70",
               props.active &&
-                // The accent token is theme-injected; fall back to the icon color without it.
-                "text-foreground after:absolute after:inset-x-1.5 after:-bottom-1 after:h-0.5 after:rounded-full after:bg-[var(--tab-accent,var(--color-text-accent,currentColor))]",
+                "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary font-medium shadow-elevation-0",
             )}
             style={
-              props.accentColor
-                ? ({ "--tab-accent": props.accentColor } as CSSProperties)
+              props.accentColor && props.active
+                ? ({
+                    backgroundColor: `color-mix(in srgb, ${props.accentColor} 18%, transparent)`,
+                    color: props.accentColor,
+                  } as CSSProperties)
                 : undefined
             }
             onClick={() => {
@@ -213,15 +215,14 @@ export function ComposerModelPickerTabs(props: {
   onAddProviders?: (() => void) | undefined;
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-0.5 border-b border-border p-1.5">
+    <div className="flex shrink-0 items-center gap-1 border-b border-border/60 px-2 py-1.5">
       {/* Many providers and accounts overflow the popup: the strip scrolls sideways, fades
-          its hidden edge, and keeps the open tab in view. The vertical padding leaves room
-          for the open tab's marker, which hangs below the button. */}
+          its hidden edge, and keeps the open tab in view. */}
       <SurfaceTabStrip
         role="tablist"
         aria-label="Model sources"
         activeKey={props.tab}
-        className="-my-1 flex-1 gap-0.5 py-1"
+        className="-my-0.5 flex-1 gap-1 py-0.5"
       >
         <PickerTabButton
           label="Starred"

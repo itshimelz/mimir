@@ -88,6 +88,7 @@ import { WorkspaceFileEditorPane } from "./chat/WorkspaceFileEditorPane";
 import { WorkspaceFilePreview } from "./WorkspaceFilePreview";
 
 const EDITOR_CHAT_PANE_STORAGE_KEY = "synara.editor.chatPaneWidth";
+const EDITOR_SIDEBAR_STORAGE_KEY = "synara.editor.sidebarWidth";
 const EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY = "synara.editor.sidebarVisible";
 const EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY = "synara.editor.chatPaneVisible";
 const EDITOR_SURFACE_STORAGE_KEY = "synara.editor.surface";
@@ -95,6 +96,10 @@ const EDITOR_CHAT_PANE_DEFAULT_WIDTH = 384;
 const EDITOR_CHAT_PANE_MIN_WIDTH = 320;
 const EDITOR_CHAT_PANE_MAX_WIDTH = 600;
 const EDITOR_CHAT_PANE_KEYBOARD_STEP = 24;
+const EDITOR_SIDEBAR_DEFAULT_WIDTH = 256;
+const EDITOR_SIDEBAR_MIN_WIDTH = 200;
+const EDITOR_SIDEBAR_MAX_WIDTH = 480;
+const EDITOR_SIDEBAR_KEYBOARD_STEP = 16;
 
 /**
  * The Diff left pane is gated as unavailable in the course/studio workspace for now,
@@ -184,6 +189,36 @@ function storeEditorChatPaneWidth(width: number): void {
   }
 }
 
+function clampEditorSidebarWidth(width: number): number {
+  return Math.min(EDITOR_SIDEBAR_MAX_WIDTH, Math.max(EDITOR_SIDEBAR_MIN_WIDTH, Math.round(width)));
+}
+
+function readStoredEditorSidebarWidth(): number {
+  if (typeof window === "undefined") {
+    return EDITOR_SIDEBAR_DEFAULT_WIDTH;
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(EDITOR_SIDEBAR_STORAGE_KEY);
+    const parsed = rawValue === null ? Number.NaN : Number.parseFloat(rawValue);
+    return Number.isFinite(parsed) ? clampEditorSidebarWidth(parsed) : EDITOR_SIDEBAR_DEFAULT_WIDTH;
+  } catch {
+    return EDITOR_SIDEBAR_DEFAULT_WIDTH;
+  }
+}
+
+function storeEditorSidebarWidth(width: number): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(EDITOR_SIDEBAR_STORAGE_KEY, String(clampEditorSidebarWidth(width)));
+  } catch {
+    // Best-effort preference persistence only.
+  }
+}
+
 function readStoredEditorVisibility(key: string): boolean {
   if (typeof window === "undefined") {
     return true;
@@ -228,6 +263,18 @@ function storeEditorSurface(surface: EditorSurface): void {
   } catch {
     // Best-effort preference persistence only.
   }
+}
+
+interface EditorSidebarResizeState {
+  pointerId: number;
+  startX: number;
+  startWidth: number;
+  pendingWidth: number;
+  rafId: number | null;
+  restoreBodyCursor: string;
+  restoreBodyUserSelect: string;
+  onPointerMove: (event: PointerEvent) => void;
+  onPointerEnd: (event: PointerEvent) => void;
 }
 
 interface EditorChatPaneResizeState {
@@ -312,6 +359,7 @@ function DiffFilesSidebar(props: {
   files: ReadonlyArray<FileDiffMetadata>;
   isLoading: boolean;
   selectedFilePath: string | null;
+  containerClassName?: string;
   optionsControl?: ReactNode;
   onSelectFile: (path: string) => void;
   onReferenceInChat: ((reference: ChatFileReference) => void) | undefined;
@@ -333,7 +381,12 @@ function DiffFilesSidebar(props: {
   };
 
   return (
-    <aside className="flex min-h-[11rem] w-full shrink-0 flex-col border-b border-border/65 app-content-surface lg:h-full lg:w-56 lg:border-b-0 lg:border-r">
+    <aside
+      className={
+        props.containerClassName ??
+        "flex min-h-[11rem] w-full shrink-0 flex-col border-b border-border/65 app-content-surface lg:h-full lg:w-56 lg:border-b-0 lg:border-r"
+      }
+    >
       <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border/65 px-3">
         <DiffIcon className="size-3.5 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1 truncate text-ui font-medium text-foreground/86">
@@ -406,6 +459,8 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   const isMimirTheme = activeTheme?.codeThemeId === "synara";
   const [chatPaneWidth, setChatPaneWidth] = useState(readStoredEditorChatPaneWidth);
   const chatPaneResizeStateRef = useRef<EditorChatPaneResizeState | null>(null);
+  const [sidebarWidth, setSidebarWidth] = useState(readStoredEditorSidebarWidth);
+  const sidebarResizeStateRef = useRef<EditorSidebarResizeState | null>(null);
   // Both side surfaces can be hidden so the main content takes the full width:
   // re-clicking the active activity-bar item collapses the sidebar (VS Code
   // style), and the header chat toggle hides the chat pane (kept mounted so
@@ -644,6 +699,112 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     storeEditorChatPaneWidth(clampedWidth);
   };
 
+  const stopSidebarResize = () => {
+    const resizeState = sidebarResizeStateRef.current;
+    if (!resizeState || typeof window === "undefined") {
+      return;
+    }
+
+    if (resizeState.rafId !== null) {
+      window.cancelAnimationFrame(resizeState.rafId);
+      resizeState.rafId = null;
+    }
+
+    window.removeEventListener("pointermove", resizeState.onPointerMove);
+    window.removeEventListener("pointerup", resizeState.onPointerEnd);
+    window.removeEventListener("pointercancel", resizeState.onPointerEnd);
+    document.body.style.cursor = resizeState.restoreBodyCursor;
+    document.body.style.userSelect = resizeState.restoreBodyUserSelect;
+    setSidebarWidth(resizeState.pendingWidth);
+    storeEditorSidebarWidth(resizeState.pendingWidth);
+    sidebarResizeStateRef.current = null;
+  };
+
+  useEffect(() => stopSidebarResize, [stopSidebarResize]);
+
+  const handleSidebarResizePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0 || typeof window === "undefined") {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    stopSidebarResize();
+
+    const resizeState: EditorSidebarResizeState = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startWidth: sidebarWidth,
+      pendingWidth: sidebarWidth,
+      rafId: null,
+      restoreBodyCursor: document.body.style.cursor,
+      restoreBodyUserSelect: document.body.style.userSelect,
+      onPointerMove: () => undefined,
+      onPointerEnd: () => undefined,
+    };
+
+    resizeState.onPointerMove = (moveEvent) => {
+      if (moveEvent.pointerId !== resizeState.pointerId) {
+        return;
+      }
+
+      resizeState.pendingWidth = clampEditorSidebarWidth(
+        resizeState.startWidth + moveEvent.clientX - resizeState.startX,
+      );
+
+      if (resizeState.rafId !== null) {
+        return;
+      }
+
+      resizeState.rafId = window.requestAnimationFrame(() => {
+        resizeState.rafId = null;
+        setSidebarWidth(resizeState.pendingWidth);
+      });
+    };
+
+    resizeState.onPointerEnd = (endEvent) => {
+      if (endEvent.pointerId !== resizeState.pointerId) {
+        return;
+      }
+      stopSidebarResize();
+    };
+
+    sidebarResizeStateRef.current = resizeState;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("pointermove", resizeState.onPointerMove);
+    window.addEventListener("pointerup", resizeState.onPointerEnd);
+    window.addEventListener("pointercancel", resizeState.onPointerEnd);
+  };
+
+  const handleSidebarResizeDoubleClick = () => {
+    setSidebarWidth(EDITOR_SIDEBAR_DEFAULT_WIDTH);
+    storeEditorSidebarWidth(EDITOR_SIDEBAR_DEFAULT_WIDTH);
+  };
+
+  const handleSidebarResizeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    let nextWidth: number | null = null;
+
+    if (event.key === "ArrowRight") {
+      nextWidth = sidebarWidth + EDITOR_SIDEBAR_KEYBOARD_STEP;
+    } else if (event.key === "ArrowLeft") {
+      nextWidth = sidebarWidth - EDITOR_SIDEBAR_KEYBOARD_STEP;
+    } else if (event.key === "Home") {
+      nextWidth = EDITOR_SIDEBAR_MIN_WIDTH;
+    } else if (event.key === "End") {
+      nextWidth = EDITOR_SIDEBAR_MAX_WIDTH;
+    }
+
+    if (nextWidth === null) {
+      return;
+    }
+
+    event.preventDefault();
+    const clampedWidth = clampEditorSidebarWidth(nextWidth);
+    setSidebarWidth(clampedWidth);
+    storeEditorSidebarWidth(clampedWidth);
+  };
+
   return (
     <div
       data-editor-workspace
@@ -874,78 +1035,118 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
       </div>
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
-          {surface === "studio" ? (
-            <StudioArtifactsSidebar
-              entries={props.studioOutputs ?? []}
-              isLoading={props.studioOutputsLoading ?? false}
-              selectedOutputPath={selectedStudioOutputPath}
-              onSelectOutput={(entry) =>
-                guardLeavingEdit(() => setSelectedStudioOutputPath(entry.fullPath))
-              }
-            />
-          ) : (
-            <div
-              aria-label="Editor activity bar"
-              className="flex h-full min-h-0 min-w-0 shrink-0 flex-col border-border/65 lg:w-56 lg:border-r app-content-surface"
-            >
-              {/* Files/Diff/Search moved in from the editor's secondary icon rail, so only one
-                  vertical rail (the app rail) remains. Same three radio states, same leave-edit
-                  guard — only the placement changed. */}
-              {/* Files/Search use the M3E segmented tab control; the Diff left pane is off
-                  behind a disabled feature flag to cut cognitive load. The app rail
-                  remains the only full-height vertical rail. */}
-              <Tabs
-                value={searchPaneActive ? "search" : "file"}
-                onValueChange={(val) => {
-                  const value = val as EditorActivityBarItem;
-                  editorActivityBarSelectionLeavesEditor(activityBarSelection(value))
-                    ? guardLeavingEdit(() => handleActivityBarSelectItem(value))
-                    : handleActivityBarSelectItem(value);
-                }}
-                className="w-full shrink-0"
+          <aside
+            data-testid="editor-resizable-left-panel"
+            aria-label="Editor left panel"
+            className={cn(
+              "flex min-h-[11rem] w-full shrink-0 flex-col border-b border-border/65 app-content-surface lg:h-full lg:w-[var(--editor-sidebar-width)] lg:border-b-0 lg:border-r",
+              !sidebarVisible && "hidden",
+            )}
+            style={
+              {
+                "--editor-sidebar-width": `${sidebarWidth}px`,
+              } as CSSProperties
+            }
+          >
+            {surface === "studio" ? (
+              <StudioArtifactsSidebar
+                entries={props.studioOutputs ?? []}
+                isLoading={props.studioOutputsLoading ?? false}
+                selectedOutputPath={selectedStudioOutputPath}
+                containerClassName="flex h-full min-h-0 w-full shrink-0 flex-col app-content-surface"
+                onSelectOutput={(entry) =>
+                  guardLeavingEdit(() => setSelectedStudioOutputPath(entry.fullPath))
+                }
+              />
+            ) : (
+              <div
+                aria-label="Editor activity bar"
+                className="flex h-full min-h-0 w-full shrink-0 flex-col app-content-surface"
               >
-                <TabsList variant="segmented" aria-label="Explorer view" className="h-9 p-0.5">
-                  <TabsTrigger value="file" className="flex-1 px-2.5">
-                    <FoldersIcon className="size-4" />
-                    <span className="truncate">Files</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="search" className="flex-1 px-2.5">
-                    <SearchIcon className="size-4" />
-                    <span className="truncate">Search</span>
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
-              {!sidebarVisible ? null : searchPaneActive ? (
-                <WorkspaceSearchSidebar
-                  workspaceRoot={props.workspaceRoot}
-                  query={searchQuery}
-                  onQueryChange={setSearchQuery}
-                  selectedFilePath={props.selectedFilePath}
-                  onSelectFile={guardedSelectFile}
-                  onReferenceInChat={props.onReferenceInChat}
-                />
-              ) : DIFF_LEFT_PANE_ENABLED && centerFamily === "diff" ? (
-                <DiffFilesSidebar
-                  files={props.diffFiles}
-                  isLoading={props.diffFilesLoading ?? false}
-                  selectedFilePath={props.selectedDiffFilePath}
-                  optionsControl={props.diffOptionsControl}
-                  onSelectFile={guardedSelectDiffFile}
-                  onReferenceInChat={props.onReferenceInChat}
-                  onAskWhyInChat={props.onAskWhyInChat}
-                />
-              ) : (
-                <WorkspaceFilesSidebar
-                  workspaceRoot={props.workspaceRoot}
-                  selectedFilePath={props.selectedFilePath}
-                  expandedDirectories={props.expandedDirectories}
-                  onSelectFile={guardedSelectFile}
-                  onToggleDirectory={props.onToggleDirectory}
-                  onReferenceInChat={props.onReferenceInChat}
-                />
-              )}
-            </div>
-          )}
+                {/* Files/Diff/Search moved in from the editor's secondary icon rail, so only one
+                    vertical rail (the app rail) remains. Same three radio states, same leave-edit
+                    guard — only the placement changed. */}
+                {/* Files/Search use the M3E segmented tab control; the Diff left pane is off
+                    behind a disabled feature flag to cut cognitive load. The app rail
+                    remains the only full-height vertical rail. */}
+                <Tabs
+                  value={searchPaneActive ? "search" : "file"}
+                  onValueChange={(val) => {
+                    const value = val as EditorActivityBarItem;
+                    editorActivityBarSelectionLeavesEditor(activityBarSelection(value))
+                      ? guardLeavingEdit(() => handleActivityBarSelectItem(value))
+                      : handleActivityBarSelectItem(value);
+                  }}
+                  className="w-full shrink-0"
+                >
+                  <TabsList variant="segmented" aria-label="Explorer view" className="h-9 p-0.5">
+                    <TabsTrigger value="file" className="flex-1 px-2.5">
+                      <FoldersIcon className="size-4" />
+                      <span className="truncate">Files</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="search" className="flex-1 px-2.5">
+                      <SearchIcon className="size-4" />
+                      <span className="truncate">Search</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                {searchPaneActive ? (
+                  <WorkspaceSearchSidebar
+                    workspaceRoot={props.workspaceRoot}
+                    query={searchQuery}
+                    onQueryChange={setSearchQuery}
+                    selectedFilePath={props.selectedFilePath}
+                    containerClassName="flex min-h-0 w-full flex-1 flex-col app-content-surface"
+                    onSelectFile={guardedSelectFile}
+                    onReferenceInChat={props.onReferenceInChat}
+                  />
+                ) : DIFF_LEFT_PANE_ENABLED && centerFamily === "diff" ? (
+                  <DiffFilesSidebar
+                    files={props.diffFiles}
+                    isLoading={props.diffFilesLoading ?? false}
+                    selectedFilePath={props.selectedDiffFilePath}
+                    optionsControl={props.diffOptionsControl}
+                    containerClassName="flex min-h-0 w-full flex-1 flex-col app-content-surface"
+                    onSelectFile={guardedSelectDiffFile}
+                    onReferenceInChat={props.onReferenceInChat}
+                    onAskWhyInChat={props.onAskWhyInChat}
+                  />
+                ) : (
+                  <WorkspaceFilesSidebar
+                    workspaceRoot={props.workspaceRoot}
+                    selectedFilePath={props.selectedFilePath}
+                    expandedDirectories={props.expandedDirectories}
+                    containerClassName="flex min-h-0 w-full flex-1 flex-col app-content-surface"
+                    onSelectFile={guardedSelectFile}
+                    onToggleDirectory={props.onToggleDirectory}
+                    onReferenceInChat={props.onReferenceInChat}
+                  />
+                )}
+              </div>
+            )}
+          </aside>
+          <div
+            role="separator"
+            aria-label="Resize left panel"
+            aria-orientation="vertical"
+            aria-valuemin={EDITOR_SIDEBAR_MIN_WIDTH}
+            aria-valuemax={EDITOR_SIDEBAR_MAX_WIDTH}
+            aria-valuenow={sidebarWidth}
+            tabIndex={0}
+            title="Drag to resize left panel"
+            className={cn(
+              "group relative z-10 w-0 shrink-0 cursor-col-resize outline-none",
+              sidebarVisible ? "hidden lg:block" : "hidden",
+            )}
+            onPointerDown={handleSidebarResizePointerDown}
+            onDoubleClick={handleSidebarResizeDoubleClick}
+            onKeyDown={handleSidebarResizeKeyDown}
+          >
+            <span
+              className="absolute inset-y-0 -left-[3px] w-1.5 cursor-col-resize bg-transparent transition-colors group-hover:bg-[var(--color-background-button-secondary-hover)] group-focus-visible:bg-[var(--color-background-button-secondary-hover)]"
+              aria-hidden="true"
+            />
+          </div>
           <main className="flex min-h-[16rem] min-w-0 flex-1 border-b border-border/65 lg:h-full lg:border-b-0">
             {/* Studio reviews what the agent produced, in the same viewer Study uses.
                 `StudioOutputEntry.relativePath` is resolved against the thread's own

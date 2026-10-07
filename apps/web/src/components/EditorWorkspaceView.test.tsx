@@ -87,6 +87,12 @@ describe("EditorWorkspaceView surfaces", () => {
     expect(markup).not.toContain('data-testid="studio-artifacts-sidebar"');
     expect(markup).not.toContain("Outbox/Content");
   });
+
+  it("renders a unified resizable left panel with a resize separator", () => {
+    const markup = renderView();
+    expect(markup).toContain('data-testid="editor-resizable-left-panel"');
+    expect(markup).toContain('aria-label="Resize left panel"');
+  });
 });
 
 describe("EditorWorkspaceView", () => {

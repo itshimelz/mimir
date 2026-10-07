@@ -24,6 +24,7 @@ import {
   ChangesIcon,
   ChatBubbleIcon,
   ChevronDownIcon,
+  Columns2Icon,
   DiffIcon,
   FoldersIcon,
   PanelRightCloseIcon,
@@ -68,6 +69,7 @@ import { fileRowClassName } from "./chat/fileRowStyles";
 import { DiffStat } from "./chat/DiffStatLabel";
 import { PanelStateMessage } from "./chat/PanelStateMessage";
 import { StudioArtifactsSidebar } from "./chat/StudioArtifactsSidebar";
+import { StudioEmptyState } from "./chat/StudioEmptyState";
 import {
   setFileReferenceDragData,
   WorkspaceFilesSidebar,
@@ -99,7 +101,7 @@ const EDITOR_CHAT_PANE_KEYBOARD_STEP = 24;
  * to cut the number of left-rail modes a student has to triage. Flip to re-enable the
  * `centerFamily === "diff"` branch and the DiffFilesSidebar rendering with it.
  */
-const DIFF_LEFT_PANE_ENABLED: boolean = false;
+const DIFF_LEFT_PANE_ENABLED: boolean = true;
 
 interface EditorWorkspaceViewProps {
   workspaceRoot: string | null;
@@ -137,6 +139,7 @@ interface EditorWorkspaceViewProps {
   onReferenceInChat?: (reference: ChatFileReference) => void;
   onAskWhyInChat?: (reference: ChatFileReference) => void;
   onCommentInChat?: (comment: FileCommentSelection) => void;
+  onSelectStarterPrompt?: (prompt: string) => void;
   onSelectProject?: (projectId: ProjectId) => void;
   /** Agent-produced artifacts backing the Studio surface. Undefined while Studio has no data. */
   studioOutputs?: ReadonlyArray<StudioOutputEntry>;
@@ -688,7 +691,12 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                 }
               />
             ) : null}
-            <span aria-hidden="true" className="h-4 w-px shrink-0 bg-border opacity-60" />
+            <span
+              aria-hidden="true"
+              className="shrink-0 select-none text-ui-xs text-muted-foreground/40"
+            >
+              /
+            </span>
             {isMimirTheme ? (
               props.onSelectProject && (props.projectOptions?.length ?? 0) > 0 ? (
                 <ProjectMenuPicker
@@ -801,30 +809,37 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
           <div className="flex min-w-0 items-center justify-end gap-2">
             {isMimirTheme ? (
               <>
-                <Button
-                  variant="outlined"
-                  size="icon-xs"
-                  aria-pressed={chatPaneVisible}
-                  title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                  className="size-8"
-                  onClick={toggleChatPaneVisible}
-                >
-                  <PanelRightCloseIcon className="size-3.5" />
-                  <span className="sr-only">
-                    {chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                  </span>
-                </Button>
-                {/* Focus, not a view switch: the rail already holds the conversation. The
-                    student who wants the full transcript can widen this rail. */}
+                {chatPaneVisible ? (
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    title={chatPaneWidth >= 480 ? "Narrow chat panel" : "Widen chat panel"}
+                    className="size-8 text-muted-foreground hover:text-foreground"
+                    onClick={() => {
+                      if (chatPaneWidth >= 480) {
+                        setChatPaneWidth(EDITOR_CHAT_PANE_DEFAULT_WIDTH);
+                        storeEditorChatPaneWidth(EDITOR_CHAT_PANE_DEFAULT_WIDTH);
+                      } else {
+                        widenChatPane();
+                      }
+                    }}
+                  >
+                    <Columns2Icon className="size-3.5" />
+                    <span className="sr-only">Toggle chat width</span>
+                  </Button>
+                ) : null}
                 <Button
                   variant={chatPaneVisible ? "tonal" : "outlined"}
                   size="xs"
-                  title={chatPaneVisible ? "Widen the agent chat" : "Show the agent chat"}
-                  className="h-8 w-[5.5rem] gap-1.5"
-                  onClick={widenChatPane}
+                  aria-pressed={chatPaneVisible}
+                  title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
+                  className="h-8 gap-1.5 px-3"
+                  onClick={toggleChatPaneVisible}
                 >
                   <ChatBubbleIcon className="size-3.5" />
-                  <span className="truncate font-normal">{chatPaneVisible ? "Widen" : "Chat"}</span>
+                  <span className="truncate font-medium">
+                    {chatPaneVisible ? "Close Chat" : "Chat"}
+                  </span>
                 </Button>
               </>
             ) : (
@@ -869,7 +884,10 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               }
             />
           ) : (
-            <div className="flex h-full min-h-0 min-w-0 shrink-0 flex-col border-border/65 lg:w-56 lg:border-r app-content-surface">
+            <div
+              aria-label="Editor activity bar"
+              className="flex h-full min-h-0 min-w-0 shrink-0 flex-col border-border/65 lg:w-56 lg:border-r app-content-surface"
+            >
               {/* Files/Diff/Search moved in from the editor's secondary icon rail, so only one
                   vertical rail (the app rail) remains. Same three radio states, same leave-edit
                   guard — only the placement changed. */}
@@ -884,7 +902,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                     ? guardLeavingEdit(() => handleActivityBarSelectItem(value))
                     : handleActivityBarSelectItem(value);
                 }}
-                className="w-full"
+                className="w-full shrink-0"
               >
                 <TabsList variant="segmented" aria-label="Explorer view" className="h-9 p-0.5">
                   <TabsTrigger value="file" className="flex-1 px-2.5">
@@ -945,9 +963,13 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                   />
                 </div>
               ) : (
-                <PanelStateMessage density="compact" className="flex-1">
-                  Select an artifact to review it.
-                </PanelStateMessage>
+                <StudioEmptyState
+                  spaceIcon={props.spaceIcon}
+                  spaceName={props.spaceName}
+                  hasOutputs={(props.studioOutputs?.length ?? 0) > 0}
+                  onSelectStarterPrompt={props.onSelectStarterPrompt}
+                  onOpenChat={() => setChatPaneVisible(true)}
+                />
               )
             ) : (
               <>

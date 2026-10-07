@@ -1134,6 +1134,7 @@ export function SingleChatSurface(props: {
               onReferenceInChat={handleReferenceInChat}
               onAskWhyInChat={handleAskWhyInChat}
               onCommentInChat={handleCommentInChat}
+              onSelectStarterPrompt={(prompt) => appendComposerPromptText(props.threadId, prompt)}
               onSelectProject={handleSelectEditorProject}
               // `?? []` rather than leaving it undefined: the prop is optional, and
               // `exactOptionalPropertyTypes` distinguishes "absent" from "explicitly

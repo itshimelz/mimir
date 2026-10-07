@@ -6,6 +6,7 @@
 //       there before adding anyone.
 
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { SectionEyebrow } from "@/components/SectionEyebrow";
 import SiteFooter from "@/components/SiteFooter";
@@ -45,6 +46,7 @@ const SPONSORS_JSONLD = [
 ];
 
 export default function SponsorsPage() {
+  redirect("/");
   const groups = groupSponsors(ORDERED_SPONSORS);
   const count = ORDERED_SPONSORS.length;
 

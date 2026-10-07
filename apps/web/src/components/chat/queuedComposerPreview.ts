@@ -7,6 +7,7 @@ import { formatAssistantSelectionQueuePreview } from "../../lib/assistantSelecti
 import { formatBrowserAnnotationLabel } from "../../lib/browserAnnotations";
 import { pastedTextTitle, type PastedTextDraft } from "../../lib/composerPastedText";
 import { formatFileCommentLabel, type FileCommentDraft } from "../../lib/fileComments";
+import { formatPptxAnnotationLabel, type PptxAnnotationDraft } from "../../lib/pptxAnnotations";
 import {
   formatPullRequestContextTitleSeed,
   type PullRequestContextDraft,
@@ -21,6 +22,7 @@ export function buildQueuedComposerPreviewText(input: {
   browserAnnotations: ReadonlyArray<BrowserAnnotationDraft>;
   terminalContexts: ReadonlyArray<TerminalContextDraft>;
   fileComments: ReadonlyArray<FileCommentDraft>;
+  pptxAnnotations: ReadonlyArray<PptxAnnotationDraft>;
   pastedTexts: ReadonlyArray<PastedTextDraft>;
   pullRequestContexts: ReadonlyArray<PullRequestContextDraft>;
 }): string {
@@ -49,6 +51,10 @@ export function buildQueuedComposerPreviewText(input: {
   const firstFileComment = input.fileComments[0];
   if (firstFileComment) {
     return formatFileCommentLabel(firstFileComment);
+  }
+  const firstPptxAnnotation = input.pptxAnnotations[0];
+  if (firstPptxAnnotation) {
+    return formatPptxAnnotationLabel(firstPptxAnnotation);
   }
   const pastedTitle = formatPastedTextTitleSeed(input.pastedTexts);
   if (pastedTitle) {

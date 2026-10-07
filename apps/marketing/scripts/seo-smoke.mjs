@@ -85,16 +85,15 @@ try {
 
   const homepage = await readRoute("/", /text\/html/i);
   for (const marker of [
-    "Run every coding agent in one workspace",
-    "The local-first workspace and control plane for coding agents.",
-    "Star on GitHub",
-    "Free and open source",
-    "One workspace. Separate tasks. Shared control.",
-    "Keep execution and verification in the same loop.",
-    "Know where every part of the work goes.",
+    "The desktop-first agentic co-learner",
+    "One course, one dedicated Space",
+    "Dual Study &amp; Studio views",
+    "Active retrieval, not passive reading",
+    "Durable learning traces",
   ]) {
     assert.ok(homepage.includes(marker), `homepage is missing ${marker}`);
   }
+  assert.equal(homepage.includes("Star on GitHub"), false, "Star on GitHub must be hidden");
   for (const retired of [
     ["no longer just a ", "t", "3", " code fork"].join(""),
     "Opus 4.8",
@@ -115,28 +114,28 @@ try {
   );
   assert.match(
     homepage,
-    /<link rel="canonical" href="https:\/\/www\.trymimir\.com"\/>/,
+    /<link rel="canonical" href="https:\/\/mimir\.himelz\.studio"\/>/,
     "homepage must emit the exact canonical production origin",
   );
   assert.ok(homepage.includes('"@type":"SoftwareApplication"'));
   assert.ok(homepage.includes('"@type":"FAQPage"'));
 
-  const install = await readRoute("/install", /text\/html/i);
-  assert.ok(install.includes("Download Mimir"));
-  assert.ok(install.includes("coding-agent runtime already authenticated"));
-  assert.match(install, /<title>Download Mimir — Coding Agent Workspace<\/title>/);
-
-  const docs = await readRoute("/docs", /text\/html/i);
-  assert.match(
-    docs,
-    /<link rel="canonical" href="https:\/\/www\.trymimir\.com\/docs"/,
-    "docs page is missing its absolute self-canonical",
-  );
-  assert.match(docs, /property="og:type" content="website"/);
-  assert.match(docs, /property="og:image"/);
-  assert.match(docs, /name="twitter:card" content="summary_large_image"/);
-  assert.ok(docs.includes('"@type":"TechArticle"'), "docs page is missing TechArticle JSON-LD");
-  assert.ok(docs.includes('"@type":"BreadcrumbList"'), "docs page is missing breadcrumb JSON-LD");
+  for (const hiddenPath of [
+    "/install",
+    "/sponsor",
+    "/sponsors",
+    "/changelog",
+    "/docs",
+    "/docs/providers",
+    "/docs/workflows",
+    "/docs/troubleshooting",
+  ]) {
+    const { response, body } = await getRoute(hiddenPath, /text\/html/i);
+    assert.ok(
+      response.url.endsWith("/") || body.includes("The desktop-first agentic co-learner"),
+      `${hiddenPath} must redirect to homepage`,
+    );
+  }
 
   const docsIndexMarkdown = await readRoute("/docs.md", /text\/markdown/i);
   assert.ok(docsIndexMarkdown.includes("# Mimir documentation"));
@@ -160,16 +159,6 @@ try {
     assert.ok(docsMarkdown.includes(marker), `Markdown documentation is missing ${marker}`);
   }
   assert.equal(docsMarkdown.includes("<html"), false);
-
-  for (const pathname of [
-    "/docs/providers",
-    "/docs/workflows",
-    "/docs/troubleshooting",
-    "/docs/troubleshooting/report-a-problem",
-  ]) {
-    const html = await readRoute(pathname, /text\/html/i);
-    assert.ok(html.includes('"@type":"TechArticle"'), `${pathname} lacks article JSON-LD`);
-  }
 
   const robots = await readRoute("/robots.txt", /text\/plain/i);
   for (const marker of [
@@ -216,9 +205,9 @@ try {
 
   const llms = await readRoute("/llms.txt", /text\/plain/i);
   for (const marker of [
-    "The local-first workspace and control plane for coding agents.",
+    "The desktop-first agentic learning workspace",
     "## Product model",
-    "One task owns one line of work",
+    "One course, one dedicated Space",
     "## Documentation index",
     "https://mimir.himelz.studio/docs/providers.md",
     "https://mimir.himelz.studio/docs/workflows.md",

@@ -133,6 +133,7 @@ function EditProjectForm({
                 id={nameInputId}
                 aria-label="Project name"
                 value={name}
+                autoComplete="off"
                 placeholder={folderName}
                 onChange={(event) => setName(event.target.value)}
               />

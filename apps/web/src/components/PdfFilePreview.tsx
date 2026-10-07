@@ -6,8 +6,8 @@
 //          custom pdf.js viewer (canvas + text layer + clickable links).
 //          This component is the orchestrator: document load, container
 //          measurement, page navigation, and zoom each live in their own hook
-//          (usePdfDocument / useContainerSize / usePdfPageNavigation /
-//          usePdfZoomController) and are composed here.
+//          (usePdfDocument / useContainerSize / useViewerPageNavigation /
+//          useViewerZoomController) and are composed here.
 // Layer: Web chat/editor file-preview component
 // Exports: PdfFilePreview
 
@@ -16,10 +16,11 @@ import { useEffect, useState } from "react";
 import { basenameOfPath } from "~/file-icons";
 import { Loader2Icon, TriangleAlertIcon } from "~/lib/icons";
 import { buildLocalImageUrl } from "~/lib/localImageUrls";
-import { useContainerSize } from "~/lib/pdf/useContainerSize";
+import { useContainerSize } from "~/lib/viewer/useContainerSize";
 import { usePdfDocument } from "~/lib/pdf/usePdfDocument";
-import { usePdfPageNavigation } from "~/lib/pdf/usePdfPageNavigation";
-import { usePdfZoomController } from "~/lib/pdf/usePdfZoomController";
+import { PDF_PAGE_MARGIN_PX } from "~/lib/pdf/pdfZoom";
+import { useViewerPageNavigation } from "~/lib/viewer/useViewerPageNavigation";
+import { useViewerZoomController } from "~/lib/viewer/useViewerZoomController";
 import { cn } from "~/lib/utils";
 import { PdfPageView } from "./pdf/PdfPageView";
 import { PdfViewerToolbar } from "./pdf/PdfViewerToolbar";
@@ -60,15 +61,17 @@ export function PdfFilePreview(props: {
   const [scrollRoot, setScrollRoot] = useState<HTMLDivElement | null>(null);
   const containerSize = useContainerSize(scrollRoot);
 
-  const navigation = usePdfPageNavigation({
+  const navigation = useViewerPageNavigation({
     scrollRoot,
     numPages: doc.numPages,
     enabled: doc.status === "ready",
     resetKey: previewUrl,
+    marginPx: PDF_PAGE_MARGIN_PX,
   });
-  const zoom = usePdfZoomController({
-    firstPageSize: doc.firstPageSize,
+  const zoom = useViewerZoomController({
+    contentSize: doc.firstPageSize,
     containerSize,
+    marginPx: PDF_PAGE_MARGIN_PX,
     currentPage: navigation.currentPage,
     scrollToPage: navigation.scrollToPage,
   });

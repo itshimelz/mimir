@@ -679,6 +679,7 @@ export default function ChatView({
     composerAssistantSelections,
     composerBrowserAnnotations,
     composerFileComments,
+    composerPptxAnnotations,
     composerTerminalContexts,
     composerPastedTexts,
     composerPullRequestContexts,
@@ -716,6 +717,7 @@ export default function ChatView({
     composerBrowserAnnotationsRef,
     composerTerminalContextsRef,
     composerFileCommentsRef,
+    composerPptxAnnotationsRef,
     composerPastedTextsRef,
     composerPullRequestContextsRef,
     composerCursor,
@@ -739,6 +741,8 @@ export default function ChatView({
     addComposerTerminalContextsToDraft,
     addComposerPastedTextsToDraft,
     addComposerFileCommentToDraft,
+    addComposerPptxAnnotationToDraft,
+    removeComposerPptxAnnotationFromDraft,
     removeComposerImageFromDraft,
     clearComposerAssistantSelectionsFromDraft,
     clearComposerFileCommentsFromDraft,
@@ -4305,6 +4309,7 @@ export default function ChatView({
     addComposerAssistantSelectionToDraft,
     addComposerDraftBrowserAnnotations,
     addComposerFileCommentToDraft,
+    addComposerPptxAnnotationToDraft,
     addComposerTerminalContextsToDraft,
     addComposerPastedTextsToDraft,
     addComposerPullRequestContextsToDraft,
@@ -4439,6 +4444,7 @@ export default function ChatView({
     composerAssistantSelections,
     composerBrowserAnnotations,
     composerFileComments,
+    composerPptxAnnotations,
     composerTerminalContexts,
     composerPastedTexts,
     composerPullRequestContexts,
@@ -4460,6 +4466,7 @@ export default function ChatView({
     composerAssistantSelectionsRef,
     composerBrowserAnnotationsRef,
     composerFileCommentsRef,
+    composerPptxAnnotationsRef,
     composerTerminalContextsRef,
     composerPastedTextsRef,
     composerPullRequestContextsRef,
@@ -4469,6 +4476,7 @@ export default function ChatView({
     addComposerAssistantSelectionToDraft,
     addComposerDraftBrowserAnnotations,
     addComposerFileCommentToDraft,
+    addComposerPptxAnnotationToDraft,
     addComposerTerminalContextsToDraft,
     addComposerPastedTextsToDraft,
     addComposerPullRequestContextsToDraft,
@@ -6136,6 +6144,7 @@ export default function ChatView({
                   (composerAssistantSelections.length > 0 ||
                     composerBrowserAnnotations.length > 0 ||
                     composerFileComments.length > 0 ||
+                    composerPptxAnnotations.length > 0 ||
                     composerPastedTexts.length > 0 ||
                     composerPullRequestContexts.length > 0 ||
                     composerFiles.length > 0 ||
@@ -6144,6 +6153,7 @@ export default function ChatView({
                       assistantSelections={composerAssistantSelections}
                       browserAnnotations={composerBrowserAnnotations}
                       fileComments={composerFileComments}
+                      pptxAnnotations={composerPptxAnnotations}
                       pastedTexts={composerPastedTexts}
                       pullRequestContexts={composerPullRequestContexts}
                       files={composerFiles}
@@ -6153,6 +6163,7 @@ export default function ChatView({
                       onRemoveAssistantSelections={clearComposerAssistantSelectionsFromDraft}
                       onRemoveBrowserAnnotation={removeComposerBrowserAnnotationFromDraft}
                       onRemoveFileComments={clearComposerFileCommentsFromDraft}
+                      onRemovePptxAnnotation={removeComposerPptxAnnotationFromDraft}
                       onRemovePastedText={removeComposerPastedTextFromDraft}
                       onShowPastedTextInField={showComposerPastedTextInField}
                       onRemovePullRequestContext={removeComposerPullRequestContextFromDraft}

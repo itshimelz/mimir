@@ -14,6 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { directoryChain, useExplorerRevealRequestStore } from "~/explorerRevealRequestStore";
 import type { ChatFileReference } from "~/lib/chatReferences";
 import type { FileCommentSelection } from "~/lib/fileComments";
+import type { PptxAnnotationDraft, PptxAnnotationSelection } from "~/lib/pptxAnnotations";
 import { projectListDirectoriesQueryOptions } from "~/lib/projectReactQuery";
 import { flushWorkspaceEditors } from "~/lib/workspaceEditorSession";
 import { WorkspaceFilePreview } from "../WorkspaceFilePreview";
@@ -34,6 +35,8 @@ export const DockExplorerPane = function DockExplorerPane(props: {
   onReferenceInChat?: ((reference: ChatFileReference) => void) | undefined;
   onAskWhyInChat?: ((reference: ChatFileReference) => void) | undefined;
   onCommentInChat?: ((comment: FileCommentSelection) => void) | undefined;
+  pptxAnnotations?: ReadonlyArray<PptxAnnotationDraft> | undefined;
+  onPptxCommentInChat?: ((annotation: PptxAnnotationSelection) => void) | undefined;
 }) {
   const queryClient = useQueryClient();
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
@@ -138,6 +141,8 @@ export const DockExplorerPane = function DockExplorerPane(props: {
           onReferenceInChat={props.onReferenceInChat}
           onAskWhyInChat={props.onAskWhyInChat}
           onCommentInChat={props.onCommentInChat}
+          pptxAnnotations={props.pptxAnnotations}
+          onPptxCommentInChat={props.onPptxCommentInChat}
         />
       </div>
     </div>

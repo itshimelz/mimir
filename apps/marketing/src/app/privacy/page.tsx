@@ -75,8 +75,7 @@ export default function PrivacyPage() {
           your code or prompts are not sent to us during normal use. The only exception is feedback
           you explicitly write and submit through the Feedback Mimir dialog, together with the
           limited diagnostics described below. This page spells out exactly what that means — in
-          plain language, no &quot;just read the source&quot; required (though you can, it&apos;s
-          open source).
+          plain language, no &quot;just read the source&quot; required.
         </p>
 
         <Section title="Where your data lives">
@@ -125,13 +124,8 @@ export default function PrivacyPage() {
 
           <p className="mt-6">
             Analytics events carry no &quot;person profile&quot; and aren&apos;t tied to your
-            identity. You can keep them disabled (the default) or, if you&apos;d like to help, turn
-            them on by setting{" "}
-            <code className="rounded-xs bg-surface-container-high px-1.5 py-0.5 font-mono text-[12px]">
-              SYNARA_TELEMETRY_ENABLED=true
-            </code>
-            . An in-app <span className="text-on-surface">Settings → Privacy</span> toggle is on the
-            way.
+            identity. You can keep them disabled (the default) or turn them on in{" "}
+            <span className="text-on-surface">Settings → Privacy</span>.
           </p>
         </Section>
 
@@ -146,22 +140,6 @@ export default function PrivacyPage() {
             contents, session logs, or screenshots. Reports are delivered through our website and
             email provider to the Mimir maintainer for support and product improvement, rather than
             being added to an analytics profile.
-          </p>
-        </Section>
-
-        <Section title="Open source">
-          <p>
-            Mimir is open source under the MIT license. If a sentence on this page isn&apos;t
-            enough, you can verify every claim yourself —{" "}
-            <a
-              href="https://github.com/itshimelz/mimir"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary transition-colors hover:text-primary-dim"
-            >
-              read the code on GitHub
-            </a>
-            .
           </p>
         </Section>
 
@@ -182,21 +160,10 @@ export default function PrivacyPage() {
         </Section>
 
         <div className="mt-12 flex flex-col gap-4 border-t border-outline-variant pt-8 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-body-small text-on-surface-variant">
-            Last updated {LAST_UPDATED}. Questions?{" "}
-            <a
-              href="https://x.com/emanueledpt"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary transition-colors hover:text-primary-dim"
-            >
-              Reach out on X
-            </a>
-            .
-          </p>
-          <Button variant="filled" className="w-fit" render={<Link href="/install" />}>
-            Download Mimir
-            <Icon name="download" data-icon="inline-end" />
+          <p className="text-body-small text-on-surface-variant">Last updated {LAST_UPDATED}.</p>
+          <Button variant="outlined" className="w-fit" render={<Link href="/" />}>
+            Return to home
+            <Icon name="arrow_forward" data-icon="inline-end" />
           </Button>
         </div>
       </main>

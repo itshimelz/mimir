@@ -24,7 +24,7 @@ apps/web/.playwright
 apps/web/playwright-report
 apps/web/test-results
 .playwright-cli/
-output/playwright/
+output/
 apps/web/src/components/__screenshots__
 .vitest-*
 __screenshots__/

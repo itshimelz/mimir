@@ -66,6 +66,7 @@ export function CreateGitHubProjectFields(props: {
             aria-invalid={props.formError ? true : undefined}
             {...(props.formError ? { "aria-describedby": props.errorId } : {})}
             placeholder="owner/repository or GitHub URL"
+            autoComplete="off"
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"
@@ -91,6 +92,7 @@ export function CreateGitHubProjectFields(props: {
               id={props.destinationParentInputId}
               value={props.destinationParent}
               placeholder="/parent/folder"
+              autoComplete="off"
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -98,17 +100,15 @@ export function CreateGitHubProjectFields(props: {
               onKeyDown={props.onSubmitKeyDown}
             />
           </InputGroup>
-          {props.isElectron ? (
-            <Button
-              type="button"
-              variant="outline"
-              className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "shrink-0 px-3")}
-              disabled={props.isPickingFolder || props.submitting}
-              onClick={props.onBrowse}
-            >
-              Browse
-            </Button>
-          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "shrink-0 px-3")}
+            disabled={props.isPickingFolder || props.submitting}
+            onClick={props.onBrowse}
+          >
+            Browse
+          </Button>
         </div>
       </div>
 
@@ -124,6 +124,7 @@ export function CreateGitHubProjectFields(props: {
             id={props.directoryNameInputId}
             value={props.directoryName}
             placeholder="repository"
+            autoComplete="off"
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"

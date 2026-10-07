@@ -20,11 +20,11 @@ import type { SidebarNavItemId } from "./sidebarNavOrdering";
 import type { Space } from "./types";
 
 /** Rail items that switch the panel content instead of navigating. */
-export const RAIL_PANEL_ITEM_IDS = ["home", "spaces"] as const;
+export const RAIL_PANEL_ITEM_IDS = ["spaces", "home"] as const;
 export type RailPanelItemId = (typeof RAIL_PANEL_ITEM_IDS)[number];
 export const RAIL_PANEL_ITEM_LABELS: Record<RailPanelItemId, string> = {
-  home: "Home",
-  spaces: "Spaces",
+  spaces: "Courses",
+  home: "Today",
 };
 /**
  * Rail items that navigate to a route. "New thread" stays in the panel, never the rail;
@@ -35,12 +35,12 @@ export type RailItemId = RailPanelItemId | RailRouteItemId;
 
 /**
  * Rail items the user orders and hides from Customize. Settings stays pinned at the bottom;
- * Studio is also reachable from the "…" menu, so it starts hidden.
+ * developer-only surfaces start hidden in the learning workspace.
  */
 export const RAIL_ORDERABLE_ITEM_IDS = [
+  "spaces",
   "home",
   "inbox",
-  "spaces",
   "kanban",
   "tasks",
   "pullRequests",
@@ -48,7 +48,14 @@ export const RAIL_ORDERABLE_ITEM_IDS = [
   "studio",
 ] as const;
 export type RailOrderableItemId = (typeof RAIL_ORDERABLE_ITEM_IDS)[number];
-export const DEFAULT_HIDDEN_RAIL_ITEMS: readonly RailOrderableItemId[] = ["studio"];
+export const DEFAULT_HIDDEN_RAIL_ITEMS: readonly RailOrderableItemId[] = [
+  "inbox",
+  "kanban",
+  "tasks",
+  "pullRequests",
+  "automations",
+  "studio",
+];
 
 const RAIL_ORDERABLE_ITEM_ID_SET: ReadonlySet<string> = new Set(RAIL_ORDERABLE_ITEM_IDS);
 
@@ -56,15 +63,13 @@ export function isRailOrderableItemId(value: string): value is RailOrderableItem
   return RAIL_ORDERABLE_ITEM_ID_SET.has(value);
 }
 
-/** Home is the rail's anchor for the panel: it can move but never be hidden. */
+/** Courses and Today are the primary panels: they can move but never be hidden. */
 export function railItemCanHide(id: RailOrderableItemId): boolean {
-  return id !== "home";
+  return id !== "spaces" && id !== "home";
 }
 
 export function normalizeRailItemOrder(order: readonly string[]): RailOrderableItemId[] {
-  const normalized = normalizeIdOrder(order, RAIL_ORDERABLE_ITEM_IDS, isRailOrderableItemId);
-  // Inbox shipped after users saved an order: it joins next to Home, as by default.
-  return placeNewIdAfter(normalized, order, "inbox", "home");
+  return normalizeIdOrder(order, RAIL_ORDERABLE_ITEM_IDS, isRailOrderableItemId);
 }
 
 export function normalizeHiddenRailItems(hidden: readonly string[]): RailOrderableItemId[] {

@@ -25,8 +25,8 @@ describe("rail item order", () => {
     expect(normalizeRailItemOrder(["automations", "gone", "home", "automations"])).toEqual([
       "automations",
       "home",
-      "inbox",
       "spaces",
+      "inbox",
       "kanban",
       "tasks",
       "pullRequests",
@@ -38,16 +38,16 @@ describe("rail item order", () => {
     expect(normalizeRailItemOrder(["kanban", "home", "spaces"])).toEqual([
       "kanban",
       "home",
-      "inbox",
       "spaces",
+      "inbox",
       "tasks",
       "pullRequests",
       "automations",
       "studio",
     ]);
-    expect(normalizeRailItemOrder(["home", "spaces", "inbox"]).slice(0, 3)).toEqual([
-      "home",
+    expect(normalizeRailItemOrder(["spaces", "home", "inbox"]).slice(0, 3)).toEqual([
       "spaces",
+      "home",
       "inbox",
     ]);
   });
@@ -81,8 +81,8 @@ describe("rail item order", () => {
   it("offers Inbox and Studio in Customize only where they exist", () => {
     const stable = { studioAvailable: false, inboxAvailable: false };
     expect(RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, stable))).toEqual([
-      "home",
       "spaces",
+      "home",
       "kanban",
       "tasks",
       "pullRequests",

@@ -426,6 +426,7 @@ export function useChatTurnFollowUps({
       browserAnnotations: [],
       terminalContexts: [],
       fileComments: [],
+      pptxAnnotations: [],
       pastedTexts: [],
       pullRequestContexts: [],
       skills: [],

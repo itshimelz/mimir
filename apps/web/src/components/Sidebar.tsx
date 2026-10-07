@@ -380,6 +380,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useOptionalSidebar,
 } from "./ui/sidebar";
 import { useThreadSelectionStore } from "../threadSelectionStore";
 import {
@@ -452,6 +453,9 @@ import { isTerminalFocused } from "../lib/terminalFocus";
 import { beginThreadDrag, endThreadDrag } from "../lib/threadDrag";
 import { useDiffRouteSearch } from "../hooks/useDiffRouteSearch";
 import { normalizeSettingsSection } from "../settingsNavigation";
+import { stripDiffSearchParams } from "../diffRouteSearch";
+import { WorkspaceFilesSidebar } from "./chat/workspaceExplorer";
+import { collectParentDirectoryPaths } from "~/routes/-chatThreadRoute.logic";
 import {
   sidebarHoverRevealHideClassName,
   SIDEBAR_HEADER_ROW_CLASS_NAME,
@@ -1280,15 +1284,26 @@ const SIDEBAR_SURFACE_PICKER_COPY: Record<SidebarView, { title: string; descript
 export function SidebarSurfacePicker({
   views,
   activeView,
+  titleOverride,
   onSelectView,
   onPrewarmView,
 }: {
   views: ReadonlyArray<SidebarView>;
   activeView: SidebarView;
+  titleOverride?: string;
   onSelectView: (view: SidebarView) => void;
   onPrewarmView?: (view: SidebarView) => void;
 }) {
   const activeCopy = SIDEBAR_SURFACE_PICKER_COPY[activeView];
+  const displayTitle = titleOverride ?? activeCopy.title;
+
+  if (views.length <= 1) {
+    return (
+      <div className="flex h-8 min-w-0 items-center px-2.5">
+        <span className={SIDEBAR_PANEL_TITLE_CLASS_NAME}>{displayTitle}</span>
+      </div>
+    );
+  }
 
   return (
     <Menu>
@@ -1305,7 +1320,7 @@ export function SidebarSurfacePicker({
           />
         }
       >
-        <span className={SIDEBAR_PANEL_TITLE_CLASS_NAME}>{activeCopy.title}</span>
+        <span className={SIDEBAR_PANEL_TITLE_CLASS_NAME}>{displayTitle}</span>
         <DisclosureChevron open className="text-muted-foreground/70" />
       </MenuTrigger>
       <ComposerPickerMenuPopup
@@ -1351,6 +1366,7 @@ export function SidebarSurfacePicker({
 }
 
 export default function Sidebar() {
+  const optionalSidebar = useOptionalSidebar();
   const githubProvisioningAvailable = useSyncExternalStore(
     subscribeGitHubProvisioningCapability,
     readGitHubProvisioningCapability,
@@ -1501,7 +1517,8 @@ export default function Sidebar() {
   // Projects is always available; Groups and the standalone Chats footer can be hidden
   // independently from Settings.
   const chatsSectionVisible = appSettings.showChatsSection;
-  const groupsSectionVisible = GROUPS_ON && appSettings.showGroupsSection;
+  // Hubs is hidden in Mimir.
+  const groupsSectionVisible = false;
   const { handleNewThread } = useHandleNewThread();
   const { handleNewChat } = useHandleNewChat();
   const { handleNewGroupChat } = useHandleNewGroupChat();
@@ -1522,6 +1539,52 @@ export default function Sidebar() {
     useMemo(() => selectSplitView(routeSearch.splitViewId ?? null), [routeSearch.splitViewId]),
   );
   const splitViewsById = useSplitViewStore((store) => store.splitViewsById);
+  const selectedEditorFilePath =
+    typeof settingsSectionSearch.editorFilePath === "string"
+      ? settingsSectionSearch.editorFilePath
+      : null;
+  const [spacesBrowseMode, setSpacesBrowseMode] = useState<"files" | "courses">("files");
+  const [workspaceExpandedDirs, setWorkspaceExpandedDirs] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const handleToggleWorkspaceDir = useCallback((dir: string) => {
+    setWorkspaceExpandedDirs((prev) => {
+      const next = new Set(prev);
+      if (next.has(dir)) next.delete(dir);
+      else next.add(dir);
+      return next;
+    });
+  }, []);
+
+  const handleSelectWorkspaceFile = useCallback(
+    (filePath: string) => {
+      void navigate({
+        search: (prev) => ({
+          ...stripDiffSearchParams(prev as Record<string, unknown>),
+          view: "editor",
+          editorFilePath: filePath,
+        }),
+      });
+    },
+    [navigate],
+  );
+
+  useEffect(() => {
+    if (!selectedEditorFilePath) return;
+    const parentPaths = collectParentDirectoryPaths(selectedEditorFilePath);
+    if (parentPaths.length === 0) return;
+    setWorkspaceExpandedDirs((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      for (const p of parentPaths) {
+        if (!next.has(p)) {
+          next.add(p);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [selectedEditorFilePath]);
 
   useEffect(() => {
     const api = readNativeApi();
@@ -4743,31 +4806,12 @@ export default function Sidebar() {
   );
   const railSpacesProject =
     railSpacesProjectId !== null ? (projectById.get(railSpacesProjectId) ?? null) : null;
-  const railSpacesProjectSidebarData = useMemo(() => {
-    if (!railSpacesProject) {
-      return null;
-    }
-    return (
-      deriveSidebarProjectData({
-        projects: [{ id: railSpacesProject.id, cwd: railSpacesProject.cwd, expanded: true }],
-        sortedSidebarThreadsByProjectId,
-        pinnedThreadIds,
-        threadListExtraPagesByProjectCwd,
-        normalizeProjectCwd: normalizeSidebarProjectThreadListCwd,
-        activeSidebarThreadId: activeSidebarThreadId ?? undefined,
-        previewLimit: THREAD_PREVIEW_LIMIT,
-        previewPageSize: THREAD_PREVIEW_PAGE_SIZE,
-        resolveThreadStatus: resolveThreadStatusForSidebar,
-      }).get(railSpacesProject.id) ?? null
-    );
-  }, [
-    activeSidebarThreadId,
-    pinnedThreadIds,
-    railSpacesProject,
-    resolveThreadStatusForSidebar,
-    sortedSidebarThreadsByProjectId,
-    threadListExtraPagesByProjectCwd,
-  ]);
+  const courseProject =
+    railSpacesProject ??
+    activeRouteProject ??
+    (focusedProjectId ? (projectById.get(focusedProjectId) ?? null) : null) ??
+    (latestProjectId ? (projectById.get(latestProjectId) ?? null) : null) ??
+    (allStandardProjectsBase.length > 0 ? allStandardProjectsBase[0] : null);
   const railSpacesPagedProjectId = railSpacesProject?.id ?? null;
 
   // Reset per-project preview paging when a folder closes so reopening starts at five rows again.
@@ -5875,7 +5919,16 @@ export default function Sidebar() {
             SIDEBAR_ROW_IDLE_TEXT_CLASS_NAME,
             SIDEBAR_ROW_HOVER_CLASS_NAME,
           )}
-          onClick={() => openRailSpacesProject(project.id)}
+          onClick={() => {
+            openRailSpacesProject(project.id);
+            setSpacesBrowseMode("files");
+            void navigate({
+              search: (prev) => ({
+                ...stripDiffSearchParams(prev as Record<string, unknown>),
+                view: "editor",
+              }),
+            });
+          }}
           onContextMenu={(event) => {
             event.preventDefault();
             void handleProjectContextMenu(project.id, {
@@ -5900,44 +5953,42 @@ export default function Sidebar() {
     );
   }
 
-  // Rail layout Spaces panel: level 1 lists every Space with its projects; level 2 is one
-  // project's threads, opened from level 1 without leaving the current route.
+  // Rail layout Spaces panel: renders course workspace file explorer or courses list
   function renderRailSpacesPanel() {
-    if (railSpacesProject && railSpacesProjectSidebarData) {
+    if (spacesBrowseMode !== "courses" && courseProject) {
       return (
-        <SidebarGroup className="px-1.5 py-1.5">
-          <div className="my-1 flex h-7 min-w-0 items-center gap-1.5 ps-1 pe-1.5">
-            <SidebarIconButton
-              icon={BackArrowIcon}
-              label="Back to spaces"
-              tooltip="Back to spaces"
-              tooltipSide="bottom"
-              onClick={closeRailSpacesProject}
-            />
-            <span className={SIDEBAR_PROJECT_NAME_CLASS_NAME}>
-              {resolveSidebarProjectRowLabel(railSpacesProject)}
+        <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1.5">
+          <div className="my-1 flex h-7 min-w-0 shrink-0 items-center gap-1.5 ps-1 pe-1.5">
+            {allStandardProjectsBase.length > 1 ? (
+              <SidebarIconButton
+                icon={BackArrowIcon}
+                label="Switch course"
+                tooltip="Courses"
+                tooltipSide="bottom"
+                onClick={() => {
+                  setSpacesBrowseMode("courses");
+                  closeRailSpacesProject();
+                }}
+              />
+            ) : null}
+            <span className={cn(SIDEBAR_PROJECT_NAME_CLASS_NAME, "truncate font-semibold")}>
+              {resolveSidebarProjectRowLabel(courseProject)}
             </span>
             <SidebarSectionToolbar>
-              {renderProjectThreadActions(railSpacesProject)}
+              {renderProjectThreadActions(courseProject)}
             </SidebarSectionToolbar>
           </div>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuSub
-                className={cn(
-                  "mx-0 my-0 w-full translate-x-0 border-l-0 px-0 py-0",
-                  SIDEBAR_NESTED_LIST_GAP_CLASS_NAME,
-                )}
-              >
-                {renderProjectThreadList(railSpacesProject, railSpacesProjectSidebarData)}
-              </SidebarMenuSub>
-            </SidebarMenuItem>
-          </SidebarMenu>
-          {railSpacesProjectSidebarData.visibleEntries.length === 0 ? (
-            <div className="px-2 pt-4 text-center text-ui text-muted-foreground/58">
-              No threads yet
-            </div>
-          ) : null}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <WorkspaceFilesSidebar
+              workspaceRoot={courseProject.cwd}
+              selectedFilePath={selectedEditorFilePath}
+              expandedDirectories={workspaceExpandedDirs}
+              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
+              onSelectFile={handleSelectWorkspaceFile}
+              onToggleDirectory={handleToggleWorkspaceDir}
+              onReferenceInChat={undefined}
+            />
+          </div>
         </SidebarGroup>
       );
     }
@@ -6763,9 +6814,32 @@ export default function Sidebar() {
         badge: null,
         active: railActiveItem === id && activeRailShortcutKey === null,
         onSelect: () => {
+          if (optionalSidebar) {
+            if (!optionalSidebar.open) {
+              optionalSidebar.setOpen(true);
+            } else if (railActiveItem === id && activeRailShortcutKey === null) {
+              optionalSidebar.setOpen(false);
+            }
+          }
           // Home is the threads panel, so it keeps the Activity view the user chose;
           // only the Spaces drill-in replaces it.
-          if (id === "spaces") setActivityViewEnabledSmoothly(false);
+          if (id === "spaces") {
+            setActivityViewEnabledSmoothly(false);
+            setSpacesBrowseMode("files");
+            void navigate({
+              search: (prev) => ({
+                ...stripDiffSearchParams(prev as Record<string, unknown>),
+                view: "editor",
+              }),
+            });
+          } else {
+            void navigate({
+              search: (prev) => ({
+                ...stripDiffSearchParams(prev as Record<string, unknown>),
+                view: "chat",
+              }),
+            });
+          }
           selectRailPanelItem(id);
           // Projects live next to the threads only: from another section, Home and
           // Spaces go back to the thread view instead of opening over that section.
@@ -6812,6 +6886,9 @@ export default function Sidebar() {
           badge: null,
           active: activeRailShortcutKey === shortcut.key,
           onSelect: () => {
+            if (optionalSidebar && !optionalSidebar.open) {
+              optionalSidebar.setOpen(true);
+            }
             setActivityViewEnabledSmoothly(false);
             selectRailPanelItem("home");
             // Switching Space already lands on its last thread; the same Space only needs
@@ -7111,6 +7188,7 @@ export default function Sidebar() {
                   <SidebarSurfacePicker
                     views={["threads", ...(groupsSectionVisible ? (["groups"] as const) : [])]}
                     activeView={isOnGroups ? "groups" : "threads"}
+                    titleOverride={showRailSpacesPanel ? "Course Workspace" : undefined}
                     onSelectView={handleSidebarViewChange}
                     onPrewarmView={prewarmSidebarViewTarget}
                   />
@@ -7126,7 +7204,7 @@ export default function Sidebar() {
                         setSearchPaletteOpen(true);
                       }}
                     />
-                    {!isOnGroups ? (
+                    {!isOnGroups && !showRailSpacesPanel ? (
                       <SidebarActivityBellButton
                         active={activityViewEnabled}
                         showUnreadDot={hasUnreadActivity}
@@ -7141,7 +7219,7 @@ export default function Sidebar() {
                 stays mounted so its thumb can glide between Projects and Groups. */}
                 <div key={sidebarSurfaceKey} className="sidebar-surface-enter">
                   {/* Primary sidebar actions stay limited to features we currently ship. */}
-                  {!isOnGroups ? (
+                  {!isOnGroups && !showRailSpacesPanel ? (
                     <SidebarGroup
                       className="px-1.5 pt-1 pb-1.5"
                       onContextMenu={handleNavContextMenu}

@@ -2,6 +2,7 @@
 // Purpose: Dedicated download page for macOS, Windows, and Linux installers.
 // Layer: App Router page
 
+import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import SiteFooter from "@/components/SiteFooter";
 import InstallOptions from "@/components/InstallOptions";
@@ -28,6 +29,7 @@ export const metadata = pageMetadata({
 export const revalidate = 1800;
 
 export default async function InstallPage() {
+  redirect("/");
   const [downloads, installerCount] = [await getReleaseDownloads(), getStoredInstallerCount()];
 
   return (

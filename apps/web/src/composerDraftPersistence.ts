@@ -33,6 +33,7 @@ import {
   normalizeAssistantSelections,
   normalizeDraftThreadEntryPoint,
   normalizeFileComments,
+  normalizePptxAnnotations,
   normalizeTerminalContextsForThread,
   projectDraftThreadEntryPointFromKey,
   projectIdFromDraftThreadMappingKey,
@@ -67,6 +68,10 @@ import {
   type PullRequestContextDraft,
 } from "./lib/pullRequestContext";
 import { normalizeFileCommentSelection } from "./lib/fileComments";
+import {
+  normalizePptxAnnotationSelection,
+  type PptxAnnotationSelection,
+} from "./lib/pptxAnnotations";
 import {
   ensureInlineTerminalContextPlaceholders,
   normalizeTerminalContextText,
@@ -151,6 +156,29 @@ const PersistedFileCommentDraft = Schema.Struct({
 
 type PersistedFileCommentDraft = typeof PersistedFileCommentDraft.Type;
 
+const PersistedPptxAnnotationRegion = Schema.Struct({
+  x: Schema.Number,
+  y: Schema.Number,
+  width: Schema.Number,
+  height: Schema.Number,
+});
+
+type PersistedPptxAnnotationRegion = typeof PersistedPptxAnnotationRegion.Type;
+
+const PersistedPptxAnnotationDraft = Schema.Struct({
+  id: Schema.String,
+  capturedAt: Schema.String,
+  path: Schema.String,
+  slideNumber: Schema.Number,
+  shapeId: Schema.String,
+  shapeName: Schema.String,
+  shapeText: Schema.String,
+  region: PersistedPptxAnnotationRegion,
+  comment: Schema.String,
+});
+
+type PersistedPptxAnnotationDraft = typeof PersistedPptxAnnotationDraft.Type;
+
 const PersistedPastedTextDraft = Schema.Struct({
   id: Schema.String,
   createdAt: Schema.String,
@@ -223,6 +251,7 @@ const PersistedQueuedComposerChatTurn = Schema.Struct({
   browserAnnotations: Schema.optionalKey(Schema.Array(PersistedBrowserAnnotationDraft)),
   terminalContexts: Schema.Array(PersistedQueuedTerminalContextDraft),
   fileComments: Schema.optionalKey(Schema.Array(PersistedFileCommentDraft)),
+  pptxAnnotations: Schema.optionalKey(Schema.Array(PersistedPptxAnnotationDraft)),
   pastedTexts: Schema.optionalKey(Schema.Array(PersistedPastedTextDraft)),
   pullRequestContexts: Schema.optionalKey(Schema.Array(PersistedPullRequestContextDraft)),
   skills: Schema.Array(ProviderSkillReference),
@@ -279,6 +308,7 @@ const PersistedComposerPromptHistorySavedDraft = Schema.Union([
     browserAnnotations: Schema.optionalKey(Schema.Array(PersistedBrowserAnnotationDraft)),
     terminalContexts: Schema.optionalKey(Schema.Array(PersistedTerminalContextDraft)),
     fileComments: Schema.optionalKey(Schema.Array(PersistedFileCommentDraft)),
+    pptxAnnotations: Schema.optionalKey(Schema.Array(PersistedPptxAnnotationDraft)),
     pastedTexts: Schema.optionalKey(Schema.Array(PersistedPastedTextDraft)),
     pullRequestContexts: Schema.optionalKey(Schema.Array(PersistedPullRequestContextDraft)),
     skills: Schema.optionalKey(Schema.Array(ProviderSkillReference)),
@@ -308,6 +338,7 @@ const PersistedComposerThreadDraftState = Schema.Struct({
   browserAnnotations: Schema.optionalKey(Schema.Array(PersistedBrowserAnnotationDraft)),
   terminalContexts: Schema.optionalKey(Schema.Array(PersistedTerminalContextDraft)),
   fileComments: Schema.optionalKey(Schema.Array(PersistedFileCommentDraft)),
+  pptxAnnotations: Schema.optionalKey(Schema.Array(PersistedPptxAnnotationDraft)),
   pastedTexts: Schema.optionalKey(Schema.Array(PersistedPastedTextDraft)),
   pullRequestContexts: Schema.optionalKey(Schema.Array(PersistedPullRequestContextDraft)),
   skills: Schema.optionalKey(Schema.Array(ProviderSkillReference)),
@@ -442,6 +473,12 @@ function normalizePersistedPromptHistorySavedDraft(
         return normalized ? [normalized] : [];
       })
     : [];
+  const pptxAnnotations = Array.isArray(candidate.pptxAnnotations)
+    ? candidate.pptxAnnotations.flatMap((entry) => {
+        const normalized = normalizePersistedPptxAnnotationDraft(entry);
+        return normalized ? [normalized] : [];
+      })
+    : [];
   const pastedTexts = Array.isArray(candidate.pastedTexts)
     ? candidate.pastedTexts.flatMap((entry) => {
         const normalized = normalizePersistedPastedTextDraft(entry);
@@ -467,6 +504,7 @@ function normalizePersistedPromptHistorySavedDraft(
     ...(browserAnnotations.length > 0 ? { browserAnnotations } : {}),
     ...(terminalContexts.length > 0 ? { terminalContexts } : {}),
     ...(fileComments.length > 0 ? { fileComments } : {}),
+    ...(pptxAnnotations.length > 0 ? { pptxAnnotations } : {}),
     ...(pastedTexts.length > 0 ? { pastedTexts } : {}),
     ...(pullRequestContexts.length > 0 ? { pullRequestContexts } : {}),
     ...(skills.length > 0 ? { skills } : {}),
@@ -580,6 +618,49 @@ function normalizePersistedFileCommentDraft(value: unknown): PersistedFileCommen
     return null;
   }
   return { id, ...normalized };
+}
+
+function normalizePersistedPptxAnnotationDraft(
+  value: unknown,
+): PersistedPptxAnnotationDraft | null {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  const candidate = value as Record<string, unknown>;
+  const id = typeof candidate.id === "string" ? candidate.id : "";
+  const capturedAt = typeof candidate.capturedAt === "string" ? candidate.capturedAt : "";
+  if (id.length === 0 || capturedAt.length === 0) {
+    return null;
+  }
+  const region = candidate.region;
+  const regionCandidate =
+    region && typeof region === "object" ? (region as Record<string, unknown>) : {};
+  const normalized = normalizePptxAnnotationSelection({
+    path: typeof candidate.path === "string" ? candidate.path : "",
+    slideNumber: Number(candidate.slideNumber),
+    shapeId: typeof candidate.shapeId === "string" ? candidate.shapeId : "",
+    shapeName: typeof candidate.shapeName === "string" ? candidate.shapeName : "",
+    shapeText: typeof candidate.shapeText === "string" ? candidate.shapeText : "",
+    region: {
+      x: Number(regionCandidate.x),
+      y: Number(regionCandidate.y),
+      width: Number(regionCandidate.width),
+      height: Number(regionCandidate.height),
+    },
+    comment: typeof candidate.comment === "string" ? candidate.comment : "",
+  });
+  if (!normalized) {
+    return null;
+  }
+  return { id, capturedAt, ...normalized };
+}
+
+/** Serializes the deck-relative fields only; nothing else leaves the draft. */
+function toPersistedPptxAnnotation(
+  annotation: PptxAnnotationSelection & { id: string; capturedAt: string },
+): PersistedPptxAnnotationDraft {
+  const { id, capturedAt, ...selection } = annotation;
+  return { id, capturedAt, ...selection };
 }
 
 function normalizePersistedPastedTextDraft(value: unknown): PersistedPastedTextDraft | null {
@@ -747,6 +828,12 @@ function normalizePersistedQueuedTurns(
             return normalized ? [normalized] : [];
           })
         : [];
+      const pptxAnnotations = Array.isArray(candidate.pptxAnnotations)
+        ? candidate.pptxAnnotations.flatMap((annotation) => {
+            const normalized = normalizePersistedPptxAnnotationDraft(annotation);
+            return normalized ? [normalized] : [];
+          })
+        : [];
       const pastedTexts = Array.isArray(candidate.pastedTexts)
         ? candidate.pastedTexts.flatMap((pasted) => {
             const normalized = normalizePersistedPastedTextDraft(pasted);
@@ -786,6 +873,9 @@ function normalizePersistedQueuedTurns(
         ...(browserAnnotations.length > 0 ? { browserAnnotations } : {}),
         terminalContexts,
         ...(fileComments.length > 0 ? { fileComments } : {}),
+        ...(pptxAnnotations.length > 0 ? { pptxAnnotations } : {}),
+        ...(pptxAnnotations.length > 0 ? { pptxAnnotations } : {}),
+        ...(pptxAnnotations.length > 0 ? { pptxAnnotations } : {}),
         ...(pastedTexts.length > 0 ? { pastedTexts } : {}),
         ...(pullRequestContexts.length > 0 ? { pullRequestContexts } : {}),
         skills: [...skills],
@@ -1022,6 +1112,12 @@ function normalizePersistedDraftsByThreadId(
           return normalized ? [normalized] : [];
         })
       : [];
+    const pptxAnnotations = Array.isArray(draftCandidate.pptxAnnotations)
+      ? draftCandidate.pptxAnnotations.flatMap((entry) => {
+          const normalized = normalizePersistedPptxAnnotationDraft(entry);
+          return normalized ? [normalized] : [];
+        })
+      : [];
     const pastedTexts = Array.isArray(draftCandidate.pastedTexts)
       ? draftCandidate.pastedTexts.flatMap((entry) => {
           const normalized = normalizePersistedPastedTextDraft(entry);
@@ -1142,6 +1238,7 @@ function normalizePersistedDraftsByThreadId(
       assistantSelections.length === 0 &&
       browserAnnotations.length === 0 &&
       fileComments.length === 0 &&
+      pptxAnnotations.length === 0 &&
       pastedTexts.length === 0 &&
       pullRequestContexts.length === 0 &&
       !hasReferenceData &&
@@ -1165,6 +1262,8 @@ function normalizePersistedDraftsByThreadId(
       ...(browserAnnotations.length > 0 ? { browserAnnotations } : {}),
       ...(terminalContexts.length > 0 ? { terminalContexts } : {}),
       ...(fileComments.length > 0 ? { fileComments } : {}),
+      ...(pptxAnnotations.length > 0 ? { pptxAnnotations } : {}),
+      ...(pptxAnnotations.length > 0 ? { pptxAnnotations } : {}),
       ...(pastedTexts.length > 0 ? { pastedTexts } : {}),
       ...(pullRequestContexts.length > 0 ? { pullRequestContexts } : {}),
       ...(skills.length > 0 ? { skills } : {}),
@@ -1252,6 +1351,11 @@ export function partializeComposerDraftStoreState(
                   endLine: comment.endLine,
                   text: comment.text,
                 })),
+              }
+            : {}),
+          ...(queuedTurn.pptxAnnotations.length > 0
+            ? {
+                pptxAnnotations: queuedTurn.pptxAnnotations.map(toPersistedPptxAnnotation),
               }
             : {}),
           ...(queuedTurn.pastedTexts.length > 0
@@ -1342,6 +1446,7 @@ export function partializeComposerDraftStoreState(
       draft.browserAnnotations.length === 0 &&
       draft.terminalContexts.length === 0 &&
       draft.fileComments.length === 0 &&
+      draft.pptxAnnotations.length === 0 &&
       draft.pastedTexts.length === 0 &&
       draft.pullRequestContexts.length === 0 &&
       !hasReferenceData &&
@@ -1411,6 +1516,12 @@ export function partializeComposerDraftStoreState(
                     })),
                   }
                 : {}),
+              ...(draft.promptHistorySavedDraft.pptxAnnotations.length > 0
+                ? {
+                    pptxAnnotations:
+                      draft.promptHistorySavedDraft.pptxAnnotations.map(toPersistedPptxAnnotation),
+                  }
+                : {}),
               ...(draft.promptHistorySavedDraft.pastedTexts.length > 0
                 ? {
                     pastedTexts: draft.promptHistorySavedDraft.pastedTexts.map((pasted) => ({
@@ -1474,6 +1585,9 @@ export function partializeComposerDraftStoreState(
               text: comment.text,
             })),
           }
+        : {}),
+      ...(draft.pptxAnnotations.length > 0
+        ? { pptxAnnotations: draft.pptxAnnotations.map(toPersistedPptxAnnotation) }
         : {}),
       ...(draft.pastedTexts.length > 0
         ? {
@@ -1609,6 +1723,7 @@ function hydrateQueuedTurnsFromPersisted(
         browserAnnotations: normalizeBrowserAnnotations(queuedTurn.browserAnnotations ?? []),
         terminalContexts: normalizeTerminalContextsForThread(threadId, queuedTurn.terminalContexts),
         fileComments: normalizeFileComments(queuedTurn.fileComments ?? []),
+        pptxAnnotations: normalizePptxAnnotations(queuedTurn.pptxAnnotations ?? []),
         pastedTexts: hydratePastedTextsFromPersisted(queuedTurn.pastedTexts),
         pullRequestContexts: normalizePullRequestContexts(queuedTurn.pullRequestContexts ?? []),
         skills: [...queuedTurn.skills],
@@ -1636,6 +1751,7 @@ function hydratePromptHistorySavedDraft(
       browserAnnotations: [],
       terminalContexts: [],
       fileComments: [],
+      pptxAnnotations: [],
       pastedTexts: [],
       pullRequestContexts: [],
       skills: [],
@@ -1657,6 +1773,7 @@ function hydratePromptHistorySavedDraft(
         text: "",
       })) ?? [],
     fileComments: normalizeFileComments(savedDraft.fileComments ?? []),
+    pptxAnnotations: normalizePptxAnnotations(savedDraft.pptxAnnotations ?? []),
     pastedTexts: hydratePastedTextsFromPersisted(savedDraft.pastedTexts),
     pullRequestContexts: normalizePullRequestContexts(savedDraft.pullRequestContexts ?? []),
     skills: [...(savedDraft.skills ?? [])],
@@ -1699,6 +1816,7 @@ export function toHydratedThreadDraft(
         text: "",
       })) ?? [],
     fileComments: normalizeFileComments(persistedDraft.fileComments ?? []),
+    pptxAnnotations: normalizePptxAnnotations(persistedDraft.pptxAnnotations ?? []),
     pastedTexts: hydratePastedTextsFromPersisted(persistedDraft.pastedTexts),
     pullRequestContexts: normalizePullRequestContexts(persistedDraft.pullRequestContexts ?? []),
     skills: [...(persistedDraft.skills ?? [])],

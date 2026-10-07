@@ -4,7 +4,6 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { SiX } from "react-icons/si";
 import { Button } from "@/components/m3e/button";
 import { Icon } from "@/components/m3e/icon";
 import {
@@ -16,9 +15,9 @@ import {
 } from "@/components/m3e/dropdown-menu";
 
 const LINKS = [
-  { href: "/install", label: "Install", icon: "download" },
-  { href: "/docs", label: "Docs", icon: "menu_book" },
-  { href: "/changelog", label: "Changelog", icon: "history" },
+  { href: "/#overview", label: "Overview", icon: "home" },
+  { href: "/#workflow", label: "Workflow", icon: "account_tree" },
+  { href: "/#faq", label: "FAQ", icon: "help" },
 ] as const;
 
 export default function MobileNav() {
@@ -45,10 +44,9 @@ export default function MobileNav() {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          render={<a href="https://x.com/trymimir" target="_blank" rel="noopener noreferrer" />}
-        >
-          <SiX />X
+        <DropdownMenuItem render={<Link href="/privacy" />}>
+          <Icon name="shield" />
+          Privacy
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

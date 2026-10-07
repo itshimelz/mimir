@@ -77,6 +77,7 @@ function makeQueuedChatTurn(id: string): QueuedComposerTurn {
     browserAnnotations: [],
     terminalContexts: [],
     fileComments: [],
+    pptxAnnotations: [],
     pastedTexts: [],
     pullRequestContexts: [],
     skills: [],

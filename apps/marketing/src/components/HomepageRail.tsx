@@ -15,7 +15,6 @@ const SECTIONS = [
   { id: "workflow", label: "Workflow", icon: "account_tree" },
   { id: "privacy", label: "Privacy", icon: "shield" },
   { id: "faq", label: "FAQ", icon: "help" },
-  { id: "download", label: "Download", icon: "download" },
 ] as const;
 
 export default function HomepageRail() {

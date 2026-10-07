@@ -27,8 +27,8 @@ export default function FAQ() {
             Understand the boundary before you run the work.
           </h2>
           <p className="mt-4 max-w-xl text-body-large text-on-surface-variant">
-            How providers, subscriptions, parallel tasks, handoffs, Git, and local workspace data
-            fit together.
+            How providers, subscriptions, study tasks, provider handoffs, and local course data fit
+            together.
           </p>
         </div>
 

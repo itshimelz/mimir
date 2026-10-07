@@ -9,6 +9,7 @@
 //       header, M3E section labels, and a single rule above the closing CTA.
 
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import { SectionEyebrow } from "@/components/SectionEyebrow";
 import SiteFooter from "@/components/SiteFooter";
@@ -48,6 +49,7 @@ const SPONSOR_JSONLD = [
 ];
 
 export default function SponsorPage() {
+  redirect("/");
   const sponsors = orderedSponsors(SPONSORS);
 
   return (

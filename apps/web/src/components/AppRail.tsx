@@ -18,6 +18,7 @@ import { createPortal } from "react-dom";
 import type { RailItemId } from "~/appRail.logic";
 import { createCentralIconComponent } from "~/lib/central-icons";
 import {
+  BookIcon,
   ClockIcon,
   CodeReviewIcon,
   FoldersIcon,
@@ -95,7 +96,7 @@ const RAIL_HUGEICON_GLYPHS: Record<HugeiconRailItemId, AppRailGlyphs> = {
   pullRequests: sameGlyphs(CodeReviewIcon),
   automations: sameGlyphs(ClockIcon),
   tasks: sameGlyphs(TasksIcon),
-  spaces: sameGlyphs(FoldersIcon),
+  spaces: sameGlyphs(BookIcon),
   // Hubs (stored id "studio"): Hugeicons circles, with their own solid active glyph.
   studio: { idle: HubIcon, active: HubActiveIcon },
 };

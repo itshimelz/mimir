@@ -9,6 +9,7 @@ import {
   type BrowserAnnotationDraft,
 } from "./browserAnnotations";
 import { extractTrailingFileComments, type ParsedFileCommentEntry } from "./fileComments";
+import { extractTrailingPptxAnnotations, type ParsedPptxAnnotationEntry } from "./pptxAnnotations";
 import { extractTrailingPastedTexts, type ParsedPastedTextEntry } from "./composerPastedText";
 import {
   extractTrailingPullRequestContexts,
@@ -44,6 +45,7 @@ export interface DisplayedUserMessageState {
   contexts: ParsedTerminalContextEntry[];
   assistantSelections: ParsedAssistantSelectionEntry[];
   fileComments: ParsedFileCommentEntry[];
+  pptxAnnotations: ParsedPptxAnnotationEntry[];
   pastedTexts: ParsedPastedTextEntry[];
   pullRequestContexts: ParsedPullRequestContextEntry[];
   browserAnnotations: BrowserAnnotationDraft[];
@@ -315,7 +317,8 @@ export function deriveDisplayedUserMessageState(
     extractedBrowserAnnotations.promptText,
   );
   const extractedPastedTexts = extractTrailingPastedTexts(extractedPullRequestContexts.promptText);
-  const extractedFileComments = extractTrailingFileComments(extractedPastedTexts.promptText);
+  const extractedPptxAnnotations = extractTrailingPptxAnnotations(extractedPastedTexts.promptText);
+  const extractedFileComments = extractTrailingFileComments(extractedPptxAnnotations.promptText);
   const extractedContexts = extractTrailingTerminalContexts(extractedFileComments.promptText);
   const extractedAssistantSelections = extractTrailingAssistantSelections(
     extractedContexts.promptText,
@@ -335,6 +338,7 @@ export function deriveDisplayedUserMessageState(
     contexts: extractedContexts.contexts,
     assistantSelections: extractedAssistantSelections.selections,
     fileComments: extractedFileComments.comments,
+    pptxAnnotations: extractedPptxAnnotations.annotations,
     pastedTexts: extractedPastedTexts.pastedTexts,
     pullRequestContexts: extractedPullRequestContexts.pullRequestContexts,
     browserAnnotations: extractedBrowserAnnotations.annotations,

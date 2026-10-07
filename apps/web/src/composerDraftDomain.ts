@@ -38,6 +38,11 @@ import {
   normalizeFileCommentSelection,
 } from "./lib/fileComments";
 import {
+  normalizePptxAnnotationSelection,
+  type PptxAnnotationDraft,
+  pptxAnnotationDedupKey,
+} from "./lib/pptxAnnotations";
+import {
   type PullRequestContextDraft,
   normalizePullRequestContexts,
 } from "./lib/pullRequestContext";
@@ -112,6 +117,7 @@ export interface ComposerPromptHistorySavedDraft {
   browserAnnotations: BrowserAnnotationDraft[];
   terminalContexts: TerminalContextDraft[];
   fileComments: FileCommentDraft[];
+  pptxAnnotations: PptxAnnotationDraft[];
   pastedTexts: PastedTextDraft[];
   pullRequestContexts: PullRequestContextDraft[];
   skills: ProviderSkillReference[];
@@ -134,6 +140,7 @@ export interface QueuedComposerChatTurn {
   browserAnnotations: BrowserAnnotationDraft[];
   terminalContexts: TerminalContextDraft[];
   fileComments: FileCommentDraft[];
+  pptxAnnotations: PptxAnnotationDraft[];
   pastedTexts: PastedTextDraft[];
   pullRequestContexts: PullRequestContextDraft[];
   skills: ProviderSkillReference[];
@@ -194,6 +201,7 @@ export interface ComposerThreadDraftState {
   browserAnnotations: BrowserAnnotationDraft[];
   terminalContexts: TerminalContextDraft[];
   fileComments: FileCommentDraft[];
+  pptxAnnotations: PptxAnnotationDraft[];
   pastedTexts: PastedTextDraft[];
   pullRequestContexts: PullRequestContextDraft[];
   skills: ProviderSkillReference[];
@@ -402,6 +410,8 @@ export interface ComposerDraftStoreState {
   addFileComment: (threadId: ThreadId, comment: FileCommentDraft) => boolean;
   removeFileComment: (threadId: ThreadId, commentId: string) => void;
   clearFileComments: (threadId: ThreadId) => void;
+  addPptxAnnotation: (threadId: ThreadId, annotation: PptxAnnotationDraft) => boolean;
+  removePptxAnnotation: (threadId: ThreadId, annotationId: string) => void;
   addPastedTexts: (threadId: ThreadId, pastedTexts: PastedTextDraft[]) => void;
   removePastedText: (threadId: ThreadId, pastedTextId: string) => void;
   clearPastedTexts: (threadId: ThreadId) => void;
@@ -578,6 +588,7 @@ export function createEmptyThreadDraft(): ComposerThreadDraftState {
     browserAnnotations: [],
     terminalContexts: [],
     fileComments: [],
+    pptxAnnotations: [],
     pastedTexts: [],
     pullRequestContexts: [],
     skills: [],
@@ -687,6 +698,48 @@ export function normalizeFileComments(
   return normalizedComments;
 }
 
+export function normalizePptxAnnotation(
+  annotation: PptxAnnotationDraft,
+): PptxAnnotationDraft | null {
+  const normalized = normalizePptxAnnotationSelection(annotation);
+  if (!normalized) {
+    return null;
+  }
+  return {
+    id: annotation.id,
+    capturedAt: annotation.capturedAt,
+    ...normalized,
+  };
+}
+
+/**
+ * One live comment per slide shape: the same shape cannot carry two competing
+ * requests, so a repeat replaces nothing and is dropped as a duplicate.
+ */
+export function normalizePptxAnnotations(
+  annotations: ReadonlyArray<PptxAnnotationDraft>,
+): PptxAnnotationDraft[] {
+  const normalizedAnnotations: PptxAnnotationDraft[] = [];
+  const existingIds = new Set<string>();
+  const existingTargets = new Set<string>();
+
+  for (const annotation of annotations) {
+    const normalizedAnnotation = normalizePptxAnnotation(annotation);
+    if (!normalizedAnnotation) {
+      continue;
+    }
+    const target = pptxAnnotationDedupKey(normalizedAnnotation);
+    if (existingIds.has(normalizedAnnotation.id) || existingTargets.has(target)) {
+      continue;
+    }
+    normalizedAnnotations.push(normalizedAnnotation);
+    existingIds.add(normalizedAnnotation.id);
+    existingTargets.add(target);
+  }
+
+  return normalizedAnnotations;
+}
+
 function normalizePastedText(pasted: PastedTextDraft): PastedTextDraft | null {
   const text = normalizePastedTextContent(pasted.text);
   if (pasted.id.length === 0 || text.length === 0) {
@@ -792,6 +845,7 @@ export function captureComposerPromptHistorySavedDraft(input: {
     browserAnnotations: normalizeBrowserAnnotations(draft.browserAnnotations),
     terminalContexts: normalizeTerminalContextsForThread(threadId, draft.terminalContexts),
     fileComments: normalizeFileComments(draft.fileComments),
+    pptxAnnotations: normalizePptxAnnotations(draft.pptxAnnotations),
     pastedTexts: normalizePastedTexts(draft.pastedTexts),
     pullRequestContexts: normalizePullRequestContexts(draft.pullRequestContexts),
     skills: [...draft.skills],
@@ -824,6 +878,7 @@ export function buildTransferredComposerDraft(input: {
       sourceDraft.terminalContexts,
     ),
     fileComments: normalizeFileComments(sourceDraft.fileComments),
+    pptxAnnotations: normalizePptxAnnotations(sourceDraft.pptxAnnotations),
     pastedTexts: normalizePastedTexts(sourceDraft.pastedTexts),
     pullRequestContexts: normalizePullRequestContexts(sourceDraft.pullRequestContexts),
     skills: [...sourceDraft.skills],
@@ -872,6 +927,7 @@ function clonePromptHistorySavedDraft(
       savedDraft.terminalContexts,
     ),
     fileComments: normalizeFileComments(savedDraft.fileComments),
+    pptxAnnotations: normalizePptxAnnotations(savedDraft.pptxAnnotations),
     pastedTexts: normalizePastedTexts(savedDraft.pastedTexts),
     pullRequestContexts: normalizePullRequestContexts(savedDraft.pullRequestContexts),
     skills: [...savedDraft.skills],
@@ -891,6 +947,7 @@ export function shouldRemoveDraft(draft: ComposerThreadDraftState): boolean {
     draft.browserAnnotations.length === 0 &&
     draft.terminalContexts.length === 0 &&
     draft.fileComments.length === 0 &&
+    draft.pptxAnnotations.length === 0 &&
     draft.pastedTexts.length === 0 &&
     draft.pullRequestContexts.length === 0 &&
     draft.skills.length === 0 &&
@@ -948,6 +1005,7 @@ export function composerDraftHasAttachments(
     | "terminalContexts"
     | "assistantSelections"
     | "fileComments"
+    | "pptxAnnotations"
   > &
     Partial<Pick<ComposerThreadDraftState, "browserAnnotations">>,
 ): boolean {
@@ -958,7 +1016,8 @@ export function composerDraftHasAttachments(
     draft.terminalContexts.some((context) => context.text.trim().length > 0) ||
     draft.assistantSelections.length > 0 ||
     (draft.browserAnnotations?.length ?? 0) > 0 ||
-    draft.fileComments.length > 0
+    draft.fileComments.length > 0 ||
+    draft.pptxAnnotations.length > 0
   );
 }
 
@@ -1030,6 +1089,7 @@ Object.freeze(EMPTY_MENTIONS);
 Object.freeze(EMPTY_QUEUED_TURNS);
 const EMPTY_MODEL_SELECTION_BY_PROVIDER: ModelSelectionByProviderInstance = Object.freeze({});
 
+const EMPTY_PPTX_ANNOTATIONS: PptxAnnotationDraft[] = [];
 const EMPTY_THREAD_DRAFT = Object.freeze<ComposerThreadDraftState>({
   prompt: "",
   promptHistorySavedDraft: null,
@@ -1041,6 +1101,7 @@ const EMPTY_THREAD_DRAFT = Object.freeze<ComposerThreadDraftState>({
   browserAnnotations: EMPTY_BROWSER_ANNOTATIONS,
   terminalContexts: EMPTY_TERMINAL_CONTEXTS,
   fileComments: [],
+  pptxAnnotations: EMPTY_PPTX_ANNOTATIONS,
   pastedTexts: EMPTY_PASTED_TEXTS,
   pullRequestContexts: EMPTY_PULL_REQUEST_CONTEXTS,
   skills: EMPTY_SKILLS,

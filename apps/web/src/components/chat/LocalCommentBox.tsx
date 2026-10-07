@@ -1,27 +1,30 @@
-// FILE: FileLineCommentBox.tsx
-// Purpose: Inline "Local comment" editor anchored under a file line in the
-//          read-only preview. Mirrors Codex's per-line comment box: a Synara
-//          badge header, the target line label, a borderless request field, and
-//          Cancel/Comment actions (Comment stays disabled until non-empty text).
-// Layer: Chat file-preview interaction UI
+// FILE: LocalCommentBox.tsx
+// Purpose: Inline "Local comment" editor anchored to a target in a read-only
+//          preview surface — a file line today, a slide shape next. Mirrors
+//          Codex's comment box: a Synara badge header, the target label, a
+//          borderless request field, and Cancel/Comment actions (Comment stays
+//          disabled until non-empty text).
+// Layer: Chat preview interaction UI
 
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 
 import { FILE_COMMENT_TEXT_MAX_CHARS, normalizeFileCommentText } from "~/lib/fileComments";
 import { SynaraLogo } from "../SynaraLogo";
 import { Button } from "../ui/button";
 
-interface FileLineCommentBoxProps {
-  // Pre-formatted target label, e.g. "line 12" or "lines 3-5".
-  lineLabel: string;
-  top: number;
-  left: number;
-  width: number;
+interface LocalCommentBoxProps {
+  // Pre-formatted target label, e.g. "line 12" or "slide 3 · Title 4".
+  targetLabel: string;
+  // CSS lengths, not just numbers: the editor surface anchors in pixels while the
+  // slide annotator anchors in percentages of the rendered slide.
+  top: CSSProperties["top"];
+  left: CSSProperties["left"];
+  width: CSSProperties["width"];
   onCancel: () => void;
   onSubmit: (text: string) => void;
 }
 
-export function FileLineCommentBox(props: FileLineCommentBoxProps) {
+export function LocalCommentBox(props: LocalCommentBoxProps) {
   const { onCancel, onSubmit } = props;
   const [value, setValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -59,7 +62,7 @@ export function FileLineCommentBox(props: FileLineCommentBoxProps) {
 
   return (
     <div
-      className="editor-file-viewer__comment-box"
+      className="local-comment__box"
       style={{ top: props.top, left: props.left, width: props.width }}
       // Keep clicks/selection inside the box from reaching the file surface
       // (context menu, selection toolbar, the gutter affordance).
@@ -70,12 +73,12 @@ export function FileLineCommentBox(props: FileLineCommentBoxProps) {
     >
       <div className="flex items-center justify-between gap-2">
         <span className="inline-flex items-center gap-2 text-ui-lg font-semibold text-[var(--color-text-foreground)]">
-          <span className="editor-file-viewer__comment-badge">
+          <span className="local-comment__badge">
             <SynaraLogo className="size-3 text-[var(--color-text-foreground-secondary)]" />
           </span>
           Local comment
         </span>
-        <span className="text-ui text-muted-foreground">Comment on {props.lineLabel}</span>
+        <span className="text-ui text-muted-foreground">Comment on {props.targetLabel}</span>
       </div>
       <textarea
         ref={textareaRef}
@@ -85,7 +88,7 @@ export function FileLineCommentBox(props: FileLineCommentBoxProps) {
         placeholder="Request change"
         rows={2}
         maxLength={FILE_COMMENT_TEXT_MAX_CHARS}
-        className="editor-file-viewer__comment-input"
+        className="local-comment__input"
       />
       <div className="flex items-center justify-end gap-1">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel}>

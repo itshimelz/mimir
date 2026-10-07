@@ -7,6 +7,7 @@
 //        per-version /changelog/v0.1.1 deep-link route can reuse it verbatim.
 // Note: Content mirrors the in-app "What's new" changelog (src/data/changelog.ts).
 
+import { redirect } from "next/navigation";
 import ChangelogContent from "@/components/ChangelogContent";
 import { breadcrumbJsonLd, changelogCollectionJsonLd, jsonLdScript, pageMetadata } from "@/lib/seo";
 import { getSortedReleases } from "@/lib/changelog";
@@ -19,6 +20,7 @@ export const metadata = pageMetadata({
 });
 
 export default function ChangelogPage() {
+  redirect("/");
   const releases = getSortedReleases();
   const jsonLd = [
     changelogCollectionJsonLd(releases),

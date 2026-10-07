@@ -112,6 +112,7 @@ const FILE_ICON_BY_EXTENSION = createIconTable({
   ods: "file-chart",
   ppt: "page-text",
   pptx: "page-text",
+  canvas: "canvas-grid",
   odp: "page-text",
   ics: "calendar-days",
   ifb: "calendar-days",

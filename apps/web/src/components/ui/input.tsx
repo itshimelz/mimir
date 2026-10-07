@@ -38,7 +38,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const unstyled = unstyledProp ?? false;
   const nativeInput = nativeInputProp ?? false;
   const inputClassName = cn(
-    "font-system-ui h-full w-full min-w-0 rounded-[inherit] border-0 bg-transparent px-3 py-1.5 text-ui leading-normal text-m3-on-surface outline-none placeholder:text-m3-on-surface-variant/60 [transition:background-color_5000000s_ease-in-out_0s] sm:text-ui",
+    "font-system-ui h-full w-full min-w-0 rounded-[inherit] border-0 bg-transparent px-3 py-1.5 text-ui leading-normal text-foreground text-m3-on-surface [color:var(--color-m3-on-surface,var(--foreground))] outline-none placeholder:text-m3-on-surface-variant/60 [&:-webkit-autofill]:[-webkit-text-fill-color:currentColor] [&:-webkit-autofill]:caret-current [transition:background-color_5000000s_ease-in-out_0s] sm:text-ui",
     size === "sm" && "px-2.5 py-1 text-ui-sm sm:text-ui-sm",
     size === "lg" && "px-3.5 py-2",
     shape === "capsule" && "px-4",

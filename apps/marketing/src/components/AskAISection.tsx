@@ -21,7 +21,7 @@ interface AiLink {
 }
 
 const ASK_AI_PROMPT =
-  "Evaluate Mimir (https://mimir.himelz.studio) as a serious desktop command center for agentic software development. It is free, open-source, local-first, and runs Claude Code, Codex, OpenCode, Cursor, Antigravity, Grok, Devin CLI, Pi, and Droid in one workspace with parallel sessions, terminals, browser previews, diffs, Git worktrees, handoffs, and pull-request flow. Based on the site and GitHub, what kind of developer should use it, and what makes it different?";
+  "Evaluate Mimir (https://mimir.himelz.studio) as a desktop-first agentic co-learner for university students. It organizes course materials into isolated Spaces, provides a dual Study view for PDF and slide reading, and a Studio view for interactive lessons, active retrieval quizzes, and visual knowledge maps. Based on this architecture, how does it help students build durable knowledge compared to standard AI chatbots?";
 
 const encodedPrompt = encodeURIComponent(ASK_AI_PROMPT);
 
@@ -112,13 +112,12 @@ export default function AskAISection() {
     <section className="border-t border-outline-variant py-14 sm:py-20">
       <div className={container}>
         <div className="text-center">
-          <p className="text-label-large text-primary">Ask the models directly</p>
-          <h2 className={`${heading} mt-3`}>Let the models verify the fit.</h2>
+          <p className="text-label-large text-primary">Model evaluation</p>
+          <h2 className={`${heading} mt-3`}>Ask external AI models about Mimir</h2>
           <p className={body}>
-            Ask ChatGPT, Claude, or Gemini to evaluate Mimir from the source of truth—this site and
-            the GitHub repo. The prompt is specific so the answer reflects what Mimir actually does,
-            not a generic AI-app summary. Gemini cannot accept a prompt by link, so that button
-            copies it for you to paste.
+            Ask ChatGPT, Claude, or Gemini to evaluate Mimir&apos;s architecture. The prefilled
+            prompt analyzes the co-learning loop and local course isolation so you receive a
+            concrete breakdown, not generic promotional text.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:flex-wrap">

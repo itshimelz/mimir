@@ -77,7 +77,7 @@ export function lastThreadRouteSearch(route: LastThreadRoute): {
 } {
   return {
     ...(route.splitViewId ? { splitViewId: route.splitViewId } : {}),
-    ...(route.view ? { view: route.view } : {}),
+    view: route.view ?? "editor",
   };
 }
 

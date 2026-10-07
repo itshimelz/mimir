@@ -167,6 +167,7 @@ export interface ChatTurnSubmissionInput {
   >["composerAssistantSelections"];
   composerBrowserAnnotations: ReturnType<typeof useChatComposerDraft>["composerBrowserAnnotations"];
   composerFileComments: ReturnType<typeof useChatComposerDraft>["composerFileComments"];
+  composerPptxAnnotations: ReturnType<typeof useChatComposerDraft>["composerPptxAnnotations"];
   composerTerminalContexts: ReturnType<typeof useChatComposerDraft>["composerTerminalContexts"];
   composerPastedTexts: ReturnType<typeof useChatComposerDraft>["composerPastedTexts"];
   composerPullRequestContexts: ReturnType<
@@ -204,6 +205,7 @@ export interface ChatTurnSubmissionInput {
     typeof useChatComposerDraft
   >["composerBrowserAnnotationsRef"];
   composerFileCommentsRef: ReturnType<typeof useChatComposerDraft>["composerFileCommentsRef"];
+  composerPptxAnnotationsRef: ReturnType<typeof useChatComposerDraft>["composerPptxAnnotationsRef"];
   composerTerminalContextsRef: ReturnType<
     typeof useChatComposerDraft
   >["composerTerminalContextsRef"];
@@ -223,6 +225,9 @@ export interface ChatTurnSubmissionInput {
   addComposerFileCommentToDraft: ReturnType<
     typeof useChatComposerDraft
   >["addComposerFileCommentToDraft"];
+  addComposerPptxAnnotationToDraft: ReturnType<
+    typeof useChatComposerDraft
+  >["addComposerPptxAnnotationToDraft"];
   addComposerTerminalContextsToDraft: ReturnType<
     typeof useChatComposerDraft
   >["addComposerTerminalContextsToDraft"];

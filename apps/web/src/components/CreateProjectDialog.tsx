@@ -224,7 +224,7 @@ export function CreateProjectDialog(props: {
   // While the dialog is open it is the only interactive surface, so a folder dropped
   // anywhere in the window counts (see useWindowFolderDrop).
   const isDropTarget = useWindowFolderDrop({
-    enabled: props.open && isElectron && source === "local",
+    enabled: props.open && source === "local",
     onFolder: applyPickedFolder,
     onError: setFormError,
   });
@@ -376,64 +376,76 @@ export function CreateProjectDialog(props: {
 
           {source === "local" ? (
             <>
-              <InputGroup className={PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME}>
-                <InputGroupAddon className="w-10 self-stretch border-e border-m3-outline-variant ps-0">
-                  <FolderIcon className="size-4 text-m3-on-surface-variant" aria-hidden="true" />
-                </InputGroupAddon>
-                <InputGroupInput
-                  id={pathInputId}
-                  value={path}
-                  aria-label="Project folder path"
-                  aria-invalid={formError ? true : undefined}
-                  {...(formError ? { "aria-describedby": errorId } : {})}
-                  placeholder="/path/to/project"
-                  spellCheck={false}
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  onChange={(event) => {
-                    setPath(event.target.value);
-                    setFormError(null);
-                  }}
-                  onKeyDown={submitOnEnter}
-                />
-              </InputGroup>
+              <div className="flex items-center gap-2">
+                <InputGroup
+                  className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "min-w-0 flex-1")}
+                >
+                  <InputGroupAddon className="w-10 self-stretch border-e border-m3-outline-variant ps-0">
+                    <FolderIcon className="size-4 text-m3-on-surface-variant" aria-hidden="true" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id={pathInputId}
+                    value={path}
+                    aria-label="Project folder path"
+                    aria-invalid={formError ? true : undefined}
+                    {...(formError ? { "aria-describedby": errorId } : {})}
+                    placeholder="/path/to/project"
+                    autoComplete="off"
+                    spellCheck={false}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    onChange={(event) => {
+                      setPath(event.target.value);
+                      setFormError(null);
+                    }}
+                    onKeyDown={submitOnEnter}
+                  />
+                </InputGroup>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "shrink-0 px-3")}
+                  disabled={isPickingFolder || submitting}
+                  onClick={() => void handleBrowse()}
+                >
+                  Browse…
+                </Button>
+              </div>
 
-              {isElectron ? (
-                <div className="space-y-2">
-                  <span id={sourceFolderLabelId} className={cn("block", dialogFieldLabelClassName)}>
-                    Source folder
-                  </span>
-                  <button
-                    type="button"
-                    aria-labelledby={sourceFolderLabelId}
-                    disabled={isPickingFolder || submitting}
-                    // M3 outlined button used as a drop target: the outline is
-                    // `outline-variant`, the label is `on-surface`, and the drop-active
-                    // state moves the outline to `primary` with a faint `primary` wash
-                    // rather than a hand-mixed fill. `state-layer` supplies the hover
-                    // and pressed feedback so it matches every other button in the app.
-                    className={cn(
-                      "state-layer flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl border border-m3-outline-variant bg-transparent px-3.5 text-start text-m3-on-surface text-ui outline-none transition-shape state-layer-on-surface focus-ring-inset hover:bg-m3-surface-container-high/60 disabled:pointer-events-none disabled:cursor-default disabled:text-m3-on-surface/38",
-                      isDropTarget && "border-m3-primary bg-m3-primary/8",
-                    )}
-                    onClick={() => void handleBrowse()}
-                  >
-                    <FolderAddIcon aria-hidden="true" />
-                    {isPickingFolder ? (
-                      "Opening the folder picker…"
-                    ) : pickedFolderName ? (
-                      <span className="flex min-w-0 flex-col">
-                        <span className="truncate">{pickedFolderName}</span>
-                        <span className="truncate text-ui-xs text-m3-on-surface-variant">
-                          {pickedPath}
-                        </span>
+              <div className="space-y-2">
+                <span id={sourceFolderLabelId} className={cn("block", dialogFieldLabelClassName)}>
+                  Source folder
+                </span>
+                <button
+                  type="button"
+                  aria-labelledby={sourceFolderLabelId}
+                  disabled={isPickingFolder || submitting}
+                  // M3 outlined button used as a drop target: the outline is
+                  // `outline-variant`, the label is `on-surface`, and the drop-active
+                  // state moves the outline to `primary` with a faint `primary` wash
+                  // rather than a hand-mixed fill. `state-layer` supplies the hover
+                  // and pressed feedback so it matches every other button in the app.
+                  className={cn(
+                    "state-layer flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl border border-m3-outline-variant bg-transparent px-3.5 text-start text-m3-on-surface text-ui outline-none transition-shape state-layer-on-surface focus-ring-inset hover:bg-m3-surface-container-high/60 disabled:pointer-events-none disabled:cursor-default disabled:text-m3-on-surface/38",
+                    isDropTarget && "border-m3-primary bg-m3-primary/8",
+                  )}
+                  onClick={() => void handleBrowse()}
+                >
+                  <FolderAddIcon aria-hidden="true" />
+                  {isPickingFolder ? (
+                    "Opening the folder picker…"
+                  ) : pickedFolderName ? (
+                    <span className="flex min-w-0 flex-col">
+                      <span className="truncate">{pickedFolderName}</span>
+                      <span className="truncate text-ui-xs text-m3-on-surface-variant">
+                        {pickedPath}
                       </span>
-                    ) : (
-                      "Drop a folder here, or browse"
-                    )}
-                  </button>
-                </div>
-              ) : null}
+                    </span>
+                  ) : (
+                    "Select a folder from PC, or drop here"
+                  )}
+                </button>
+              </div>
             </>
           ) : (
             <CreateGitHubProjectFields

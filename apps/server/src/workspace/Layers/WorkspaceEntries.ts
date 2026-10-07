@@ -2,6 +2,7 @@ import { Effect, Layer } from "effect";
 
 import {
   browseWorkspaceEntries,
+  pickFolderOnHost,
   clearWorkspaceIndexCache,
   discoverProjectScripts,
   listWorkspaceDirectories,
@@ -19,6 +20,11 @@ export const WorkspaceEntriesLive = Layer.succeed(WorkspaceEntries, {
     Effect.tryPromise({
       try: () => browseWorkspaceEntries(input),
       catch: (cause) => toWorkspaceEntriesError("browse filesystem", cause),
+    }),
+  pickFolder: (input) =>
+    Effect.tryPromise({
+      try: () => pickFolderOnHost(input),
+      catch: (cause) => toWorkspaceEntriesError("pick folder", cause),
     }),
   search: (input) =>
     Effect.tryPromise({

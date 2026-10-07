@@ -23,8 +23,8 @@ interface PersistedRailShellState {
 }
 
 const DEFAULT_RAIL_SHELL_STATE: PersistedRailShellState = {
-  activeItem: "home",
-  panelView: "home",
+  activeItem: "spaces",
+  panelView: "spaces",
   spacesProjectId: null,
 };
 
@@ -40,7 +40,7 @@ function readPersisted(): PersistedRailShellState {
     const parsed = JSON.parse(
       window.sessionStorage.getItem(STORAGE_KEY) ?? "null",
     ) as Partial<PersistedRailShellState> | null;
-    const panelView = isRailPanelItemId(parsed?.panelView) ? parsed.panelView : "home";
+    const panelView = isRailPanelItemId(parsed?.panelView) ? parsed.panelView : "spaces";
     return {
       // The active item is re-derived from the route on mount (reconcile), so only a
       // valid panel item is worth restoring here.

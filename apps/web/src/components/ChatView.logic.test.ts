@@ -1545,6 +1545,7 @@ describe("deriveComposerSendState", () => {
       assistantSelectionCount: 0,
       browserAnnotationCount: 0,
       fileCommentCount: 0,
+      pptxAnnotationCount: 0,
       terminalContexts: [
         {
           id: "ctx-expired",
@@ -1575,6 +1576,7 @@ describe("deriveComposerSendState", () => {
       assistantSelectionCount: 0,
       browserAnnotationCount: 0,
       fileCommentCount: 0,
+      pptxAnnotationCount: 0,
       terminalContexts: [
         {
           id: "ctx-expired",
@@ -1604,6 +1606,7 @@ describe("deriveComposerSendState", () => {
       assistantSelectionCount: 1,
       browserAnnotationCount: 0,
       fileCommentCount: 0,
+      pptxAnnotationCount: 0,
       terminalContexts: [],
       pastedTexts: [],
       pullRequestContexts: [],
@@ -2965,6 +2968,7 @@ describe("turn dispatch settings", () => {
     terminalContexts: [],
     pullRequestContexts: [],
     fileComments: [],
+    pptxAnnotations: [],
     pastedTexts: [],
     skills: [],
     mentions: [],

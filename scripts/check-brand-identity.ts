@@ -3,7 +3,7 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const characters = (...codes: number[]): string => String.fromCharCode(...codes);
@@ -476,7 +476,8 @@ export function readTrackedFiles(cwd = process.cwd()): BrandIdentityBinaryFile[]
   // exist as directories or be absent when submodules have not been initialized.
   const paths = entries
     .filter((entry) => !entry.startsWith("160000 "))
-    .map((entry) => entry.slice(entry.indexOf("\t") + 1));
+    .map((entry) => entry.slice(entry.indexOf("\t") + 1))
+    .filter((path) => existsSync(resolve(cwd, path)));
   return paths.map((path) => ({ path, contents: readFileSync(resolve(cwd, path)) }));
 }
 

@@ -7,6 +7,8 @@ import { runProcess } from "./processRunner";
 import {
   FilesystemBrowseInput,
   FilesystemBrowseResult,
+  FilesystemPickFolderInput,
+  FilesystemPickFolderResult,
   ProjectDiscoverScriptsInput,
   ProjectDiscoverScriptsResult,
   ProjectDirectoryEntry,
@@ -879,6 +881,83 @@ export async function browseWorkspaceEntries(
       }))
       .toSorted((left, right) => left.name.localeCompare(right.name)),
   };
+}
+
+export async function pickFolderOnHost(
+  input: FilesystemPickFolderInput,
+): Promise<FilesystemPickFolderResult> {
+  const initialPath = input.initialPath ? expandHomePath(input.initialPath.trim()) : undefined;
+
+  if (process.platform === "linux") {
+    // 1. Try kdialog (KDE Plasma)
+    try {
+      const args = ["--getexistingdirectory"];
+      if (initialPath) {
+        args.push(initialPath);
+      }
+      const res = await runProcess("kdialog", args, { allowNonZeroExit: true });
+      if (res.code === 0) {
+        const picked = res.stdout.trim();
+        if (picked) return { path: picked };
+      }
+      if (res.code === 1 && !res.stderr.trim()) {
+        return { path: null };
+      }
+    } catch {
+      // kdialog not available, fall through
+    }
+
+    // 2. Try zenity (GNOME / GTK)
+    try {
+      const args = ["--file-selection", "--directory", "--title=Select project folder"];
+      if (initialPath) {
+        args.push(`--filename=${initialPath.endsWith("/") ? initialPath : `${initialPath}/`}`);
+      }
+      const res = await runProcess("zenity", args, { allowNonZeroExit: true });
+      if (res.code === 0) {
+        const picked = res.stdout.trim();
+        if (picked) return { path: picked };
+      }
+      if (res.code === 1 && !res.stderr.trim()) {
+        return { path: null };
+      }
+    } catch {
+      // zenity not available
+    }
+  } else if (process.platform === "darwin") {
+    try {
+      const script = initialPath
+        ? `POSIX path of (choose folder default location POSIX file "${initialPath.replace(/"/g, '\\"')}" with prompt "Select project folder")`
+        : `POSIX path of (choose folder with prompt "Select project folder")`;
+      const res = await runProcess("osascript", ["-e", script], { allowNonZeroExit: true });
+      if (res.code === 0) {
+        const picked = res.stdout.trim().replace(/\/$/, "");
+        if (picked) return { path: picked };
+      }
+      return { path: null };
+    } catch {
+      // osascript not available or cancelled
+    }
+  } else if (process.platform === "win32") {
+    try {
+      const initial = initialPath ? `$f.SelectedPath = '${initialPath.replace(/'/g, "''")}';` : "";
+      const psCommand = `Add-Type -AssemblyName System.Windows.Forms; $f = New-Object System.Windows.Forms.FolderBrowserDialog; ${initial} if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $f.SelectedPath }`;
+      const res = await runProcess(
+        "powershell.exe",
+        ["-NoProfile", "-NonInteractive", "-Command", psCommand],
+        { allowNonZeroExit: true },
+      );
+      if (res.code === 0) {
+        const picked = res.stdout.trim();
+        if (picked) return { path: picked };
+      }
+      return { path: null };
+    } catch {
+      // powershell error
+    }
+  }
+
+  return { path: null };
 }
 
 export async function searchWorkspaceEntries(

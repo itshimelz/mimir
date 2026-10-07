@@ -38,6 +38,7 @@ import {
   ORCHESTRATION_WS_CHANNELS,
   ORCHESTRATION_WS_METHODS,
   type ContextMenuItem,
+  type FilesystemPickFolderResult,
   type NativeApi,
   ServerConfigUpdatedPayload,
   WS_CHANNELS,
@@ -517,8 +518,18 @@ export function createWsNativeApi(): NativeApi {
   const api: NativeApi = {
     dialogs: {
       pickFolder: async () => {
-        if (!window.desktopBridge) return null;
-        return window.desktopBridge.pickFolder();
+        if (window.desktopBridge?.pickFolder) {
+          return window.desktopBridge.pickFolder();
+        }
+        try {
+          const result = await transport.request<FilesystemPickFolderResult>(
+            WS_METHODS.filesystemPickFolder,
+            {},
+          );
+          return result?.path ?? null;
+        } catch {
+          return null;
+        }
       },
       saveFile: async (input) => {
         if (window.desktopBridge?.saveFile) {

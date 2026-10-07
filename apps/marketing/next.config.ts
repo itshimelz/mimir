@@ -40,6 +40,41 @@ const nextConfig: NextConfig = {
         destination: "/docs/reference/slash-commands",
         permanent: true,
       },
+      {
+        source: "/install",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/sponsor",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/sponsors",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/changelog",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/changelog/:path*",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/docs",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/docs/:path((?!.*\\.md$).*)",
+        destination: "/",
+        permanent: false,
+      },
     ];
   },
   async rewrites() {

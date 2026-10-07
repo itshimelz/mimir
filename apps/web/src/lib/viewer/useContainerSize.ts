@@ -1,14 +1,15 @@
 // FILE: useContainerSize.ts
 // Purpose: Observe an element's content-box size with a "first measurement
-//          immediate, subsequent measurements debounced" policy. The PDF viewer
-//          uses this to resolve fit-width/fit-page scale without re-painting
-//          every page canvas on each frame while a pane divider is dragged.
-// Layer: Web PDF rendering hook
+//          immediate, subsequent measurements debounced" policy. The document
+//          viewers use this to resolve fit-width/fit-page scale without
+//          re-painting the whole deck on each frame while a pane divider is
+//          dragged.
+// Layer: Web viewer rendering hook
 // Exports: useContainerSize
 
 import { useEffect, useState } from "react";
 
-import type { PdfViewportSize } from "./pdfZoom";
+import type { ViewerViewportSize } from "./viewerZoom";
 
 const DEFAULT_DEBOUNCE_MS = 120;
 
@@ -20,9 +21,9 @@ const DEFAULT_DEBOUNCE_MS = 120;
 export function useContainerSize(
   element: HTMLElement | null,
   options?: { debounceMs?: number },
-): PdfViewportSize | null {
+): ViewerViewportSize | null {
   const debounceMs = options?.debounceMs ?? DEFAULT_DEBOUNCE_MS;
-  const [size, setSize] = useState<PdfViewportSize | null>(null);
+  const [size, setSize] = useState<ViewerViewportSize | null>(null);
 
   useEffect(() => {
     if (!element) {

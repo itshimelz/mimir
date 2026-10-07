@@ -26,6 +26,7 @@ import { appendPastedTextsToPrompt, filterPastedTextsWithText } from "./composer
 import { appendPullRequestContextsToPrompt } from "./pullRequestContext";
 import { formatOutgoingComposerPrompt, stageUploadComposerAttachments } from "./composerSend";
 import { appendFileCommentsToPrompt } from "./fileComments";
+import { appendPptxAnnotationsToPrompt } from "./pptxAnnotations";
 import {
   appendTerminalContextsToPrompt,
   filterTerminalContextsWithText,
@@ -139,9 +140,12 @@ async function dispatchQueuedComposerTurnOnce(
     appendPullRequestContextsToPrompt(
       appendPastedTextsToPrompt(
         appendFileCommentsToPrompt(
-          appendTerminalContextsToPrompt(
-            appendAssistantSelectionsToPrompt(queuedTurn.prompt, queuedTurn.assistantSelections),
-            sendableTerminalContexts,
+          appendPptxAnnotationsToPrompt(
+            appendTerminalContextsToPrompt(
+              appendAssistantSelectionsToPrompt(queuedTurn.prompt, queuedTurn.assistantSelections),
+              sendableTerminalContexts,
+            ),
+            queuedTurn.pptxAnnotations,
           ),
           queuedTurn.fileComments,
         ),

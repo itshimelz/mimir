@@ -21,66 +21,40 @@ import {
 } from "react";
 
 import {
-  ChangesIcon,
   ChatBubbleIcon,
   ChevronDownIcon,
   Columns2Icon,
-  DiffIcon,
   FoldersIcon,
+  PanelLeftIcon,
   PanelRightCloseIcon,
-  SearchIcon,
   SparkleIcon,
 } from "~/lib/icons";
 import {
   useDesktopTopBarTrafficLightGutterClassName,
   useDesktopTopBarWindowControlsGutterClassName,
 } from "~/hooks/useDesktopTopBarGutter";
-import {
-  buildFileDiffRenderKey,
-  resolveFileDiffPath,
-  splitRepoRelativePath,
-  summarizeFileDiffStats,
-} from "~/lib/diffRendering";
-import { showFileReferenceContextMenu } from "~/lib/fileReferenceContextMenu";
 import type { ChatFileReference } from "~/lib/chatReferences";
 import type { DiffEditBaseRev } from "~/lib/diffEditBaseRev";
-import {
-  editorActivityBarSelectionLeavesEditor,
-  isEditorActivityBarItemActive,
-  type EditorActivityBarItem,
-  editorCenterModeFamily,
-  type EditorCenterMode,
-  type EditorSurface,
-} from "~/lib/editorCenterMode";
+import { type EditorCenterMode, type EditorSurface } from "~/lib/editorCenterMode";
 import type { FileCommentSelection } from "~/lib/fileComments";
+import type { PptxAnnotationDraft, PptxAnnotationSelection } from "~/lib/pptxAnnotations";
 import { DEFAULT_SPACE_ICON } from "~/lib/spaceGrouping";
 import { cn } from "~/lib/utils";
 import { useTheme } from "~/hooks/useTheme";
-import { Skeleton } from "./ui/skeleton";
 import {
   ChatHeaderButton,
   ChatHeaderIconButton,
   CHAT_SURFACE_HEADER_DIVIDER_CLASS_NAME,
   CHAT_SURFACE_HEADER_HEIGHT_CLASS,
 } from "./chat/chatHeaderControls";
-import { EXPLORER_ROW_PROPS, useExplorerListNavigation } from "./chat/explorerListNavigation";
-import { FileEntryIcon } from "./chat/FileEntryIcon";
-import { fileRowClassName } from "./chat/fileRowStyles";
-import { DiffStat } from "./chat/DiffStatLabel";
-import { PanelStateMessage } from "./chat/PanelStateMessage";
-import { StudioArtifactsSidebar } from "./chat/StudioArtifactsSidebar";
 import { StudioEmptyState } from "./chat/StudioEmptyState";
-import {
-  setFileReferenceDragData,
-  WorkspaceFilesSidebar,
-  WorkspaceSearchSidebar,
-} from "./chat/workspaceExplorer";
 import { Button } from "@/components/m3e/button";
 import { ProjectMenuPicker, type ProjectMenuPickerOption } from "./ProjectMenuPicker";
 import { SpaceIcon } from "./SpaceIcon";
 import { SpaceMenuPicker } from "./SpaceMenuPicker";
 import { SegmentedPicker } from "./SegmentedPicker";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import { useOptionalSidebar } from "./ui/sidebar";
 import { WorkspaceFileDiffEditorPane } from "./chat/WorkspaceFileDiffEditorPane";
 import { useQueryClient } from "@tanstack/react-query";
 import { flushWorkspaceEditors } from "~/lib/workspaceEditorSession";
@@ -88,25 +62,12 @@ import { WorkspaceFileEditorPane } from "./chat/WorkspaceFileEditorPane";
 import { WorkspaceFilePreview } from "./WorkspaceFilePreview";
 
 const EDITOR_CHAT_PANE_STORAGE_KEY = "synara.editor.chatPaneWidth";
-const EDITOR_SIDEBAR_STORAGE_KEY = "synara.editor.sidebarWidth";
-const EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY = "synara.editor.sidebarVisible";
 const EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY = "synara.editor.chatPaneVisible";
 const EDITOR_SURFACE_STORAGE_KEY = "synara.editor.surface";
 const EDITOR_CHAT_PANE_DEFAULT_WIDTH = 384;
 const EDITOR_CHAT_PANE_MIN_WIDTH = 320;
 const EDITOR_CHAT_PANE_MAX_WIDTH = 600;
 const EDITOR_CHAT_PANE_KEYBOARD_STEP = 24;
-const EDITOR_SIDEBAR_DEFAULT_WIDTH = 256;
-const EDITOR_SIDEBAR_MIN_WIDTH = 200;
-const EDITOR_SIDEBAR_MAX_WIDTH = 480;
-const EDITOR_SIDEBAR_KEYBOARD_STEP = 16;
-
-/**
- * The Diff left pane is gated as unavailable in the course/studio workspace for now,
- * to cut the number of left-rail modes a student has to triage. Flip to re-enable the
- * `centerFamily === "diff"` branch and the DiffFilesSidebar rendering with it.
- */
-const DIFF_LEFT_PANE_ENABLED: boolean = true;
 
 interface EditorWorkspaceViewProps {
   workspaceRoot: string | null;
@@ -144,6 +105,8 @@ interface EditorWorkspaceViewProps {
   onReferenceInChat?: (reference: ChatFileReference) => void;
   onAskWhyInChat?: (reference: ChatFileReference) => void;
   onCommentInChat?: (comment: FileCommentSelection) => void;
+  pptxAnnotations?: ReadonlyArray<PptxAnnotationDraft>;
+  onPptxCommentInChat?: (annotation: PptxAnnotationSelection) => void;
   onSelectStarterPrompt?: (prompt: string) => void;
   onSelectProject?: (projectId: ProjectId) => void;
   /** Agent-produced artifacts backing the Studio surface. Undefined while Studio has no data. */
@@ -184,36 +147,6 @@ function storeEditorChatPaneWidth(width: number): void {
       EDITOR_CHAT_PANE_STORAGE_KEY,
       String(clampEditorChatPaneWidth(width)),
     );
-  } catch {
-    // Best-effort preference persistence only.
-  }
-}
-
-function clampEditorSidebarWidth(width: number): number {
-  return Math.min(EDITOR_SIDEBAR_MAX_WIDTH, Math.max(EDITOR_SIDEBAR_MIN_WIDTH, Math.round(width)));
-}
-
-function readStoredEditorSidebarWidth(): number {
-  if (typeof window === "undefined") {
-    return EDITOR_SIDEBAR_DEFAULT_WIDTH;
-  }
-
-  try {
-    const rawValue = window.localStorage.getItem(EDITOR_SIDEBAR_STORAGE_KEY);
-    const parsed = rawValue === null ? Number.NaN : Number.parseFloat(rawValue);
-    return Number.isFinite(parsed) ? clampEditorSidebarWidth(parsed) : EDITOR_SIDEBAR_DEFAULT_WIDTH;
-  } catch {
-    return EDITOR_SIDEBAR_DEFAULT_WIDTH;
-  }
-}
-
-function storeEditorSidebarWidth(width: number): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  try {
-    window.localStorage.setItem(EDITOR_SIDEBAR_STORAGE_KEY, String(clampEditorSidebarWidth(width)));
   } catch {
     // Best-effort preference persistence only.
   }
@@ -265,18 +198,6 @@ function storeEditorSurface(surface: EditorSurface): void {
   }
 }
 
-interface EditorSidebarResizeState {
-  pointerId: number;
-  startX: number;
-  startWidth: number;
-  pendingWidth: number;
-  rafId: number | null;
-  restoreBodyCursor: string;
-  restoreBodyUserSelect: string;
-  onPointerMove: (event: PointerEvent) => void;
-  onPointerEnd: (event: PointerEvent) => void;
-}
-
 interface EditorChatPaneResizeState {
   pointerId: number;
   startX: number;
@@ -289,163 +210,6 @@ interface EditorChatPaneResizeState {
   onPointerEnd: (event: PointerEvent) => void;
 }
 
-function DiffFileRow(props: {
-  fileDiff: FileDiffMetadata;
-  selected: boolean;
-  resolvedTheme: "light" | "dark";
-  onSelectFile: (path: string) => void;
-  onFileContextMenu: (filePath: string, position: { x: number; y: number }) => void;
-}) {
-  const filePath = resolveFileDiffPath(props.fileDiff);
-  const { dir, name } = splitRepoRelativePath(filePath);
-  const stat = summarizeFileDiffStats([props.fileDiff]);
-
-  return (
-    <button
-      {...EXPLORER_ROW_PROPS}
-      type="button"
-      className={fileRowClassName(props.selected, "h-8 px-2")}
-      title={filePath}
-      draggable
-      onDragStart={(event) => {
-        setFileReferenceDragData(event.dataTransfer, filePath);
-      }}
-      onClick={() => props.onSelectFile(filePath)}
-      onContextMenu={(event) => {
-        event.preventDefault();
-        props.onFileContextMenu(filePath, { x: event.clientX, y: event.clientY });
-      }}
-    >
-      <FileEntryIcon
-        pathValue={filePath}
-        kind="file"
-        theme={props.resolvedTheme}
-        className="size-3.5 shrink-0"
-      />
-      <div className="min-w-0 flex-1 overflow-hidden">
-        <div className="flex min-w-0 items-baseline gap-1.5 overflow-hidden">
-          <span className="shrink-0 truncate font-medium">{name}</span>
-          {dir ? (
-            <span className="min-w-0 truncate text-ui-sm text-muted-foreground/55">{dir}</span>
-          ) : null}
-        </div>
-      </div>
-      <DiffStat
-        additions={stat.additions}
-        deletions={stat.deletions}
-        className="shrink-0 text-ui-xs tabular-nums"
-      />
-    </button>
-  );
-}
-
-const DIFF_FILE_SKELETON_ROW_WIDTHS = ["w-10/12", "w-7/12", "w-9/12", "w-6/12", "w-8/12"];
-
-function DiffFilesLoadingRows() {
-  return (
-    <div className="space-y-1 px-1 py-1" role="status" aria-label="Loading changed files...">
-      {DIFF_FILE_SKELETON_ROW_WIDTHS.map((width) => (
-        <div key={width} className="flex h-8 items-center gap-1.5 px-2">
-          <Skeleton className="size-3.5 shrink-0 rounded-sm" />
-          <Skeleton className={cn("h-3 rounded-full", width)} />
-          <Skeleton className="ml-auto h-3 w-9 shrink-0 rounded-full" />
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DiffFilesSidebar(props: {
-  files: ReadonlyArray<FileDiffMetadata>;
-  isLoading: boolean;
-  selectedFilePath: string | null;
-  containerClassName?: string;
-  optionsControl?: ReactNode;
-  onSelectFile: (path: string) => void;
-  onReferenceInChat: ((reference: ChatFileReference) => void) | undefined;
-  onAskWhyInChat: ((reference: ChatFileReference) => void) | undefined;
-}) {
-  const { resolvedTheme } = useTheme();
-  const { onAskWhyInChat, onReferenceInChat } = props;
-  const handleListKeyDown = useExplorerListNavigation();
-  const totals = summarizeFileDiffStats(props.files);
-  const hasDiffStats = totals.additions > 0 || totals.deletions > 0;
-  const showLoadingRows = props.isLoading && props.files.length === 0;
-  const handleFileContextMenu = (filePath: string, position: { x: number; y: number }) => {
-    void showFileReferenceContextMenu({
-      path: filePath,
-      position,
-      onReferenceInChat,
-      onAskWhyInChat,
-    });
-  };
-
-  return (
-    <aside
-      className={
-        props.containerClassName ??
-        "flex min-h-[11rem] w-full shrink-0 flex-col border-b border-border/65 app-content-surface lg:h-full lg:w-56 lg:border-b-0 lg:border-r"
-      }
-    >
-      <div className="flex h-10 shrink-0 items-center gap-2 border-b border-border/65 px-3">
-        <DiffIcon className="size-3.5 shrink-0 text-muted-foreground" />
-        <span className="min-w-0 flex-1 truncate text-ui font-medium text-foreground/86">
-          Changed files
-        </span>
-        <div className="ml-auto flex shrink-0 items-center gap-1.5">
-          {props.files.length > 0 ? (
-            <span className="rounded-full bg-muted px-1.5 text-ui-xs font-medium text-muted-foreground tabular-nums">
-              {props.files.length}
-            </span>
-          ) : null}
-          {props.optionsControl}
-        </div>
-      </div>
-      {hasDiffStats ? (
-        <div className="flex h-8 shrink-0 items-center gap-2 border-b border-border/45 px-3">
-          <DiffStat
-            additions={totals.additions}
-            deletions={totals.deletions}
-            className="text-ui-sm tabular-nums"
-          />
-        </div>
-      ) : null}
-      {/* Keyboard nav lives on the scrolling list, not the whole aside, so the
-          header's actions menu stays out of arrow-key scope (the search sidebars
-          attach at the aside because their only header control is a text input). */}
-      <div
-        className={cn(
-          "min-h-0 flex-1 overflow-auto px-1 py-1",
-          !showLoadingRows && props.files.length === 0 && "flex flex-col",
-        )}
-        onKeyDown={handleListKeyDown}
-      >
-        {showLoadingRows ? (
-          <DiffFilesLoadingRows />
-        ) : props.files.length === 0 ? (
-          <PanelStateMessage density="compact" fill="flex">
-            <p>No files in this diff.</p>
-          </PanelStateMessage>
-        ) : (
-          props.files.map((fileDiff) => {
-            const filePath = resolveFileDiffPath(fileDiff);
-            return (
-              <DiffFileRow
-                key={buildFileDiffRenderKey(fileDiff)}
-                fileDiff={fileDiff}
-                resolvedTheme={resolvedTheme}
-                selected={props.selectedFilePath === filePath}
-                onSelectFile={props.onSelectFile}
-                onFileContextMenu={handleFileContextMenu}
-              />
-            );
-          })
-        )}
-      </div>
-    </aside>
-  );
-}
-
 export interface EditorLeaveGuard {
   guardLeavingEdit: (run: () => void) => void;
 }
@@ -455,27 +219,14 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   // global sidebar is collapsed, so it has to clear the macOS traffic lights the
   // same way every other chat-surface header does.
   const trafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
+  const optionalSidebar = useOptionalSidebar();
   const { activeTheme, resolvedTheme: editorResolvedTheme } = useTheme();
   const isMimirTheme = activeTheme?.codeThemeId === "synara";
   const [chatPaneWidth, setChatPaneWidth] = useState(readStoredEditorChatPaneWidth);
   const chatPaneResizeStateRef = useRef<EditorChatPaneResizeState | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(readStoredEditorSidebarWidth);
-  const sidebarResizeStateRef = useRef<EditorSidebarResizeState | null>(null);
-  // Both side surfaces can be hidden so the main content takes the full width:
-  // re-clicking the active activity-bar item collapses the sidebar (VS Code
-  // style), and the header chat toggle hides the chat pane (kept mounted so
-  // the chat runtime survives).
-  const [sidebarVisible, setSidebarVisible] = useState(() =>
-    readStoredEditorVisibility(EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY),
-  );
   const [chatPaneVisible, setChatPaneVisible] = useState(() =>
     readStoredEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY),
   );
-  // The search pane replaces the explorer/diff sidebar without touching the
-  // center mode, so picking a result simply opens it in the file preview. The
-  // query lives here so it survives toggling between sidebar panes.
-  const [searchPaneActive, setSearchPaneActive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   // Study is the course surface (explore/read/write the course's own files); Studio is the
   // agent surface (artifacts and lessons it produced). Both share this workspace and the
   // chat rail, so the switch is local state rather than a route.
@@ -496,8 +247,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   };
   const desktopTopBarWindowControlsGutterClassName =
     useDesktopTopBarWindowControlsGutterClassName();
-  const { centerMode, onCenterModeChange } = props;
-  const centerFamily = editorCenterModeFamily(centerMode);
 
   const queryClient = useQueryClient();
   const leaveRequestRef = useRef(0);
@@ -522,39 +271,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
       setSurface(next);
       storeEditorSurface(next);
       setSelectedStudioOutputPath(null);
-      if (next === "study") {
-        // Study's left column is the course file tree. Come back to it rather than
-        // inheriting whatever the search pane was showing.
-        setSearchPaneActive(false);
-        setSidebarVisible(true);
-        storeEditorVisibility(EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY, true);
-      }
-      // Studio's sidebar renders unconditionally and is not governed by
-      // `sidebarVisible`, so switching away from it needs no teardown.
     });
-  };
-  const activityBarSelection = (item: EditorActivityBarItem) => ({
-    item,
-    sidebarVisible,
-    searchPaneActive,
-    centerFamily,
-  });
-  const handleActivityBarSelectItem = (item: EditorActivityBarItem) => {
-    if (isEditorActivityBarItemActive(activityBarSelection(item))) {
-      setSidebarVisible(false);
-      storeEditorVisibility(EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY, false);
-      return;
-    }
-    if (!sidebarVisible) {
-      setSidebarVisible(true);
-      storeEditorVisibility(EDITOR_SIDEBAR_VISIBLE_STORAGE_KEY, true);
-    }
-    if (item === "search") {
-      setSearchPaneActive(true);
-      return;
-    }
-    setSearchPaneActive(false);
-    onCenterModeChange(item);
   };
   const toggleChatPaneVisible = () => {
     setChatPaneVisible((previous) => {
@@ -663,14 +380,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     window.addEventListener("pointercancel", resizeState.onPointerEnd);
   };
 
-  const guardedSelectFile = (filePath: string) => {
-    guardLeavingEdit(() => props.onSelectFile(filePath));
-  };
-
-  const guardedSelectDiffFile = (filePath: string) => {
-    guardLeavingEdit(() => props.onSelectDiffFile(filePath));
-  };
-
   const handleChatPaneResizeDoubleClick = () => {
     setChatPaneWidth(EDITOR_CHAT_PANE_DEFAULT_WIDTH);
     storeEditorChatPaneWidth(EDITOR_CHAT_PANE_DEFAULT_WIDTH);
@@ -699,112 +408,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     storeEditorChatPaneWidth(clampedWidth);
   };
 
-  const stopSidebarResize = () => {
-    const resizeState = sidebarResizeStateRef.current;
-    if (!resizeState || typeof window === "undefined") {
-      return;
-    }
-
-    if (resizeState.rafId !== null) {
-      window.cancelAnimationFrame(resizeState.rafId);
-      resizeState.rafId = null;
-    }
-
-    window.removeEventListener("pointermove", resizeState.onPointerMove);
-    window.removeEventListener("pointerup", resizeState.onPointerEnd);
-    window.removeEventListener("pointercancel", resizeState.onPointerEnd);
-    document.body.style.cursor = resizeState.restoreBodyCursor;
-    document.body.style.userSelect = resizeState.restoreBodyUserSelect;
-    setSidebarWidth(resizeState.pendingWidth);
-    storeEditorSidebarWidth(resizeState.pendingWidth);
-    sidebarResizeStateRef.current = null;
-  };
-
-  useEffect(() => stopSidebarResize, [stopSidebarResize]);
-
-  const handleSidebarResizePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0 || typeof window === "undefined") {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    stopSidebarResize();
-
-    const resizeState: EditorSidebarResizeState = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startWidth: sidebarWidth,
-      pendingWidth: sidebarWidth,
-      rafId: null,
-      restoreBodyCursor: document.body.style.cursor,
-      restoreBodyUserSelect: document.body.style.userSelect,
-      onPointerMove: () => undefined,
-      onPointerEnd: () => undefined,
-    };
-
-    resizeState.onPointerMove = (moveEvent) => {
-      if (moveEvent.pointerId !== resizeState.pointerId) {
-        return;
-      }
-
-      resizeState.pendingWidth = clampEditorSidebarWidth(
-        resizeState.startWidth + moveEvent.clientX - resizeState.startX,
-      );
-
-      if (resizeState.rafId !== null) {
-        return;
-      }
-
-      resizeState.rafId = window.requestAnimationFrame(() => {
-        resizeState.rafId = null;
-        setSidebarWidth(resizeState.pendingWidth);
-      });
-    };
-
-    resizeState.onPointerEnd = (endEvent) => {
-      if (endEvent.pointerId !== resizeState.pointerId) {
-        return;
-      }
-      stopSidebarResize();
-    };
-
-    sidebarResizeStateRef.current = resizeState;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    window.addEventListener("pointermove", resizeState.onPointerMove);
-    window.addEventListener("pointerup", resizeState.onPointerEnd);
-    window.addEventListener("pointercancel", resizeState.onPointerEnd);
-  };
-
-  const handleSidebarResizeDoubleClick = () => {
-    setSidebarWidth(EDITOR_SIDEBAR_DEFAULT_WIDTH);
-    storeEditorSidebarWidth(EDITOR_SIDEBAR_DEFAULT_WIDTH);
-  };
-
-  const handleSidebarResizeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    let nextWidth: number | null = null;
-
-    if (event.key === "ArrowRight") {
-      nextWidth = sidebarWidth + EDITOR_SIDEBAR_KEYBOARD_STEP;
-    } else if (event.key === "ArrowLeft") {
-      nextWidth = sidebarWidth - EDITOR_SIDEBAR_KEYBOARD_STEP;
-    } else if (event.key === "Home") {
-      nextWidth = EDITOR_SIDEBAR_MIN_WIDTH;
-    } else if (event.key === "End") {
-      nextWidth = EDITOR_SIDEBAR_MAX_WIDTH;
-    }
-
-    if (nextWidth === null) {
-      return;
-    }
-
-    event.preventDefault();
-    const clampedWidth = clampEditorSidebarWidth(nextWidth);
-    setSidebarWidth(clampedWidth);
-    storeEditorSidebarWidth(clampedWidth);
-  };
-
   return (
     <div
       data-editor-workspace
@@ -823,6 +426,18 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             it collide with a long workspace name or the chat controls on a narrow window. */}
         <div className="grid w-full min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
           <div className={cn("flex min-w-0 items-center gap-1.5", trafficLightGutterClassName)}>
+            {optionalSidebar ? (
+              <ChatHeaderIconButton
+                type="button"
+                tone="plain"
+                label={optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"}
+                title={optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"}
+                className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={optionalSidebar.toggleSidebar}
+              >
+                <PanelLeftIcon className="size-4" />
+              </ChatHeaderIconButton>
+            ) : null}
             {/* The Space (course) leads and the project sits under it in the reading order:
                 the course is the unit you navigate by, the folder is a detail inside it.
                 Prepended rather than stacked because the header is a fixed 44px, and kept
@@ -846,7 +461,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                       icon={props.spaceIcon ?? DEFAULT_SPACE_ICON}
                       className="size-3.5 shrink-0 opacity-80"
                     />
-                    <span className="truncate">{props.spaceName ?? "No course"}</span>
+                    <span className="truncate">{props.spaceName ?? "Course Workspace"}</span>
                     <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" />
                   </Button>
                 }
@@ -1035,118 +650,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
       </div>
       <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
-          <aside
-            data-testid="editor-resizable-left-panel"
-            aria-label="Editor left panel"
-            className={cn(
-              "flex min-h-[11rem] w-full shrink-0 flex-col border-b border-border/65 app-content-surface lg:h-full lg:w-[var(--editor-sidebar-width)] lg:border-b-0 lg:border-r",
-              !sidebarVisible && "hidden",
-            )}
-            style={
-              {
-                "--editor-sidebar-width": `${sidebarWidth}px`,
-              } as CSSProperties
-            }
-          >
-            {surface === "studio" ? (
-              <StudioArtifactsSidebar
-                entries={props.studioOutputs ?? []}
-                isLoading={props.studioOutputsLoading ?? false}
-                selectedOutputPath={selectedStudioOutputPath}
-                containerClassName="flex h-full min-h-0 w-full shrink-0 flex-col app-content-surface"
-                onSelectOutput={(entry) =>
-                  guardLeavingEdit(() => setSelectedStudioOutputPath(entry.fullPath))
-                }
-              />
-            ) : (
-              <div
-                aria-label="Editor activity bar"
-                className="flex h-full min-h-0 w-full shrink-0 flex-col app-content-surface"
-              >
-                {/* Files/Diff/Search moved in from the editor's secondary icon rail, so only one
-                    vertical rail (the app rail) remains. Same three radio states, same leave-edit
-                    guard — only the placement changed. */}
-                {/* Files/Search use the M3E segmented tab control; the Diff left pane is off
-                    behind a disabled feature flag to cut cognitive load. The app rail
-                    remains the only full-height vertical rail. */}
-                <Tabs
-                  value={searchPaneActive ? "search" : "file"}
-                  onValueChange={(val) => {
-                    const value = val as EditorActivityBarItem;
-                    editorActivityBarSelectionLeavesEditor(activityBarSelection(value))
-                      ? guardLeavingEdit(() => handleActivityBarSelectItem(value))
-                      : handleActivityBarSelectItem(value);
-                  }}
-                  className="w-full shrink-0"
-                >
-                  <TabsList variant="segmented" aria-label="Explorer view" className="h-9 p-0.5">
-                    <TabsTrigger value="file" className="flex-1 px-2.5">
-                      <FoldersIcon className="size-4" />
-                      <span className="truncate">Files</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="search" className="flex-1 px-2.5">
-                      <SearchIcon className="size-4" />
-                      <span className="truncate">Search</span>
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-                {searchPaneActive ? (
-                  <WorkspaceSearchSidebar
-                    workspaceRoot={props.workspaceRoot}
-                    query={searchQuery}
-                    onQueryChange={setSearchQuery}
-                    selectedFilePath={props.selectedFilePath}
-                    containerClassName="flex min-h-0 w-full flex-1 flex-col app-content-surface"
-                    onSelectFile={guardedSelectFile}
-                    onReferenceInChat={props.onReferenceInChat}
-                  />
-                ) : DIFF_LEFT_PANE_ENABLED && centerFamily === "diff" ? (
-                  <DiffFilesSidebar
-                    files={props.diffFiles}
-                    isLoading={props.diffFilesLoading ?? false}
-                    selectedFilePath={props.selectedDiffFilePath}
-                    optionsControl={props.diffOptionsControl}
-                    containerClassName="flex min-h-0 w-full flex-1 flex-col app-content-surface"
-                    onSelectFile={guardedSelectDiffFile}
-                    onReferenceInChat={props.onReferenceInChat}
-                    onAskWhyInChat={props.onAskWhyInChat}
-                  />
-                ) : (
-                  <WorkspaceFilesSidebar
-                    workspaceRoot={props.workspaceRoot}
-                    selectedFilePath={props.selectedFilePath}
-                    expandedDirectories={props.expandedDirectories}
-                    containerClassName="flex min-h-0 w-full flex-1 flex-col app-content-surface"
-                    onSelectFile={guardedSelectFile}
-                    onToggleDirectory={props.onToggleDirectory}
-                    onReferenceInChat={props.onReferenceInChat}
-                  />
-                )}
-              </div>
-            )}
-          </aside>
-          <div
-            role="separator"
-            aria-label="Resize left panel"
-            aria-orientation="vertical"
-            aria-valuemin={EDITOR_SIDEBAR_MIN_WIDTH}
-            aria-valuemax={EDITOR_SIDEBAR_MAX_WIDTH}
-            aria-valuenow={sidebarWidth}
-            tabIndex={0}
-            title="Drag to resize left panel"
-            className={cn(
-              "group relative z-10 w-0 shrink-0 cursor-col-resize outline-none",
-              sidebarVisible ? "hidden lg:block" : "hidden",
-            )}
-            onPointerDown={handleSidebarResizePointerDown}
-            onDoubleClick={handleSidebarResizeDoubleClick}
-            onKeyDown={handleSidebarResizeKeyDown}
-          >
-            <span
-              className="absolute inset-y-0 -left-[3px] w-1.5 cursor-col-resize bg-transparent transition-colors group-hover:bg-[var(--color-background-button-secondary-hover)] group-focus-visible:bg-[var(--color-background-button-secondary-hover)]"
-              aria-hidden="true"
-            />
-          </div>
           <main className="flex min-h-[16rem] min-w-0 flex-1 border-b border-border/65 lg:h-full lg:border-b-0">
             {/* Studio reviews what the agent produced, in the same viewer Study uses.
                 `StudioOutputEntry.relativePath` is resolved against the thread's own
@@ -1212,6 +715,8 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                       onReferenceInChat={props.onReferenceInChat}
                       onAskWhyInChat={props.onAskWhyInChat}
                       onCommentInChat={props.onCommentInChat}
+                      pptxAnnotations={props.pptxAnnotations}
+                      onPptxCommentInChat={props.onPptxCommentInChat}
                       onEditFile={props.onEditFile}
                     />
                   </div>

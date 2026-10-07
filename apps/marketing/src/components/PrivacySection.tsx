@@ -4,7 +4,6 @@
 // Layer: Marketing UI section (M3E cards + icons)
 
 import Link from "next/link";
-import { LuGithub } from "react-icons/lu";
 import { Button } from "@/components/m3e/button";
 import { Card } from "@/components/m3e/card";
 import { Icon } from "@/components/m3e/icon";
@@ -70,20 +69,6 @@ export default function PrivacySection() {
           <Button variant="text" size="sm" render={<Link href="/privacy" />}>
             Read the privacy approach
             <Icon name="arrow_forward" data-icon="inline-end" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            render={
-              <a
-                href="https://github.com/itshimelz/mimir"
-                target="_blank"
-                rel="noopener noreferrer"
-              />
-            }
-          >
-            <LuGithub className="size-4" aria-hidden="true" />
-            Inspect the source
           </Button>
         </div>
       </div>

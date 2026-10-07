@@ -15,7 +15,7 @@ import { useEffect, useRef, useState } from "react";
 import type { PDFDocumentProxy } from "~/lib/pdf/pdfEngine";
 import type { PdfLink } from "~/lib/pdf/pdfLinks";
 import { usePdfPageRender } from "~/lib/pdf/usePdfPageRender";
-import type { PdfPageIntrinsicSize } from "~/lib/pdf/pdfZoom";
+import type { ViewerContentSize } from "~/lib/viewer/viewerZoom";
 import { openExternalLink } from "~/lib/linkChips";
 
 // Prerender pages within roughly one viewport above/below so scrolling reveals
@@ -27,7 +27,7 @@ interface PdfPageViewProps {
   pageNumber: number;
   scale: number;
   /** Page size at scale 1, used to size the placeholder before the page paints. */
-  intrinsicSize: PdfPageIntrinsicSize;
+  intrinsicSize: ViewerContentSize;
   /** Scroll container used as the IntersectionObserver root. */
   scrollRoot: HTMLElement | null;
   registerElement: (pageNumber: number, element: HTMLElement | null) => void;

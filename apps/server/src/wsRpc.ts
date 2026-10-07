@@ -1991,6 +1991,8 @@ const makeWsRpcHandlersLayer = () =>
           ),
         [WS_METHODS.filesystemBrowse]: (input) =>
           rpcEffect(workspaceEntries.browse(input), "Failed to browse filesystem"),
+        [WS_METHODS.filesystemPickFolder]: (input) =>
+          rpcEffect(workspaceEntries.pickFolder(input), "Failed to pick folder"),
         [WS_METHODS.shellOpenInEditor]: (input) =>
           rpcEffect(open.openInEditor(input), "Failed to open editor"),
 

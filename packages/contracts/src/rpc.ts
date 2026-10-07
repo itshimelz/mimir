@@ -162,7 +162,12 @@ import {
   ThreadComputerState,
 } from "./computer";
 import { ComputerGetAuditHistoryInput, ComputerGetAuditHistoryResult } from "./computerAudit";
-import { FilesystemBrowseInput, FilesystemBrowseResult } from "./filesystem";
+import {
+  FilesystemBrowseInput,
+  FilesystemBrowseResult,
+  FilesystemPickFolderInput,
+  FilesystemPickFolderResult,
+} from "./filesystem";
 import {
   GitHubProjectProvisionInput,
   GitHubProjectProvisionProgressEvent,
@@ -695,6 +700,12 @@ export const WsStudioListSpaceOutputsRpc = Rpc.make(WS_METHODS.studioListSpaceOu
 export const WsFilesystemBrowseRpc = Rpc.make(WS_METHODS.filesystemBrowse, {
   payload: FilesystemBrowseInput,
   success: FilesystemBrowseResult,
+  error: WsRpcError,
+});
+
+export const WsFilesystemPickFolderRpc = Rpc.make(WS_METHODS.filesystemPickFolder, {
+  payload: FilesystemPickFolderInput,
+  success: FilesystemPickFolderResult,
   error: WsRpcError,
 });
 
@@ -1930,6 +1941,7 @@ export const WsFeatureRpcGroup = RpcGroup.make(
   WsStudioListThreadOutputsRpc,
   WsStudioListSpaceOutputsRpc,
   WsFilesystemBrowseRpc,
+  WsFilesystemPickFolderRpc,
   WsShellOpenInEditorRpc,
   WsGitGithubRepositoryRpc,
   WsGitStatusRpc,

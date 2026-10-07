@@ -103,6 +103,7 @@ interface PreparedChatTurn {
   composerAssistantSelectionsSnapshot: ChatTurnSubmissionInput["composerAssistantSelections"];
   composerBrowserAnnotationsSnapshot: ChatTurnSubmissionInput["composerBrowserAnnotations"];
   composerFileCommentsSnapshot: ChatTurnSubmissionInput["composerFileComments"];
+  composerPptxAnnotationsSnapshot: ChatTurnSubmissionInput["composerPptxAnnotations"];
   composerTerminalContextsSnapshot: ChatTurnSubmissionInput["composerTerminalContexts"];
   composerPastedTextsSnapshot: ChatTurnSubmissionInput["composerPastedTexts"];
   composerPullRequestContextsSnapshot: ChatTurnSubmissionInput["composerPullRequestContexts"];
@@ -142,6 +143,7 @@ type ChatTurnExecutionInput = Pick<
   | "addComposerAssistantSelectionToDraft"
   | "addComposerDraftBrowserAnnotations"
   | "addComposerFileCommentToDraft"
+  | "addComposerPptxAnnotationToDraft"
   | "addComposerTerminalContextsToDraft"
   | "addComposerPastedTextsToDraft"
   | "addComposerPullRequestContextsToDraft"
@@ -187,6 +189,7 @@ export function useChatTurnExecution({
   addComposerAssistantSelectionToDraft,
   addComposerDraftBrowserAnnotations,
   addComposerFileCommentToDraft,
+  addComposerPptxAnnotationToDraft,
   addComposerTerminalContextsToDraft,
   addComposerPastedTextsToDraft,
   addComposerPullRequestContextsToDraft,
@@ -246,6 +249,7 @@ export function useChatTurnExecution({
         composerAssistantSelectionsSnapshot,
         composerBrowserAnnotationsSnapshot,
         composerFileCommentsSnapshot,
+        composerPptxAnnotationsSnapshot,
         composerTerminalContextsSnapshot,
         composerPastedTextsSnapshot,
         composerPullRequestContextsSnapshot,
@@ -828,6 +832,7 @@ export function useChatTurnExecution({
               retryDraft.assistantSelections.length === 0 &&
               retryDraft.browserAnnotations.length === 0 &&
               retryDraft.fileComments.length === 0 &&
+              retryDraft.pptxAnnotations.length === 0 &&
               retryDraft.terminalContexts.length === 0 &&
               retryDraft.pastedTexts.length === 0 &&
               retryDraft.pullRequestContexts.length === 0))
@@ -880,6 +885,14 @@ export function useChatTurnExecution({
               ? addComposerFileCommentToDraft
               : (value: Parameters<typeof addComposerFileCommentToDraft>[0]) =>
                   useComposerDraftStore.getState().addFileComment(threadIdForSend, value))(comment);
+          }
+          for (const annotation of composerPptxAnnotationsSnapshot) {
+            (isFocusedSend
+              ? addComposerPptxAnnotationToDraft
+              : (value: Parameters<typeof addComposerPptxAnnotationToDraft>[0]) =>
+                  useComposerDraftStore.getState().addPptxAnnotation(threadIdForSend, value))(
+              annotation,
+            );
           }
           (isFocusedSend
             ? addComposerTerminalContextsToDraft
@@ -958,6 +971,7 @@ export function useChatTurnExecution({
       addComposerAssistantSelectionToDraft,
       addComposerDraftBrowserAnnotations,
       addComposerFileCommentToDraft,
+      addComposerPptxAnnotationToDraft,
       addComposerTerminalContextsToDraft,
       addComposerPastedTextsToDraft,
       addComposerPullRequestContextsToDraft,

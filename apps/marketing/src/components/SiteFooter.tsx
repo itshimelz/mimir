@@ -5,12 +5,7 @@
 import Link from "next/link";
 import { Button } from "@/components/m3e/button";
 
-const FOOTER_LINKS = [
-  { href: "/docs", label: "Docs" },
-  { href: "/changelog", label: "Changelog" },
-  { href: "/sponsor", label: "Sponsor" },
-  { href: "/privacy", label: "Privacy" },
-] as const;
+const FOOTER_LINKS = [{ href: "/privacy", label: "Privacy" }] as const;
 
 export default function SiteFooter() {
   return (
@@ -19,12 +14,12 @@ export default function SiteFooter() {
         <span>
           Made by{" "}
           <a
-            href="https://x.com/emanueledpt"
+            href="https://github.com/itshimelz"
             target="_blank"
             rel="noopener noreferrer"
-            className="state-layer rounded-sm px-0.5 text-primary transition-colors hover:text-primary-dim focus-ring"
+            className="state-layer rounded-sm px-0.5 font-medium text-primary transition-colors hover:text-primary-dim focus-ring"
           >
-            @emanueledpt
+            Himelz Studio
           </a>
         </span>
         <div className="flex flex-wrap items-center gap-1">

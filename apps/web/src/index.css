@@ -1626,7 +1626,7 @@ label:has(> select#reasoning-effort) select {
   box-shadow: inset 2px 0 0 0 var(--color-text-accent);
 }
 
-.editor-file-viewer__comment-box {
+.local-comment__box {
   position: absolute;
   z-index: 3;
   margin-top: 0.3rem;
@@ -1648,7 +1648,7 @@ label:has(> select#reasoning-effort) select {
 
 /* Rounded chip holding the Synara mark in the box header, echoing the source
    file's row gutter badge so the comment reads as "from Synara". */
-.editor-file-viewer__comment-badge {
+.local-comment__badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1661,7 +1661,7 @@ label:has(> select#reasoning-effort) select {
 
 /* Borderless request field: it blends into the card so the box reads as one
    surface (matching Codex's local-comment editor) rather than an input-in-a-box. */
-.editor-file-viewer__comment-input {
+.local-comment__input {
   width: 100%;
   min-height: 2.5rem;
   padding: 0;
@@ -1677,7 +1677,7 @@ label:has(> select#reasoning-effort) select {
   resize: none;
 }
 
-.editor-file-viewer__comment-input::placeholder {
+.local-comment__input::placeholder {
   color: color-mix(in srgb, var(--color-text-foreground) 40%, transparent);
 }
 

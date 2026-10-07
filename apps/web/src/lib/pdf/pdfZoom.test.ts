@@ -1,27 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  clampPdfScale,
-  nextZoomScale,
-  PDF_MAX_SCALE,
-  PDF_MIN_SCALE,
-  previousZoomScale,
-  resolvePdfScale,
-} from "./pdfZoom";
-
-describe("clampPdfScale", () => {
-  it("clamps to the min/max bounds", () => {
-    expect(clampPdfScale(10)).toBe(PDF_MAX_SCALE);
-    expect(clampPdfScale(0.01)).toBe(PDF_MIN_SCALE);
-    expect(clampPdfScale(1.5)).toBe(1.5);
-  });
-
-  it("falls back to 1 for invalid input", () => {
-    expect(clampPdfScale(Number.NaN)).toBe(1);
-    expect(clampPdfScale(-3)).toBe(1);
-    expect(clampPdfScale(0)).toBe(1);
-  });
-});
+import { resolvePdfScale } from "./pdfZoom";
+import { VIEWER_MAX_SCALE } from "../viewer/viewerZoom";
 
 describe("resolvePdfScale", () => {
   const page = { width: 100, height: 200 };
@@ -39,32 +19,12 @@ describe("resolvePdfScale", () => {
   it("uses the explicit (clamped) scale for custom mode regardless of layout", () => {
     expect(resolvePdfScale({ type: "custom", scale: 2 }, null, null)).toBe(2);
     expect(resolvePdfScale({ type: "custom", scale: 99 }, page, { width: 148, height: 148 })).toBe(
-      PDF_MAX_SCALE,
+      VIEWER_MAX_SCALE,
     );
   });
 
   it("returns 1 when layout inputs are missing in a fit mode", () => {
     expect(resolvePdfScale({ type: "fit-width" }, null, null)).toBe(1);
     expect(resolvePdfScale({ type: "fit-page" }, page, null)).toBe(1);
-  });
-});
-
-describe("zoom stepping", () => {
-  it("steps up to the next preset", () => {
-    expect(nextZoomScale(1)).toBe(1.25);
-    expect(nextZoomScale(0.5)).toBe(0.75);
-  });
-
-  it("caps zoom-in at the max scale when above the last preset", () => {
-    expect(nextZoomScale(4)).toBe(PDF_MAX_SCALE);
-  });
-
-  it("steps down to the previous preset", () => {
-    expect(previousZoomScale(1)).toBe(0.75);
-    expect(previousZoomScale(4)).toBe(3);
-  });
-
-  it("floors zoom-out at the min scale when below the first preset", () => {
-    expect(previousZoomScale(0.5)).toBe(PDF_MIN_SCALE);
   });
 });

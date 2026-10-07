@@ -20,10 +20,10 @@ import type { Space } from "~/types";
  * (see `voidSpaceStore`), and every list renders whatever the user settled on instead of
  * these constants.
  */
-export const DEFAULT_VOID_SPACE_NAME = "Void";
-export const DEFAULT_VOID_SPACE_ICON = "black-hole";
+export const DEFAULT_VOID_SPACE_NAME = "Course Workspace";
+export const DEFAULT_VOID_SPACE_ICON = "school";
 /** Fallback for a Space whose icon is unknown, and what the editor opens on. */
-export const DEFAULT_SPACE_ICON: SpaceIconName = "bag";
+export const DEFAULT_SPACE_ICON: SpaceIconName = "school";
 
 /** Void may also wear its own black hole, which is not part of the curated Space set. */
 export type VoidSpaceIconName = SpaceIconName | typeof DEFAULT_VOID_SPACE_ICON;

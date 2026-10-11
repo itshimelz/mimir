@@ -80,57 +80,64 @@ disable-model-invocation: true
     });
   });
 
-  // Agent Skills commonly use YAML block scalars for long descriptions. Without
-  // this the indicator character renders in place of the description.
-  it("parses a literal block scalar and keeps its line breaks", () => {
+  it("reads block scalars and keeps nested keys from overriding top-level ones", () => {
     expect(
       parseSkillFrontmatter(`---
-description: |
-  Type-safe Compose Navigation.
-  Use when wiring nav graphs.
----
-`).description,
-    ).toBe("Type-safe Compose Navigation.\nUse when wiring nav graphs.\n");
-  });
+name: check-code
+description: >-
+  Review recent code changes
+  before they are merged.
 
-  it("folds a folded block scalar and honours blank-line paragraph breaks", () => {
-    expect(
-      parseSkillFrontmatter(`---
-description: >
-  one two
-  three four
----
-`).description,
-    ).toBe("one two three four\n");
-    expect(
-      parseSkillFrontmatter(`---
-description: >
-  para one
-
-  para two
----
-`).description,
-    ).toBe("para one\npara two\n");
-  });
-
-  it("honours block scalar chomping indicators", () => {
-    expect(parseSkillFrontmatter(`---\ndescription: |-\n  stripped\n---\n`).description).toBe(
-      "stripped",
-    );
-    expect(parseSkillFrontmatter(`---\ndescription: |+\n  kept\n\n---\n`).description).toBe(
-      "kept\n",
-    );
-  });
-
-  it("resumes key parsing after a block and ignores colons inside the body", () => {
-    expect(
-      parseSkillFrontmatter(`---
-description: |
-  key: not-a-header
-name: my-skill
+  Use it after every edit.
+summary: |
+  First line
+    indented line
+metadata:
+  env:
+    - name: API_KEY
+      description: Service key
+license: MIT
 ---
 `),
-    ).toEqual({ description: "key: not-a-header\n", name: "my-skill" });
+    ).toEqual({
+      name: "check-code",
+      description: "Review recent code changes before they are merged.\nUse it after every edit.",
+      summary: "First line\n  indented line",
+      license: "MIT",
+    });
+  });
+
+  it("reads a short description kept under metadata", () => {
+    expect(
+      parseSkillFrontmatter(`---
+name: codex-style
+description: Long description
+metadata:
+  short-description: Short text
+---
+`),
+    ).toEqual({
+      name: "codex-style",
+      description: "Long description",
+      "short-description": "Short text",
+    });
+  });
+
+  it("parses frontmatter with many keys without a quadratic slowdown", () => {
+    const keys = Array.from({ length: 40_000 }, (_, index) => `key${index}: value`).join("\n");
+    const startedAt = performance.now();
+    expect(parseSkillFrontmatter(`---\nname: wide\n${keys}\n---\n`).name).toBe("wide");
+    expect(performance.now() - startedAt).toBeLessThan(3_000);
+  });
+
+  it("falls back to the line reader for frontmatter that is not valid YAML", () => {
+    expect(
+      parseSkillFrontmatter(`---
+name: loose
+description: Use when: the user asks for it
+---
+`),
+    ).toEqual({ name: "loose", description: "Use when: the user asks for it" });
   });
 });
 

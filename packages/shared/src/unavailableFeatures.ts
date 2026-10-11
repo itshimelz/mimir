@@ -47,6 +47,12 @@ export const COMPUTER_UNAVAILABLE_FEATURE = "computer";
  */
 export const PROFILE_INSIGHTS_UNAVAILABLE_FEATURE = "profile-insights";
 
+/**
+ * The empty landing sponsor banner points at Synara's sponsorship page.
+ * Withheld because Mimir does not have its own sponsorship program.
+ */
+export const SPONSOR_BANNER_UNAVAILABLE_FEATURE = "sponsor-banner";
+
 export const UNAVAILABLE_FEATURES: readonly string[] = [
   FEEDBACK_UNAVAILABLE_FEATURE,
   SHARE_CARD_UNAVAILABLE_FEATURE,
@@ -54,6 +60,7 @@ export const UNAVAILABLE_FEATURES: readonly string[] = [
   APPSNAP_UNAVAILABLE_FEATURE,
   COMPUTER_UNAVAILABLE_FEATURE,
   PROFILE_INSIGHTS_UNAVAILABLE_FEATURE,
+  SPONSOR_BANNER_UNAVAILABLE_FEATURE,
 ];
 
 /**

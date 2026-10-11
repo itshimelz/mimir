@@ -25,6 +25,7 @@ import { createThreadExistsSelector, createThreadProjectIdSelector } from "../st
 import { ChatPaneKeepAliveProvider } from "../components/chat/ChatPaneKeepAlive";
 import { SingleChatSurface } from "../components/chat/SingleChatSurface";
 import { SplitChatSurface } from "../components/chat/SplitChatSurface";
+import { ChatMountLoader } from "../components/chat/ChatThreadSurfacePrimitives";
 import { resolveSingleProjectId } from "./-chatThreadRoute.logic";
 
 // The single and split surfaces swap below this provider, which keeps the chat they both
@@ -184,7 +185,7 @@ function ChatThreadRouteContent() {
       routeThreadExists,
     })
   ) {
-    return null;
+    return <ChatMountLoader />;
   }
 
   if (splitView && search.splitViewId) {
@@ -192,7 +193,7 @@ function ChatThreadRouteContent() {
   }
 
   if (!routeThreadExists) {
-    return null;
+    return <ChatMountLoader />;
   }
 
   return <SingleChatSurface threadId={threadId} search={search} projectId={activeProjectId} />;

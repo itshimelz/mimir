@@ -15,7 +15,7 @@ import {
   VOID_SPACE_KEY,
   type VoidSpacePresentation,
 } from "./lib/spaceGrouping";
-import { normalizeIdOrder, normalizeKnownIds, placeNewIdAfter } from "./lib/orderedIds";
+import { normalizeIdOrder, normalizeKnownIds } from "./lib/orderedIds";
 import type { SidebarNavItemId } from "./sidebarNavOrdering";
 import type { Space } from "./types";
 
@@ -229,6 +229,9 @@ export function reconcileActiveRailItem(input: {
   onStudioSurface: boolean;
   panelView: RailPanelItemId;
 }): RailItemId {
+  if (input.pathname === "/editor" || input.pathname.startsWith("/editor/")) {
+    return "spaces";
+  }
   return (
     railItemForPathname(input.pathname) ?? (input.onStudioSurface ? "studio" : input.panelView)
   );

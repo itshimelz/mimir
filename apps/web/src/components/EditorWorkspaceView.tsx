@@ -5,16 +5,18 @@
 //          workspace and one chat rail; only the left column and center swap.
 // Layer: Chat route presentation
 
-import type { ProjectId, SpaceIconName, SpaceId, StudioOutputEntry } from "@synara/contracts";
+import type {
+  ProjectId,
+  SpaceIconName,
+  SpaceId,
+  StudioOutputEntry,
+} from "@synara/contracts";
 import type { FileDiffMetadata } from "@pierre/diffs/react";
 import {
   type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
-  type PointerEvent as ReactPointerEvent,
   type ReactNode,
   type RefObject,
   useCallback,
-  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -32,36 +34,47 @@ import {
 } from "~/hooks/useDesktopTopBarGutter";
 import type { ChatFileReference } from "~/lib/chatReferences";
 import type { DiffEditBaseRev } from "~/lib/diffEditBaseRev";
-import { type EditorCenterMode, type EditorSurface } from "~/lib/editorCenterMode";
+import {
+  type EditorCenterMode,
+  type EditorSurface,
+} from "~/lib/editorCenterMode";
 import type { FileCommentSelection } from "~/lib/fileComments";
-import type { PptxAnnotationDraft, PptxAnnotationSelection } from "~/lib/pptxAnnotations";
+import type {
+  PptxAnnotationDraft,
+  PptxAnnotationSelection,
+} from "~/lib/pptxAnnotations";
 import { cn } from "~/lib/utils";
 import { useTheme } from "~/hooks/useTheme";
 import {
-  ChatHeaderButton,
   ChatHeaderIconButton,
   CHAT_SURFACE_HEADER_DIVIDER_CLASS_NAME,
   CHAT_SURFACE_HEADER_HEIGHT_CLASS,
 } from "./chat/chatHeaderControls";
+import { CHAT_BACKGROUND_CLASS_NAME } from "./chat/composerPickerStyles";
 import { StudioEmptyState } from "./chat/StudioEmptyState";
 import { Button } from "@/components/m3e/button";
 import type { ProjectMenuPickerOption } from "./ProjectMenuPicker";
 import { SegmentedPicker } from "./SegmentedPicker";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
-import { useOptionalSidebar } from "./ui/sidebar";
+import {
+  SIDEBAR_OFFCANVAS_MOTION_CLASS,
+  Sidebar,
+  SidebarProvider,
+  SidebarRail,
+  useOptionalSidebar,
+} from "./ui/sidebar";
 import { WorkspaceFileDiffEditorPane } from "./chat/WorkspaceFileDiffEditorPane";
 import { useQueryClient } from "@tanstack/react-query";
 import { flushWorkspaceEditors } from "~/lib/workspaceEditorSession";
 import { WorkspaceFileEditorPane } from "./chat/WorkspaceFileEditorPane";
 import { WorkspaceFilePreview } from "./WorkspaceFilePreview";
+import { useEditorSurfaceStore } from "~/editorSurfaceStore";
 
 const EDITOR_CHAT_PANE_STORAGE_KEY = "synara.editor.chatPaneWidth";
 const EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY = "synara.editor.chatPaneVisible";
-const EDITOR_SURFACE_STORAGE_KEY = "synara.editor.surface";
 const EDITOR_CHAT_PANE_DEFAULT_WIDTH = 384;
 const EDITOR_CHAT_PANE_MIN_WIDTH = 280;
 const EDITOR_CHAT_PANE_MAX_WIDTH = 960;
-const EDITOR_CHAT_PANE_KEYBOARD_STEP = 24;
 
 interface EditorWorkspaceViewProps {
   workspaceRoot: string | null;
@@ -108,15 +121,17 @@ interface EditorWorkspaceViewProps {
   studioOutputsLoading?: boolean;
 }
 
-function clampEditorChatPaneWidth(width: number, maxAvailable?: number): number {
+function clampEditorChatPaneWidth(
+  width: number,
+  maxAvailable?: number,
+): number {
   const max = Math.min(
     EDITOR_CHAT_PANE_MAX_WIDTH,
-    maxAvailable ? Math.max(EDITOR_CHAT_PANE_MIN_WIDTH, maxAvailable - 320) : EDITOR_CHAT_PANE_MAX_WIDTH,
+    maxAvailable
+      ? Math.max(EDITOR_CHAT_PANE_MIN_WIDTH, maxAvailable - 320)
+      : EDITOR_CHAT_PANE_MAX_WIDTH,
   );
-  return Math.min(
-    max,
-    Math.max(EDITOR_CHAT_PANE_MIN_WIDTH, Math.round(width)),
-  );
+  return Math.min(max, Math.max(EDITOR_CHAT_PANE_MIN_WIDTH, Math.round(width)));
 }
 
 function readStoredEditorChatPaneWidth(): number {
@@ -172,42 +187,6 @@ function storeEditorVisibility(key: string, visible: boolean): void {
   }
 }
 
-function readStoredEditorSurface(): EditorSurface {
-  if (typeof window === "undefined") {
-    return "study";
-  }
-  try {
-    return window.localStorage.getItem(EDITOR_SURFACE_STORAGE_KEY) === "studio"
-      ? "studio"
-      : "study";
-  } catch {
-    return "study";
-  }
-}
-
-function storeEditorSurface(surface: EditorSurface): void {
-  if (typeof window === "undefined") {
-    return;
-  }
-  try {
-    window.localStorage.setItem(EDITOR_SURFACE_STORAGE_KEY, surface);
-  } catch {
-    // Best-effort preference persistence only.
-  }
-}
-
-interface EditorChatPaneResizeState {
-  pointerId: number;
-  startX: number;
-  startWidth: number;
-  pendingWidth: number;
-  rafId: number | null;
-  restoreBodyCursor: string;
-  restoreBodyUserSelect: string;
-  onPointerMove: (event: PointerEvent) => void;
-  onPointerEnd: (event: PointerEvent) => void;
-}
-
 export interface EditorLeaveGuard {
   guardLeavingEdit: (run: () => void) => void;
 }
@@ -216,32 +195,42 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   // The editor header sits flush against the window's left edge whenever the
   // global sidebar is collapsed, so it has to clear the macOS traffic lights the
   // same way every other chat-surface header does.
-  const trafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
+  const trafficLightGutterClassName =
+    useDesktopTopBarTrafficLightGutterClassName();
   const optionalSidebar = useOptionalSidebar();
   const { activeTheme, resolvedTheme: editorResolvedTheme } = useTheme();
   const isMimirTheme = activeTheme?.codeThemeId === "synara";
-  const [chatPaneWidth, setChatPaneWidth] = useState(readStoredEditorChatPaneWidth);
-  const chatPaneResizeStateRef = useRef<EditorChatPaneResizeState | null>(null);
+  const [chatPaneWidth, setChatPaneWidth] = useState(
+    readStoredEditorChatPaneWidth,
+  );
   const [chatPaneVisible, setChatPaneVisible] = useState(() =>
     readStoredEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY),
   );
   // Study is the course surface (explore/read/write the course's own files); Studio is the
-  // agent surface (artifacts and lessons it produced). Both share this workspace and the
-  // chat rail, so the switch is local state rather than a route.
-  const [surface, setSurface] = useState<EditorSurface>(readStoredEditorSurface);
-  // Which artifact the student is reviewing in Studio. Local to the shell because the
-  // preview itself is opened by the owner through `onSelectStudioOutput`.
-  const [selectedStudioOutputPath, setSelectedStudioOutputPath] = useState<string | null>(null);
+  // agent surface (artifacts and lessons it produced). Shared in useEditorSurfaceStore so the
+  // left sidebar and this center view stay in sync.
+  const surface = useEditorSurfaceStore((state) => state.surface);
+  const setSurface = useEditorSurfaceStore((state) => state.setSurface);
+  const selectedStudioOutputPath = useEditorSurfaceStore(
+    (state) => state.selectedStudioOutputPath,
+  );
+  const setSelectedStudioOutputPath = useEditorSurfaceStore(
+    (state) => state.setSelectedStudioOutputPath,
+  );
   const selectedStudioOutput =
-    props.studioOutputs?.find((entry) => entry.fullPath === selectedStudioOutputPath) ?? null;
+    props.studioOutputs?.find(
+      (entry) => entry.fullPath === selectedStudioOutputPath,
+    ) ?? null;
   // The file preview unmounts in Diff/Edit mode. Keep explicit Markdown choices
   // in the editor shell, scoped to the workspace and file for this session.
-  const [markdownPreviewModes, setMarkdownPreviewModes] = useState<ReadonlyMap<string, boolean>>(
-    () => new Map(),
-  );
+  const [markdownPreviewModes, setMarkdownPreviewModes] = useState<
+    ReadonlyMap<string, boolean>
+  >(() => new Map());
   const markdownPreviewKey = `${props.workspaceRoot ?? ""}\0${props.selectedFilePath ?? ""}`;
   const handleMarkdownPreviewChange = (rendered: boolean) => {
-    setMarkdownPreviewModes((current) => new Map(current).set(markdownPreviewKey, rendered));
+    setMarkdownPreviewModes((current) =>
+      new Map(current).set(markdownPreviewKey, rendered),
+    );
   };
   const desktopTopBarWindowControlsGutterClassName =
     useDesktopTopBarWindowControlsGutterClassName();
@@ -251,13 +240,17 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   const guardLeavingEdit = useCallback(
     (run: () => void) => {
       const request = ++leaveRequestRef.current;
-      void flushWorkspaceEditors(queryClient, props.workspaceRoot).then((saved) => {
-        if (saved && request === leaveRequestRef.current) run();
-      });
+      void flushWorkspaceEditors(queryClient, props.workspaceRoot).then(
+        (saved) => {
+          if (saved && request === leaveRequestRef.current) run();
+        },
+      );
     },
     [queryClient, props.workspaceRoot],
   );
-  useImperativeHandle(props.leaveGuardRef, () => ({ guardLeavingEdit }), [guardLeavingEdit]);
+  useImperativeHandle(props.leaveGuardRef, () => ({ guardLeavingEdit }), [
+    guardLeavingEdit,
+  ]);
   // Leaving a dirty editor for the other surface would strand the buffer in the pane the
   // student just left, so the surface switch runs through the same flush as every other
   // editor-replacing action.
@@ -267,7 +260,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     }
     guardLeavingEdit(() => {
       setSurface(next);
-      storeEditorSurface(next);
       setSelectedStudioOutputPath(null);
     });
   };
@@ -277,116 +269,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
       storeEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY, next);
       return next;
     });
-  };
-
-  const stopChatPaneResize = () => {
-    const resizeState = chatPaneResizeStateRef.current;
-    if (!resizeState || typeof window === "undefined") {
-      return;
-    }
-
-    if (resizeState.rafId !== null) {
-      window.cancelAnimationFrame(resizeState.rafId);
-      resizeState.rafId = null;
-    }
-
-    window.removeEventListener("pointermove", resizeState.onPointerMove);
-    window.removeEventListener("pointerup", resizeState.onPointerEnd);
-    window.removeEventListener("pointercancel", resizeState.onPointerEnd);
-    document.body.style.cursor = resizeState.restoreBodyCursor;
-    document.body.style.userSelect = resizeState.restoreBodyUserSelect;
-    setChatPaneWidth(resizeState.pendingWidth);
-    storeEditorChatPaneWidth(resizeState.pendingWidth);
-    chatPaneResizeStateRef.current = null;
-  };
-
-  useEffect(() => stopChatPaneResize, [stopChatPaneResize]);
-
-  const handleChatPaneResizePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0 || typeof window === "undefined") {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-    stopChatPaneResize();
-
-    const parentWrapper = event.currentTarget.parentElement;
-    const maxAvailable = parentWrapper?.clientWidth;
-
-    const resizeState: EditorChatPaneResizeState = {
-      pointerId: event.pointerId,
-      startX: event.clientX,
-      startWidth: chatPaneWidth,
-      pendingWidth: chatPaneWidth,
-      rafId: null,
-      restoreBodyCursor: document.body.style.cursor,
-      restoreBodyUserSelect: document.body.style.userSelect,
-      onPointerMove: () => undefined,
-      onPointerEnd: () => undefined,
-    };
-
-    resizeState.onPointerMove = (moveEvent) => {
-      if (moveEvent.pointerId !== resizeState.pointerId) {
-        return;
-      }
-
-      resizeState.pendingWidth = clampEditorChatPaneWidth(
-        resizeState.startWidth + resizeState.startX - moveEvent.clientX,
-        maxAvailable,
-      );
-
-      if (resizeState.rafId !== null) {
-        return;
-      }
-
-      resizeState.rafId = window.requestAnimationFrame(() => {
-        resizeState.rafId = null;
-        setChatPaneWidth(resizeState.pendingWidth);
-      });
-    };
-
-    resizeState.onPointerEnd = (endEvent) => {
-      if (endEvent.pointerId !== resizeState.pointerId) {
-        return;
-      }
-      stopChatPaneResize();
-    };
-
-    chatPaneResizeStateRef.current = resizeState;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    window.addEventListener("pointermove", resizeState.onPointerMove);
-    window.addEventListener("pointerup", resizeState.onPointerEnd);
-    window.addEventListener("pointercancel", resizeState.onPointerEnd);
-  };
-
-  const handleChatPaneResizeDoubleClick = () => {
-    setChatPaneWidth(EDITOR_CHAT_PANE_DEFAULT_WIDTH);
-    storeEditorChatPaneWidth(EDITOR_CHAT_PANE_DEFAULT_WIDTH);
-  };
-
-  const handleChatPaneResizeKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    let nextWidth: number | null = null;
-
-    if (event.key === "ArrowLeft") {
-      nextWidth = chatPaneWidth + EDITOR_CHAT_PANE_KEYBOARD_STEP;
-    } else if (event.key === "ArrowRight") {
-      nextWidth = chatPaneWidth - EDITOR_CHAT_PANE_KEYBOARD_STEP;
-    } else if (event.key === "Home") {
-      nextWidth = EDITOR_CHAT_PANE_MIN_WIDTH;
-    } else if (event.key === "End") {
-      nextWidth = EDITOR_CHAT_PANE_MAX_WIDTH;
-    }
-
-    if (nextWidth === null) {
-      return;
-    }
-
-    event.preventDefault();
-    const clampedWidth = clampEditorChatPaneWidth(nextWidth);
-    setChatPaneWidth(clampedWidth);
-    storeEditorChatPaneWidth(clampedWidth);
   };
 
   return (
@@ -406,13 +288,22 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             side columns truncate symmetrically. Absolutely positioning it instead would let
             it collide with a long workspace name or the chat controls on a narrow window. */}
         <div className="grid w-full min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div className={cn("flex min-w-0 items-center gap-1.5", trafficLightGutterClassName)}>
+          <div
+            className={cn(
+              "flex min-w-0 items-center gap-1.5",
+              trafficLightGutterClassName,
+            )}
+          >
             {optionalSidebar ? (
               <ChatHeaderIconButton
                 type="button"
                 tone="plain"
-                label={optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"}
-                title={optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"}
+                label={
+                  optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"
+                }
+                title={
+                  optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"
+                }
                 className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
                 onClick={optionalSidebar.toggleSidebar}
               >
@@ -426,7 +317,11 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               onValueChange={(val) => handleSelectSurface(val as EditorSurface)}
               className="shrink-0 justify-self-center"
             >
-              <TabsList variant="segmented" aria-label="Surface" className="h-9 p-0.5">
+              <TabsList
+                variant="segmented"
+                aria-label="Surface"
+                className="h-9 p-0.5"
+              >
                 <TabsTrigger
                   value="study"
                   title="Study — the course's own files"
@@ -475,29 +370,28 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             {isMimirTheme ? (
               <Button
                 variant={chatPaneVisible ? "tonal" : "outlined"}
-                size="xs"
+                size="icon-xs"
                 aria-pressed={chatPaneVisible}
+                aria-label={
+                  chatPaneVisible ? "Hide chat panel" : "Show chat panel"
+                }
                 title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                className="h-8 gap-1.5 px-3"
                 onClick={toggleChatPaneVisible}
               >
-                <ChatBubbleIcon className="size-3.5" />
-                <span className="truncate font-medium">
-                  {chatPaneVisible ? "Close Chat" : "Chat"}
-                </span>
+                <ChatBubbleIcon className="size-4" />
               </Button>
             ) : (
-              <ChatHeaderButton
+              <ChatHeaderIconButton
                 type="button"
-                tone={chatPaneVisible ? "surface" : "outline"}
+                tone={chatPaneVisible ? "surface" : "plain"}
                 aria-pressed={chatPaneVisible}
+                label={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
                 title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                className="gap-1.5"
+                className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
                 onClick={toggleChatPaneVisible}
               >
-                <ChatBubbleIcon className="size-3.5" />
-                <span className="truncate font-normal">{chatPaneVisible ? "Hide Chat" : "Chat"}</span>
-              </ChatHeaderButton>
+                <ChatBubbleIcon className="size-4" />
+              </ChatHeaderIconButton>
             )}
           </div>
         </div>
@@ -535,11 +429,15 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                 drops the parsed patch, diff worker pool, and query subscriptions,
                 which made every Files -> Diff switch a cold multi-second reload. */}
                 <div
-                  className={cn("min-h-0 min-w-0 flex-1", props.centerMode !== "diff" && "hidden")}
+                  className={cn(
+                    "min-h-0 min-w-0 flex-1",
+                    props.centerMode !== "diff" && "hidden",
+                  )}
                 >
                   {props.diffPanel}
                 </div>
-                {props.centerMode === "fileEdit" && props.editFilePath !== null ? (
+                {props.centerMode === "fileEdit" &&
+                props.editFilePath !== null ? (
                   <div className="flex min-h-0 min-w-0 flex-1">
                     <WorkspaceFileEditorPane
                       workspaceRoot={props.workspaceRoot}
@@ -548,7 +446,8 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                       onClose={props.onCloseEdit}
                     />
                   </div>
-                ) : props.centerMode === "diffEdit" && props.editFilePath !== null ? (
+                ) : props.centerMode === "diffEdit" &&
+                  props.editFilePath !== null ? (
                   <div className="flex min-h-0 min-w-0 flex-1">
                     <WorkspaceFileDiffEditorPane
                       workspaceRoot={props.workspaceRoot}
@@ -564,7 +463,9 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                     <WorkspaceFilePreview
                       workspaceRoot={props.workspaceRoot}
                       filePath={props.selectedFilePath}
-                      markdownPreviewEnabled={markdownPreviewModes.get(markdownPreviewKey) ?? true}
+                      markdownPreviewEnabled={
+                        markdownPreviewModes.get(markdownPreviewKey) ?? true
+                      }
                       onMarkdownPreviewChange={handleMarkdownPreviewChange}
                       onReferenceInChat={props.onReferenceInChat}
                       onAskWhyInChat={props.onAskWhyInChat}
@@ -578,43 +479,46 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               </>
             )}
           </main>
-          <div
-            role="separator"
-            aria-label="Resize chat panel"
-            aria-orientation="vertical"
-            aria-valuemin={EDITOR_CHAT_PANE_MIN_WIDTH}
-            aria-valuemax={EDITOR_CHAT_PANE_MAX_WIDTH}
-            aria-valuenow={chatPaneWidth}
-            tabIndex={0}
-            title="Drag to resize chat panel"
-            className={cn(
-              "group relative z-10 w-3 -translate-x-1/2 shrink-0 cursor-col-resize outline-none",
-              chatPaneVisible ? "hidden lg:block" : "hidden",
-            )}
-            onPointerDown={handleChatPaneResizePointerDown}
-            onDoubleClick={handleChatPaneResizeDoubleClick}
-            onKeyDown={handleChatPaneResizeKeyDown}
+          {/* Right dock panel: ONLY the chat in editor view */}
+          <SidebarProvider
+            defaultOpen={true}
+            open={chatPaneVisible}
+            onOpenChange={(open) => {
+              setChatPaneVisible(open);
+              storeEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY, open);
+            }}
+            className="relative h-full w-auto min-h-0 flex-none bg-transparent [contain:paint]"
+            style={{ "--sidebar-width": `${chatPaneWidth}px` } as CSSProperties}
           >
-            <span
-              className="pointer-events-none absolute inset-y-0 left-1/2 w-px -translate-x-1/2 bg-[var(--app-surface-divider)] transition-colors group-hover:bg-[var(--color-text-accent)] group-focus-visible:bg-[var(--color-text-accent)]"
-              aria-hidden="true"
-            />
-          </div>
-          {/* Hidden (not unmounted) so the chat runtime and composer focus
-              state survive toggling the pane. */}
-          <aside
-            className={cn(
-              "min-h-[18rem] w-full shrink-0 app-content-surface lg:h-full lg:w-[var(--editor-chat-pane-width)]",
-              chatPaneVisible ? "flex" : "hidden",
-            )}
-            style={
-              {
-                "--editor-chat-pane-width": `${chatPaneWidth}px`,
-              } as CSSProperties
-            }
-          >
-            {props.chatPanel}
-          </aside>
+            <Sidebar
+              side="right"
+              collapsible="offcanvas"
+              className={cn(
+                "border-l border-[var(--app-surface-divider)] text-foreground !h-full",
+                SIDEBAR_OFFCANVAS_MOTION_CLASS,
+              )}
+              innerClassName={CHAT_BACKGROUND_CLASS_NAME}
+              gapClassName={SIDEBAR_OFFCANVAS_MOTION_CLASS}
+              transparentSurface
+              rail={<SidebarRail />}
+              resizable={{
+                minWidth: EDITOR_CHAT_PANE_MIN_WIDTH,
+                maxWidth: EDITOR_CHAT_PANE_MAX_WIDTH,
+                storageKey: EDITOR_CHAT_PANE_STORAGE_KEY,
+                onResize: (width) => {
+                  setChatPaneWidth(width);
+                  storeEditorChatPaneWidth(width);
+                },
+              }}
+            >
+              <div
+                data-right-dock-content
+                className="relative flex h-full min-h-0 w-full flex-1 overflow-hidden"
+              >
+                {props.chatPanel}
+              </div>
+            </Sidebar>
+          </SidebarProvider>
         </div>
       </div>
     </div>

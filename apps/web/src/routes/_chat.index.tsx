@@ -29,6 +29,8 @@ import { resolveChatIndexRestoreRoute, type ChatIndexLandingSpace } from "./-cha
  */
 export interface ChatIndexSearch {
   readonly space?: string | undefined;
+  readonly view?: "editor" | undefined;
+  readonly editorFilePath?: string | undefined;
 }
 
 function ChatIndexRouteView() {
@@ -72,12 +74,15 @@ function ChatIndexRouteView() {
           workspacePaths,
         };
 
+  const searchView = Route.useSearch({ select: (search) => search.view });
+  const _searchEditorFilePath = Route.useSearch({ select: (search) => search.editorFilePath });
+
   const resolveRestoreRoute: RestoreRouteResolver = ({ availableSplitViewIds }) => {
     const lastThreadRoute = readSidebarUiState().lastThreadRoute;
     const rememberedSplitView = lastThreadRoute?.splitViewId
       ? useSplitViewStore.getState().splitViewsById[lastThreadRoute.splitViewId]
       : undefined;
-    return resolveChatIndexRestoreRoute({
+    const resolved = resolveChatIndexRestoreRoute({
       lastThreadRoute,
       availableSplitViewIds,
       threadIds,
@@ -89,6 +94,13 @@ function ChatIndexRouteView() {
         : undefined,
       landingSpace,
     });
+    if (resolved && searchView === "editor") {
+      return {
+        ...resolved,
+        view: "editor",
+      };
+    }
+    return resolved;
   };
 
   return (
@@ -100,7 +112,12 @@ function ChatIndexRouteView() {
 }
 
 export const Route = createFileRoute("/_chat/")({
-  validateSearch: (raw: Record<string, unknown>): ChatIndexSearch =>
-    typeof raw.space === "string" && raw.space.length > 0 ? { space: raw.space } : {},
+  validateSearch: (raw: Record<string, unknown>): ChatIndexSearch => ({
+    ...(typeof raw.space === "string" && raw.space.length > 0 ? { space: raw.space } : {}),
+    ...(raw.view === "editor" ? { view: "editor" as const } : {}),
+    ...(typeof raw.editorFilePath === "string" && raw.editorFilePath.length > 0
+      ? { editorFilePath: raw.editorFilePath }
+      : {}),
+  }),
   component: ChatIndexRouteView,
 });

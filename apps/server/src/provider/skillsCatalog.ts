@@ -13,6 +13,7 @@ import * as nodePath from "node:path";
 
 import type { ProviderKind, ProviderSkillDescriptor } from "@synara/contracts";
 import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
+import YAML from "yaml";
 import { discoverClaudePluginSkillRoots } from "./claudePluginSkills.ts";
 
 type FrontmatterValue = string | boolean;
@@ -48,92 +49,51 @@ function parseYamlScalar(value: string): FrontmatterValue {
   return unquoted;
 }
 
-/** `|`, `>`, optionally with chomping/indent indicators: `|-`, `>+`, `|2`. */
-const BLOCK_SCALAR_HEADER = /^([|>])([+-]?)(\d*)$/;
-
-/** Counts leading spaces/tabs, used to detect a block scalar's indentation. */
-function indentOf(line: string): number {
-  let count = 0;
-  while (count < line.length && (line[count] === " " || line[count] === "\t")) count += 1;
-  return count;
+// Some skills keep their short description under `metadata:`, which the line reader used to pick up.
+function readMetadataShortDescription(parsed: object): string | undefined {
+  const metadata = (parsed as { metadata?: unknown }).metadata;
+  if (typeof metadata !== "object" || metadata === null) {
+    return undefined;
+  }
+  const value = (metadata as Record<string, unknown>)["short-description"];
+  return typeof value === "string" ? value.trim() : undefined;
 }
 
-interface BlockScalar {
-  readonly folded: boolean;
-  readonly chomp: "-" | "+" | "clip";
-  /** Explicit indentation indicator from a header like `|2`; empty means auto. */
-  readonly indent: string;
-}
-
-/**
- * Collects an indented YAML block scalar. Returns the raw lines with the block
- * indentation removed and the resolved scalar text.
- */
-function readBlockScalar(
-  body: readonly string[],
-  startIndex: number,
-  header: BlockScalar,
-): { readonly text: string; readonly nextIndex: number } {
-  const firstContent = body[startIndex];
-  if (firstContent === undefined) return { text: "", nextIndex: startIndex };
-
-  // Block content is indented further than its key. The first line sets the
-  // indent when no explicit indicator is given.
-  const explicitIndent = Number.parseInt(header.indent, 10);
-  const baseIndent = Number.isFinite(explicitIndent) && explicitIndent > 0 ? explicitIndent : null;
-
-  const detected = baseIndent ?? Math.max(indentOf(firstContent), 1);
-  const collected: string[] = [];
-  let index = startIndex;
-  for (; index < body.length; index += 1) {
-    const line = body[index] ?? "";
-    const isBlank = line.trim().length === 0;
-    if (!isBlank && indentOf(line) < detected) break;
-    collected.push(isBlank ? "" : line.slice(detected));
-  }
-
-  // Trailing blank lines are only kept under the "keep" chomping indicator.
-  while (collected.length > 0 && (collected[collected.length - 1] ?? "") === "") {
-    collected.pop();
-  }
-
-  let text: string;
-  if (header.folded) {
-    // Folded: blank lines become newlines, adjacent non-blank lines join with a space.
-    const paragraphs: string[] = [];
-    let current = "";
-    for (const line of collected) {
-      if (line === "") {
-        paragraphs.push(current);
-        current = "";
-        continue;
-      }
-      current = current === "" ? line : `${current} ${line}`;
-    }
-    paragraphs.push(current);
-    text = paragraphs
-      .filter((part, index) => part !== "" || index === paragraphs.length - 1)
-      .join("\n");
-  } else {
-    text = collected.join("\n");
-  }
-
-  if (header.chomp === "-") return { text, nextIndex: index };
-  return { text: text === "" ? "" : `${text}\n`, nextIndex: index };
-}
-
-// Parses the small scalar frontmatter subset used by Agent Skills without pulling in YAML.
+// Reads Agent Skills frontmatter as YAML so block scalars (`description: >-`) and nested maps
+// parse correctly. Frontmatter that is not valid YAML falls back to the lenient line reader.
 export function parseSkillFrontmatter(markdown: string): Record<string, FrontmatterValue> {
   const normalized = markdown.replace(/\r\n/g, "\n");
   const match = /^---\s*\n([\s\S]*?)\n---\s*(?:\n|$)/.exec(normalized);
   if (!match) {
     return {};
   }
+  const block = match[1] ?? "";
 
-  const body = (match[1] ?? "").split("\n");
+  try {
+    // Skill files can come from untrusted repositories: `uniqueKeys: false` skips the quadratic
+    // duplicate-key check, and `logLevel: "error"` keeps unusual tags from printing process warnings.
+    const parsed: unknown = YAML.parse(block, { uniqueKeys: false, logLevel: "error" });
+    if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+      const record: Record<string, FrontmatterValue> = {};
+      for (const [key, value] of Object.entries(parsed)) {
+        if (typeof value === "string") {
+          record[key] = value.trim();
+        } else if (typeof value === "boolean") {
+          record[key] = value;
+        }
+      }
+      const shortDescription = readMetadataShortDescription(parsed);
+      if (shortDescription !== undefined && record["short-description"] === undefined) {
+        record["short-description"] = shortDescription;
+      }
+      return record;
+    }
+  } catch {
+    // Not valid YAML: use the line reader below.
+  }
+
   const record: Record<string, FrontmatterValue> = {};
-  for (let index = 0; index < body.length; index += 1) {
-    const line = body[index] ?? "";
+  for (const line of block.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed || trimmed.startsWith("#")) {
       continue;
@@ -144,26 +104,7 @@ export function parseSkillFrontmatter(markdown: string): Record<string, Frontmat
     }
     const key = trimmed.slice(0, separatorIndex).trim();
     const value = trimmed.slice(separatorIndex + 1).trim();
-    if (!key) {
-      continue;
-    }
-
-    // A block scalar's body is indented under its key and must be consumed as a
-    // unit. Without this, `description: |` renders as a literal "|" and every
-    // following line is dropped for having no key separator.
-    const header = BLOCK_SCALAR_HEADER.exec(value);
-    if (header) {
-      const block = readBlockScalar(body, index + 1, {
-        folded: header[1] === ">",
-        chomp: header[2] === "-" ? "-" : header[2] === "+" ? "+" : "clip",
-        indent: header[3] ?? "",
-      });
-      record[key] = block.text;
-      index = block.nextIndex - 1;
-      continue;
-    }
-
-    if (!value) {
+    if (!key || !value) {
       continue;
     }
     record[key] = parseYamlScalar(value);

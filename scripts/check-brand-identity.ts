@@ -189,6 +189,11 @@ const approvedRetiredBrandFiles: readonly { readonly path: string; readonly reas
     path: "apps/desktop/scripts/dev-electron.mjs",
     reason: "Dev launcher naming for the Synara Beta flavor. Mimir ships production only.",
   },
+  {
+    path: "apps/web/src/components/SponsorLandingBanner.tsx",
+    reason:
+      "Dismissible empty-landing sponsor banner links to Synara's sponsor page. Gated behind SPONSOR_BANNER_UNAVAILABLE_FEATURE until Mimir has its own.",
+  },
 ];
 
 // The marketing site is now Mimir's, so it no longer needs a blanket directory

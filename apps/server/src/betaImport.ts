@@ -43,6 +43,8 @@ import { DEFAULT_SYNARA_HOME_DIRECTORY_NAME } from "@synara/shared/synaraHome";
 const EXCLUDED_STATE_ENTRIES = new Set([
   "logs",
   "diagnostics",
+  "environment-id",
+  "device-boot-ownership.json",
   "server-runtime.json",
   "quit-resume.json",
   BETA_IMPORT_REQUEST_FILE_NAME,

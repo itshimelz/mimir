@@ -103,15 +103,15 @@ describe("parseJsonCanvas", () => {
       color: undefined,
       text: "# Heading\nBody",
     });
-    expect(data.nodes[1].type).toBe("file");
-    expect(data.nodes[2].type).toBe("link");
-    expect(data.nodes[3].type).toBe("group");
+    expect(data.nodes[1]!.type).toBe("file");
+    expect(data.nodes[2]!.type).toBe("link");
+    expect(data.nodes[3]!.type).toBe("group");
 
     expect(data.edges).toHaveLength(1);
-    expect(data.edges[0].fromNode).toBe("text1");
-    expect(data.edges[0].toNode).toBe("file1");
-    expect(data.edges[0].label).toBe("references");
-    expect(data.edges[0].toEnd).toBe("arrow");
+    expect(data.edges[0]!.fromNode).toBe("text1");
+    expect(data.edges[0]!.toNode).toBe("file1");
+    expect(data.edges[0]!.label).toBe("references");
+    expect(data.edges[0]!.toEnd).toBe("arrow");
   });
 
   it("tolerates missing nodes or edges arrays", () => {
@@ -136,7 +136,7 @@ describe("parseJsonCanvas", () => {
     });
     const res = parseJsonCanvas(raw);
     expect(res.data?.nodes).toHaveLength(1);
-    expect(res.data?.nodes[0].id).toBe("valid");
+    expect(res.data?.nodes[0]!.id).toBe("valid");
   });
 });
 

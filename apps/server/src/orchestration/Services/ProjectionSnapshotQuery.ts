@@ -14,6 +14,7 @@ import type {
   OrchestrationReadModel,
   OrchestrationShellSnapshot,
   OrchestrationThreadDetailSnapshot,
+  OrchestrationThreadMessageWindow,
   OrchestrationThread,
   OrchestrationThreadShell,
   CheckpointRef,
@@ -322,6 +323,7 @@ export interface ProjectionSnapshotQueryShape {
    */
   readonly getThreadDetailSnapshotById: (
     threadId: ThreadId,
+    messageWindow?: OrchestrationThreadMessageWindow,
   ) => Effect.Effect<Option.Option<OrchestrationThreadDetailSnapshot>, ProjectionRepositoryError>;
 }
 

@@ -14,7 +14,7 @@ export interface CanvasBaseNode {
   y: number;
   width: number;
   height: number;
-  color?: string;
+  color?: string | undefined;
 }
 
 export interface CanvasTextNode extends CanvasBaseNode {
@@ -25,7 +25,7 @@ export interface CanvasTextNode extends CanvasBaseNode {
 export interface CanvasFileNode extends CanvasBaseNode {
   type: "file";
   file: string;
-  subpath?: string;
+  subpath?: string | undefined;
 }
 
 export interface CanvasLinkNode extends CanvasBaseNode {
@@ -35,9 +35,9 @@ export interface CanvasLinkNode extends CanvasBaseNode {
 
 export interface CanvasGroupNode extends CanvasBaseNode {
   type: "group";
-  label?: string;
-  background?: string;
-  backgroundStyle?: "cover" | "ratio" | "repeat";
+  label?: string | undefined;
+  background?: string | undefined;
+  backgroundStyle?: "cover" | "ratio" | "repeat" | undefined;
 }
 
 export type CanvasNode = CanvasTextNode | CanvasFileNode | CanvasLinkNode | CanvasGroupNode;
@@ -45,13 +45,13 @@ export type CanvasNode = CanvasTextNode | CanvasFileNode | CanvasLinkNode | Canv
 export interface CanvasEdge {
   id: string;
   fromNode: string;
-  fromSide?: CanvasSide;
-  fromEnd?: CanvasEdgeEnd;
+  fromSide?: CanvasSide | undefined;
+  fromEnd?: CanvasEdgeEnd | undefined;
   toNode: string;
-  toSide?: CanvasSide;
-  toEnd?: CanvasEdgeEnd;
-  color?: string;
-  label?: string;
+  toSide?: CanvasSide | undefined;
+  toEnd?: CanvasEdgeEnd | undefined;
+  color?: string | undefined;
+  label?: string | undefined;
 }
 
 export interface CanvasData {

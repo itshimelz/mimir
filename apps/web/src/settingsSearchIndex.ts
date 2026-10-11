@@ -1,10 +1,10 @@
+import { isFeatureAvailable } from "@synara/shared/unavailableFeatures";
 // FILE: settingsSearchIndex.ts
 // Purpose: Declarative, searchable index of settings rows/sections so the sidebar can
 //          surface matches by title/description the same way the editor file search does.
 // Layer: Route/UI support
 // Exports: entry type, the index, section label lookup, and the ranking helper
 
-import { isFeatureAvailable } from "@synara/shared/unavailableFeatures";
 import { rankProviderDiscoveryItems } from "~/lib/providerDiscovery";
 import {
   settingRowAnchorId,
@@ -134,6 +134,13 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
       title: "Open by default",
       keywords:
         "Open the chat Environment panel automatically on normal threads. default closed open environment panel preference",
+    },
+    {
+      id: "general:environment-subagents",
+      section: "general",
+      title: "Subagents",
+      keywords:
+        "Show a compact summary of the chat's subagents in the Environment panel and open the full list in the right dock. agents roster lineage running done stop background",
     },
     {
       id: "general:environment-usage",
@@ -279,6 +286,13 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
       keywords:
         "Show an OS notification when a chat or managed terminal agent finishes or needs input while the app is in the background. alerts toast",
     },
+    {
+      id: "notifications:wait-for-subagents",
+      section: "notifications",
+      title: "Wait for subagents",
+      keywords:
+        "Alert once the agent and all of its background subagents have finished. Turn this off to be alerted each time the agent or one of its subagents stops. alerts notification",
+    },
 
     // ── AppSnap ───────────────────────────────────────────────────────────────────
     {
@@ -389,6 +403,13 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
       keywords: "Show token-by-token output while a response is in progress. streaming",
     },
     {
+      id: "behavior:fold-finished-turns",
+      section: "behavior",
+      title: "Fold finished turns",
+      keywords:
+        "Hide a finished turn's tool calls and intermediate messages behind a single Worked for line. A turn stays open while it runs or while its background subagents are still working. collapse steps transcript",
+    },
+    {
       id: "behavior:effort-slider",
       section: "behavior",
       title: "Effort slider",
@@ -424,6 +445,12 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
         "Also list pull requests and issues from each project's other GitHub remotes, such as the repository a fork was made from. code review inbox github upstream remote fork",
     },
     {
+      id: "behavior:diff-layout",
+      section: "behavior",
+      title: "Diff layout",
+      keywords: "Default stacked split review panel side by side unified layout per thread",
+    },
+    {
       id: "behavior:diff-line-wrapping",
       section: "behavior",
       title: "Diff line wrapping",
@@ -446,6 +473,15 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
       section: "behavior",
       title: "Terminal close confirmation",
       keywords: "Ask before closing a terminal tab and clearing its history. safety confirm",
+    },
+    {
+      id: "behavior:keep-computer-awake",
+      section: "behavior",
+      title: "Keep computer awake",
+      keywords:
+        "caffeinate sleep macOS prevent sleep keep awake agent working system on off idle active",
+      // Row only renders on macOS with caffeinate available.
+      target: null,
     },
 
     // ── Keybindings ───────────────────────────────────────────────────────────────
@@ -478,6 +514,13 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
 
     // ── Models ────────────────────────────────────────────────────────────────────
     {
+      id: "models:source-control-writing-style",
+      section: "models",
+      title: "Source control writing style",
+      keywords:
+        "Repository conventions Conventional Commits custom instructions commit messages PR titles descriptions",
+    },
+    {
       id: "models:git-writing-model",
       section: "models",
       title: "Git writing model",
@@ -491,6 +534,13 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
     },
 
     // ── Providers ─────────────────────────────────────────────────────────────────
+    {
+      id: "providers:cpu-priority",
+      section: "providers",
+      title: "Keep Mimir responsive",
+      keywords:
+        "Lower agent CPU scheduling priority performance load nice responsiveness restart sessions",
+    },
     {
       id: "providers:automatic-cli-update-checks",
       section: "providers",
@@ -547,7 +597,8 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
       id: "usage:sidebar-rings",
       section: "usage",
       title: "Sidebar usage rings",
-      keywords: "Choose which provider usage rings show at the bottom of the sidebar rail. quota",
+      keywords:
+        "Choose up to two provider accounts for usage rings at the bottom of the sidebar rail. multiple Claude accounts quota",
       target: null,
     },
 

@@ -46,7 +46,7 @@ export const CanvasNodeCard = memo(function CanvasNodeCard({ node }: CanvasNodeC
       {node.type === "text" && (
         <div className="flex h-full flex-col overflow-hidden p-3.5">
           <div className="min-h-0 flex-1 overflow-auto">
-            <ChatMarkdown text={node.text} className="text-ui leading-relaxed" />
+            <ChatMarkdown cwd={undefined} text={node.text} className="text-ui leading-relaxed" />
           </div>
         </div>
       )}

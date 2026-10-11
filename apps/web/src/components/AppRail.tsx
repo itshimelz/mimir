@@ -15,6 +15,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
+import { TasksCoachmark } from "./OneTimeCoachmark";
 import type { RailItemId } from "~/appRail.logic";
 import { createCentralIconComponent } from "~/lib/central-icons";
 import {
@@ -176,35 +177,37 @@ export function appRailButtonClassName(): string {
 
 function AppRailButton({ item }: { item: AppRailItem }) {
   const label = item.badge ? `${item.label} · ${item.badge.accessibleLabel}` : item.label;
-  const glyphs = item.glyphs;
   // Resolved once: the same component identity has to render in both the icon slot and
   // the indicator, or React unmounts and remounts the glyph on every active change.
-  const Glyph = item.active ? glyphs.active : glyphs.idle;
+  const Glyph = item.active ? item.glyphs.active : item.glyphs.idle;
+  const button = (
+    <SidebarIconButton
+      icon={Glyph}
+      iconClassName={APP_RAIL_GLYPH_CLASS_NAME}
+      label={label}
+      size="lg"
+      tooltip={item.id === "tasks" ? undefined : label}
+      tooltipSide="right"
+      aria-current={item.active ? "page" : undefined}
+      // Empty string, not `true`: the CSS and the ripple's settle observer both test
+      // for presence, and React renders a boolean data attribute as "true".
+      data-active={item.active ? "" : undefined}
+      className={appRailButtonClassName()}
+      onClick={item.onSelect}
+      {...(item.onMouseEnter ? { onMouseEnter: item.onMouseEnter } : {})}
+      {...(item.onFocus ? { onFocus: item.onFocus } : {})}
+    >
+      <span className="app-rail-indicator" aria-hidden>
+        <Ripple />
+      </span>
+      <span className="app-rail-glyph">
+        <Glyph />
+      </span>
+    </SidebarIconButton>
+  );
   return (
     <div className="app-rail-item-wrap relative shrink-0">
-      <SidebarIconButton
-        icon={Glyph}
-        iconClassName={APP_RAIL_GLYPH_CLASS_NAME}
-        label={label}
-        size="lg"
-        tooltip={label}
-        tooltipSide="right"
-        aria-current={item.active ? "page" : undefined}
-        // Empty string, not `true`: the CSS and the ripple's settle observer both test
-        // for presence, and React renders a boolean data attribute as "true".
-        data-active={item.active ? "" : undefined}
-        className={appRailButtonClassName()}
-        onClick={item.onSelect}
-        {...(item.onMouseEnter ? { onMouseEnter: item.onMouseEnter } : {})}
-        {...(item.onFocus ? { onFocus: item.onFocus } : {})}
-      >
-        <span className="app-rail-indicator" aria-hidden>
-          <Ripple />
-        </span>
-        <span className="app-rail-glyph">
-          <Glyph />
-        </span>
-      </SidebarIconButton>
+      {item.id === "tasks" ? <TasksCoachmark tooltip={label}>{button}</TasksCoachmark> : button}
       {/* Same corner dot as the Activity bell's unread marker; the count is in the tooltip. */}
       {item.badge ? (
         <span

@@ -234,8 +234,10 @@ const CODE_THEME_SEED_PATCH_METADATA: Partial<
     light: { contrast: true, fonts: { code: true, ui: true }, opaqueWindows: true },
   },
   synara: {
-    dark: { contrast: true },
-    light: { contrast: true },
+    // Selecting Synara explicitly applies the complete Codex-based preset, including
+    // its native fonts and translucent material, rather than retaining Linear's style.
+    dark: { contrast: true, fonts: { code: true, ui: true }, opaqueWindows: true },
+    light: { contrast: true, fonts: { code: true, ui: true }, opaqueWindows: true },
   },
 };
 
@@ -337,12 +339,12 @@ const OVERLAY_OPACITY = 100;
 
 export const DEFAULT_THEME_STATE: ThemeState = {
   chromeThemes: {
-    dark: getCodeThemeSeed("codex", "dark"),
-    light: getCodeThemeSeed("codex", "light"),
+    dark: getCodeThemeSeed("synara", "dark"),
+    light: getCodeThemeSeed("synara", "light"),
   },
   codeThemeIds: {
-    dark: "codex",
-    light: "codex",
+    dark: "synara",
+    light: "synara",
   },
   systemUiFont: true,
   mode: "system",
@@ -455,7 +457,7 @@ export function normalizeWindowTranslucency(
 export function normalizeThemePack(value: unknown, variant: ThemeVariant): ThemePack {
   const pack = isRecord(value) ? value : {};
   return {
-    codeThemeId: normalizeCodeThemeId(pack.codeThemeId, variant),
+    codeThemeId: normalizeCodeThemeId(pack.codeThemeId, variant, "codex"),
     theme: normalizeChromeTheme(pack.theme, variant),
   };
 }
@@ -477,6 +479,8 @@ function hasStoredCustomUiFont(state: Record<string, unknown>): boolean {
 }
 
 export function normalizeThemeState(value: unknown): ThemeState {
+  // Missing fields in an existing store keep the old Codex defaults. Only a missing
+  // store or an explicit reset opts into the new Synara defaults.
   const state = isRecord(value) ? value : {};
   const codeThemeIds = isRecord(state.codeThemeIds) ? state.codeThemeIds : {};
   const chromeThemes = isRecord(state.chromeThemes) ? state.chromeThemes : {};
@@ -490,16 +494,20 @@ export function normalizeThemeState(value: unknown): ThemeState {
         ? normalizeChromeTheme(chromeThemes.dark, "dark")
         : isRecord(packs.dark)
           ? legacyDarkPack.theme
-          : DEFAULT_THEME_STATE.chromeThemes.dark,
+          : getCodeThemeSeed("codex", "dark"),
       light: isRecord(chromeThemes.light)
         ? normalizeChromeTheme(chromeThemes.light, "light")
         : isRecord(packs.light)
           ? legacyLightPack.theme
-          : DEFAULT_THEME_STATE.chromeThemes.light,
+          : getCodeThemeSeed("codex", "light"),
     },
     codeThemeIds: {
-      dark: normalizeCodeThemeId(codeThemeIds.dark ?? legacyDarkPack.codeThemeId, "dark"),
-      light: normalizeCodeThemeId(codeThemeIds.light ?? legacyLightPack.codeThemeId, "light"),
+      dark: normalizeCodeThemeId(codeThemeIds.dark ?? legacyDarkPack.codeThemeId, "dark", "codex"),
+      light: normalizeCodeThemeId(
+        codeThemeIds.light ?? legacyLightPack.codeThemeId,
+        "light",
+        "codex",
+      ),
     },
     mode: isThemeMode(state.mode) ? state.mode : DEFAULT_THEME_STATE.mode,
     // Preserve the UI font older theme states already rendered. New/default states use the
@@ -518,10 +526,7 @@ export function parseStoredThemeState(rawValue: string | null | undefined): Them
     return DEFAULT_THEME_STATE;
   }
   if (isThemeMode(rawValue)) {
-    return {
-      ...DEFAULT_THEME_STATE,
-      mode: rawValue,
-    };
+    return normalizeThemeState({ mode: rawValue });
   }
 
   try {

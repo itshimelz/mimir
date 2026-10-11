@@ -93,7 +93,7 @@ describe("CanvasFilePreview", () => {
     });
 
     const requests = Array.from(fetchRequests.values()).flat();
-    requests[0].resolve(
+    requests[0]!.resolve(
       new Response(canvasJson, {
         status: 200,
         headers: { "Content-Type": "application/json" },
@@ -131,7 +131,7 @@ describe("CanvasFilePreview", () => {
     });
 
     const requests = Array.from(fetchRequests.values()).flat();
-    requests[0].resolve(
+    requests[0]!.resolve(
       new Response("Not Found", {
         status: 404,
         statusText: "Not Found",

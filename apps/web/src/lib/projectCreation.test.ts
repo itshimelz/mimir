@@ -15,6 +15,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { useSpacesUiStore } from "../spacesUiStore";
 import {
   createOrRecoverProjectFromPath,
+  PROJECT_CREATE_MULTI_FOLDER_DUPLICATE_ERROR,
   resolveProjectCreationDestination,
 } from "./projectCreation";
 
@@ -115,6 +116,47 @@ describe("createOrRecoverProjectFromPath", () => {
       project: existingProject,
       created: false,
     });
+  });
+
+  it("dispatches the extra folders of a multi-folder project", async () => {
+    let createdProjectId: ProjectId | null = null;
+    const dispatchCommand = vi.fn(async (command: { projectId?: ProjectId }) => {
+      createdProjectId = command.projectId ?? null;
+      return { sequence: 2 };
+    });
+
+    await createOrRecoverProjectFromPath({
+      api: makeApi(dispatchCommand),
+      workspaceRoot: WORKSPACE_ROOT,
+      additionalFolders: ["/Users/tester/Developer/api", " "],
+      loadSnapshot: async () =>
+        makeSnapshot(createdProjectId ? [makeProject(createdProjectId)] : []),
+    });
+
+    expect(dispatchCommand).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "project.create",
+        workspaceRoot: WORKSPACE_ROOT,
+        additionalFolders: ["/Users/tester/Developer/api"],
+      }),
+    );
+  });
+
+  it("refuses to reopen an existing project for a multi-folder create", async () => {
+    const dispatchCommand = vi.fn(async () => {
+      throw new Error(
+        "Orchestration command invariant failed (project.create): Project 'project-existing' already uses workspace root '/Users/tester/Developer/synara'.",
+      );
+    });
+
+    await expect(
+      createOrRecoverProjectFromPath({
+        api: makeApi(dispatchCommand),
+        workspaceRoot: WORKSPACE_ROOT,
+        additionalFolders: ["/Users/tester/Developer/api"],
+        loadSnapshot: async () => makeSnapshot([makeProject("project-existing")]),
+      }),
+    ).rejects.toThrow(PROJECT_CREATE_MULTI_FOLDER_DUPLICATE_ERROR);
   });
 
   it("seeds the new project's default model selection from the persisted default provider (Devin)", async () => {

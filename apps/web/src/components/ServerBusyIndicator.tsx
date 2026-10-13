@@ -17,10 +17,10 @@ export function ServerBusyNotice({
 }) {
   if (!reconnecting && !snapshot.reason && snapshot.slowRequests === 0) return null;
   const title = reconnecting
-    ? "Reconnecting to Synara server"
+    ? "Reconnecting to Mimir server"
     : snapshot.reason === "recent-stall"
-      ? "Synara server recovered"
-      : "Synara server is busy";
+      ? "Mimir server recovered"
+      : "Mimir server is busy";
   const waiting =
     snapshot.pendingRequests === 1
       ? "1 request is still waiting."

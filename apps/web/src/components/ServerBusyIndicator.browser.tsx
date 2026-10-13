@@ -12,7 +12,7 @@ it("explains waiting during an unresponsive server without a blocking dialog", a
     />,
   );
   await expect.element(screen.getByRole("status")).toBeVisible();
-  await expect.element(screen.getByText("Synara server is busy")).toBeVisible();
+  await expect.element(screen.getByText("Mimir server is busy")).toBeVisible();
   await expect.element(screen.getByText(/2 requests are still waiting/)).toBeVisible();
 });
 
@@ -22,14 +22,14 @@ it("distinguishes a recent stall from a still-running request on a responsive se
       snapshot={{ reason: "recent-stall", pendingRequests: 0, slowRequests: 0, lastStallMs: 5200 }}
     />,
   );
-  await expect.element(screen.getByText("Synara server recovered")).toBeVisible();
+  await expect.element(screen.getByText("Mimir server recovered")).toBeVisible();
   await expect.element(screen.getByText(/5.2 s/)).toBeVisible();
   await screen.rerender(
     <ServerBusyNotice
       snapshot={{ reason: null, pendingRequests: 1, slowRequests: 1, lastStallMs: null }}
     />,
   );
-  await expect.element(screen.getByText("Synara server is busy")).toBeVisible();
+  await expect.element(screen.getByText("Mimir server is busy")).toBeVisible();
   await screen.rerender(
     <ServerBusyNotice
       snapshot={{ reason: null, pendingRequests: 0, slowRequests: 0, lastStallMs: null }}
@@ -51,9 +51,9 @@ it("uses one reconnecting state when the socket actually closes", async () => {
     />,
   );
   await expect.element(screen.getByRole("status")).toBeVisible();
-  await expect.element(screen.getByText("Reconnecting to Synara server")).toBeVisible();
+  await expect.element(screen.getByText("Reconnecting to Mimir server")).toBeVisible();
   await expect.element(screen.getByText(/resume automatically/)).toBeVisible();
-  await expect.element(screen.getByText("Synara server is busy")).not.toBeInTheDocument();
+  await expect.element(screen.getByText("Mimir server is busy")).not.toBeInTheDocument();
 });
 
 it("follows actual transport recovery without showing reconnecting during initial startup", async () => {
@@ -67,9 +67,9 @@ it("follows actual transport recovery without showing reconnecting during initia
   const screen = await render(<ServerBusyIndicator />);
   await expect.element(screen.getByRole("status")).not.toBeInTheDocument();
   emitWsTransportState("open");
-  await expect.element(screen.getByText("Synara server is busy")).toBeVisible();
+  await expect.element(screen.getByText("Mimir server is busy")).toBeVisible();
   emitWsTransportState("connecting");
-  await expect.element(screen.getByText("Reconnecting to Synara server")).toBeVisible();
+  await expect.element(screen.getByText("Reconnecting to Mimir server")).toBeVisible();
   await expect.element(screen.getByText(/You can keep working/)).not.toBeInTheDocument();
   publishServerBusySnapshot({
     reason: null,

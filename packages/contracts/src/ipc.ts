@@ -280,6 +280,7 @@ import type {
   StudioListThreadOutputsInput,
   StudioListThreadOutputsResult,
 } from "./studio";
+import type { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
 import type {
   ServerConfig,
   ServerDiagnosticsResult,
@@ -1210,6 +1211,9 @@ export interface NativeApi {
     ) => Promise<StudioListThreadOutputsResult>;
     /** Aggregated across every project and thread in a space, each entry attributed. */
     listSpaceOutputs: (input: StudioListSpaceOutputsInput) => Promise<StudioListSpaceOutputsResult>;
+  };
+  course: {
+    prepareWorkspace: (input: CoursePrepareWorkspaceInput) => Promise<CoursePrepareWorkspaceResult>;
   };
   shell: {
     openInEditor: (cwd: string, editor: EditorId) => Promise<void>;

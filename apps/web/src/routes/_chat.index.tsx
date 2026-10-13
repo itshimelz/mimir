@@ -76,10 +76,13 @@ function ChatIndexRouteView() {
     );
   }
 
-  const handleStartStudySession = async () => {
+  const handleStartStudySession = async (initialPrompt?: string) => {
     const threadId = await handleNewThread(activeCourse.id);
     if (threadId) {
       useCourseWorkspaceStore.getState().setCourseRecentThreadId(activeCourse.id, threadId);
+      if (initialPrompt) {
+        useComposerDraftStore.getState().setPrompt(threadId, initialPrompt);
+      }
     }
   };
 

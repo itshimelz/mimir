@@ -85,6 +85,7 @@ import {
   ProjectThreadIndexEntry,
 } from "./projectAgent";
 import { OpenInEditorInput } from "./editor";
+import { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
 import {
   ExternalMcpCreateIntegrationInput,
   ExternalMcpCreateIntegrationResult,
@@ -1061,6 +1062,12 @@ export const WsShellOpenInEditorRpc = Rpc.make(WS_METHODS.shellOpenInEditor, {
   error: WsRpcError,
 });
 
+export const WsCoursePrepareWorkspaceRpc = Rpc.make(WS_METHODS.coursePrepareWorkspace, {
+  payload: CoursePrepareWorkspaceInput,
+  success: CoursePrepareWorkspaceResult,
+  error: WsRpcError,
+});
+
 export const WsGitStatusRpc = Rpc.make(WS_METHODS.gitStatus, {
   payload: GitStatusInput,
   success: GitStatusResult,
@@ -1968,6 +1975,7 @@ export const WsFeatureRpcGroup = RpcGroup.make(
   WsFilesystemBrowseRpc,
   WsFilesystemPickFolderRpc,
   WsShellOpenInEditorRpc,
+  WsCoursePrepareWorkspaceRpc,
   WsGitGithubRepositoryRpc,
   WsGitStatusRpc,
   WsGitReadWorkingTreeDiffRpc,

@@ -39,7 +39,6 @@ import {
   checkpointRefForThreadTurnStart,
   resolveThreadWorkspaceCwd,
 } from "../../checkpointing/Utils.ts";
-import { isGitRepository } from "../../git/isRepo.ts";
 import {
   scanStudioWorkspaceFiles,
   studioOutputsCapturedActivityPayload,

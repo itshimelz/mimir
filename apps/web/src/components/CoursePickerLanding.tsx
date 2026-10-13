@@ -6,8 +6,9 @@
 import type { ProjectId } from "@synara/contracts";
 import { useState } from "react";
 
+import { CreateCourseDialog } from "~/components/CreateCourseDialog";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card } from "~/components/ui/card";
 import {
   Empty,
   EmptyContent,
@@ -17,7 +18,6 @@ import {
   EmptyTitle,
 } from "~/components/ui/empty";
 import { useCourseWorkspaceStore } from "~/courseWorkspaceStore";
-import { isElectron } from "~/env";
 import {
   BookOpenIcon,
   ChevronRightIcon,
@@ -25,95 +25,25 @@ import {
   FolderIcon,
   SparkleIcon,
 } from "~/lib/icons";
-import { createOrRecoverProjectFromPath } from "~/lib/projectCreation";
-import { expandProjectHomePath } from "~/lib/projectPaths";
 import { readNativeApi } from "~/nativeApi";
 import { useStore } from "~/store";
 import { type Project } from "~/types";
-import { useWorkspacePathsStore } from "~/workspacePathsStore";
 
 export function CoursePickerLanding(props: {
   readonly onCourseSelected?: (courseId: ProjectId) => void;
 }) {
   const projects = useStore((state) => state.projects);
-  const syncServerShellSnapshot = useStore((state) => state.syncServerShellSnapshot);
-  const homeDir = useWorkspacePathsStore((state) => state.homeDir);
   const setActiveCourseId = useCourseWorkspaceStore((state) => state.setActiveCourseId);
 
-  const [isOpeningFolder, setIsOpeningFolder] = useState(false);
-  const [manualPath, setManualPath] = useState("");
-  const [showManualInput, setShowManualInput] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSelectCourse = (courseId: ProjectId) => {
+    const api = readNativeApi();
+    // Self-heal course workspace subdirectories in background
+    void api?.course?.prepareWorkspace({ projectId: courseId, role: "student" }).catch(() => {});
     setActiveCourseId(courseId);
     props.onCourseSelected?.(courseId);
-  };
-
-  const handleOpenFolder = async () => {
-    setErrorMessage(null);
-    const api = readNativeApi();
-
-    if (isElectron && api?.dialogs?.pickFolder) {
-      try {
-        setIsOpeningFolder(true);
-        const pickedPath = await api.dialogs.pickFolder();
-        if (!pickedPath) {
-          setIsOpeningFolder(false);
-          return;
-        }
-        await addCourseFromPath(pickedPath);
-      } catch (err) {
-        setErrorMessage(err instanceof Error ? err.message : "Failed to open folder");
-      } finally {
-        setIsOpeningFolder(false);
-      }
-    } else {
-      setShowManualInput((prev) => !prev);
-    }
-  };
-
-  const addCourseFromPath = async (rawPath: string) => {
-    const api = readNativeApi();
-    if (!api) {
-      setErrorMessage("Desktop API is not connected");
-      return;
-    }
-    const expanded = expandProjectHomePath(rawPath.trim(), homeDir);
-    if (!expanded) {
-      setErrorMessage("Please enter a valid course folder path");
-      return;
-    }
-
-    setIsOpeningFolder(true);
-    setErrorMessage(null);
-    try {
-      const result = await createOrRecoverProjectFromPath({
-        api,
-        workspaceRoot: expanded,
-        spaceId: null,
-        loadSnapshot: () => api.orchestration.getShellSnapshot().catch(() => null),
-      });
-
-      if (result.snapshot) {
-        syncServerShellSnapshot(result.snapshot);
-      }
-
-      setActiveCourseId(result.projectId);
-      props.onCourseSelected?.(result.projectId);
-      setManualPath("");
-      setShowManualInput(false);
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : "Failed to create course workspace");
-    } finally {
-      setIsOpeningFolder(false);
-    }
-  };
-
-  const handleManualSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!manualPath.trim()) return;
-    void addCourseFromPath(manualPath);
   };
 
   return (
@@ -152,12 +82,11 @@ export function CoursePickerLanding(props: {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleOpenFolder}
-                disabled={isOpeningFolder}
+                onClick={() => setCreateDialogOpen(true)}
                 className="gap-1.5"
               >
                 <FolderAddIcon className="size-4" />
-                <span>Open Folder</span>
+                <span>New Course</span>
               </Button>
             </div>
 
@@ -204,8 +133,7 @@ export function CoursePickerLanding(props: {
               <Button
                 variant="default"
                 size="default"
-                onClick={handleOpenFolder}
-                disabled={isOpeningFolder}
+                onClick={() => setCreateDialogOpen(true)}
                 className="gap-2"
               >
                 <FolderAddIcon className="size-4.5" />
@@ -214,43 +142,13 @@ export function CoursePickerLanding(props: {
             </EmptyContent>
           </Empty>
         )}
-
-        {/* Web manual path input fallback */}
-        {showManualInput && (
-          <form
-            onSubmit={handleManualSubmit}
-            className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 shadow-sm"
-          >
-            <div className="flex flex-col gap-1">
-              <span className="text-ui font-medium text-foreground">Course Directory Path</span>
-              <span className="text-ui-xs text-muted-foreground">
-                Enter the absolute or home-relative path (e.g. ~/Courses/CS101)
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={manualPath}
-                onChange={(e) => setManualPath(e.target.value)}
-                placeholder="~/Courses/MyCourse"
-                className="flex-1 h-9 rounded-lg border border-border bg-background px-3 text-ui font-mono text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-                autoFocus
-              />
-              <Button type="submit" variant="default" size="sm" disabled={isOpeningFolder}>
-                {isOpeningFolder ? "Opening…" : "Add Course"}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowManualInput(false)}
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        )}
       </div>
+
+      <CreateCourseDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCourseCreated={handleSelectCourse}
+      />
     </div>
   );
 }

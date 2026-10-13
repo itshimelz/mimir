@@ -15,7 +15,7 @@ import { describe, expect, it } from "vitest";
  * here by reading the two call sites — the same approach as `sessionLeaseCallSites.test.ts`.
  */
 const GATE_SITES = [
-  { file: "orchestration/Layers/StudioOutputReactor.ts", name: "capture" },
+  { file: "orchestration/Layers/HubOutputReactor.ts", name: "capture" },
   { file: "wsRpc.ts", name: "listing" },
 ] as const;
 
@@ -43,7 +43,7 @@ describe("Studio output gates", () => {
     // therefore left every course folder capturing nothing. The tree walk is safe there
     // because dot-directories (`.git`, `.venv`) are skipped as hidden entries and
     // generated directories are excluded by name; asserted below.
-    const source = readServerSource("./orchestration/Layers/StudioOutputReactor.ts");
+    const source = readServerSource("./orchestration/Layers/HubOutputReactor.ts");
     expect(source, "capture still skips Git roots").not.toContain("isGitRepository");
   });
 
@@ -70,14 +70,14 @@ describe("Studio output gates", () => {
   });
 
   it("scaffolds the course layout from the reactor, on a turn, not from a read", () => {
-    const reactor = readServerSource("./orchestration/Layers/StudioOutputReactor.ts");
+    const reactor = readServerSource("./orchestration/Layers/HubOutputReactor.ts");
     expect(reactor).toContain("ensureCourseWorkspaceLayout");
     // Gated on the layout rule, so only a course folder is scaffolded and the legacy
     // containers keep their own create-time layout.
     expect(reactor).toContain('studioWorkspaceLayoutFor(input.projectKind) === "course"');
     // After the diff is computed, so the layout is never attributed to the agent.
     const diffAt = reactor.indexOf("diffStudioWorkspaceScans(input.baseline.files, after)");
-    const scaffoldAt = reactor.indexOf("ensureCourseWorkspaceLayout(input.baseline.workspaceRoot");
+    const scaffoldAt = reactor.indexOf("yield* ensureCourseWorkspaceLayout(");
     expect(diffAt).toBeGreaterThan(-1);
     expect(scaffoldAt).toBeGreaterThan(diffAt);
   });

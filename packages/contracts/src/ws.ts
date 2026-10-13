@@ -137,6 +137,7 @@ import {
   ProjectWriteFileInput,
 } from "./project";
 import { StudioListSpaceOutputsInput, StudioListThreadOutputsInput } from "./studio";
+import { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
 import { FilesystemBrowseInput, FilesystemPickFolderInput } from "./filesystem";
 import {
   DEVICE_WS_CHANNELS,
@@ -246,6 +247,9 @@ export const WS_METHODS = {
   // Studio methods
   studioListThreadOutputs: "studio.listThreadOutputs",
   studioListSpaceOutputs: "studio.listSpaceOutputs",
+
+  // Course methods
+  coursePrepareWorkspace: "course.prepareWorkspace",
 
   // Filesystem browse methods
   filesystemBrowse: "filesystem.browse",
@@ -507,6 +511,9 @@ const WebSocketRequestBody = Schema.Union([
   // Studio
   tagRequestBody(WS_METHODS.studioListThreadOutputs, StudioListThreadOutputsInput),
   tagRequestBody(WS_METHODS.studioListSpaceOutputs, StudioListSpaceOutputsInput),
+
+  // Course
+  tagRequestBody(WS_METHODS.coursePrepareWorkspace, CoursePrepareWorkspaceInput),
 
   tagRequestBody(WS_METHODS.filesystemBrowse, FilesystemBrowseInput),
   tagRequestBody(WS_METHODS.filesystemPickFolder, FilesystemPickFolderInput),

@@ -635,6 +635,9 @@ export function createWsNativeApi(): NativeApi {
       listThreadOutputs: (input) => transport.request(WS_METHODS.studioListThreadOutputs, input),
       listSpaceOutputs: (input) => transport.request(WS_METHODS.studioListSpaceOutputs, input),
     },
+    course: {
+      prepareWorkspace: (input) => transport.request(WS_METHODS.coursePrepareWorkspace, input),
+    },
     shell: {
       openInEditor: (cwd, editor) =>
         transport.request(WS_METHODS.shellOpenInEditor, { cwd, editor }),

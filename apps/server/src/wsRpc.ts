@@ -98,7 +98,6 @@ import {
   participatesInStudioOutputs,
   studioWorkspaceLayoutFor,
 } from "@synara/shared/studioOutputs";
-import { isGroupContainerKind } from "@synara/shared/projectContainers";
 import { PROJECT_FOLDERS_WORKTREE_ISSUE } from "@synara/shared/projectFolders";
 import { workspaceRootsEqual } from "@synara/shared/threadWorkspace";
 import { WORKSPACE_FILE_WRITE_CONFLICT_CODE } from "@synara/shared/workspaceFileWrite";
@@ -127,6 +126,7 @@ import {
   ensureStudioWorkspaceInstructionsFiles,
   type LearnerRole,
   migrateLegacyWorkspaceLayout,
+  prepareCourseWorkspaceRoot as prepareCourseWorkspaceRootFromScaffold,
   STUDIO_WORKSPACE_SUBDIRECTORIES,
 } from "./studioWorkspaceScaffold";
 import { ensureGroupWorkspaceInstructionsFiles } from "./groupWorkspaceScaffold";
@@ -878,19 +878,9 @@ const makeWsRpcHandlersLayer = () =>
       // than the legacy creator-economy set. mkdir -p and the write-if-missing instructions
       // are both idempotent, so this also self-heals a workspace whose earlier attempt failed.
       const prepareCourseWorkspaceRoot = (workspaceRoot: string, role: LearnerRole) =>
-        prepareWorkspaceSubdirectories(workspaceRoot, courseWorkspaceSubdirectories(role)).pipe(
-          Effect.andThen(
-            ensureCourseWorkspaceInstructionsFiles(workspaceRoot, role).pipe(
-              Effect.catch((cause) =>
-                Effect.logWarning("failed to write course workspace instructions", {
-                  workspaceRoot,
-                  cause,
-                }),
-              ),
-              Effect.provideService(FileSystem.FileSystem, fileSystem),
-              Effect.provideService(Path.Path, path),
-            ),
-          ),
+        prepareCourseWorkspaceRootFromScaffold(workspaceRoot, role).pipe(
+          Effect.provideService(FileSystem.FileSystem, fileSystem),
+          Effect.provideService(Path.Path, path),
         );
       const prepareGroupWorkspaceRoot = (workspaceRoot: string) =>
         fileSystem.makeDirectory(workspaceRoot, { recursive: true }).pipe(
@@ -2068,6 +2058,24 @@ const makeWsRpcHandlersLayer = () =>
           rpcEffect(workspaceEntries.pickFolder(input), "Failed to pick folder"),
         [WS_METHODS.shellOpenInEditor]: (input) =>
           rpcEffect(open.openInEditor(input), "Failed to open editor"),
+        [WS_METHODS.coursePrepareWorkspace]: (input) =>
+          rpcEffect(
+            Effect.gen(function* () {
+              const projectOption = yield* projectionReadModelQuery.getProjectShellById(
+                input.projectId,
+              );
+              if (Option.isNone(projectOption)) {
+                return yield* new WsRpcError({
+                  message: `Project not found: ${input.projectId}`,
+                  code: "PROJECT_NOT_FOUND",
+                });
+              }
+              const project = projectOption.value;
+              const role = input.role ?? DEFAULT_LEARNER_ROLE;
+              return yield* prepareCourseWorkspaceRoot(project.workspaceRoot, role);
+            }),
+            "Failed to prepare course workspace",
+          ),
 
         [WS_METHODS.gitGithubRepository]: (input) =>
           rpcEffect(resolveGitHubRepository(git, input.cwd), "Failed to resolve GitHub repository"),

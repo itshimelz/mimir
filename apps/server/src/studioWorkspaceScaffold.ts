@@ -8,7 +8,8 @@
 // Exports: STUDIO_WORKSPACE_SUBDIRECTORIES, LearnerRole, DEFAULT_LEARNER_ROLE,
 //          learnerRoleForSpaceIcon, courseWorkspaceSubdirectories,
 //          courseWorkspaceInstructionText, ensureStudioWorkspaceInstructionsFiles,
-//          ensureCourseWorkspaceInstructionsFiles, migrateLegacyWorkspaceLayout
+//          ensureCourseWorkspaceInstructionsFiles, migrateLegacyWorkspaceLayout,
+//          prepareCourseWorkspaceRoot
 
 import { Effect, FileSystem, Path } from "effect";
 
@@ -246,4 +247,30 @@ export const migrateLegacyWorkspaceLayout = Effect.fnUntraced(function* (workspa
   }
 
   return migratedAny;
+});
+
+/**
+ * Scaffolds the subdirectories for a course workspace and writes the initial instruction files.
+ * Idempotent: existing subdirectories are preserved, and user-edited instruction files are not overwritten.
+ */
+export const prepareCourseWorkspaceRoot = Effect.fnUntraced(function* (
+  workspaceRoot: string,
+  role: LearnerRole = DEFAULT_LEARNER_ROLE,
+) {
+  const fileSystem = yield* FileSystem.FileSystem;
+  const path = yield* Path.Path;
+  const subdirs = courseWorkspaceSubdirectories(role);
+  for (const dirname of subdirs) {
+    const childPath = path.join(workspaceRoot, dirname);
+    yield* fileSystem.makeDirectory(childPath, { recursive: true });
+  }
+  yield* ensureCourseWorkspaceInstructionsFiles(workspaceRoot, role).pipe(
+    Effect.catch((cause) =>
+      Effect.logWarning("failed to write course workspace instructions", {
+        workspaceRoot,
+        cause,
+      }),
+    ),
+  );
+  return { scaffoldedDirectories: [...subdirs] };
 });

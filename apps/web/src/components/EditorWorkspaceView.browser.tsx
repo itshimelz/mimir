@@ -61,8 +61,13 @@ afterEach(async () => {
   }
   if (previousApi) Object.defineProperty(window, "nativeApi", previousApi);
   else Reflect.deleteProperty(window, "nativeApi");
-  // The surface is a stored preference, so it must not leak between tests.
+  // Every stored preference this view reads has to be cleared between tests. The surface
+  // selector and the two pane-width keys are all persisted, so a case that collapses the chat
+  // rail or drags the seam would otherwise leave the next case rendering a layout it did not
+  // ask for.
   window.localStorage.removeItem("synara.editor.surface");
+  window.localStorage.removeItem("synara.editor.chatPaneVisible");
+  window.localStorage.removeItem("synara.editor.chatPaneWidth");
 });
 
 type StudioOutput = NonNullable<
@@ -169,6 +174,237 @@ it.each(["light", "dark"] as const)(
     }
   },
 );
+
+// The seam between the center workspace and the chat rail. Sized from measured boxes
+// rather than class names, because the whole point of these cases is that the divider is
+// visible, sits ON the boundary, and drives the layout — none of which a snapshot shows.
+const seam = () => document.querySelector<HTMLButtonElement>('button[data-slot="sidebar-rail"]')!;
+const chatPanel = () => document.querySelector<HTMLElement>('[data-slot="sidebar-container"]')!;
+const centerPane = () => document.querySelector<HTMLElement>("[data-editor-workspace] main")!;
+
+// The pane bounds, imported rather than re-declared so a change to the policy moves this
+// test with it instead of quietly passing against stale numbers.
+import {
+  EDITOR_CENTER_PANE_MAX_WIDTH,
+  EDITOR_CENTER_PANE_MIN_WIDTH,
+  EDITOR_CHAT_PANE_MAX_WIDTH,
+  EDITOR_CHAT_PANE_MIN_WIDTH,
+} from "./EditorWorkspaceView.logic";
+
+// The rail is `absolute inset-y-0`, so its box is a full-height strip whose horizontal
+// center is the boundary. The painted line is that box's `::before`.
+const seamLine = () => getComputedStyle(seam(), "::before");
+
+// The rail is `sm:flex` and the pane row is `lg:flex-row`, and the whole seam is desktop-only
+// (below `md` the chat rail renders as an off-canvas sheet). The harness default viewport is
+// phone-sized, so every seam case has to widen it or it measures a layout that does not exist.
+const SEAM_VIEWPORT = { width: 1440, height: 900 };
+async function renderAtSeamViewport(view = makeView()()) {
+  await page.viewport(SEAM_VIEWPORT.width, SEAM_VIEWPORT.height);
+  return render(view);
+}
+
+/** Pointer drag from the seam's current center to `targetClientX`. */
+async function dragSeamTo(targetClientX: number) {
+  const rail = seam();
+  const box = rail.getBoundingClientRect();
+  const from = { x: box.left + box.width / 2, y: box.top + box.height / 2 };
+  rail.dispatchEvent(
+    new PointerEvent("pointerdown", {
+      clientX: from.x,
+      clientY: from.y,
+      pointerId: 1,
+      button: 0,
+      bubbles: true,
+    }),
+  );
+  rail.dispatchEvent(
+    new PointerEvent("pointermove", {
+      clientX: targetClientX,
+      clientY: from.y,
+      pointerId: 1,
+      bubbles: true,
+    }),
+  );
+  // The rail throttles the layout write to a rAF; let it land before reading boxes.
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  rail.dispatchEvent(
+    new PointerEvent("pointerup", {
+      clientX: targetClientX,
+      clientY: from.y,
+      pointerId: 1,
+      button: 0,
+      bubbles: true,
+    }),
+  );
+}
+
+it("paints a resting divider centered on the center/chat boundary", async () => {
+  await renderAtSeamViewport();
+  await expect.element(page.getByRole("button", { name: "Resize Sidebar" })).toBeInTheDocument();
+
+  const boundary = centerPane().getBoundingClientRect().right;
+  const railBox = seam().getBoundingClientRect();
+  // The hit area straddles the boundary, so its center must land on it.
+  expect(Math.abs(railBox.left + railBox.width / 2 - boundary)).toBeLessThanOrEqual(1);
+
+  const line = seamLine();
+  expect(line.width).not.toBe("0px");
+  expect(line.backgroundColor).not.toBe("rgba(0, 0, 0, 0)");
+  // A hairline at rest, not the 3px grab affordance.
+  expect(parseFloat(line.width)).toBeLessThanOrEqual(1.5);
+});
+
+it("widens the divider on hover and while dragging", async () => {
+  await renderAtSeamViewport();
+  const restingWidth = parseFloat(seamLine().width);
+
+  await page.getByRole("button", { name: "Resize Sidebar" }).hover();
+  await expect.poll(() => parseFloat(seamLine().width)).toBeGreaterThan(restingWidth);
+
+  // Pointer capture means the drag can outrun the 16px hit area; `data-resizing` is what
+  // keeps the highlight lit, so assert on the attribute rather than on :hover.
+  const rail = seam();
+  const box = rail.getBoundingClientRect();
+  rail.dispatchEvent(
+    new PointerEvent("pointerdown", {
+      clientX: box.left + box.width / 2,
+      clientY: box.top + box.height / 2,
+      pointerId: 1,
+      button: 0,
+      bubbles: true,
+    }),
+  );
+  await expect
+    .element(page.getByRole("button", { name: "Resize Sidebar" }))
+    .toHaveAttribute("data-resizing", "true");
+
+  rail.dispatchEvent(
+    new PointerEvent("pointerup", {
+      clientX: box.left + box.width / 2,
+      clientY: box.top + box.height / 2,
+      pointerId: 1,
+      button: 0,
+      bubbles: true,
+    }),
+  );
+  await expect
+    .element(page.getByRole("button", { name: "Resize Sidebar" }))
+    .not.toHaveAttribute("data-resizing");
+});
+
+it("resizes both the chat rail and the center pane from one drag", async () => {
+  await renderAtSeamViewport();
+  const chatBefore = chatPanel().getBoundingClientRect().width;
+  const centerBefore = centerPane().getBoundingClientRect().width;
+  const boundaryBefore = centerPane().getBoundingClientRect().right;
+
+  // Drag the seam left: the chat rail must grow.
+  await dragSeamTo(seam().getBoundingClientRect().left - 120);
+
+  const chatAfter = chatPanel().getBoundingClientRect().width;
+  const centerAfter = centerPane().getBoundingClientRect().width;
+  expect(chatAfter).toBeGreaterThan(chatBefore);
+  // The center absorbs the difference, so the two always tile the row exactly.
+  expect(centerAfter).toBeLessThan(centerBefore);
+  expect(Math.abs(centerAfter + chatAfter - (centerBefore + chatBefore))).toBeLessThanOrEqual(1);
+  // And the seam itself moved, rather than the panes resizing under a static handle.
+  expect(centerPane().getBoundingClientRect().right).toBeLessThan(boundaryBefore);
+});
+
+it("persists the dragged width and restores it on remount", async () => {
+  const storageKey = "synara.editor.chatPaneWidth";
+  const view = makeView();
+  const screen = await renderAtSeamViewport(view());
+  const chatBefore = chatPanel().getBoundingClientRect().width;
+
+  await dragSeamTo(seam().getBoundingClientRect().left - 100);
+
+  const stored = Number(window.localStorage.getItem(storageKey));
+  expect(stored).toBeGreaterThan(chatBefore);
+
+  // The width is a stored preference, so it survives leaving the view entirely.
+  await screen.unmount();
+  await renderAtSeamViewport(view());
+  expect(Math.abs(chatPanel().getBoundingClientRect().width - stored)).toBeLessThanOrEqual(1);
+});
+
+it("hides the divider while the chat rail is collapsed", async () => {
+  await renderAtSeamViewport();
+  await page.getByRole("button", { name: "Hide chat panel" }).click();
+
+  // The rail stays mounted (pointer-events: none) but must not draw on the window edge.
+  await expect.poll(() => getComputedStyle(seam(), "::before").display).toBe("none");
+});
+
+// The two panes' width bounds, asserted from measured boxes. The drag cases above only prove
+// the seam responds; these prove it stops at the right places and never opens a gap.
+it("stops the drag at the rail's minimum and maximum width", async () => {
+  await renderAtSeamViewport();
+  const chatBefore = chatPanel().getBoundingClientRect().width;
+
+  // Far past the ceiling: the rail clamps to its own max, not to the pointer.
+  await dragSeamTo(seam().getBoundingClientRect().left - 4000);
+  expect(Math.round(chatPanel().getBoundingClientRect().width)).toBeLessThanOrEqual(
+    Math.round(EDITOR_CHAT_PANE_MAX_WIDTH) + 1,
+  );
+
+  // Far past the floor in the other direction.
+  await dragSeamTo(seam().getBoundingClientRect().right + 4000);
+  expect(chatPanel().getBoundingClientRect().width).toBeGreaterThanOrEqual(
+    EDITOR_CHAT_PANE_MIN_WIDTH - 1,
+  );
+
+  // Whatever it clamped to, the row is still fully tiled — no gap, no overlap.
+  const center = centerPane().getBoundingClientRect();
+  const chat = chatPanel().getBoundingClientRect();
+  expect(Math.abs(chat.left - center.right)).toBeLessThanOrEqual(1);
+  expect(chatBefore).toBeGreaterThan(0);
+});
+
+it("refuses to starve the center pane below its minimum", async () => {
+  await renderAtSeamViewport();
+
+  // Drag well past the point where the center would hit its floor.
+  await dragSeamTo(seam().getBoundingClientRect().left - 4000);
+
+  const center = centerPane().getBoundingClientRect();
+  expect(center.width).toBeGreaterThanOrEqual(EDITOR_CENTER_PANE_MIN_WIDTH - 1);
+  // The panes still meet exactly.
+  expect(Math.abs(chatPanel().getBoundingClientRect().left - center.right)).toBeLessThanOrEqual(1);
+});
+
+it("keeps the center pane from stretching past its ceiling on a wide window", async () => {
+  // Wider than centerMax + chatMax, so the center's ceiling is the binding constraint here.
+  await page.viewport(EDITOR_CENTER_PANE_MAX_WIDTH + EDITOR_CHAT_PANE_MAX_WIDTH + 600, 900);
+  await render(makeView()());
+  // Collapse the rail: the center pane is then the only thing in the row, and `flex-1` alone
+  // would hand it the whole window.
+  await page.getByRole("button", { name: "Hide chat panel" }).click();
+
+  const center = centerPane().getBoundingClientRect();
+  expect(center.width).toBeLessThanOrEqual(EDITOR_CENTER_PANE_MAX_WIDTH + 1);
+  expect(center.width).toBeGreaterThanOrEqual(EDITOR_CENTER_PANE_MIN_WIDTH - 1);
+});
+
+it("re-clamps a width stored on a wide monitor when the window is narrower", async () => {
+  // A width saved on a large display would otherwise open a rail that crowds out the center.
+  window.localStorage.setItem("synara.editor.chatPaneWidth", String(EDITOR_CHAT_PANE_MAX_WIDTH));
+  try {
+    await renderAtSeamViewport();
+
+    const center = centerPane().getBoundingClientRect();
+    const chat = chatPanel().getBoundingClientRect();
+    // Either the row had room for the stored width, or it was pulled back to fit the center.
+    expect(chat.width).toBeLessThanOrEqual(EDITOR_CHAT_PANE_MAX_WIDTH + 1);
+    if (center.width < EDITOR_CENTER_PANE_MIN_WIDTH) {
+      // Only legal on a row too narrow for both floors, which the test viewport is not.
+      throw new Error("center pane was starved on a row wide enough for both floors");
+    }
+  } finally {
+    window.localStorage.removeItem("synara.editor.chatPaneWidth");
+  }
+});
 
 it("keeps independent choices for multiple files and workspaces", async () => {
   const view = makeView();

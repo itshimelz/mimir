@@ -38,8 +38,8 @@ function ChatEditorRouteView() {
     const isThreadKnown = (id: string) =>
       Boolean(
         threadShellById?.[id as ThreadId] ||
-          sidebarThreadSummaryById[id as ThreadId] ||
-          useComposerDraftStore.getState().draftThreadsByThreadId[id as ThreadId],
+        sidebarThreadSummaryById[id as ThreadId] ||
+        useComposerDraftStore.getState().draftThreadsByThreadId[id as ThreadId],
       );
 
     // 1. Try lastThreadRoute

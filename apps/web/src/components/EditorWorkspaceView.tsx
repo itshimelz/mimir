@@ -5,44 +5,30 @@
 //          workspace and one chat rail; only the left column and center swap.
 // Layer: Chat route presentation
 
-import type {
-  ProjectId,
-  SpaceIconName,
-  SpaceId,
-  StudioOutputEntry,
-} from "@synara/contracts";
+import type { ProjectId, SpaceIconName, SpaceId, StudioOutputEntry } from "@synara/contracts";
 import type { FileDiffMetadata } from "@pierre/diffs/react";
 import {
   type CSSProperties,
   type ReactNode,
   type RefObject,
   useCallback,
+  useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
 } from "react";
 
-import {
-  ChatBubbleIcon,
-  FoldersIcon,
-  PanelLeftIcon,
-  SparkleIcon,
-} from "~/lib/icons";
+import { ChatBubbleIcon, FoldersIcon, SparkleIcon } from "~/lib/icons";
 import {
   useDesktopTopBarTrafficLightGutterClassName,
   useDesktopTopBarWindowControlsGutterClassName,
 } from "~/hooks/useDesktopTopBarGutter";
 import type { ChatFileReference } from "~/lib/chatReferences";
 import type { DiffEditBaseRev } from "~/lib/diffEditBaseRev";
-import {
-  type EditorCenterMode,
-  type EditorSurface,
-} from "~/lib/editorCenterMode";
+import { type EditorCenterMode, type EditorSurface } from "~/lib/editorCenterMode";
 import type { FileCommentSelection } from "~/lib/fileComments";
-import type {
-  PptxAnnotationDraft,
-  PptxAnnotationSelection,
-} from "~/lib/pptxAnnotations";
+import type { PptxAnnotationDraft, PptxAnnotationSelection } from "~/lib/pptxAnnotations";
 import { cn } from "~/lib/utils";
 import { useTheme } from "~/hooks/useTheme";
 import {
@@ -51,6 +37,16 @@ import {
   CHAT_SURFACE_HEADER_HEIGHT_CLASS,
 } from "./chat/chatHeaderControls";
 import { CHAT_BACKGROUND_CLASS_NAME } from "./chat/composerPickerStyles";
+import {
+  clampEditorChatPaneWidth,
+  EDITOR_CENTER_PANE_MAX_WIDTH,
+  EDITOR_CENTER_PANE_MIN_WIDTH,
+  EDITOR_CHAT_PANE_DEFAULT_WIDTH,
+  EDITOR_CHAT_PANE_MAX_WIDTH,
+  EDITOR_CHAT_PANE_MIN_WIDTH,
+  resolveEditorPaneBounds,
+  shouldAcceptEditorChatPaneWidth,
+} from "./EditorWorkspaceView.logic";
 import { StudioEmptyState } from "./chat/StudioEmptyState";
 import { Button } from "@/components/m3e/button";
 import type { ProjectMenuPickerOption } from "./ProjectMenuPicker";
@@ -61,7 +57,6 @@ import {
   Sidebar,
   SidebarProvider,
   SidebarRail,
-  useOptionalSidebar,
 } from "./ui/sidebar";
 import { WorkspaceFileDiffEditorPane } from "./chat/WorkspaceFileDiffEditorPane";
 import { useQueryClient } from "@tanstack/react-query";
@@ -72,9 +67,6 @@ import { useEditorSurfaceStore } from "~/editorSurfaceStore";
 
 const EDITOR_CHAT_PANE_STORAGE_KEY = "synara.editor.chatPaneWidth";
 const EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY = "synara.editor.chatPaneVisible";
-const EDITOR_CHAT_PANE_DEFAULT_WIDTH = 384;
-const EDITOR_CHAT_PANE_MIN_WIDTH = 280;
-const EDITOR_CHAT_PANE_MAX_WIDTH = 960;
 
 interface EditorWorkspaceViewProps {
   workspaceRoot: string | null;
@@ -119,19 +111,6 @@ interface EditorWorkspaceViewProps {
   /** Agent-produced artifacts backing the Studio surface. Undefined while Studio has no data. */
   studioOutputs?: ReadonlyArray<StudioOutputEntry>;
   studioOutputsLoading?: boolean;
-}
-
-function clampEditorChatPaneWidth(
-  width: number,
-  maxAvailable?: number,
-): number {
-  const max = Math.min(
-    EDITOR_CHAT_PANE_MAX_WIDTH,
-    maxAvailable
-      ? Math.max(EDITOR_CHAT_PANE_MIN_WIDTH, maxAvailable - 320)
-      : EDITOR_CHAT_PANE_MAX_WIDTH,
-  );
-  return Math.min(max, Math.max(EDITOR_CHAT_PANE_MIN_WIDTH, Math.round(width)));
 }
 
 function readStoredEditorChatPaneWidth(): number {
@@ -191,18 +170,41 @@ export interface EditorLeaveGuard {
   guardLeavingEdit: (run: () => void) => void;
 }
 
+/**
+ * The seam between the center workspace and the chat rail.
+ *
+ * `SidebarRail` supplies the 16px hit area and the pointer drag; this only paints it. The
+ * shared rail's own `after` line is transparent at rest (a hit area, not a divider), and
+ * this panel is `border-l`-edged already, so the resting seam is the shared divider token
+ * and the line widens to a 3px accent only while the seam is hoverable or grabbed. The
+ * `data-resizing` variants matter because a drag outruns the 16px hit area immediately —
+ * without them the highlight would blink off on the first pointer move.
+ */
+function EditorWorkspaceSeamRail() {
+  return (
+    <SidebarRail
+      className={cn(
+        "before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2",
+        "before:bg-[var(--app-surface-divider)]",
+        "before:transition-[width,background-color] before:duration-150 before:ease-out",
+        "hover:before:w-[3px] hover:before:bg-foreground/45",
+        "data-[resizing]:before:w-[3px] data-[resizing]:before:bg-foreground/45",
+        // The rail stays mounted (pointer-events: none) while the chat pane is collapsed,
+        // where it would otherwise draw a line on the window edge.
+        "group-data-[collapsible=offcanvas]:group-data-[state=collapsed]:before:hidden",
+      )}
+    />
+  );
+}
+
 export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   // The editor header sits flush against the window's left edge whenever the
   // global sidebar is collapsed, so it has to clear the macOS traffic lights the
   // same way every other chat-surface header does.
-  const trafficLightGutterClassName =
-    useDesktopTopBarTrafficLightGutterClassName();
-  const optionalSidebar = useOptionalSidebar();
+  const trafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
   const { activeTheme, resolvedTheme: editorResolvedTheme } = useTheme();
   const isMimirTheme = activeTheme?.codeThemeId === "synara";
-  const [chatPaneWidth, setChatPaneWidth] = useState(
-    readStoredEditorChatPaneWidth,
-  );
+  const [chatPaneWidth, setChatPaneWidth] = useState(readStoredEditorChatPaneWidth);
   const [chatPaneVisible, setChatPaneVisible] = useState(() =>
     readStoredEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY),
   );
@@ -211,46 +213,74 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   // left sidebar and this center view stay in sync.
   const surface = useEditorSurfaceStore((state) => state.surface);
   const setSurface = useEditorSurfaceStore((state) => state.setSurface);
-  const selectedStudioOutputPath = useEditorSurfaceStore(
-    (state) => state.selectedStudioOutputPath,
-  );
+  const selectedStudioOutputPath = useEditorSurfaceStore((state) => state.selectedStudioOutputPath);
   const setSelectedStudioOutputPath = useEditorSurfaceStore(
     (state) => state.setSelectedStudioOutputPath,
   );
   const selectedStudioOutput =
-    props.studioOutputs?.find(
-      (entry) => entry.fullPath === selectedStudioOutputPath,
-    ) ?? null;
+    props.studioOutputs?.find((entry) => entry.fullPath === selectedStudioOutputPath) ?? null;
+  const activeFilename =
+    surface === "studio"
+      ? selectedStudioOutput?.relativePath
+        ? selectedStudioOutput.relativePath.split("/").pop()
+        : null
+      : props.selectedFilePath
+        ? props.selectedFilePath.split("/").pop()
+        : null;
   // The file preview unmounts in Diff/Edit mode. Keep explicit Markdown choices
   // in the editor shell, scoped to the workspace and file for this session.
-  const [markdownPreviewModes, setMarkdownPreviewModes] = useState<
-    ReadonlyMap<string, boolean>
-  >(() => new Map());
+  const [markdownPreviewModes, setMarkdownPreviewModes] = useState<ReadonlyMap<string, boolean>>(
+    () => new Map(),
+  );
   const markdownPreviewKey = `${props.workspaceRoot ?? ""}\0${props.selectedFilePath ?? ""}`;
   const handleMarkdownPreviewChange = (rendered: boolean) => {
-    setMarkdownPreviewModes((current) =>
-      new Map(current).set(markdownPreviewKey, rendered),
-    );
+    setMarkdownPreviewModes((current) => new Map(current).set(markdownPreviewKey, rendered));
   };
   const desktopTopBarWindowControlsGutterClassName =
     useDesktopTopBarWindowControlsGutterClassName();
+
+  // Both panes are width-bounded, and the two bounds are coupled: the rail's ceiling is a
+  // function of the row width (see resolveEditorPaneBounds), so it has to be recomputed from
+  // the live row box rather than read once. A ResizeObserver covers the window resize and the
+  // rail being dragged; the stored width is re-clamped against the new row so a pane saved on
+  // a wide monitor cannot open wider than the current window allows.
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const [rowWidth, setRowWidth] = useState(0);
+  useEffect(() => {
+    const row = rowRef.current;
+    if (!row) {
+      return;
+    }
+    const measure = () => {
+      const next = row.clientWidth;
+      setRowWidth((current) => (Math.abs(current - next) < 1 ? current : next));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    return () => observer.disconnect();
+  }, []);
+
+  const paneBounds = useMemo(() => resolveEditorPaneBounds(rowWidth), [rowWidth]);
+  // The stored preference is the user's chosen width; the floor/ceiling only ever move it
+  // toward a width this window can actually show.
+  const effectiveChatPaneWidth = useMemo(
+    () => clampEditorChatPaneWidth(chatPaneWidth, rowWidth || undefined),
+    [chatPaneWidth, rowWidth],
+  );
 
   const queryClient = useQueryClient();
   const leaveRequestRef = useRef(0);
   const guardLeavingEdit = useCallback(
     (run: () => void) => {
       const request = ++leaveRequestRef.current;
-      void flushWorkspaceEditors(queryClient, props.workspaceRoot).then(
-        (saved) => {
-          if (saved && request === leaveRequestRef.current) run();
-        },
-      );
+      void flushWorkspaceEditors(queryClient, props.workspaceRoot).then((saved) => {
+        if (saved && request === leaveRequestRef.current) run();
+      });
     },
     [queryClient, props.workspaceRoot],
   );
-  useImperativeHandle(props.leaveGuardRef, () => ({ guardLeavingEdit }), [
-    guardLeavingEdit,
-  ]);
+  useImperativeHandle(props.leaveGuardRef, () => ({ guardLeavingEdit }), [guardLeavingEdit]);
   // Leaving a dirty editor for the other surface would strand the buffer in the pane the
   // student just left, so the surface switch runs through the same flush as every other
   // editor-replacing action.
@@ -288,27 +318,21 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             side columns truncate symmetrically. Absolutely positioning it instead would let
             it collide with a long workspace name or the chat controls on a narrow window. */}
         <div className="grid w-full min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div
-            className={cn(
-              "flex min-w-0 items-center gap-1.5",
-              trafficLightGutterClassName,
-            )}
-          >
-            {optionalSidebar ? (
-              <ChatHeaderIconButton
-                type="button"
-                tone="plain"
-                label={
-                  optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"
-                }
-                title={
-                  optionalSidebar.open ? "Collapse sidebar" : "Expand sidebar"
-                }
-                className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                onClick={optionalSidebar.toggleSidebar}
-              >
-                <PanelLeftIcon className="size-4" />
-              </ChatHeaderIconButton>
+          <div className={cn("flex min-w-0 items-center gap-1.5", trafficLightGutterClassName)}>
+            {props.projectName ? (
+              <div className="flex min-w-0 items-center gap-1.5 text-ui-xs text-muted-foreground truncate">
+                <span className="font-semibold text-foreground truncate max-w-[10rem]">
+                  {props.projectName}
+                </span>
+                {activeFilename ? (
+                  <>
+                    <span className="opacity-40">/</span>
+                    <span className="truncate max-w-[12rem] font-medium text-foreground">
+                      {activeFilename}
+                    </span>
+                  </>
+                ) : null}
+              </div>
             ) : null}
           </div>
           {isMimirTheme ? (
@@ -317,11 +341,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               onValueChange={(val) => handleSelectSurface(val as EditorSurface)}
               className="shrink-0 justify-self-center"
             >
-              <TabsList
-                variant="segmented"
-                aria-label="Surface"
-                className="h-9 p-0.5"
-              >
+              <TabsList variant="segmented" aria-label="Surface" className="h-9 p-0.5">
                 <TabsTrigger
                   value="study"
                   title="Study — the course's own files"
@@ -372,9 +392,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                 variant={chatPaneVisible ? "tonal" : "outlined"}
                 size="icon-xs"
                 aria-pressed={chatPaneVisible}
-                aria-label={
-                  chatPaneVisible ? "Hide chat panel" : "Show chat panel"
-                }
+                aria-label={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
                 title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
                 onClick={toggleChatPaneVisible}
               >
@@ -396,9 +414,22 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
           </div>
         </div>
       </div>
-      <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
+      <div ref={rowRef} className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
-          <main className="flex min-h-[16rem] min-w-0 flex-1 border-b border-border/65 lg:h-full lg:border-b-0">
+          {/* The center pane carries its own floor and ceiling in CSS as well as in the drag
+              contract: `flex-1` alone lets it collapse to nothing when the rail is dragged to
+              its own maximum, and lets it stretch unbounded on a wide monitor while the rail
+              sits at its minimum. A rail collapsed off-canvas leaves `flex-1` free, so the
+              ceiling is what stops that case from becoming a single 3000px-wide preview. */}
+          <main
+            className="flex min-h-[16rem] min-w-0 flex-1 border-b border-border/65 lg:h-full lg:border-b-0"
+            style={
+              {
+                minWidth: paneBounds.centerMinWidth,
+                maxWidth: EDITOR_CENTER_PANE_MAX_WIDTH,
+              } as CSSProperties
+            }
+          >
             {/* Studio reviews what the agent produced, in the same viewer Study uses.
                 `StudioOutputEntry.relativePath` is resolved against the thread's own
                 workspace root (apps/server/src/studioOutputs.ts:393), so the course
@@ -429,15 +460,11 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                 drops the parsed patch, diff worker pool, and query subscriptions,
                 which made every Files -> Diff switch a cold multi-second reload. */}
                 <div
-                  className={cn(
-                    "min-h-0 min-w-0 flex-1",
-                    props.centerMode !== "diff" && "hidden",
-                  )}
+                  className={cn("min-h-0 min-w-0 flex-1", props.centerMode !== "diff" && "hidden")}
                 >
                   {props.diffPanel}
                 </div>
-                {props.centerMode === "fileEdit" &&
-                props.editFilePath !== null ? (
+                {props.centerMode === "fileEdit" && props.editFilePath !== null ? (
                   <div className="flex min-h-0 min-w-0 flex-1">
                     <WorkspaceFileEditorPane
                       workspaceRoot={props.workspaceRoot}
@@ -446,8 +473,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                       onClose={props.onCloseEdit}
                     />
                   </div>
-                ) : props.centerMode === "diffEdit" &&
-                  props.editFilePath !== null ? (
+                ) : props.centerMode === "diffEdit" && props.editFilePath !== null ? (
                   <div className="flex min-h-0 min-w-0 flex-1">
                     <WorkspaceFileDiffEditorPane
                       workspaceRoot={props.workspaceRoot}
@@ -463,9 +489,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                     <WorkspaceFilePreview
                       workspaceRoot={props.workspaceRoot}
                       filePath={props.selectedFilePath}
-                      markdownPreviewEnabled={
-                        markdownPreviewModes.get(markdownPreviewKey) ?? true
-                      }
+                      markdownPreviewEnabled={markdownPreviewModes.get(markdownPreviewKey) ?? true}
                       onMarkdownPreviewChange={handleMarkdownPreviewChange}
                       onReferenceInChat={props.onReferenceInChat}
                       onAskWhyInChat={props.onAskWhyInChat}
@@ -488,22 +512,27 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               storeEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY, open);
             }}
             className="relative h-full w-auto min-h-0 flex-none bg-transparent [contain:paint]"
-            style={{ "--sidebar-width": `${chatPaneWidth}px` } as CSSProperties}
+            style={{ "--sidebar-width": `${effectiveChatPaneWidth}px` } as CSSProperties}
           >
             <Sidebar
               side="right"
               collapsible="offcanvas"
               className={cn(
-                "border-l border-[var(--app-surface-divider)] text-foreground !h-full",
+                "border-l border-border text-foreground !h-full",
                 SIDEBAR_OFFCANVAS_MOTION_CLASS,
               )}
-              innerClassName={CHAT_BACKGROUND_CLASS_NAME}
+              innerClassName={cn(CHAT_BACKGROUND_CLASS_NAME, "border-l border-border")}
               gapClassName={SIDEBAR_OFFCANVAS_MOTION_CLASS}
               transparentSurface
-              rail={<SidebarRail />}
+              rail={<EditorWorkspaceSeamRail />}
               resizable={{
-                minWidth: EDITOR_CHAT_PANE_MIN_WIDTH,
-                maxWidth: EDITOR_CHAT_PANE_MAX_WIDTH,
+                minWidth: paneBounds.chatMinWidth,
+                maxWidth: paneBounds.chatMaxWidth,
+                // The rail's own ceiling already accounts for the center's floor, but a drag
+                // is applied before the layout settles, so the same contract is enforced here
+                // to stop the center being pushed under its minimum mid-gesture.
+                shouldAcceptWidth: ({ nextWidth, wrapper }) =>
+                  shouldAcceptEditorChatPaneWidth({ nextWidth, rowWidth: wrapper.clientWidth }),
                 storageKey: EDITOR_CHAT_PANE_STORAGE_KEY,
                 onResize: (width) => {
                   setChatPaneWidth(width);

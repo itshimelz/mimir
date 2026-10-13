@@ -386,6 +386,37 @@ function makeFakeStudioRootLayer(input: {
         blocks: undefined,
       } satisfies FileSystem.File.Info);
     },
+    exists: (fullPath: string) => {
+      const relativePath = fullPath.slice(input.workspaceRoot.length + 1);
+      return Effect.succeed(
+        input.mtimesByRelativePath.has(relativePath) ||
+          input.directoryPaths?.has(relativePath) === true,
+      );
+    },
+    readDirectory: (fullPath: string) => {
+      const prefix =
+        fullPath.length > input.workspaceRoot.length
+          ? fullPath.slice(input.workspaceRoot.length + 1) + "/"
+          : "";
+      const children = new Set<string>();
+      for (const key of input.mtimesByRelativePath.keys()) {
+        if (key.startsWith(prefix)) {
+          const rest = key.slice(prefix.length);
+          const first = rest.split("/")[0];
+          if (first) children.add(first);
+        }
+      }
+      if (input.directoryPaths) {
+        for (const dir of input.directoryPaths) {
+          if (dir.startsWith(prefix)) {
+            const rest = dir.slice(prefix.length);
+            const first = rest.split("/")[0];
+            if (first) children.add(first);
+          }
+        }
+      }
+      return Effect.succeed([...children]);
+    },
   });
   return Layer.merge(fileSystemLayer, Path.layer);
 }
@@ -481,6 +512,30 @@ describe("listStudioThreadOutputs", () => {
     expect(result.entries.map((entry) => entry.relativePath)).toEqual([
       "output/pdf/absolute.pdf",
       "Outbox/Content/relative.md",
+    ]);
+  });
+
+  it("discovers existing files in Outbox on disk even with no checkpoints or activities", async () => {
+    const workspaceRoot = "/studio";
+    const layer = makeFakeStudioRootLayer({
+      workspaceRoot,
+      directoryPaths: new Set(["Outbox", "Outbox/Rubrics", "Outbox/Quizzes"]),
+      mtimesByRelativePath: new Map([
+        ["Outbox/Rubrics/rubric.md", 5_000],
+        ["Outbox/Quizzes/quiz.md", 4_000],
+      ]),
+    });
+
+    const result = await Effect.runPromise(
+      listStudioThreadOutputs({
+        workspaceRoot,
+        checkpoints: [],
+      }).pipe(Effect.provide(layer)),
+    );
+
+    expect(result.entries.map((entry) => entry.relativePath)).toEqual([
+      "Outbox/Rubrics/rubric.md",
+      "Outbox/Quizzes/quiz.md",
     ]);
   });
 });

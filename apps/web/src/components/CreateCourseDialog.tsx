@@ -141,22 +141,22 @@ export function CreateCourseDialog(props: {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogPopup className="max-w-md">
-        <DialogHeader>
+      <DialogPopup className="max-w-md overflow-hidden">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <div className="flex items-center gap-2 text-primary">
             <BookOpenIcon className="size-5" />
             <DialogTitle>New Course Workspace</DialogTitle>
           </div>
-          <DialogDescription className="text-ui-sm text-muted-foreground">
+          <DialogDescription className="text-ui-sm text-muted-foreground mt-1.5 leading-relaxed">
             Connect a folder for your course. Mimir will organize your study materials in{" "}
-            <code className="text-ui-xs font-mono bg-muted px-1 py-0.5 rounded">Inbox/</code> and
+            <code className="text-ui-xs font-mono bg-muted px-1.5 py-0.5 rounded">Inbox/</code> and
             generated deliverables in{" "}
-            <code className="text-ui-xs font-mono bg-muted px-1 py-0.5 rounded">Outbox/</code>.
+            <code className="text-ui-xs font-mono bg-muted px-1.5 py-0.5 rounded">Outbox/</code>.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <DialogPanel className="flex flex-col gap-4 py-2">
+        <DialogPanel className="px-6 py-2">
+          <form id="create-course-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
             {errorMessage && (
               <div className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-ui-xs text-destructive">
                 {errorMessage}
@@ -206,23 +206,29 @@ export function CreateCourseDialog(props: {
                 className="text-ui"
               />
             </div>
-          </DialogPanel>
+          </form>
+        </DialogPanel>
 
-          <DialogFooter className="mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" variant="default" disabled={isSubmitting} className="gap-1.5">
-              <SparkleIcon className="size-4" />
-              <span>{isSubmitting ? "Preparing..." : "Open Course"}</span>
-            </Button>
-          </DialogFooter>
-        </form>
+        <DialogFooter className="px-6 pb-6 pt-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            form="create-course-form"
+            type="submit"
+            variant="default"
+            disabled={isSubmitting}
+            className="gap-1.5"
+          >
+            <SparkleIcon className="size-4" />
+            <span>{isSubmitting ? "Preparing..." : "Open Course"}</span>
+          </Button>
+        </DialogFooter>
       </DialogPopup>
     </Dialog>
   );

@@ -4871,13 +4871,28 @@ export default function Sidebar() {
     (state) => state.setSelectedStudioOutputPath,
   );
 
+  const activeCourseThreadId = useMemo(() => {
+    if (routeThreadId) return routeThreadId;
+    if (!courseProject) return null;
+    const projectThreads = Object.values(sidebarThreadSummaryById).filter(
+      (thread) => thread.projectId === courseProject.id,
+    );
+    if (projectThreads.length === 0) return null;
+    projectThreads.sort((a, b) => {
+      const aTime = a.updatedAt ?? a.createdAt;
+      const bTime = b.updatedAt ?? b.createdAt;
+      return bTime.localeCompare(aTime);
+    });
+    return projectThreads[0]?.id ?? null;
+  }, [routeThreadId, courseProject, sidebarThreadSummaryById]);
+
   const studioOutputScope = resolveStudioOutputScope({
     spaceId: courseProject?.spaceId,
-    threadId: routeThreadId,
+    threadId: activeCourseThreadId,
   });
   const editorStudioOutputs = useQuery(
     studioThreadOutputsQueryOptions({
-      threadId: routeThreadId,
+      threadId: activeCourseThreadId,
       enabled: studioOutputScope.kind === "thread",
     }),
   );

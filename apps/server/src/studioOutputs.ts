@@ -382,6 +382,68 @@ export function studioOutputsCapturedActivityPayload(
 }
 
 /**
+ * Scans the managed Outbox/ folder (and outbox/) directly on disk, gathering existing
+ * output deliverables. In Mimir's course workspace, deliverables land in Outbox/
+ * (e.g. Outbox/Rubrics/, Outbox/Quizzes/).
+ */
+export const scanDiskOutboxRelativePaths = Effect.fnUntraced(function* (input: {
+  readonly workspaceRoot: string;
+}) {
+  const fileSystem = yield* FileSystem.FileSystem;
+  const path = yield* Path.Path;
+
+  const outboxCandidateNames = ["Outbox", "outbox"] as const;
+  const foundRelativePaths: string[] = [];
+
+  for (const outboxDir of outboxCandidateNames) {
+    const outboxRoot = path.join(input.workspaceRoot, outboxDir);
+    const exists = yield* fileSystem
+      .exists(outboxRoot)
+      .pipe(Effect.catch(() => Effect.succeed(false)));
+    if (!exists) {
+      continue;
+    }
+
+    const pending: Array<{
+      readonly dirPath: string;
+      readonly relativeSegments: readonly string[];
+    }> = [{ dirPath: outboxRoot, relativeSegments: [outboxDir] }];
+    let depth = 0;
+
+    while (pending.length > 0 && depth < 6 && foundRelativePaths.length < MAX_THREAD_OUTPUT_FILES) {
+      depth += 1;
+      const current = pending.pop();
+      if (!current) break;
+
+      const entries = yield* fileSystem
+        .readDirectory(current.dirPath)
+        .pipe(Effect.catch(() => Effect.succeed<string[]>([])));
+
+      for (const entryName of entries) {
+        if (!isSafeVisibleSegments([entryName])) {
+          continue;
+        }
+        const fullEntryPath = path.join(current.dirPath, entryName);
+        const relativeSegments = [...current.relativeSegments, entryName];
+        const stat = yield* fileSystem
+          .stat(fullEntryPath)
+          .pipe(Effect.catch(() => Effect.succeed(null)));
+        if (!stat) {
+          continue;
+        }
+        if (stat.type === "File") {
+          foundRelativePaths.push(relativeSegments.join("/"));
+        } else if (stat.type === "Directory") {
+          pending.push({ dirPath: fullEntryPath, relativeSegments });
+        }
+      }
+    }
+  }
+
+  return foundRelativePaths;
+});
+
+/**
  * Stats the thread-attributed output files and returns the ones that still exist, most
  * recently modified first. Missing or unreadable files are omitted instead of failing.
  */
@@ -426,6 +488,19 @@ export const listStudioThreadOutputs = Effect.fnUntraced(function* (input: {
     }
     seenRelativePaths.add(posixRelativePath);
     relativePaths.push(posixRelativePath);
+  }
+
+  const diskOutboxPaths = yield* scanDiskOutboxRelativePaths({
+    workspaceRoot: input.workspaceRoot,
+  });
+  for (const outboxPath of diskOutboxPaths) {
+    if (relativePaths.length >= MAX_THREAD_OUTPUT_FILES) {
+      break;
+    }
+    if (!seenRelativePaths.has(outboxPath)) {
+      seenRelativePaths.add(outboxPath);
+      relativePaths.push(outboxPath);
+    }
   }
 
   const statResults = yield* Effect.forEach(

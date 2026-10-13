@@ -32,9 +32,7 @@ export function AppShellTopStrip() {
       <div
         className={cn(
           "app-shell-top-strip flex shrink-0 items-center ps-4 pe-3",
-          isElectron &&
-            isMacNavigatorPlatform() &&
-            DESKTOP_TOP_BAR_TRAFFIC_LIGHT_GUTTER_CLASS,
+          isElectron && isMacNavigatorPlatform() && DESKTOP_TOP_BAR_TRAFFIC_LIGHT_GUTTER_CLASS,
         )}
       >
         {open ? (

@@ -55,10 +55,8 @@ export function RouteSurfaceHeader({
   rowClassName?: string | undefined;
   children?: ReactNode;
 }) {
-  const trafficLightGutterClassName =
-    useDesktopTopBarTrafficLightGutterClassName();
-  const windowControlsGutterClassName =
-    useDesktopTopBarWindowControlsGutterClassName();
+  const trafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
+  const windowControlsGutterClassName = useDesktopTopBarWindowControlsGutterClassName();
   const sidebar = useOptionalSidebar();
   const sidebarOpen = sidebar?.open ?? false;
   return (
@@ -80,9 +78,7 @@ export function RouteSurfaceHeader({
         )}
       >
         <SidebarHeaderNavigationControls collapsedGapClassName="-me-2 sm:-me-3" />
-        {menuBar && !sidebarOpen ? (
-          <ApplicationMenuBar className="ms-1" />
-        ) : null}
+        {menuBar && !sidebarOpen ? <ApplicationMenuBar className="ms-1" /> : null}
         {children}
       </div>
     </header>

@@ -39,16 +39,13 @@ const buttonVariants = cva(
         chip: extendButtonIconChildSelectors(
           "h-auto gap-1 px-2 py-0.5 text-ui-sm sm:h-auto sm:text-ui-sm [&_svg:not([class*='size-'])]:size-3 sm:[&_svg:not([class*='size-'])]:size-3",
         ),
-        default:
-          "h-9 px-4 sm:h-8",
+        default: "h-9 px-4 sm:h-8",
         icon: "size-9 sm:size-8",
         "icon-chip": extendButtonIconChildSelectors(
           "size-6 sm:size-6 [&_svg:not([class*='size-'])]:size-3 sm:[&_svg:not([class*='size-'])]:size-3",
         ),
-        "icon-lg":
-          "size-10 sm:size-9",
-        "icon-sm":
-          "size-8 sm:size-7",
+        "icon-lg": "size-10 sm:size-9",
+        "icon-sm": "size-8 sm:size-7",
         "icon-xl": extendButtonIconChildSelectors(
           "size-11 sm:size-10 [&_svg:not([class*='size-'])]:size-5 sm:[&_svg:not([class*='size-'])]:size-4.5",
         ),

@@ -200,7 +200,7 @@ export function showContextMenuFallback<T extends string>(
 
         const btn = document.createElement("button");
         btn.type = "button";
-                btn.className = isDestructive
+        btn.className = isDestructive
           ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-md px-3.5 py-1.5 text-left text-ui text-destructive transition-colors duration-150 ease-out"
           : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-md px-3.5 py-1.5 text-left text-ui text-foreground transition-colors duration-150 ease-out";
 

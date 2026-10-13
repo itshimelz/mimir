@@ -13,10 +13,7 @@ const Tabs = React.forwardRef<
     data-slot="tabs"
     data-orientation={orientation}
     orientation={orientation}
-    className={cn(
-      "group/tabs flex gap-4 data-[orientation=horizontal]:flex-col",
-      className,
-    )}
+    className={cn("group/tabs flex gap-4 data-[orientation=horizontal]:flex-col", className)}
     {...props}
   />
 ));

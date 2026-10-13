@@ -27,7 +27,7 @@ const Select = SelectPrimitive.Root;
 // purpose — do not add it back.
 type SelectPopupSurface = "composer" | "settings";
 
-const settingsSelectOptionClassName = `[&>svg]:-mx-0.5 flex cursor-default select-none items-center ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} text-ui text-[var(--color-text-foreground)] outline-none data-disabled:pointer-events-none data-highlighted:bg-[var(--color-background-button-secondary-hover)] data-highlighted:text-[var(--color-text-foreground)] data-disabled:opacity-64 [&>svg:not([class*='opacity-'])]:opacity-80 [&>svg]:pointer-events-none [&>svg]:shrink-0 grid in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)]`;
+const settingsSelectOptionClassName = `[&>svg]:-mx-0.5 flex cursor-default select-none items-center ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} text-ui text-[var(--color-text-foreground)] outline-none transition-colors data-disabled:pointer-events-none data-highlighted:bg-primary/10 data-highlighted:text-primary data-disabled:opacity-64 [&>svg:not([class*='opacity-'])]:opacity-80 [&>svg]:pointer-events-none [&>svg]:shrink-0 grid in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)]`;
 
 const SelectPopupSurfaceContext = React.createContext<SelectPopupSurface>("composer");
 
@@ -41,9 +41,9 @@ const selectTriggerVariants = cva(
     },
     variants: {
       variant: {
-        default: `${GLASS_RAISED_SURFACE_CLASS_NAME} w-full min-w-36 border-m3-outline-variant bg-m3-surface text-m3-on-surface ring-m3-primary/16 pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 focus-visible:border-m3-primary focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-secondary)] focus-visible:ring-0 aria-invalid:border-m3-error/40 focus-visible:aria-invalid:border-m3-error [&_svg:not([class*='opacity-'])]:opacity-80`,
+        default: `${GLASS_RAISED_SURFACE_CLASS_NAME} w-full min-w-36 border border-border bg-[var(--color-background-control-opaque)] text-[var(--color-text-foreground)] pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary/40 aria-invalid:border-destructive/60 focus-visible:aria-invalid:border-destructive focus-visible:aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/20 [&_svg:not([class*='opacity-'])]:opacity-80`,
         ghost:
-          "border-transparent text-m3-on-surface-variant focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-secondary)] data-pressed:bg-m3-surface-container-highest [:hover,[data-pressed]]:bg-m3-surface-container-highest [:hover,[data-pressed]]:text-m3-on-surface",
+          "border-transparent text-[var(--color-text-foreground-secondary)] focus-visible:ring-1 focus-visible:ring-primary/60 data-pressed:bg-[var(--color-background-elevated-secondary)] [:hover,[data-pressed]]:bg-[var(--color-background-elevated-secondary)] [:hover,[data-pressed]]:text-[var(--color-text-foreground)]",
       },
       size: {
         default: "min-h-9 px-[calc(--spacing(3)-1px)] sm:min-h-8",
@@ -156,11 +156,7 @@ function SelectPopup({
   const viewportClassName = cn(
     COMPOSER_PICKER_MENU_POPUP_VIEWPORT_CLASS_NAME,
     surface === "settings"
-      ? cn(
-          APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME,
-          "rounded-lg",
-          COMPOSER_SURFACE_SHADOW_CLASS_NAME,
-        )
+      ? cn(APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME, "rounded-md", "shadow-md")
       : COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME,
     shellClassName,
   );
@@ -189,7 +185,7 @@ function SelectPopup({
           sideOffset={sideOffset}
         >
           <SelectPrimitive.Popup
-            className="origin-(--transform-origin) text-[var(--color-text-foreground)]"
+            className="origin-(--transform-origin) transition-[opacity,scale,translate] duration-150 ease-out rounded-md shadow-md text-[var(--color-text-foreground)]"
             data-slot="select-popup"
             {...props}
           >
@@ -284,7 +280,7 @@ function SelectItem({
 function SelectSeparator({ className, ...props }: SelectPrimitive.Separator.Props) {
   return (
     <SelectPrimitive.Separator
-      className={cn("mx-2 my-1 h-px bg-m3-outline-variant", className)}
+      className={cn("mx-2 my-1 h-px bg-border", className)}
       data-slot="select-separator"
       {...props}
     />

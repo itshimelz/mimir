@@ -1,29 +1,5 @@
 @import "tailwindcss";
-/* M3 Expressive token layer from the @m3e registry. Imported BEFORE the app's own
-   m3.material.css on purpose: the two share 85 `--md-sys-color-*` names, and the app
-   layer wires those to theme variables (`var(--color-text-accent)`, …) while the
-   registry file hardcodes Material baseline values. Later import wins, so this order
-   keeps colours following the chosen theme and lets m3e contribute only what the app
-   does not already define — the `rounded-xs` and `ease-spatial-fast` utilities the
-   M3E primitives are written against. Reversing these two lines repaints the app. */
-@import "./lib/m3e/m3e.css";
-@import "./theme/m3.material.css";
-
 @custom-variant dark (&:is(.dark, .dark *));
-
-/* Bridge the @m3e registry's orientation variants to this repo's Base UI.
-   The registry components are written against a Base UI build that emitted
-   `data-horizontal`; this repo's Base UI emits `data-orientation="horizontal"`
-   (see @base-ui/react/internals/getStateAttributesProps, which renders
-   `data-${stateKey}`). Tailwind compiles `data-horizontal:` to `[data-horizontal]`,
-   which never matched, so the M3E slider's control, track, handle and fill
-   received none of their sizing classes and rendered invisible — while the
-   step-mark overlay around it, written in plain utilities, still showed.
-   These two variants let the registry markup work unmodified. They match the
-   element itself and its descendants so `group-data-horizontal/slider:` on a
-   handle still resolves. */
-@custom-variant data-horizontal (&:where([data-orientation="horizontal"], [data-orientation="horizontal"] *));
-@custom-variant data-vertical (&:where([data-orientation="vertical"], [data-orientation="vertical"] *));
 
 @theme inline {
   --animate-skeleton: skeleton 2s -1s infinite linear;
@@ -32,8 +8,6 @@
      share frames instead of repeatedly recompositing the translucent sidebar
      and composer. Keep 1300ms / 26 steps equal to shimmer's 2000ms / 40 steps. */
   --animate-spin-stepped: spin-stepped 1.3s steps(26, end) infinite;
-  --ease-spatial-default: var(--md-sys-motion-spring-default-spatial);
-  --ease-spatial-fast: var(--md-sys-motion-spring-fast-spatial);
   /* Same 50ms step, half the speed: background work that keeps going without you. */
   --animate-spin-stepped-slow: spin-stepped 2.6s steps(52, end) infinite;
   --font-sans: var(--font-ui-family);
@@ -84,33 +58,6 @@
   --color-foreground: var(--foreground);
   --color-background: var(--background);
 
-  /* Material 3 roles, registered under an `m3-` prefix (see theme/m3.material.css).
-     Prefixed rather than bare so they cannot collide with the shadcn tokens above:
-     `bg-m3-secondary-container` is M3 by construction, `bg-accent` is still Codex.
-     Only the roles a converted component reads today; add the rest as they land. */
-  --color-m3-surface: var(--md-sys-color-surface);
-  --color-m3-surface-container-lowest: var(--md-sys-color-surface-container-lowest);
-  --color-m3-surface-container-low: var(--md-sys-color-surface-container-low);
-  --color-m3-surface-container: var(--md-sys-color-surface-container);
-  --color-m3-surface-container-high: var(--md-sys-color-surface-container-high);
-  --color-m3-surface-container-highest: var(--md-sys-color-surface-container-highest);
-  --color-m3-on-surface: var(--md-sys-color-on-surface);
-  --color-m3-on-surface-variant: var(--md-sys-color-on-surface-variant);
-  --color-m3-outline: var(--md-sys-color-outline);
-  --color-m3-outline-variant: var(--md-sys-color-outline-variant);
-  --color-m3-primary: var(--md-sys-color-primary);
-  --color-m3-on-primary: var(--md-sys-color-on-primary);
-  --color-m3-secondary-container: var(--md-sys-color-secondary-container);
-  --color-m3-on-secondary-container: var(--md-sys-color-on-secondary-container);
-  --color-m3-tertiary-container: var(--md-sys-color-tertiary-container);
-  --color-m3-on-tertiary-container: var(--md-sys-color-on-tertiary-container);
-  --color-m3-error: var(--md-sys-color-error);
-  --color-m3-error-container: var(--md-sys-color-error-container);
-  --color-m3-on-error-container: var(--md-sys-color-on-error-container);
-  --color-m3-inverse-surface: var(--md-sys-color-inverse-surface);
-  --color-m3-inverse-on-surface: var(--md-sys-color-inverse-on-surface);
-  --color-m3-on-error: var(--md-sys-color-on-error);
-  --color-m3-scrim: var(--md-sys-color-scrim);
   --color-claude: var(--claude);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -125,6 +72,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --radius-xs: calc(var(--radius) * 0.4);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -132,14 +80,6 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-
-  /* Material 3 elevation — shadows removed; overlays separate by border alone. */
-  --shadow-elevation-0: none;
-  --shadow-elevation-1: none;
-  --shadow-elevation-2: none;
-  --shadow-elevation-3: none;
-  --shadow-elevation-4: none;
-  --shadow-elevation-5: none;
 
   @keyframes skeleton {
     to {
@@ -151,15 +91,6 @@
       transform: rotate(360deg);
     }
   }
-}
-
-/* Dark themes: elevation shadows also removed. */
-.dark {
-  --shadow-elevation-1: none;
-  --shadow-elevation-2: none;
-  --shadow-elevation-3: none;
-  --shadow-elevation-4: none;
-  --shadow-elevation-5: none;
 }
 
 @layer base {
@@ -315,21 +246,9 @@
     background: var(--app-rail-panel-background);
   }
 
-  /* ─── Material 3 NavigationRail item ────────────────────────────────────────
-     One place for every rail state, so `appRailButtonClassName` only has to say
-     whether the item is the current destination and the controls sharing the rail
-     slot (Help, the usage rings, the update pill) get the same treatment for free.
-
-     Geometry is M3's: a 56×32dp full-round indicator inside an 80dp rail. An idle
-     item shows only its glyph on the surface; hovering or focusing lays an
-     `on-surface` state layer behind it; the active item fills the indicator with
-     `secondary-container` and lifts the glyph to `on-secondary-container`. The
-     indicator is what the ripple clips to, which is why it is a real element and not
-     the button's own background.
-
-     `.sidebar-icon-button` would otherwise supply a `hover:` fill, an
-     `on-surface`-ish resting tone, and a 1px focus ring; each is undone here so the
-     M3 state layer is the only thing painting behind the glyph. */
+  /* Compact navigation rail item styling.
+     The rail keeps its compact dock geometry and uses the app semantic foreground and
+     surface colors for resting, hover, and active states. */
   /* ChatGPT / Codex Dock Item Style: 36×36 squircle with subtle tint and soft hover/active backgrounds */
   .app-rail-item {
     position: relative;
@@ -3305,218 +3224,6 @@ diffs-container {
   }
 }
 
-/* ---------- M3 state layer & interactive utilities ---------- */
-
-@utility state-layer {
-  position: relative;
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background-color: var(--state-layer-color, currentColor);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--md-sys-motion-spring-fast-effects-duration, 150ms)
-      var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1));
-  }
-  @media (hover: hover) {
-    &:hover::before {
-      opacity: var(--md-sys-state-hover-opacity, 0.08);
-    }
-  }
-  &:focus-visible::before,
-  &[data-highlighted]::before {
-    opacity: var(--md-sys-state-focus-opacity, 0.1);
-  }
-  &:active:not(:has(> [data-slot="ripple"]))::before,
-  &[data-popup-open]::before {
-    opacity: var(--md-sys-state-pressed-opacity, 0.1);
-  }
-  &:disabled::before,
-  &[data-disabled]::before,
-  &[aria-disabled="true"]::before {
-    opacity: 0;
-  }
-}
-
-@utility state-layer-* {
-  --state-layer-color: --value(--color-*);
-}
-
-@utility ripple-* {
-  --ripple-color: --value(--color-*);
-}
-
-@layer components {
-  .m3-ripple-host {
-    position: absolute;
-    inset: 0;
-    overflow: hidden;
-    border-radius: inherit;
-    pointer-events: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .m3-ripple {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-    transform-origin: center center;
-    background: radial-gradient(
-      closest-side,
-      var(--ripple-color, currentColor) max(calc(100% - 70px), 65%),
-      transparent 100%
-    );
-    transition: opacity 375ms linear;
-  }
-  .m3-ripple[data-pressed] {
-    opacity: var(--md-sys-state-pressed-opacity, 0.1);
-    transition-duration: 105ms;
-  }
-}
-
-@utility focus-ring {
-  outline: none;
-  &:focus-visible {
-    outline: 3px solid var(--md-sys-color-secondary);
-    outline-offset: 2px;
-  }
-}
-
-@utility focus-ring-inset {
-  outline: none;
-  &:focus-visible {
-    outline: 3px solid var(--md-sys-color-secondary);
-    outline-offset: -3px;
-  }
-}
-
-/* ---------- M3 enter/exit motion ----------
-   Base UI popups set `data-starting-style` / `data-ending-style` for one frame around
-   a transition. Each utility below supplies the M3E timing for that surface class: the
-   enter rides a spatial spring from the popup's transform origin, the exit is the short
-   emphasized accelerate. They deliberately do NOT set the scale or translate — the
-   component owns that geometry (a dialog already animates nested-open offsets, and the
-   app keeps its subtler 0.98 resting scale), so the curves land without a cascade fight
-   over the same properties. */
-@utility motion-popup {
-  transform-origin: var(--transform-origin, center);
-  /* `width`/`height` ride along because Base UI swaps the viewport between triggers of
-     different sizes (see TooltipPopup). */
-  transition-property: opacity, scale, translate, width, height;
-  transition-duration:
-    var(--md-sys-motion-spring-default-effects-duration),
-    var(--md-sys-motion-spring-fast-spatial-duration),
-    var(--md-sys-motion-spring-fast-spatial-duration),
-    var(--md-sys-motion-spring-fast-spatial-duration),
-    var(--md-sys-motion-spring-fast-spatial-duration);
-  transition-timing-function:
-    var(--md-sys-motion-spring-default-effects), var(--md-sys-motion-spring-fast-spatial),
-    var(--md-sys-motion-spring-fast-spatial), var(--md-sys-motion-spring-fast-spatial),
-    var(--md-sys-motion-spring-fast-spatial);
-  &[data-starting-style],
-  &[data-ending-style] {
-    opacity: 0;
-  }
-  &[data-ending-style] {
-    transition-duration: 150ms;
-    transition-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
-  }
-}
-
-/* Menus unfold down (or up) from their anchor along the placement axis. M3E's own
-   unfold scale lives here rather than in the rows, because a menu popup has no nested
-   transform choreography to protect. */
-@utility motion-menu {
-  transform-origin: var(--transform-origin, top);
-  transition-property: opacity, scale;
-  transition-duration:
-    var(--md-sys-motion-spring-fast-effects-duration),
-    var(--md-sys-motion-spring-default-spatial-duration);
-  transition-timing-function:
-    var(--md-sys-motion-spring-fast-effects), var(--md-sys-motion-spring-default-spatial);
-  &[data-starting-style] {
-    opacity: 0;
-    scale: 1 0.85;
-  }
-  &[data-ending-style] {
-    opacity: 0;
-    scale: 1 0.95;
-    transition-duration: 120ms;
-    transition-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
-  }
-}
-
-@utility motion-dialog {
-  transition-property: opacity, scale, translate;
-  transition-duration:
-    var(--md-sys-motion-spring-default-effects-duration),
-    var(--md-sys-motion-spring-default-spatial-duration),
-    var(--md-sys-motion-spring-default-spatial-duration);
-  transition-timing-function:
-    var(--md-sys-motion-spring-default-effects), var(--md-sys-motion-spring-default-spatial),
-    var(--md-sys-motion-spring-default-spatial);
-  &[data-starting-style],
-  &[data-ending-style] {
-    opacity: 0;
-  }
-  &[data-ending-style] {
-    transition-duration: 150ms;
-    transition-timing-function: var(--md-sys-motion-easing-emphasized-accelerate);
-  }
-}
-/* The scrim paints at full strength from its first frame and only the EXIT animates.
-   A scrim that fades UP is the one thing that cannot be done tastefully: for its whole
-   fade the page behind is undimmed, and because the fade is longer than the dialog's own
-   enter, the light card visibly lands on an undimmed page and then the page dims behind
-   it. That gap read as a light/dark flicker on every dialog open.
-
-   It was also the most expensive frame in the gesture: `opacity` on a `fixed inset-0`
-   element blends a full-viewport layer over the whole app on every frame. Holding it at
-   full strength makes that a single paint instead, and leaves the dialog's own M3 motion
-   as the sole thing that reads as motion. The exit rides the dialog's exit timing so the
-   two still leave together. */
-@utility motion-scrim {
-  transition: opacity 150ms var(--md-sys-motion-easing-emphasized-accelerate);
-  &[data-ending-style] {
-    opacity: 0;
-  }
-}
-
-@utility transition-shape {
-  transition-property:
-    border-radius, background-color, color, border-color, box-shadow, outline-color, padding, width,
-    min-width, flex-grow;
-  transition-duration:
-    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
-    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
-    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
-    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
-    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
-    var(--md-sys-motion-spring-fast-effects-duration, 150ms),
-    var(--md-sys-motion-spring-fast-spatial-duration, 360ms),
-    var(--md-sys-motion-spring-fast-spatial-duration, 360ms),
-    var(--md-sys-motion-spring-fast-spatial-duration, 360ms),
-    var(--md-sys-motion-spring-fast-spatial-duration, 360ms);
-  transition-timing-function:
-    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-effects, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1)),
-    var(--md-sys-motion-spring-fast-spatial, cubic-bezier(0.2, 0, 0, 1));
-}
-
-@utility ease-spatial-default {
-  transition-timing-function: var(--md-sys-motion-spring-default-spatial);
-}
-
 /* Pull request description/comment prose: long-form reading, roomier than chat bubbles.
    Composes with .chat-markdown (which zeroes first/last child margins). */
 .pull-request-prose {
@@ -3745,39 +3452,6 @@ diffs-container {
 :root[data-window-material="translucent"] .app-popup-surface::before {
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-}
-
-/* M3's plain tooltip is an inverse chip rather than a raised surface container, so it
-   cannot take the shared overlay material. It keeps `app-popup-surface` — that class is
-   how glassOverlayCutout.ts finds overlays on a translucent window — and this swaps only
-   the fill and ink. Each selector mirrors one of the three background rules above so it
-   wins in every window material instead of only the opaque default. */
-.app-popup-surface-m3-inverse,
-:root[data-window-material="translucent"] .app-popup-surface-m3-inverse[data-glass-backed],
-:root[data-window-material="translucent"] #root .app-popup-surface-m3-inverse {
-  background: var(--md-sys-color-inverse-surface);
-  color: var(--md-sys-color-inverse-on-surface);
-}
-
-/* Rich tooltip bodies (the command card, the attachment summaries, the picker hints) set
-   their own ink — `text-foreground`, `text-muted-foreground`, `text-[var(--color-text-…)]`
-   — because the same markup is reused on cards and panels where those tokens are right.
-   The chip inverts the whole surface, so the tokens have to invert with it; without this
-   they land near-black on near-black. Remapping the variables (rather than the ~40 call
-   sites) keeps the chip the single source of truth for its own contrast, and any future
-   tooltip body inherits it for free.
-
-   Only the ink roles are remapped. Background and border roles deliberately keep their
-   values so a badge or chip drawn inside a tooltip still reads as a badge. */
-.app-popup-surface-m3-inverse {
-  --foreground: var(--md-sys-color-inverse-on-surface);
-  --color-text-foreground: var(--md-sys-color-inverse-on-surface);
-  --color-text-foreground-secondary: color-mix(
-    in srgb,
-    var(--md-sys-color-inverse-on-surface) 72%,
-    transparent
-  );
-  --muted-foreground: color-mix(in srgb, var(--md-sys-color-inverse-on-surface) 72%, transparent);
 }
 
 /* A composer portaled next to the app root (the selection composer) is cut out like any

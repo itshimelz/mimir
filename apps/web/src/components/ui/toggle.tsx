@@ -8,7 +8,7 @@ import { extendButtonIconChildSelectors } from "~/lib/central-icons";
 
 const toggleVariants = cva(
   extendButtonIconChildSelectors(
-    "[&_svg]:-mx-0.5 relative inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-lg border font-medium text-ui-lg leading-snug text-m3-on-surface outline-none pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 hover:bg-m3-surface-container-highest focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-64 data-pressed:bg-m3-secondary-container data-pressed:text-m3-on-secondary-container sm:text-ui [&_svg:not([class*='opacity-'])]:opacity-80 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+    "[&_svg]:-mx-0.5 relative inline-flex shrink-0 cursor-pointer select-none items-center justify-center gap-2 whitespace-nowrap rounded-md border font-medium text-ui leading-snug text-foreground outline-none transition-all duration-150 ease-out pointer-coarse:after:absolute pointer-coarse:after:size-full pointer-coarse:after:min-h-11 pointer-coarse:after:min-w-11 hover:bg-[var(--color-background-button-secondary-hover)] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-64 data-pressed:bg-primary/15 data-pressed:text-primary data-pressed:border-primary/20 sm:text-ui [&_svg:not([class*='opacity-'])]:opacity-80 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   ),
   {
     defaultVariants: {
@@ -25,13 +25,9 @@ const toggleVariants = cva(
         ),
       },
       variant: {
-        // M3's icon toggle: no container at rest, the pressed state takes the
-        // secondary-container pair so the selection is carried by a role, not a tint.
-        default: "border-transparent text-m3-on-surface-variant",
-        // M3's outlined toggle: pressed flips to the inverse pair, so the selected
-        // state reads without depending on hue.
+        default: "border-transparent",
         outline:
-          "border-m3-outline-variant bg-transparent text-m3-on-surface-variant data-pressed:border-transparent data-pressed:bg-m3-inverse-surface data-pressed:text-m3-inverse-on-surface",
+          "border-[color:var(--color-border)] bg-[var(--color-background-control-opaque)] dark:data-pressed:bg-[var(--color-background-button-secondary)] dark:hover:bg-[var(--color-background-button-secondary-hover)]",
       },
     },
   },

@@ -31,12 +31,7 @@ function CommandDialogTrigger(props: CommandDialogPrimitive.Trigger.Props) {
 function CommandDialogBackdrop({ className, ...props }: CommandDialogPrimitive.Backdrop.Props) {
   return (
     <CommandDialogPrimitive.Backdrop
-      className={cn(
-        // The same M3 scrim the shared dialog uses, so a palette opened as a dialog
-        // dims the app identically to every other dialog (see ui/dialog).
-        "motion-scrim fixed inset-0 z-50 bg-m3-scrim/32 motion-reduce:transition-none",
-        className,
-      )}
+      className={cn("fixed inset-0 z-50 bg-black/60 transition-opacity duration-150 ease-out", className)}
       data-slot="command-dialog-backdrop"
       {...props}
     />
@@ -57,13 +52,9 @@ function CommandDialogViewport({ className, ...props }: CommandDialogPrimitive.V
 }
 
 // Shared popup surface for command palettes and palette-styled dialogs (e.g. the quit confirm):
-// same fill, outline, scrim, and nested-dialog motion as the ⌘P palette.
-//
-// M3: a raised panel with a large corner at elevation 3 and `on-surface-variant` ink, and
-// `motion-dialog` for the enter/exit curves (the app's 0.98 resting scale and the nested
-// offsets stay). The `before:` layer is the inner-surface hook the panel above paints on.
+// same bg, border, overlay, shadow and nested-dialog motion as the ⌘P palette.
 const commandDialogPopupClassName =
-  "palette-surface squircle -translate-y-[calc(1.25rem*var(--nested-dialogs))] relative row-start-2 flex max-h-105 min-h-0 w-full min-w-0 max-w-xl scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-2xl border border-m3-outline-variant bg-[var(--color-background-surface-under)] text-m3-on-surface-variant opacity-[calc(1-0.1*var(--nested-dialogs))] shadow-elevation-3 outline-none will-change-transform motion-dialog motion-reduce:transition-none before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-2xl)-1px)] before:bg-[var(--color-background-elevated-secondary)]/72 data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-98 data-starting-style:scale-98 **:data-[slot=scroll-area-viewport]:data-has-overflow-y:pe-1";
+  "palette-surface squircle -translate-y-[calc(1.25rem*var(--nested-dialogs))] relative row-start-2 flex max-h-105 min-h-0 w-full min-w-0 max-w-xl scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-2xl border border-border bg-[var(--color-background-surface-under)] text-[var(--color-text-foreground)] opacity-[calc(1-0.1*var(--nested-dialogs))] shadow-lg outline-none transition-[opacity,scale,translate] duration-150 ease-out will-change-transform before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-2xl)-1px)] before:bg-[var(--color-background-elevated-secondary)]/72 before:shadow-[0_1px_--theme(--color-black/4%)] data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-98 data-starting-style:scale-98 data-ending-style:opacity-0 data-starting-style:opacity-0 **:data-[slot=scroll-area-viewport]:data-has-overflow-y:pe-1 dark:before:shadow-[0_-1px_--theme(--color-white/6%)]";
 
 function CommandDialogPopup({ className, children, ...props }: CommandDialogPrimitive.Popup.Props) {
   return (
@@ -160,7 +151,7 @@ function CommandPanel({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "-mx-px not-has-[+[data-slot=command-footer]]:-mb-px relative min-h-0 rounded-t-xl not-has-[+[data-slot=command-footer]]:rounded-b-2xl border border-b-0 border-m3-outline-variant bg-[var(--color-background-surface-under)] shadow-xs/5 [clip-path:inset(0_1px)] not-has-[+[data-slot=command-footer]]:[clip-path:inset(0_1px_1px_1px_round_0_0_calc(var(--radius-2xl)-1px)_calc(var(--radius-2xl)-1px))] before:pointer-events-none before:absolute before:inset-0 before:rounded-t-[calc(var(--radius-xl)-1px)] **:data-[slot=scroll-area-scrollbar]:mt-2",
+        "-mx-px not-has-[+[data-slot=command-footer]]:-mb-px relative min-h-0 rounded-t-xl not-has-[+[data-slot=command-footer]]:rounded-b-2xl border border-b-0 border-[color:var(--color-border-light)] bg-[var(--color-background-surface-under)] shadow-xs/5 [clip-path:inset(0_1px)] not-has-[+[data-slot=command-footer]]:[clip-path:inset(0_1px_1px_1px_round_0_0_calc(var(--radius-2xl)-1px)_calc(var(--radius-2xl)-1px))] before:pointer-events-none before:absolute before:inset-0 before:rounded-t-[calc(var(--radius-xl)-1px)] **:data-[slot=scroll-area-scrollbar]:mt-2",
         className,
       )}
       {...props}
@@ -233,9 +224,7 @@ function CommandFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        // The footer is chrome around the option list, so it sits one M3 ink role below
-        // the rows — the same relationship the menu group label has to its items.
-        "flex items-center justify-between gap-2 rounded-b-[calc(var(--radius-2xl)-1px)] border-t px-5 py-3 text-ui leading-snug text-m3-on-surface-variant",
+        "flex items-center justify-between gap-2 rounded-b-[calc(var(--radius-2xl)-1px)] border-t px-5 py-3 text-muted-foreground text-ui leading-snug",
         className,
       )}
       data-slot="command-footer"

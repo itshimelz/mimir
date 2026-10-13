@@ -3,14 +3,11 @@ import type * as React from "react";
 import { splitShortcutLabel } from "~/keybindings";
 import { cn, isMacNavigatorPlatform } from "~/lib/utils";
 
-// M3: a key cap is `surface-container-highest` with `on-surface-variant` ink, at the
-// smallest corner in the scale. Height and type stay as they were — a key legend has to
-// fit inline inside a menu row or a tooltip without moving its line box.
 function Kbd({ className, ...props }: React.ComponentProps<"kbd">) {
   return (
     <kbd
       className={cn(
-        "pointer-events-none inline-flex h-5 min-w-5 select-none items-center justify-center gap-1 rounded-xs bg-m3-surface-container-highest px-1 font-medium font-sans text-m3-on-surface-variant text-ui leading-snug [&_svg:not([class*='size-'])]:size-3",
+        "pointer-events-none inline-flex h-5 min-w-5 select-none items-center justify-center gap-1 rounded bg-muted px-1 font-medium font-sans text-muted-foreground text-ui leading-snug [&_svg:not([class*='size-'])]:size-3",
         className,
       )}
       data-slot="kbd"
@@ -54,9 +51,7 @@ function ShortcutKbd({
       aria-label={shortcutLabel}
       {...props}
       className={cn(
-        // A chord is one cap, not a row of them: full-round on the M3 corner scale, on the
-        // faintest container so a hint never competes with the row it annotates.
-        "h-5 gap-0.5 rounded-full bg-m3-surface-container-low px-2 text-m3-on-surface-variant",
+        "h-5 gap-0.5 rounded-full bg-foreground/5 px-2 text-foreground/80 dark:bg-foreground/12",
         groupClassName,
         className,
       )}

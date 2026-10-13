@@ -1,13 +1,13 @@
+"use client";
+
 // FILE: slider.tsx
-// Purpose: Shared single-value slider. Renders the M3 Expressive primitive from the
-//          @m3e registry and keeps the app-specific affordances the composer effort
-//          ladder needs: one mark per stop, and a magnetic settle between stops.
+// Purpose: Shared accent-colored single-value slider primitive with optional step marks.
 // Layer: Base UI component
 // Exports: Slider
 
-import { useEffect, useMemo, useState } from "react";
+import { Slider as SliderPrimitive } from "@base-ui/react/slider";
+import { useEffect, useState } from "react";
 
-import { Slider as M3eSlider } from "@/components/m3e/slider";
 import { cn } from "~/lib/utils";
 
 type SliderProps = {
@@ -16,14 +16,14 @@ type SliderProps = {
   max: number;
   step?: number;
   disabled?: boolean;
-  /** `default` is a settings-row slider; `large` is the chunky control used by the
-   *  composer effort card. M3E ships one geometry, so this only scales the marks. */
+  /** `default` is a settings-row slider; `large` is the chunky iOS-style control
+   *  (thumb nearly flush with a tall track) used by the composer effort card. */
   size?: "default" | "large";
   /** Draw one dot per step so discrete scales (effort levels, sizes) read as a ladder. */
   showStepMarks?: boolean;
-  /** Animate the fill between stops with a short overshooting ease so a stepped slider
-   *  feels like it snaps to a magnet instead of teleporting. Off for continuous scales,
-   *  where the lag would fight the pointer. */
+  /** Animate the thumb and fill between stops with a short overshooting ease so a
+   *  stepped slider feels like it snaps to a magnet instead of teleporting. Leave
+   *  off for continuous scales, where the lag would fight the pointer. */
   magnetic?: boolean;
   className?: string;
   "aria-label": string;
@@ -32,11 +32,11 @@ type SliderProps = {
   onValueChange: (value: number) => void;
 };
 
-// Snap motion: quick, with a touch of overshoot so the handle visibly "lands" on the
-// stop. M3E owns the fill's geometry, so this targets it by its data-slot rather than
-// by reaching into the primitive's internals.
+// Snap motion: quick, with a touch of overshoot so the thumb visibly "lands" on the
+// stop. Base UI positions the thumb via `inset-inline-start` and sizes the fill via
+// `width`, so those are the transitioned properties.
 const MAGNETIC_MOTION_CLASS =
-  "[&_[data-slot=slider-range]>:first-child]:transition-[inset-inline-start,width] [&_[data-slot=slider-range]>:first-child]:duration-180 [&_[data-slot=slider-range]>:first-child]:ease-[cubic-bezier(0.22,1.1,0.36,1)] motion-reduce:[&_[data-slot=slider-range]>:first-child]:transition-none";
+  "transition-[inset-inline-start,width] duration-180 ease-[cubic-bezier(0.22,1.1,0.36,1)] motion-reduce:transition-none";
 
 function stepMarkPercents(min: number, max: number, step: number): number[] {
   if (!(max > min) || !(step > 0)) return [];
@@ -63,10 +63,9 @@ function useGrabbingCursor(active: boolean): void {
 }
 
 /**
- * M3 Expressive geometry (16dp track, 4x44dp bar handle, 6dp gaps, end stop
- * indicator) with the app's step ladder drawn over it. The handle is edge-aligned by
- * the primitive, so it never overhangs the track, and the marks sit in a rail inset to
- * the same 8dp handle+gap offset so every dot lands under the handle centre.
+ * Single-thumb slider on the app accent. The thumb is edge-aligned so it never
+ * overhangs the track; step marks live in a matching inset rail so every dot
+ * sits exactly under the thumb centre at that value.
  */
 function Slider({
   value,
@@ -86,10 +85,8 @@ function Slider({
   const size = sizeProp ?? "default";
   const showStepMarks = showStepMarksProp ?? false;
   const magnetic = magneticProp ?? false;
-  const marks = useMemo(
-    () => (showStepMarks ? stepMarkPercents(min, max, step) : []),
-    [showStepMarks, min, max, step],
-  );
+  const marks = showStepMarks ? stepMarkPercents(min, max, step) : [];
+  const valuePercent = max > min ? ((value - min) / (max - min)) * 100 : 0;
   const [pressed, setPressed] = useState(false);
   useGrabbingCursor(pressed);
 
@@ -105,63 +102,90 @@ function Slider({
   }, [pressed]);
 
   return (
-    <div
-      className={cn("relative w-full", className)}
+    <SliderPrimitive.Root
+      value={value}
+      min={min}
+      max={max}
+      step={step}
+      {...(disabled ? { disabled: true } : {})}
+      thumbAlignment="edge"
+      onValueChange={(nextValue) => {
+        if (typeof nextValue === "number") onValueChange(nextValue);
+      }}
+      className={cn(
+        "group/slider relative flex w-full touch-none select-none items-center data-disabled:cursor-not-allowed data-disabled:opacity-64",
+        size === "large"
+          ? "[--slider-mark-size:--spacing(1)] [--slider-thumb-size:--spacing(5.5)] [--slider-track-size:--spacing(3.5)]"
+          : "[--slider-mark-size:--spacing(1)] [--slider-thumb-size:--spacing(4.5)] [--slider-track-size:--spacing(2)]",
+        className,
+      )}
       data-slot="slider"
-      data-size={size}
       {...(pressed ? { "data-pressed": "" } : {})}
     >
-      <M3eSlider
-        value={value}
-        min={min}
-        max={max}
-        step={step}
-        aria-label={ariaLabel}
-        {...(disabled ? { disabled: true } : {})}
-        {...(getAriaValueText
-          ? { getAriaValueText: (_formatted: string, next: number) => getAriaValueText(next) }
-          : {})}
-        className={cn(magnetic && MAGNETIC_MOTION_CLASS, disabled && "opacity-64")}
-        onValueChange={(nextValue) => {
-          const single = Array.isArray(nextValue) ? nextValue[0] : nextValue;
-          if (typeof single === "number") onValueChange(single);
-        }}
-        onPointerDown={(event: React.PointerEvent) => {
+      <SliderPrimitive.Control
+        className="flex w-full cursor-grab items-center py-1 group-data-pressed/slider:cursor-grabbing data-disabled:cursor-not-allowed"
+        onPointerDown={(event) => {
           if (disabled || event.button !== 0) return;
           setPressed(true);
         }}
-      />
-      {/* Marks ride above the primitive in an overlay rather than inside its track: the
-          track is the primitive's own element and must not be re-implemented here. The
-          inset matches the primitive's `--slider-gap` (8px) so a dot sits under the
-          handle centre at that value rather than under the handle's leading edge. */}
-      {marks.length > 0 ? (
-        <div
-          aria-hidden="true"
-          className={cn(
-            "pointer-events-none absolute top-1/2 flex -translate-y-1/2 justify-between",
-            size === "large" ? "inset-x-[var(--slider-gap,8px)]" : "inset-x-1",
-          )}
+      >
+        <SliderPrimitive.Track
+          className="relative h-[var(--slider-track-size)] w-full overflow-visible rounded-full bg-muted/80 border border-border/40"
+          data-slot="slider-track"
         >
-          {marks.map((percent, index) => (
+          {/* At the minimum the fill sits entirely under the thumb, but the thumb and
+              the track share the same left edge, so anti-aliasing leaves a sliver of
+              accent peeking out. Hide the fill there instead of relying on overlap. */}
+          <SliderPrimitive.Indicator
+            className={cn(
+              "rounded-full bg-primary",
+              magnetic && MAGNETIC_MOTION_CLASS,
+              magnetic && "transition-[inset-inline-start,width,opacity]",
+              valuePercent <= 0 && "opacity-0",
+            )}
+            data-slot="slider-indicator"
+          />
+          {marks.length > 0 ? (
             <span
-              // Percentages are the identity here: a ladder's stops are positional.
-              key={`${index}-${percent}`}
-              className={cn(
-                "size-1 shrink-0 rounded-full bg-muted-foreground/45",
-                // The primitive hides its own end stop indicator when the handle reaches
-                // the end, so the matching mark goes too or the two read as a mistake.
-                index === 0 || index === marks.length - 1 ? "opacity-70" : null,
-              )}
-              style={{
-                insetInlineStart: `${percent}%`,
-                position: "absolute",
-              }}
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 left-[calc(var(--slider-thumb-size)/2)] right-[calc(var(--slider-thumb-size)/2)]"
+            >
+              {marks.map((percent) => (
+                <span
+                  key={percent}
+                  className={cn(
+                    "absolute top-1/2 size-[var(--slider-mark-size)] -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-180 motion-reduce:transition-none",
+                    percent <= valuePercent + Number.EPSILON
+                      ? "bg-primary-foreground/90"
+                      : "bg-muted-foreground/45",
+                  )}
+                  style={{ left: `${percent}%` }}
+                />
+              ))}
+            </span>
+          ) : null}
+          <SliderPrimitive.Thumb
+            aria-label={ariaLabel}
+            {...(getAriaValueText
+              ? { getAriaValueText: (_formatted: string, next: number) => getAriaValueText(next) }
+              : {})}
+            className={cn(
+              "size-[var(--slider-thumb-size)] cursor-grab rounded-full outline-none has-focus-visible:ring-2 has-focus-visible:ring-primary/60 has-focus-visible:ring-offset-2 has-focus-visible:ring-offset-background group-data-pressed/slider:cursor-grabbing",
+              magnetic && MAGNETIC_MOTION_CLASS,
+            )}
+            data-slot="slider-thumb"
+          >
+            {/* Press feedback scales this inner disc, not the Thumb: Base UI measures the
+                Thumb's bounding box to place it, so scaling it would shift the thumb off
+                the track edge and expose the fill behind it. */}
+            <span
+              aria-hidden="true"
+              className="block size-full rounded-full bg-primary border-2 border-background shadow-md transition-all duration-150 ease-out group-hover/slider:shadow-lg group-data-pressed/slider:scale-125 group-data-pressed/slider:shadow-xl motion-reduce:transition-none"
             />
-          ))}
-        </div>
-      ) : null}
-    </div>
+          </SliderPrimitive.Thumb>
+        </SliderPrimitive.Track>
+      </SliderPrimitive.Control>
+    </SliderPrimitive.Root>
   );
 }
 

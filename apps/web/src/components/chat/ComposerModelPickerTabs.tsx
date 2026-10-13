@@ -55,9 +55,9 @@ function PickerTabButton(props: {
             // why the tab is closed.
             aria-disabled={props.disabled ?? false}
             className={cn(
-              "relative flex h-7 min-w-7 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2 text-muted-foreground/70 outline-none transition-all motion-spatial-fast hover:bg-foreground/8 hover:text-foreground focus-visible:ring-1 focus-visible:ring-primary aria-disabled:cursor-default aria-disabled:hover:bg-transparent aria-disabled:hover:text-muted-foreground/70",
+              "relative flex h-7 min-w-7 shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-full px-2 text-muted-foreground/70 outline-none transition-all duration-150 ease-out hover:bg-foreground/8 hover:text-foreground focus-visible:ring-1 focus-visible:ring-primary aria-disabled:cursor-default aria-disabled:hover:bg-transparent aria-disabled:hover:text-muted-foreground/70",
               props.active &&
-                "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary font-medium shadow-elevation-0",
+                "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary font-medium shadow-none",
             )}
             style={
               props.accentColor && props.active

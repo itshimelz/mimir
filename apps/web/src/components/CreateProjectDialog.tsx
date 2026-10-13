@@ -464,8 +464,8 @@ export function CreateProjectDialog(props: {
                 <InputGroup
                   className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "min-w-0 flex-1")}
                 >
-                  <InputGroupAddon className="w-10 self-stretch border-e border-m3-outline-variant ps-0">
-                    <FolderIcon className="size-4 text-m3-on-surface-variant" aria-hidden="true" />
+                  <InputGroupAddon className="w-10 self-stretch border-e border-border ps-0">
+                    <FolderIcon className="size-4 text-muted-foreground" aria-hidden="true" />
                   </InputGroupAddon>
                   <InputGroupInput
                     id={pathInputId}
@@ -584,11 +584,9 @@ export function CreateProjectDialog(props: {
                     // M3 outlined button used as a drop target: the outline is
                     // `outline-variant`, the label is `on-surface`, and the drop-active
                     // state moves the outline to `primary` with a faint `primary` wash
-                    // rather than a hand-mixed fill. `state-layer` supplies the hover
-                    // and pressed feedback so it matches every other button in the app.
                     className={cn(
-                      "state-layer flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl border border-m3-outline-variant bg-transparent px-3.5 text-start text-m3-on-surface text-ui outline-none transition-shape state-layer-on-surface focus-ring-inset hover:bg-m3-surface-container-high/60 disabled:pointer-events-none disabled:cursor-default disabled:text-m3-on-surface/38",
-                      isDropTarget && "border-m3-primary bg-m3-primary/8",
+                      "flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-transparent px-3.5 text-start text-foreground text-ui outline-none transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset hover:bg-secondary/60 disabled:pointer-events-none disabled:cursor-default disabled:text-muted-foreground",
+                      isDropTarget && "border-primary bg-primary/8",
                     )}
                     onClick={() => void handleBrowse()}
                   >
@@ -598,7 +596,7 @@ export function CreateProjectDialog(props: {
                     ) : pickedFolderName ? (
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate">{pickedFolderName}</span>
-                        <span className="truncate text-ui-xs text-m3-on-surface-variant">
+                        <span className="truncate text-ui-xs text-muted-foreground">
                           {pickedPath}
                         </span>
                       </span>
@@ -703,11 +701,9 @@ export function CreateProjectDialog(props: {
 
           {formError ? (
             <div id={errorId} role="alert" className="space-y-1">
-              {/* M3 error ink: the `error` role itself, because this text sits directly on the
-                  dialog's surface container rather than on a filled error surface. */}
-              <p className="text-m3-error text-ui-xs">{formError}</p>
+              <p className="text-destructive text-ui-xs">{formError}</p>
               {formErrorMeaning ? (
-                <p className="text-m3-on-surface-variant text-ui-xs">{formErrorMeaning}</p>
+                <p className="text-muted-foreground text-ui-xs">{formErrorMeaning}</p>
               ) : null}
             </div>
           ) : null}

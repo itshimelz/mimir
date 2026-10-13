@@ -4,17 +4,13 @@ import { createCentralIconElement } from "./lib/central-icons";
 import { isInlineSvgMenuIcon } from "./lib/nativeMenuIcons";
 
 /**
- * The browser-side context menu, styled with the Material 3 menu tokens the rest of the
- * migrated surfaces use (theme/m3.material.css). This is the fallback for when no desktop
- * bridge can show a native OS menu — see wsNativeApi.contextMenu.show — so it has to look
- * like the app rather than like the platform. Geometry stays the app's: this builds raw
- * DOM imperatively and is measured against a min-h-7 row, so it keeps its denser rows
- * instead of M3E's 44dp ones.
+ * Browser fallback for native context menus, styled with the app's shared semantic surface
+ * and text tokens.
  */
 
-/** M3 draws the focused/selected row as an `on-surface` state layer, not a filled pill. */
-const HIGHLIGHT_CLASS = "bg-m3-on-surface/12";
-const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-md border border-m3-outline-variant shadow-elevation-2 animate-in fade-in zoom-in-95`;
+/** Shared focus styling for the currently highlighted item. */
+const HIGHLIGHT_CLASS = "bg-accent text-accent-foreground";
+const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-md border border-border shadow-md animate-in fade-in zoom-in-95`;
 const VIEWPORT_MARGIN = 4;
 
 function createMenuIconElement(icon: string): HTMLElement | null {
@@ -198,17 +194,15 @@ export function showContextMenuFallback<T extends string>(
         // Keep explicit groups visible in the browser fallback; destructive items remain isolated by default.
         if ((item.separatorBefore === true || isDestructive) && i > 0) {
           const sep = document.createElement("div");
-          sep.className = "mx-2.5 my-1 h-px bg-m3-outline-variant";
+          sep.className = "mx-2.5 my-1 h-px bg-border";
           inner.appendChild(sep);
         }
 
         const btn = document.createElement("button");
         btn.type = "button";
-        // M3 menu row: full-round at the small corner, `on-surface` ink, and a
-        // destructive row on the `error` role rather than plain foreground text.
-        btn.className = isDestructive
-          ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-full px-3.5 py-1.5 text-left text-ui text-m3-error transition-colors duration-[var(--md-sys-motion-spring-fast-effects-duration)]"
-          : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-full px-3.5 py-1.5 text-left text-ui text-m3-on-surface transition-colors duration-[var(--md-sys-motion-spring-fast-effects-duration)]";
+                btn.className = isDestructive
+          ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-md px-3.5 py-1.5 text-left text-ui text-destructive transition-colors duration-150 ease-out"
+          : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-md px-3.5 py-1.5 text-left text-ui text-foreground transition-colors duration-150 ease-out";
 
         const icon = item.icon ? createMenuIconElement(item.icon) : null;
         if (icon) {

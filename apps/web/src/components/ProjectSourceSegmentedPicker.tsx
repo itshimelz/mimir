@@ -1,11 +1,8 @@
 // FILE: ProjectSourceSegmentedPicker.tsx
-// Purpose: How a project is added (a local folder or a GitHub repository), as M3
-//          segmented tabs over the dialog's two form bodies.
+// Purpose: Switches between local-folder and GitHub project setup.
 // Layer: Web UI dialog control
 // Exports: ProjectSourceSegmentedPicker, ProjectSource
-// Why: Material 3 Expressive segmented tabs. The Folder/GitHub choice swaps the whole
-//      field set below it, so tabs are the honest role — the previous control was a
-//      radio group wearing a raised thumb that overhangs its track.
+// Why: Tabs describe the two mutually exclusive project-source forms directly.
 
 import { GitHubIcon, FolderIcon } from "~/lib/icons";
 

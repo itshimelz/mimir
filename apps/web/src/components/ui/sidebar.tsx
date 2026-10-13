@@ -2,7 +2,7 @@ import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
 import { cva, type VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { LayoutAlignLeftIcon, LayoutLeftIcon, PanelLeftIcon } from "~/lib/icons";
+import { LayoutAlignLeftIcon, LayoutLeftIcon } from "~/lib/icons";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -99,10 +99,6 @@ function useSidebar() {
   }
 
   return context;
-}
-
-export function useOptionalSidebar() {
-  return React.useContext(SidebarContext);
 }
 
 function SidebarProvider({
@@ -390,14 +386,14 @@ function Sidebar({
 }
 
 function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, isMobile, open, openMobile } = useSidebar();
+  // The glyph shows the sidebar's current state: a full left column while it is open, a
+  // slim handle once it is collapsed.
+  const SidebarStateIcon = (isMobile ? openMobile : open) ? LayoutLeftIcon : LayoutAlignLeftIcon;
 
   return (
     <Button
-      className={cn(
-        "size-7 sm:size-7 rounded-[6px] text-muted-foreground/75 hover:text-foreground",
-        className,
-      )}
+      className={cn("size-7", className)}
       data-sidebar="trigger"
       data-slot="sidebar-trigger"
       onClick={(event) => {
@@ -408,7 +404,7 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
       variant="ghost"
       {...props}
     >
-      <PanelLeftIcon aria-hidden className="size-4" />
+      <SidebarStateIcon aria-hidden className="size-4" />
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
@@ -457,10 +453,6 @@ function SidebarRail({
   const isContentSeam = placement === "content-seam";
   const railRef = React.useRef<HTMLButtonElement | null>(null);
   const suppressClickRef = React.useRef(false);
-  // A drag leaves the 16px hit area the moment it starts, so the "grabbed" look has to
-  // come from committed state rather than `:hover`. Cleared by `stopResize`, which every
-  // pointer-up, pointer-cancel and unmount path runs.
-  const [resizing, setResizing] = React.useState(false);
   const resizeStateRef = React.useRef<{
     moved: boolean;
     pointerId: number;
@@ -497,7 +489,6 @@ function SidebarRail({
       }
       resolvedResizable?.onResize?.(resizeState.width);
       resizeStateRef.current = null;
-      setResizing(false);
       if (resizeState.rail.hasPointerCapture(pointerId)) {
         resizeState.rail.releasePointerCapture(pointerId);
       }
@@ -559,7 +550,6 @@ function SidebarRail({
       event.currentTarget.setPointerCapture(event.pointerId);
       document.body.style.cursor = "col-resize";
       document.body.style.userSelect = "none";
-      setResizing(true);
     },
     [onPointerDown, open, resolvedResizable, sidebarInstance?.side],
   );
@@ -677,7 +667,6 @@ function SidebarRail({
       });
       document.body.style.removeProperty("cursor");
       document.body.style.removeProperty("user-select");
-      setResizing(false);
     };
   }, []);
 
@@ -711,7 +700,6 @@ function SidebarRail({
       )}
       data-sidebar="rail"
       data-placement={placement}
-      data-resizing={resizing ? "true" : undefined}
       data-slot="sidebar-rail"
       onClick={handleClick}
       onPointerCancel={handlePointerCancel}

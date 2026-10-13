@@ -99,7 +99,7 @@ export const CHAT_HEADER_ICON_STRENGTH_CLASS_NAME =
 /** Fixed control height + radius for every header toolbar control; `squircle` turns the
  *  radius into continuous corners where supported and keeps it as the fallback. */
 export const CHAT_HEADER_CONTROL_CLASS_NAME =
-  "!h-7 shrink-0 rounded-full transition-all motion-spatial-fast active:scale-95";
+  "!h-7 shrink-0 rounded-full transition-all duration-150 ease-out active:scale-95";
 
 /** Idle text tone for flat header/dock controls (toggles, tabs, chrome icon buttons). */
 export const CHAT_SURFACE_CONTROL_IDLE_TEXT_CLASS_NAME =
@@ -512,7 +512,7 @@ export function SurfaceTabStrip({
 }
 
 export const CHAT_HEADER_ICON_CONTROL_CLASS_NAME =
-  "!size-7 shrink-0 rounded-full transition-all motion-spatial-fast active:scale-95 [&_svg,&_[data-slot=central-icon]]:mx-0";
+  "!size-7 shrink-0 rounded-full transition-all duration-150 ease-out active:scale-95 [&_svg,&_[data-slot=central-icon]]:mx-0";
 
 /**
  * Square chrome icon-button footprint shared by every right-dock header — the tab

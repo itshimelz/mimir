@@ -2,7 +2,7 @@ import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip";
 
 import { cn } from "~/lib/utils";
 import {
-  APP_TOOLTIP_M3_SURFACE_CLASS_NAME,
+  APP_TOOLTIP_SURFACE_CLASS_NAME,
   COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME,
 } from "../chat/composerPickerStyles";
 
@@ -18,17 +18,15 @@ const Tooltip = TooltipPrimitive.Root;
  * looks without forking the component. Add a new style here (and a key) to make it
  * available everywhere.
  *
- * - `default`: M3's plain tooltip, which is not a raised surface at all but an
- *   `inverse-surface` chip — no elevation, no border, only the tone flip. The
- *   sidebar's two hover cards are the interactive equivalent and take the M3
- *   hover-card surface instead (see sidebarHoverCardStyles).
+ * - `default`: the frosted sidebar hover-card surface, shared with the
+ *   project/thread cards so plain tooltips and the cards read as one system.
  * - `picker`: the composer picker chrome (tighter radius + soft shadow) for
  *   tooltips that sit next to picker menus and should match them.
  */
 export type TooltipVariant = "default" | "picker";
 
 const TOOLTIP_SURFACE_BY_VARIANT: Record<TooltipVariant, string> = {
-  default: APP_TOOLTIP_M3_SURFACE_CLASS_NAME,
+  default: APP_TOOLTIP_SURFACE_CLASS_NAME,
   picker: COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME,
 };
 
@@ -81,14 +79,7 @@ function TooltipPopup({
       >
         <TooltipPrimitive.Popup
           className={cn(
-            // Structure + type are shared by every tooltip; the variant supplies the
-            // surface chrome (M3 inverse chip, picker, …) and `className` adds
-            // per-tooltip tweaks like max-width or wrapping.
-            //
-            // `motion-popup` carries M3's enter/exit curves; the 0.98 scale stays the
-            // app's own resting geometry rather than M3E's 0.85, which reads as a jump
-            // on the dense rail and row tooltips this mostly drives.
-            "motion-popup flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance text-ui-sm motion-reduce:transition-none data-ending-style:scale-98 data-starting-style:scale-98 data-instant:duration-0",
+            "transition-[opacity,scale,translate] duration-150 ease-out flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance rounded-xs shadow-sm text-ui-sm transition-[width,height,scale,opacity] data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0 data-instant:duration-0",
             TOOLTIP_SURFACE_BY_VARIANT[variant],
             className,
           )}

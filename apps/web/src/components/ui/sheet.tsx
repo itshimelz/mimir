@@ -22,7 +22,7 @@ function SheetBackdrop({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
       className={cn(
-        "motion-scrim fixed inset-0 z-50 bg-black/50 data-ending-style:opacity-0 data-starting-style:opacity-0",
+        "transition-opacity duration-150 ease-out fixed inset-0 z-50 bg-black/50 data-ending-style:opacity-0 data-starting-style:opacity-0",
         className,
       )}
       data-slot="sheet-backdrop"
@@ -82,7 +82,7 @@ function SheetPopup({
       <SheetViewport side={side} variant={variant}>
         <SheetPrimitive.Popup
           className={cn(
-            "motion-sheet relative flex max-h-full min-h-0 w-full min-w-0 flex-col bg-[var(--color-surface-container-low,var(--popover))] text-popover-foreground shadow-elevation-2 transition-shape will-change-transform data-ending-style:opacity-0 data-starting-style:opacity-0",
+            "transition-[opacity,translate] duration-150 ease-out relative flex max-h-full min-h-0 w-full min-w-0 flex-col bg-[var(--color-background-elevated-secondary,var(--popover))] text-popover-foreground shadow-md will-change-transform data-ending-style:opacity-0 data-starting-style:opacity-0",
             side === "bottom" &&
               "row-start-2 rounded-t-2xl border-t data-ending-style:translate-y-full data-starting-style:translate-y-full",
             side === "top" &&

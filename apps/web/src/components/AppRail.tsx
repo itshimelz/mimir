@@ -145,7 +145,7 @@ type AppRailProps = {
   onContextMenu?: ((event: MouseEvent) => void) | undefined;
 };
 
-/** Rail glyph size (M3 nav icon is 24dp), shared with controls rendered into the rail
+/** Rail glyph size (navigation glyph is 24px), shared with controls rendered into the rail
  *  slot (the Help menu). */
 export const APP_RAIL_GLYPH_CLASS_NAME = "size-5";
 

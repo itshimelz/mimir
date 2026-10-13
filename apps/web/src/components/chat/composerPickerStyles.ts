@@ -8,7 +8,7 @@ import { MUTED_LABEL_TEXT_CLASS_NAME } from "~/surfaceStyles";
 
 export { COMPOSER_PICKER_SIZE, type ComposerPickerSize } from "./composerPickerSize";
 
-/** Depth comes from the border, not a cast shadow. */
+/** Shared shadow for floating surfaces and composer chrome. */
 export const COMPOSER_SURFACE_SHADOW_CLASS_NAME = "shadow-sm";
 
 // Uses the UI-sm token so picker labels sit slightly below the editor text size.
@@ -55,12 +55,11 @@ export const COMPOSER_PICKER_MODEL_LIST_MAX_HEIGHT_CLASS_NAME =
 /** Scroll chrome for long model-provider lists. */
 export const COMPOSER_PICKER_MODEL_LIST_SCROLL_CLASS_NAME = "composer-picker-scroll";
 
-/** Corner radius for picker panel chrome and panel-level surfaces. `sm` matches the menu
- *  shell so pickers and menus share one corner. */
-export const COMPOSER_PICKER_RADIUS_CLASS_NAME = "rounded-sm";
+/** Corner radius for picker panel chrome. */
+export const COMPOSER_PICKER_RADIUS_CLASS_NAME = "rounded-xl";
 
-/** Tighter corner radius for option rows / selection pills inside picker panels. */
-export const COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME = "rounded-sm";
+/** Corner radius for option rows / selection pills inside picker panels. */
+export const COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME = "rounded-md";
 
 /** Collapsible section headers inside model provider lists. */
 export const COMPOSER_PICKER_MODEL_GROUP_HEADER_CLASS_NAME = `grid w-full grid-cols-[0.75rem_minmax(0,1fr)_2.5rem] items-center gap-x-1.5 ${COMPOSER_PICKER_RADIUS_CLASS_NAME} px-2 py-1 text-left text-ui-xs font-medium text-muted-foreground/80 outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--foreground)_4%,transparent)] focus-visible:ring-0`;
@@ -167,52 +166,17 @@ export const COMPOSER_INPUT_SURFACE_CLASS_NAME = `chat-composer-surface squircle
  *  The `before:` layer is the inner-surface hook dependents add hairlines to. */
 export const APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden border border-[color:var(--overlay-border)] bg-popover text-popover-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
 
-/** Default floating popup shell. `rounded-sm` is the VS Code menu corner. */
-export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-sm shadow-sm`;
+/** Default floating popup shell. */
+export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xl shadow-md`;
 
-/** Chrome for plain tooltips and the sidebar hover cards, so they read as one surface. */
-export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-sm shadow-sm`;
+/** Chrome for plain tooltips and the sidebar hover cards. */
+export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xs shadow-sm`;
 
-/* ─── Material 3 overlay chrome ───────────────────────────────────────────────────
-   Menus, popovers, and hover cards all float over the app, so they share one M3
-   vocabulary rather than three near-copies: a medium corner, an `outline-variant`
-   hairline, elevation 2, and `on-surface-variant` ink. Shape comes from M3 (the
-   dialog-family keeps its own larger corner); the *fill* still comes from
-   `--app-overlay-surface` via `.app-popup-surface`, because that token is what
-   tracks window translucency and the glass cutout — so a `bg-m3-surface-container`
-   here would be dead code under the unlayered rule that wins. Combobox, select, and
-   toast still read the pre-Migration tokens above and migrate with their own
-   primitives. */
-export const APP_OVERLAY_SURFACE_M3_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden border border-m3-outline-variant bg-popover text-m3-on-surface-variant before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
-
-/** M3 menu / popover / hover-card surface: medium corner at elevation 2. */
-export const APP_OVERLAY_SURFACE_M3_CLASS_NAME = `${APP_OVERLAY_SURFACE_M3_BASE_CLASS_NAME} rounded-md shadow-elevation-2`;
-
-/** The sidebar's two hover cards, whose width this file owns alongside the chrome. */
-export const APP_HOVER_CARD_M3_SURFACE_CLASS_NAME = APP_OVERLAY_SURFACE_M3_CLASS_NAME;
-
-/**
- * M3's plain tooltip is not a raised surface container at all — it is an inverse chip
- * (`inverse-surface` / `inverse-on-surface`) with no elevation and no border. The fill
- * cannot be a utility here for the same reason the raised overlay cannot: the
- * unlayered `.app-popup-surface` rule owns `background`. `m3-inverse-tooltip` swaps
- * just the fill and ink while the element keeps `app-popup-surface`, so
- * glassOverlayCutout.ts still finds it on a translucent window (see index.css).
- *
- * No elevation and no border: the chip's only separation from what sits behind it is
- * the inverse tone flip.
- */
-export const APP_TOOLTIP_M3_SURFACE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} app-popup-surface-m3-inverse relative overflow-hidden rounded-sm bg-m3-inverse-surface text-m3-inverse-on-surface before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
-
-/** Shared border, radius, and shadow for composer-attached popup panels.
- *  M3: the same `outline-variant` hairline and elevation 2 the menus and popovers took in
- *  the M3 overlay pass. The panel shell has to land with the option rows: the rows are
- *  already an `on-surface` state layer, and a pre-Migration panel around them is what
- *  makes one picker look like two components. */
-export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-m3-outline-variant ${COMPOSER_PICKER_RADIUS_CLASS_NAME} shadow-elevation-2`;
+/** Shared border, radius, and shadow for composer-attached popup panels. */
+export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-[color:var(--overlay-border)] ${COMPOSER_PICKER_RADIUS_CLASS_NAME} shadow-md`;
 
 /** Visual shell for composer picker dropdown panels (menus attached to the composer). */
-export const COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME = `${APP_OVERLAY_SURFACE_M3_BASE_CLASS_NAME} ${COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME}`;
+export const COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} ${COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME}`;
 
 /** Scrollable list body inside open picker panels. */
 export const COMPOSER_PICKER_MENU_POPUP_BODY_CLASS_NAME = `relative z-1 w-full min-w-0 overflow-y-auto overscroll-contain ${COMPOSER_PICKER_MODEL_LIST_SCROLL_CLASS_NAME}`;
@@ -225,14 +189,8 @@ export const COMPOSER_PICKER_MENU_POPUP_VIEWPORT_CLASS_NAME =
  *  Leading-icon rules are declared for both `<svg>` (Tabler/Lucide) and the Central
  *  icon `<span data-slot=central-icon>` so a masked Central glyph (e.g. the Skill cube
  *  or Plugin puzzle icon) lines up and dims exactly like the SVG icons
- *  instead of sitting brighter and 2px out of alignment.
- *
- *  M3 menu rows: ink on `on-surface`, and the highlighted row is an `on-surface` state
- *  layer rather than a filled pill — the same treatment the migrated context-menu
- *  fallback uses (contextMenuFallback.ts). Row *geometry* stays the app's: these are
- *  measured against a denser row than M3E's 44dp, and adopting that would change how
- *  many actions fit on a short viewport. */
-export const COMPOSER_PICKER_MENU_OPTION_CLASS_NAME = `[&>svg,&>[data-slot=central-icon]]:-mx-0.5 flex cursor-default select-none items-center ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} text-ui text-m3-on-surface outline-none transition-colors duration-[var(--md-sys-motion-spring-fast-effects-duration)] data-disabled:pointer-events-none data-highlighted:bg-m3-on-surface/12 data-disabled:opacity-64 [&>svg:not([class*='opacity-']),&>[data-slot=central-icon]:not([class*='opacity-'])]:opacity-80 [&>svg,&>[data-slot=central-icon]]:pointer-events-none [&>svg,&>[data-slot=central-icon]]:shrink-0`;
+ *  instead of sitting brighter and 2px out of alignment. */
+export const COMPOSER_PICKER_MENU_OPTION_CLASS_NAME = `[&>svg,&>[data-slot=central-icon]]:-mx-0.5 flex cursor-default select-none items-center ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} text-ui text-[var(--color-text-foreground)] outline-none transition-colors data-disabled:pointer-events-none data-highlighted:bg-primary/10 data-highlighted:text-primary data-disabled:opacity-64 [&>svg:not([class*='opacity-']),&>[data-slot=central-icon]:not([class*='opacity-'])]:opacity-80 [&>svg,&>[data-slot=central-icon]]:pointer-events-none [&>svg,&>[data-slot=central-icon]]:shrink-0`;
 
 /** Leading glyph of a menu option: one size for every icon in these popups. */
 export const MENU_ICON_CLASS_NAME = "size-3.5 shrink-0";
@@ -247,7 +205,7 @@ export const COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME = `${COMPOSER_PICKER_MEN
  *  Picker border/radius/shadow, but a solid fill: the menu floats over the
  *  transcript, so frosted bg-popover/70 would let chat content bleed through. */
 export const COMPOSER_COMMAND_MENU_SURFACE_CLASS_NAME =
-  "relative overflow-hidden rounded-sm border border-border bg-popover text-popover-foreground";
+  "relative overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg";
 
 /** Environment panel card. Opaque for the same reason as the command menu (it overlays the
  *  transcript), except on a whole-window glass shell, where it takes the shared raised

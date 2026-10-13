@@ -129,18 +129,10 @@ export const THEME_SEED_CATALOG: Record<string, Partial<Record<ThemeVariant, Chr
     },
   },
   codex: CODEX_THEME_SEEDS,
-  // Mimir is the Material 3 Expressive violet palette. The four seed fields carry the
-  // roles theme.logic.ts derives the Codex layer from, so they track the M3 primaries:
-  // `surface` is M3 surface, `ink` is on-surface, `accent` is primary, and
-  // `chromeSurface` is the window plane behind the content — surface-container-low, the
-  // step the M3 rail layout's chrome band sits at. The full role set (containers,
-  // secondary/tertiary, error, inverses) has no field here and lives in
-  // theme/m3.material.css, which is the authoritative copy of the palette.
-  //
-  // The semantic colors are the one place M3 publishes nothing comparable: it has no diff
-  // or skill tokens. Rather than invent hues, they are lightness steps off the new ink —
-  // added reads as present/strong, removed as absent/weak, skill takes a violet-leaning
-  // step so it sits with the palette instead of against it.
+  // Mimir uses a violet palette. Its seed fields feed the app semantic color derivation:
+  // surface and ink define the base plane, accent provides the highlight, and
+  // chromeSurface sets the window plane behind the content. Diff and skill colors
+  // remain explicit semantic accents.
   synara: {
     dark: {
       accent: "#cbbeff",

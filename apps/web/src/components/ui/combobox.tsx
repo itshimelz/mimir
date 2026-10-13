@@ -183,7 +183,7 @@ function ComboboxPopup({
         <span
           className={cn(
             APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME,
-            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) not-dark:bg-clip-padding shadow-elevation-2 motion-popup",
+            "relative flex max-h-full min-w-(--anchor-width) max-w-(--available-width) origin-(--transform-origin) not-dark:bg-clip-padding shadow-md transition-[opacity,scale,translate] duration-150 ease-out",
             COMPOSER_PICKER_RADIUS_CLASS_NAME,
             className,
           )}

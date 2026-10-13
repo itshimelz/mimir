@@ -7329,7 +7329,7 @@ export default function Sidebar() {
                         trigger={
                           <button
                             type="button"
-                            className="inline-flex h-8 max-w-[12rem] items-center gap-1 rounded-md px-1.5 text-ui font-semibold text-foreground hover:bg-m3-surface-container-high focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            className="inline-flex h-8 max-w-[12rem] items-center gap-1 rounded-md px-1.5 text-ui font-semibold text-foreground hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             title="Switch course"
                           >
                             <span className="truncate">

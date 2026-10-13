@@ -48,7 +48,7 @@ import {
   shouldAcceptEditorChatPaneWidth,
 } from "./EditorWorkspaceView.logic";
 import { StudioEmptyState } from "./chat/StudioEmptyState";
-import { Button } from "@/components/m3e/button";
+import { Button } from "./ui/button";
 import type { ProjectMenuPickerOption } from "./ProjectMenuPicker";
 import { SegmentedPicker } from "./SegmentedPicker";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
@@ -389,7 +389,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
           <div className="flex min-w-0 items-center justify-end gap-2">
             {isMimirTheme ? (
               <Button
-                variant={chatPaneVisible ? "tonal" : "outlined"}
+                variant={chatPaneVisible ? "secondary" : "outlined"}
                 size="icon-xs"
                 aria-pressed={chatPaneVisible}
                 aria-label={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}

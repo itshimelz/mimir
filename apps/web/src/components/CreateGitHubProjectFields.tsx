@@ -57,8 +57,8 @@ export function CreateGitHubProjectFields(props: {
           Repository
         </label>
         <InputGroup className={PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME}>
-          <InputGroupAddon className="w-10 self-stretch border-e border-m3-outline-variant ps-0">
-            <GitHubIcon className="size-4 text-m3-on-surface-variant" aria-hidden="true" />
+          <InputGroupAddon className="w-10 self-stretch border-e border-border ps-0">
+            <GitHubIcon className="size-4 text-muted-foreground" aria-hidden="true" />
           </InputGroupAddon>
           <InputGroupInput
             id={props.repositoryInputId}
@@ -85,8 +85,8 @@ export function CreateGitHubProjectFields(props: {
         </label>
         <div className="flex items-center gap-2">
           <InputGroup className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "min-w-0 flex-1")}>
-            <InputGroupAddon className="w-10 self-stretch border-e border-m3-outline-variant ps-0">
-              <FolderIcon className="size-4 text-m3-on-surface-variant" aria-hidden="true" />
+            <InputGroupAddon className="w-10 self-stretch border-e border-border ps-0">
+              <FolderIcon className="size-4 text-muted-foreground" aria-hidden="true" />
             </InputGroupAddon>
             <InputGroupInput
               id={props.destinationParentInputId}
@@ -133,14 +133,14 @@ export function CreateGitHubProjectFields(props: {
           />
         </InputGroup>
         {props.finalClonePath ? (
-          <p className="truncate text-ui-xs text-m3-on-surface-variant">
+          <p className="truncate text-ui-xs text-muted-foreground">
             Final location: {props.finalClonePath}
           </p>
         ) : null}
       </div>
 
       {props.provisionProgress ? (
-        <p role="status" className="text-ui-xs text-m3-on-surface-variant">
+        <p role="status" className="text-ui-xs text-muted-foreground">
           {props.provisionProgress}
         </p>
       ) : null}

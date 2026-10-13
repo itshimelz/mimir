@@ -355,7 +355,7 @@ describe("chromeSurface override", () => {
 
   it.each(["light", "dark"] as const)("pins the %s chrome plane", (variant) => {
     const tokens = buildResolvedThemeTokens(packWith("synara", variant), variant);
-    // Mimir's chrome plane is the Material 3 surface-container-low step. The derivation
+    // Mimir's chrome plane is the elevated window surface. The derivation
     // cannot reach it: in light mode the mix clamps to zero, and in dark it only ever
     // moves toward black, while this plane sits *above* the surface in both variants.
     const expected = variant === "light" ? "#f5f2fc" : "#13131a";

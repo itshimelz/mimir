@@ -1,39 +1,37 @@
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/lib/utils";
-import { Ripple } from "./ripple";
 
-/* M3 Expressive cards: filled, elevated and outlined with M3 medium (12dp) corners */
 const cardVariants = cva(
-  "group/card relative flex flex-col gap-(--card-spacing) overflow-hidden rounded-md py-(--card-spacing) text-ui text-card-foreground transition-shape [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=lg]:[--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-md *:[img:last-child]:rounded-b-md",
+  "group/card relative flex flex-col gap-(--card-spacing) overflow-hidden rounded-md py-(--card-spacing) text-ui text-card-foreground transition-[background-color,border-color,box-shadow] duration-150 ease-out [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=lg]:[--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-md *:[img:last-child]:rounded-b-md",
   {
     variants: {
       variant: {
-        filled: "bg-[var(--color-surface-container-highest,var(--card))] border border-transparent",
-        elevated:
-          "bg-[var(--color-surface-container-low,var(--card))] shadow-elevation-1 border border-transparent",
-        outlined: "border border-border bg-card",
+        muted: "bg-[var(--color-background-elevated-secondary)] border border-transparent",
+        raised:
+          "bg-[var(--color-background-elevated-primary-opaque)] shadow-sm border border-transparent",
+        plain: "border border-border bg-card",
       },
       /* adds hover/press feedback for clickable cards */
       interactive: {
-        true: "state-layer cursor-pointer focus-ring",
+        true: "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background hover:bg-[var(--color-background-elevated-secondary)]",
         false: "",
       },
     },
     compoundVariants: [
       {
-        variant: "elevated",
+        variant: "raised",
         interactive: true,
-        className: "hover:shadow-elevation-2 data-press:shadow-elevation-1",
+        className: "hover:shadow-md data-press:shadow-sm",
       },
       {
-        variant: "filled",
+        variant: "muted",
         interactive: true,
-        className: "hover:shadow-elevation-1 data-press:shadow-none",
+        className: "hover:shadow-sm data-press:shadow-none",
       },
     ],
     defaultVariants: {
-      variant: "outlined",
+      variant: "plain",
       interactive: false,
     },
   },
@@ -56,7 +54,6 @@ function Card({
       className={cn(cardVariants({ variant, interactive }), className)}
       {...props}
     >
-      {interactive && <Ripple />}
       {children}
     </div>
   );

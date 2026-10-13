@@ -11,10 +11,8 @@ import type { ComponentProps, ReactNode } from "react";
 import { cn } from "~/lib/utils";
 
 // On-fill ink for glyphs painted as solid discs: the surface colour, so the mark reads as a
-// cut-out in both themes. The M3 role first, with the Codex token behind it so a pack that
-// has no M3 surface still gets a matching fill.
-export const STATUS_GLYPH_CUTOUT_STROKE =
-  "var(--md-sys-color-surface, var(--color-background-surface, white))";
+// cut-out in both themes.
+export const STATUS_GLYPH_CUTOUT_STROKE = "var(--color-background-surface, white)";
 
 /**
  * The 6px status dot. Callers pass the colour (`bg-*`) through `className`; `pulse` marks

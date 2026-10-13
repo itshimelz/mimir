@@ -46,7 +46,7 @@ const RING_TONE_CLASS_NAME: Record<RailUsageRingTone, { stroke: string; dot: str
   critical: { stroke: "stroke-red-500", dot: "bg-red-500" },
 };
 
-// Geometry in px inside the rail's 56×32 Material 3 item, which bounds the ring on both
+// Geometry in px inside the rail's compact active item, which bounds the ring on both
 // axes — the 32dp height is what caps it. Two tracks take a marginally larger box,
 // thinner strokes and a smaller glyph, so the tracks keep a 2px gap and the glyph clears
 // the inner one.

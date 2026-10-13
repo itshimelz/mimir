@@ -7,7 +7,7 @@ import * as React from "react";
 import { cn } from "~/lib/utils";
 import { observeNativeSurfaceOverlay } from "~/lib/nativeSurfaceOcclusion";
 import {
-  APP_OVERLAY_SURFACE_M3_CLASS_NAME,
+  APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME,
   COMPOSER_PICKER_MENU_OPTION_CLASS_NAME,
   COMPOSER_PICKER_MENU_POPUP_BODY_CLASS_NAME,
   COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME,
@@ -96,7 +96,7 @@ function MenuPopupBase({
   const popupSurfaceClassName =
     surface === "composer"
       ? COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME
-      : APP_OVERLAY_SURFACE_M3_CLASS_NAME;
+      : APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME;
 
   const isComposerSurface = surface === "composer";
 
@@ -115,9 +115,7 @@ function MenuPopupBase({
       >
         <MenuPrimitive.Popup
           className={cn(
-            // `motion-menu` carries M3's unfold: the popup scales open along its
-            // placement axis from the anchor, on the default spatial spring.
-            "motion-menu relative flex origin-(--transform-origin) text-m3-on-surface-variant outline-none focus:outline-none motion-reduce:transition-none",
+            "transition-[opacity,scale] duration-[120ms] ease-out data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 relative flex origin-(--transform-origin) text-[var(--color-text-foreground)] outline-none focus:outline-none",
             isComposerSurface ? "min-w-0 max-w-[92vw]" : "w-full min-w-full",
             popupSurfaceClassName,
             // Last so a caller's className can override surface tokens (e.g. a rounder radius).
@@ -164,10 +162,9 @@ function MenuItem({
     <MenuPrimitive.Item
       className={cn(
         COMPOSER_PICKER_MENU_OPTION_CLASS_NAME,
-        // text-m3-error (not on-error): these items sit on the popup surface, so they
-        // need the red accent itself — the on-error role is for text on a filled error
-        // button, which is not what a menu row is.
-        "data-inset:ps-8 data-[variant=destructive]:text-m3-error",
+        // text-destructive (not -foreground): these items sit on the popup surface, so they
+        // need the red accent itself — the foreground token is for text on a destructive fill.
+        "data-inset:ps-8 data-[variant=destructive]:text-destructive",
         className,
       )}
       data-inset={inset}
@@ -202,7 +199,7 @@ function MenuCheckboxItem({
           "grid in-data-[side=none]:min-w-[calc(var(--anchor-width)+1.25rem)] py-1 ps-2",
         ),
         variant === "switch"
-          ? "group/switch grid-cols-[1fr_auto] gap-4 pe-1.5"
+          ? "grid-cols-[1fr_auto] gap-4 pe-1.5"
           : variant === "checkbox"
             ? "flex gap-2 pe-2"
             : "grid-cols-[1fr_auto] gap-3 px-2.5",
@@ -227,18 +224,16 @@ function MenuCheckboxItem({
           <MenuPrimitive.CheckboxItemIndicator
             className={cn(
               SWITCH_TRACK_CLASS_NAME,
-              // A menu row is denser than a settings row, so the switch takes M3's
-              // proportions at a smaller knob: 24×39 rather than 32×52.
-              "inset-shadow-[0_1px_--theme(--color-black/4%)] [--thumb-size:12px] focus-visible:outline-0",
-              // The indicator carries no state of its own — the item above it does — so the
-              // selected track is styled through the parent. The handle needs no such
-              // override: it reads `group/switch`, which the item now provides.
-              "[data-slot=menu-checkbox-item][data-checked]_&:border-m3-primary",
-              "[data-slot=menu-checkbox-item][data-checked]_&:bg-m3-primary",
+              "inset-shadow-[0_1px_--theme(--color-black/4%)] [--thumb-size:--spacing(4)] focus-visible:ring-1 sm:[--thumb-size:--spacing(3)]",
             )}
             keepMounted
           >
-            <span className={SWITCH_THUMB_CLASS_NAME} />
+            <span
+              className={cn(
+                SWITCH_THUMB_CLASS_NAME,
+                "in-[[data-slot=menu-checkbox-item][data-checked]]:origin-[var(--thumb-size)_50%] in-[[data-slot=menu-checkbox-item][data-checked]]:translate-x-[calc(var(--thumb-size)-4px)] in-[[data-slot=menu-checkbox-item]:active]:not-data-disabled:scale-x-110 in-[[data-slot=menu-checkbox-item]:active]:rounded-[var(--thumb-size)/calc(var(--thumb-size)*1.10)]",
+              )}
+            />
           </MenuPrimitive.CheckboxItemIndicator>
         </>
       ) : (
@@ -355,10 +350,8 @@ function MenuGroupLabel({
       // Shared section/group label style: matches the composer picker section
       // headers (e.g. "Effort"). Picker menus may still override padding-block
       // via the `--picker-section-py` token on `[data-slot="menu-label"]`.
-      // M3's menu label is `on-surface-variant` ink — one role down from the rows, so
-      // the group header separates from its items by tone rather than by weight.
       className={cn(
-        "px-2 py-1.5 font-normal text-ui leading-snug text-m3-on-surface-variant data-inset:ps-9 sm:data-inset:ps-8",
+        "px-2 py-1.5 font-normal text-ui leading-snug text-muted-foreground/45 data-inset:ps-9 sm:data-inset:ps-8",
         className,
       )}
       data-inset={inset}
@@ -371,9 +364,7 @@ function MenuGroupLabel({
 function MenuSeparator({ className, ...props }: MenuPrimitive.Separator.Props) {
   return (
     <MenuPrimitive.Separator
-      // The M3 menu divider is `outline-variant` — the same role the migrated
-      // Separator primitive draws — not a faded `border`.
-      className={cn("mx-2 my-1 h-px bg-m3-outline-variant", className)}
+      className={cn("mx-2 my-1 h-px bg-border", className)}
       data-slot="menu-separator"
       {...props}
     />
@@ -394,9 +385,7 @@ function MenuShortcut({ className, children, ...props }: React.ComponentProps<"k
   return (
     <kbd
       className={cn(
-        // Same `on-surface-variant` ink as the group label: a shortcut hint is chrome,
-        // not content, but it is a peer of the group header rather than a faded ghost.
-        "ms-auto font-medium font-sans text-ui-xs tracking-widest text-m3-on-surface-variant",
+        "ms-auto font-medium font-sans text-muted-foreground/72 text-ui-xs tracking-widest",
         className,
       )}
       data-slot="menu-shortcut"
@@ -469,7 +458,7 @@ function MenuSubTrigger({
       className={cn(
         cn(
           COMPOSER_PICKER_MENU_OPTION_CLASS_NAME,
-          "data-popup-open:bg-m3-on-surface/12 data-inset:ps-8",
+          "data-popup-open:bg-primary/12 data-popup-open:text-primary data-inset:ps-8",
         ),
         className,
       )}

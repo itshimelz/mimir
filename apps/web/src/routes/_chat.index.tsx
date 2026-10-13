@@ -1,41 +1,46 @@
 // FILE: _chat.index.tsx
-// Purpose: Restores the last chat route on app launch, falling back to a fresh home-chat draft.
-//          Also the landing for a Space that has nothing to open.
+// Purpose: Single-course workspace entry and restoration landing for Mimir.
+//          Binds "/" to the active course, restores the course-scoped recent thread,
+//          or presents the CourseWorkspaceHome / CoursePickerLanding.
 // Layer: Routing
-// Depends on: the shared restore/create route surface plus the home-chat new-chat handler.
 
 import { SpaceId, type ProjectId } from "@synara/contracts";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
+import { CoursePickerLanding } from "../components/CoursePickerLanding";
+import { CourseWorkspaceHome } from "../components/CourseWorkspaceHome";
 import {
   RestoreOrCreateChatRoute,
   type RestoreRouteResolver,
 } from "../components/RestoreOrCreateChatRoute";
 import { readSidebarUiState } from "../components/Sidebar.uiState";
+import { SplashScreen } from "../components/SplashScreen";
 import { useComposerDraftStore } from "../composerDraftStore";
-import { useHandleNewChat } from "../hooks/useHandleNewChat";
-import { VOID_SPACE_KEY } from "../lib/spaceGrouping";
+import { useCourseWorkspaceStore } from "../courseWorkspaceStore";
+import { useHandleNewThread } from "../hooks/useHandleNewThread";
 import { collectGroupProjectIds } from "../lib/groupProjects";
+import { VOID_SPACE_KEY } from "../lib/spaceGrouping";
 import { resolveSplitViewThreadIds, useSplitViewStore } from "../splitViewStore";
 import { EMPTY_THREAD_IDS, useStore } from "../store";
 import { useWorkspacePathsStore } from "../workspacePathsStore";
 import { resolveChatIndexRestoreRoute, type ChatIndexLandingSpace } from "./-chatIndexRoute.logic";
 
-/**
- * Set by the Space switcher when the selected Space has nothing to open (`spaceKey`, so Void
- * survives as a string). It scopes the restore below to that Space — without it this landing
- * happily reopens the *previous* Space's thread, and the route-to-Space sync then writes that
- * Space back over the user's click.
- */
 export interface ChatIndexSearch {
   readonly space?: string | undefined;
   readonly view?: "editor" | undefined;
   readonly editorFilePath?: string | undefined;
+  readonly home?: boolean | undefined;
 }
 
 function ChatIndexRouteView() {
-  const { handleNewChat } = useHandleNewChat();
+  const navigate = useNavigate();
+  const { handleNewThread } = useHandleNewThread();
   const landingSpaceKey = Route.useSearch({ select: (search) => search.space });
+  const searchHome = Route.useSearch({ select: (search) => search.home });
+  const searchView = Route.useSearch({ select: (search) => search.view });
+  const _searchEditorFilePath = Route.useSearch({ select: (search) => search.editorFilePath });
+
+  const threadsHydrated = useStore((state) => state.threadsHydrated);
   const threadIds = useStore((state) => state.threadIds ?? EMPTY_THREAD_IDS);
   const projects = useStore((state) => state.projects);
   const sidebarThreadSummaryById = useStore((state) => state.sidebarThreadSummaryById);
@@ -44,20 +49,66 @@ function ChatIndexRouteView() {
   const chatWorkspaceRoot = useWorkspacePathsStore((state) => state.chatWorkspaceRoot);
   const studioWorkspaceRoot = useWorkspacePathsStore((state) => state.studioWorkspaceRoot);
   const groupsWorkspaceRoot = useWorkspacePathsStore((state) => state.groupsWorkspaceRoot);
-  // A Space landing reuses the stored home-chat draft instead of minting one (same reasoning as
-  // the /groups landing): a fresh draft per visit would litter the Chats container every time
-  // someone clicked through their empty Spaces.
-  const createFreshChat = () =>
-    landingSpaceKey === undefined ? handleNewChat({ fresh: true }) : handleNewChat();
 
+  const activeCourseId = useCourseWorkspaceStore((state) => state.activeCourseId);
+  const recentThreadIdByCourse = useCourseWorkspaceStore((state) => state.recentThreadIdByCourse);
+  const clearActiveCourse = useCourseWorkspaceStore((state) => state.clearActiveCourse);
+  const setActiveCourseId = useCourseWorkspaceStore((state) => state.setActiveCourseId);
+
+  // 1. If hydration has not completed yet, show the splash screen
+  if (!threadsHydrated) {
+    return <SplashScreen />;
+  }
+
+  // 2. Resolve active course from projects
+  const activeCourse = activeCourseId
+    ? (projects.find((p) => p.id === activeCourseId) ?? null)
+    : null;
+
+  // 3. If there is no valid active course selected, show the course picker landing
+  if (!activeCourse) {
+    return (
+      <CoursePickerLanding
+        onCourseSelected={(courseId) => {
+          setActiveCourseId(courseId);
+        }}
+      />
+    );
+  }
+
+  const handleStartStudySession = async () => {
+    const threadId = await handleNewThread(activeCourse.id);
+    if (threadId) {
+      useCourseWorkspaceStore.getState().setCourseRecentThreadId(activeCourse.id, threadId);
+    }
+  };
+
+  const handleOpenEditor = () => {
+    void navigate({
+      search: ((prev: Record<string, unknown>) => ({
+        ...prev,
+        view: "editor",
+      })) as never,
+    });
+  };
+
+  // 4. If user explicitly navigated to Course Home (?home=true), show CourseWorkspaceHome
+  if (searchHome) {
+    return (
+      <CourseWorkspaceHome
+        course={activeCourse}
+        onStartStudySession={handleStartStudySession}
+        onSwitchCourse={clearActiveCourse}
+        onOpenEditor={handleOpenEditor}
+      />
+    );
+  }
+
+  // 5. Normal route landing: attempt to restore the course-scoped recent thread.
+  //    If no thread exists in this course, fallback to CourseWorkspaceHome.
   const workspacePaths = { homeDir, chatWorkspaceRoot, studioWorkspaceRoot, groupsWorkspaceRoot };
-  // Home chats restore the last visited route, except group threads — those belong to the
-  // /groups surface, and restoring one from "/" would silently switch the user into the Groups
-  // segment. A group lastThreadRoute falls through to a fresh home-chat draft instead.
   const groupProjectIds = collectGroupProjectIds(projects, workspacePaths);
-  // Only plain, still-unsent chat drafts qualify as restore targets: a non-"chat" entry point
-  // isn't a home-chat draft, and `promotedTo` means the draft already became a real thread, so
-  // its stale id is no longer valid (matches the filtering findGroupDraftThreadId applies).
+
   const draftProjectIdByThreadId = new Map<string, ProjectId>();
   for (const [threadId, draft] of Object.entries(draftThreadsByThreadId)) {
     if (draft.entryPoint === "chat" && draft.promotedTo === undefined) {
@@ -74,16 +125,19 @@ function ChatIndexRouteView() {
           workspacePaths,
         };
 
-  const searchView = Route.useSearch({ select: (search) => search.view });
-  const _searchEditorFilePath = Route.useSearch({ select: (search) => search.editorFilePath });
+  const courseRecentThreadId = recentThreadIdByCourse[activeCourse.id];
+  const courseRecentThreadRoute = courseRecentThreadId ? { threadId: courseRecentThreadId } : null;
 
   const resolveRestoreRoute: RestoreRouteResolver = ({ availableSplitViewIds }) => {
     const lastThreadRoute = readSidebarUiState().lastThreadRoute;
     const rememberedSplitView = lastThreadRoute?.splitViewId
       ? useSplitViewStore.getState().splitViewsById[lastThreadRoute.splitViewId]
       : undefined;
+
     const resolved = resolveChatIndexRestoreRoute({
       lastThreadRoute,
+      courseRecentThreadRoute,
+      selectedCourseId: activeCourse.id,
       availableSplitViewIds,
       threadIds,
       sidebarThreadSummaryById,
@@ -94,6 +148,7 @@ function ChatIndexRouteView() {
         : undefined,
       landingSpace,
     });
+
     if (resolved && searchView === "editor") {
       return {
         ...resolved,
@@ -106,7 +161,14 @@ function ChatIndexRouteView() {
   return (
     <RestoreOrCreateChatRoute
       resolveRestoreRoute={resolveRestoreRoute}
-      createFreshChat={createFreshChat}
+      fallbackContent={
+        <CourseWorkspaceHome
+          course={activeCourse}
+          onStartStudySession={handleStartStudySession}
+          onSwitchCourse={clearActiveCourse}
+          onOpenEditor={handleOpenEditor}
+        />
+      }
     />
   );
 }
@@ -115,6 +177,7 @@ export const Route = createFileRoute("/_chat/")({
   validateSearch: (raw: Record<string, unknown>): ChatIndexSearch => ({
     ...(typeof raw.space === "string" && raw.space.length > 0 ? { space: raw.space } : {}),
     ...(raw.view === "editor" ? { view: "editor" as const } : {}),
+    ...(raw.home === true ? { home: true } : {}),
     ...(typeof raw.editorFilePath === "string" && raw.editorFilePath.length > 0
       ? { editorFilePath: raw.editorFilePath }
       : {}),

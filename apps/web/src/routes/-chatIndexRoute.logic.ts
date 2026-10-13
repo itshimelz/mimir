@@ -53,9 +53,26 @@ export function resolveChatIndexRestoreRoute(input: {
    */
   readonly rememberedSplitViewThreadIds: readonly ThreadId[] | undefined;
   readonly landingSpace: ChatIndexLandingSpace | null;
+  /**
+   * Bound course workspace ID in Mimir. When supplied, fail closed: ONLY threads belonging
+   * to this course (project) can be restored from the "/" route. Threads from any other
+   * course or unfiled workspace are strictly rejected.
+   */
+  readonly selectedCourseId?: ProjectId | null;
+  /**
+   * Fallback recent thread route tracked specifically for the selected course.
+   * Used when `lastThreadRoute` belongs to another course or is null.
+   */
+  readonly courseRecentThreadRoute?: LastThreadRoute | null;
 }): LastThreadRoute | null {
-  const { draftProjectIdByThreadId, landingSpace, sidebarThreadSummaryById, groupProjectIds } =
-    input;
+  const {
+    draftProjectIdByThreadId,
+    landingSpace,
+    sidebarThreadSummaryById,
+    groupProjectIds,
+    selectedCourseId,
+    courseRecentThreadRoute,
+  } = input;
 
   const availableThreadIds = new Set<string>();
   for (const threadId of [...input.threadIds, ...draftProjectIdByThreadId.keys()]) {
@@ -66,6 +83,13 @@ export function resolveChatIndexRestoreRoute(input: {
     if (threadSummary && isSidechatThread(threadSummary)) continue;
     const projectId = threadSummary?.projectId ?? draftProjectIdByThreadId.get(threadId);
     if (projectId === undefined) continue;
+
+    // Course-scoped filter: when selectedCourseId is provided, ONLY threads
+    // owned by selectedCourseId are eligible for restoration from this route.
+    if (selectedCourseId && projectId !== selectedCourseId) {
+      continue;
+    }
+
     // Group threads belong to the /groups surface; restoring one from "/" would silently
     // switch the user into that segment.
     if (groupProjectIds.has(projectId)) continue;
@@ -82,11 +106,23 @@ export function resolveChatIndexRestoreRoute(input: {
     availableThreadIds.add(threadId);
   }
 
-  const restorableRoute = resolveRestorableThreadRoute({
+  // First candidate: global lastThreadRoute
+  let restorableRoute = resolveRestorableThreadRoute({
     lastThreadRoute: input.lastThreadRoute,
     availableThreadIds,
     availableSplitViewIds: input.availableSplitViewIds,
   });
+
+  // Second candidate (if selectedCourseId is set and global lastThreadRoute was not restorable in this course):
+  // try the course's remembered recent thread route
+  if (!restorableRoute && selectedCourseId && courseRecentThreadRoute) {
+    restorableRoute = resolveRestorableThreadRoute({
+      lastThreadRoute: courseRecentThreadRoute,
+      availableThreadIds,
+      availableSplitViewIds: input.availableSplitViewIds,
+    });
+  }
+
   if (!landingSpace || !restorableRoute?.splitViewId) {
     return restorableRoute;
   }

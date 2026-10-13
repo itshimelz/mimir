@@ -517,6 +517,7 @@ import {
   PROJECT_CREATE_EXISTING_SYNC_ERROR,
 } from "../lib/projectCreation";
 import { useSpacesUiStore } from "../spacesUiStore";
+import { useCourseWorkspaceStore } from "../courseWorkspaceStore";
 import {
   CreateProjectDialog,
   type CreateProjectSubmitOptions,
@@ -3937,6 +3938,15 @@ export default function Sidebar() {
         activityViewEnabled,
         activityScope,
       });
+      const summary = sidebarThreadSummaryById[nextLastThreadRoute.threadId];
+      if (summary?.projectId) {
+        useCourseWorkspaceStore
+          .getState()
+          .setCourseRecentThreadId(
+            summary.projectId,
+            ThreadId.makeUnsafe(nextLastThreadRoute.threadId),
+          );
+      }
     },
     [
       activityScope,
@@ -3944,6 +3954,7 @@ export default function Sidebar() {
       chatSectionExpanded,
       chatThreadListExtraPages,
       dismissedThreadStatusKeyByThreadId,
+      sidebarThreadSummaryById,
       threadListExtraPagesByProjectCwd,
     ],
   );
@@ -4830,7 +4841,11 @@ export default function Sidebar() {
   );
   const railSpacesProject =
     railSpacesProjectId !== null ? (projectById.get(railSpacesProjectId) ?? null) : null;
+  const activeCourseId = useCourseWorkspaceStore((state) => state.activeCourseId);
+  const activeCourseProject =
+    activeCourseId !== null ? (projectById.get(activeCourseId) ?? null) : null;
   const courseProject =
+    activeCourseProject ||
     railSpacesProject ||
     activeRouteProject ||
     (focusedProjectId ? (projectById.get(focusedProjectId) ?? null) : null) ||
@@ -7317,6 +7332,7 @@ export default function Sidebar() {
                         projectOptions={projectMenuOptions}
                         selectedProjectId={courseProject.id}
                         onProjectIdChange={(projectId) => {
+                          useCourseWorkspaceStore.getState().setActiveCourseId(projectId);
                           openRailSpacesProject(projectId);
                           setSpacesBrowseMode("files");
                           void navigate({

@@ -41,12 +41,14 @@ export type RestoreRouteResolver = (input: RestoreRouteResolverInput) => LastThr
 export function RestoreOrCreateChatRoute({
   resolveRestoreRoute,
   createFreshChat,
+  fallbackContent,
 }: {
   // Surface-specific policy for picking the thread route to restore (e.g. the last-visited route
   // for home chats, the latest group thread or draft for Groups). The remembered-route recovery
   // below still keys off the total thread count, which is shared across surfaces.
   readonly resolveRestoreRoute: RestoreRouteResolver;
-  readonly createFreshChat: () => Promise<StartContainerChatResult>;
+  readonly createFreshChat?: () => Promise<StartContainerChatResult>;
+  readonly fallbackContent?: React.ReactNode;
 }) {
   const navigate = useNavigate();
   const threadsHydrated = useStore((store) => store.threadsHydrated);
@@ -58,6 +60,7 @@ export function RestoreOrCreateChatRoute({
   );
   const [attempt, setAttempt] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [resolvedNoRoute, setResolvedNoRoute] = useState(false);
   const [emptyRestoreRecoveryState, setEmptyRestoreRecoveryState] =
     useState<EmptyRouteRestoreRecoveryState>("idle");
   const mountedRef = useRef(true);
@@ -146,7 +149,14 @@ export function RestoreOrCreateChatRoute({
         return;
       }
 
-      if (cancelled || createFreshChatInFlightRef.current) {
+      if (fallbackContent !== undefined) {
+        if (!cancelled) {
+          setResolvedNoRoute(true);
+        }
+        return;
+      }
+
+      if (cancelled || createFreshChatInFlightRef.current || !createFreshChat) {
         return;
       }
       createFreshChatInFlightRef.current = true;
@@ -168,6 +178,7 @@ export function RestoreOrCreateChatRoute({
     attempt,
     createFreshChat,
     emptyRestoreRecoveryState,
+    fallbackContent,
     navigate,
     resolveRestoreRoute,
     splitViewIds,
@@ -176,10 +187,21 @@ export function RestoreOrCreateChatRoute({
     threadsHydrated,
   ]);
 
+  if (resolvedNoRoute && fallbackContent !== undefined) {
+    return <>{fallbackContent}</>;
+  }
+
   return (
     <SplashScreen
       errorMessage={errorMessage}
-      onRetry={errorMessage ? () => setAttempt((value) => value + 1) : null}
+      onRetry={
+        errorMessage
+          ? () => {
+              setResolvedNoRoute(false);
+              setAttempt((value) => value + 1);
+            }
+          : null
+      }
     />
   );
 }

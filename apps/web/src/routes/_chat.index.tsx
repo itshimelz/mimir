@@ -34,7 +34,7 @@ export interface ChatIndexSearch {
 
 function ChatIndexRouteView() {
   const navigate = useNavigate();
-  const { handleNewThread } = useHandleNewThread();
+  const { handleNewThread, handleNewCourseStudyThread } = useHandleNewThread();
   const landingSpaceKey = Route.useSearch({ select: (search) => search.space });
   const searchHome = Route.useSearch({ select: (search) => search.home });
   const searchView = Route.useSearch({ select: (search) => search.view });
@@ -77,13 +77,7 @@ function ChatIndexRouteView() {
   }
 
   const handleStartStudySession = async (initialPrompt?: string) => {
-    const threadId = await handleNewThread(activeCourse.id);
-    if (threadId) {
-      useCourseWorkspaceStore.getState().setCourseRecentThreadId(activeCourse.id, threadId);
-      if (initialPrompt) {
-        useComposerDraftStore.getState().setPrompt(threadId, initialPrompt);
-      }
-    }
+    await handleNewCourseStudyThread({ ...(initialPrompt ? { initialPrompt } : {}) });
   };
 
   const handleOpenEditor = () => {

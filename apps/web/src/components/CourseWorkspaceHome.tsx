@@ -3,9 +3,21 @@
 // Layer: Web UI component
 // Architecture: Single-workspace course model in Mimir.
 
+import { useState } from "react";
+
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Dialog,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogPanel,
+  DialogPopup,
+  DialogTitle,
+} from "~/components/ui/dialog";
+import { Input } from "~/components/ui/input";
 import {
   ArrowRightIcon,
   BookOpenIcon,
@@ -16,52 +28,13 @@ import {
   PageTextIcon,
   SparkleIcon,
 } from "~/lib/icons";
+import {
+  type CourseStudyActionConfig,
+  COURSE_STUDY_ACTIONS,
+  buildCourseStudyPrompt,
+} from "~/lib/courseStudyPrompts";
 import { readNativeApi } from "~/nativeApi";
 import { type Project } from "~/types";
-
-export interface GuidedStudyAction {
-  readonly id: string;
-  readonly title: string;
-  readonly description: string;
-  readonly prompt: string;
-  readonly badge: string;
-}
-
-const GUIDED_STUDY_ACTIONS: ReadonlyArray<GuidedStudyAction> = [
-  {
-    id: "explain",
-    title: "Explain a Concept",
-    badge: "Socratic",
-    description:
-      "Deep conceptual breakdown with analogies and check-in questions to test understanding.",
-    prompt:
-      "Explain this concept step-by-step. Use analogies and real-world examples, and pause after the first key idea to ask a quick check-in question to test my understanding.",
-  },
-  {
-    id: "review-inbox",
-    title: "Review Materials in Inbox",
-    badge: "Summarize",
-    description: "Analyze slide decks, readings, and notes placed in your course Inbox/.",
-    prompt:
-      "Analyze the notes and files in my course Inbox/. Extract the core concepts, define key terminology, and highlight anything that might be confusing or difficult.",
-  },
-  {
-    id: "practice-quiz",
-    title: "Practice Quiz",
-    badge: "Interactive",
-    description: "Test yourself one question at a time with feedback before the next question.",
-    prompt:
-      "Quiz me on this topic one question at a time. Do not reveal the answer upfront. Wait for my response, give constructive feedback, and then ask the next question.",
-  },
-  {
-    id: "breakdown-assignment",
-    title: "Break Down Assignment",
-    badge: "Roadmap",
-    description: "Deconstruct complex problem sets or projects into actionable milestone steps.",
-    prompt:
-      "Help me understand this assignment. Break down the requirements into clear milestones and outline a step-by-step plan without doing the work for me.",
-  },
-];
 
 const OUTBOX_CATEGORIES = [
   { name: "Lessons", desc: "Breakdowns & milestones" },
@@ -79,6 +52,10 @@ export function CourseWorkspaceHome(props: {
   readonly onOpenEditor?: () => void;
 }) {
   const { course, onStartStudySession, onSwitchCourse, onOpenEditor } = props;
+
+  const [selectedActionForTopic, setSelectedActionForTopic] =
+    useState<CourseStudyActionConfig | null>(null);
+  const [customTopic, setCustomTopic] = useState("");
 
   const handleOpenFolder = (subPath?: string) => {
     const api = readNativeApi();
@@ -174,12 +151,12 @@ export function CourseWorkspaceHome(props: {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          {GUIDED_STUDY_ACTIONS.map((action) => (
+          {COURSE_STUDY_ACTIONS.map((action) => (
             <Card
               key={action.id}
               variant="plain"
               interactive={true}
-              onClick={() => onStartStudySession(action.prompt)}
+              onClick={() => onStartStudySession(action.defaultPrompt)}
               className="flex flex-col justify-between p-4.5 transition-all hover:border-primary/40 hover:bg-card/90 group"
             >
               <div className="flex flex-col gap-2">
@@ -196,14 +173,109 @@ export function CourseWorkspaceHome(props: {
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 text-primary text-ui-xs font-medium pt-3 mt-1 border-t border-border/40">
-                <span>Begin session</span>
-                <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+              <div className="flex items-center justify-between pt-3 mt-1 border-t border-border/40">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  aria-label={`Specify topic for ${action.title}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedActionForTopic(action);
+                    setCustomTopic("");
+                  }}
+                  className="text-muted-foreground hover:text-foreground text-ui-xs font-normal h-6 px-2"
+                >
+                  Specify topic...
+                </Button>
+
+                <div className="flex items-center gap-1 text-primary text-ui-xs font-medium">
+                  <span>Begin session</span>
+                  <ArrowRightIcon className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                </div>
               </div>
             </Card>
           ))}
         </div>
       </div>
+
+      {/* Specify Topic Dialog */}
+      <Dialog
+        open={selectedActionForTopic !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedActionForTopic(null);
+            setCustomTopic("");
+          }
+        }}
+      >
+        <DialogPopup className="max-w-md">
+          {selectedActionForTopic && (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const prompt = buildCourseStudyPrompt(
+                  selectedActionForTopic.id,
+                  customTopic.trim() || undefined,
+                );
+                onStartStudySession(prompt);
+                setSelectedActionForTopic(null);
+                setCustomTopic("");
+              }}
+            >
+              <DialogHeader>
+                <div className="flex items-center gap-2 text-primary">
+                  <SparkleIcon className="size-5" />
+                  <DialogTitle>{selectedActionForTopic.title}</DialogTitle>
+                </div>
+                <DialogDescription className="text-ui-sm text-muted-foreground">
+                  Optionally specify a concept, reading, or assignment to tailor your Socratic study
+                  session.
+                </DialogDescription>
+              </DialogHeader>
+
+              <DialogPanel className="flex flex-col gap-3 py-2">
+                <div className="flex flex-col gap-1.5">
+                  <label
+                    htmlFor="course-study-topic-input"
+                    className="text-ui-xs font-medium text-foreground"
+                  >
+                    Topic or Focus Area (optional)
+                  </label>
+                  <Input
+                    id="course-study-topic-input"
+                    aria-label="Topic or Focus Area (optional)"
+                    value={customTopic}
+                    onChange={(e) => setCustomTopic(e.target.value)}
+                    placeholder={selectedActionForTopic.placeholder}
+                    autoFocus
+                    className="text-ui"
+                  />
+                  <p className="text-ui-xs text-muted-foreground">
+                    Leave blank to start with the standard guided prompt.
+                  </p>
+                </div>
+              </DialogPanel>
+
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => {
+                    setSelectedActionForTopic(null);
+                    setCustomTopic("");
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" variant="default" className="gap-1.5">
+                  <SparkleIcon className="size-4" />
+                  <span>Start Session</span>
+                </Button>
+              </DialogFooter>
+            </form>
+          )}
+        </DialogPopup>
+      </Dialog>
 
       {/* Course Workspace Organization (Inbox & Outbox) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -11,6 +11,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { ViewerContentSize } from "../viewer/viewerZoom";
+import { extractPptxSpeakerNotes } from "./pptxNotes";
 import {
   buildPptxShapeIndex,
   type PptxDocumentModel,
@@ -26,6 +27,10 @@ export interface PptxDocumentState {
   slideSize: ViewerContentSize | null;
   /** Per-slide shape identity and normalized bounds for annotation hit-testing. */
   slideShapes: PptxSlideShapeIndex[];
+  /** 1-based slide index to plain text speaker notes extracted from OpenXML parts. */
+  slideNotes: ReadonlyMap<number, string>;
+  /** Rendered width of the currently mounted slides in CSS px. */
+  renderedWidth: number | null;
   error: string | null;
 }
 
@@ -66,6 +71,8 @@ const INITIAL_STATE: PptxDocumentState = {
   numSlides: 0,
   slideSize: null,
   slideShapes: [],
+  slideNotes: new Map(),
+  renderedWidth: null,
   error: null,
 };
 
@@ -95,6 +102,18 @@ export function usePptxDocument(
   // size) re-renders from memory instead of refetching the whole file.
   const bytesRef = useRef<{ url: string; bytes: ArrayBuffer } | null>(null);
 
+  // Track parameters to know if an effect cleanup was triggered by switching decks
+  // or just by a zoom/width change.
+  const latestParamsRef = useRef({ url, generation: load.generation });
+  latestParamsRef.current = { url, generation: load.generation };
+
+  // When unmounting, tear down the previewer and clear the host container.
+  useEffect(() => {
+    return () => {
+      destroyPreviewer(previewerRef, container);
+    };
+  }, [container]);
+
   useEffect(() => {
     if (!container || !renderWidth) return;
     const session = { cancelled: false };
@@ -121,17 +140,36 @@ export function usePptxDocument(
     return () => {
       session.cancelled = true;
       abortController.abort();
-      destroyPreviewer(previewerRef);
+      // If switching files or reloading, destroy the previewer and clear container immediately.
+      // If only renderWidth changed for the same URL and generation, do NOT clear the container;
+      // loadPptxIntoState will atomically swap in the new deck once ready.
+      if (
+        latestParamsRef.current.url !== url ||
+        latestParamsRef.current.generation !== generation
+      ) {
+        destroyPreviewer(previewerRef, container);
+      }
     };
   }, [container, load.generation, renderWidth, url]);
 
   return load.state;
 }
 
-function destroyPreviewer(previewerRef: { current: PptxPreviewer | null }): void {
+function destroyPreviewer(
+  previewerRef: { current: PptxPreviewer | null },
+  container?: HTMLElement | null,
+): void {
   const previewer = previewerRef.current;
   previewerRef.current = null;
-  previewer?.destroy();
+  try {
+    (previewer as { wrapper?: HTMLElement } | null)?.wrapper?.remove();
+    previewer?.destroy();
+  } catch {
+    // Ignore teardown errors
+  }
+  if (container) {
+    container.replaceChildren();
+  }
 }
 
 async function fetchPptxBytes(url: string, signal: AbortSignal): Promise<ArrayBuffer> {
@@ -177,20 +215,27 @@ async function loadPptxIntoState(
     const { init } = (await import("pptx-preview")) as unknown as { init: PptxInit };
     if (session.cancelled) return;
 
-    // "list" renders every slide stacked into the container, so the deck scrolls
-    // like the PDF viewer's page stack. The library's own "slide" mode injects
-    // its own grey nav buttons and a `1/12` label, which would duplicate our
-    // toolbar. It scales the deck to the width it is given, which is why zoom is
-    // expressed as a render width rather than a page scale.
-    const previewer = init(container, {
+    // Render into a detached staging element first so the existing slides stay
+    // visible and retain layout height in container during re-renders (such as zoom),
+    // preventing blank flashes and scrollbar layout-thrashing loops.
+    const staging = document.createElement("div");
+    const previewer = init(staging, {
       width: Math.max(Math.round(renderWidth), 1),
       mode: "list",
     });
-    previewerRef.current = previewer;
     // A copy every render: the renderer owns whatever buffer it is handed, so the
     // cached deck stays reusable across zoom changes.
     await previewer.preview(bytes.slice(0));
-    if (session.cancelled) return;
+    if (session.cancelled) {
+      try {
+        (previewer as { wrapper?: HTMLElement } | null)?.wrapper?.remove();
+        previewer.destroy();
+      } catch {
+        // Ignore teardown errors
+      }
+      staging.replaceChildren();
+      return;
+    }
 
     // A deck that parses to zero slides is a deck the renderer could not read
     // (every valid presentation has at least one). Reporting "ready" over an
@@ -200,6 +245,15 @@ async function loadPptxIntoState(
       throw new Error("No slides could be read from this presentation.");
     }
 
+    // Atomically swap the new render into the container so the previous deck
+    // transitions without blank flashes or scrollbar jumps.
+    destroyPreviewer(previewerRef, container);
+    container.append(...Array.from(staging.childNodes));
+    previewerRef.current = previewer;
+
+    const slideNotes = await extractPptxSpeakerNotes(bytes);
+    if (session.cancelled) return;
+
     setState({
       status: "ready",
       numSlides: previewer.slideCount,
@@ -208,11 +262,13 @@ async function loadPptxIntoState(
           ? { width: previewer.pptx.width, height: previewer.pptx.height }
           : null,
       slideShapes: buildPptxShapeIndex(previewer.pptx ?? null),
+      slideNotes,
+      renderedWidth: Math.max(Math.round(renderWidth), 1),
       error: null,
     });
   } catch (error) {
     if (session.cancelled || abortController.signal.aborted) return;
-    destroyPreviewer(previewerRef);
+    destroyPreviewer(previewerRef, container);
     setState({
       ...INITIAL_STATE,
       status: "error",

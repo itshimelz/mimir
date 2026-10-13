@@ -7,7 +7,13 @@
 // Layer: Web PPTX viewer chrome
 // Exports: PptxViewerToolbar
 
-import { ChevronLeftIcon, ChevronRightIcon, MessageCircleIcon, RefreshCwIcon } from "~/lib/icons";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PlayIcon,
+  RefreshCwIcon,
+  SparkleIcon,
+} from "~/lib/icons";
 import type { ViewerZoomMode } from "~/lib/viewer/viewerZoom";
 import { cn } from "~/lib/utils";
 import {
@@ -37,6 +43,7 @@ interface PptxViewerToolbarProps {
   annotationCount: number;
   onToggleAnnotate: () => void;
   openInTarget: string | null;
+  onPresent?: () => void;
   onReload?: (() => void) | undefined;
 }
 
@@ -46,7 +53,7 @@ export const PptxViewerToolbar = function PptxViewerToolbar(props: PptxViewerToo
       className={cn(
         // Match the breadcrumb file-preview header height (h-10) so swapping
         // between a deck and a text file in the same pane doesn't jump the chrome.
-        "flex h-10 shrink-0 items-center gap-2 px-3",
+        "flex h-10 shrink-0 items-center justify-between gap-2 px-3",
         CHAT_SURFACE_HEADER_DIVIDER_CLASS_NAME,
       )}
     >
@@ -86,15 +93,37 @@ export const PptxViewerToolbar = function PptxViewerToolbar(props: PptxViewerToo
       </div>
 
       <div className="flex shrink-0 items-center gap-1.5">
-        <ChatHeaderIconButton
-          label={annotateLabel(props.annotating, props.annotationCount)}
-          disabled={!props.canAnnotate}
-          aria-pressed={props.annotating}
-          data-pressed={props.annotating ? "" : undefined}
-          onClick={props.onToggleAnnotate}
-        >
-          <MessageCircleIcon aria-hidden="true" className="size-3.5" />
-        </ChatHeaderIconButton>
+        {/* ChatGPT-style "Request edits" action button */}
+        {props.canAnnotate ? (
+          <button
+            type="button"
+            onClick={props.onToggleAnnotate}
+            aria-pressed={props.annotating}
+            className={cn(
+              "flex h-7 shrink-0 items-center gap-1.5 rounded-full px-2.5 text-ui-xs font-medium transition-colors border",
+              props.annotating
+                ? "bg-primary text-primary-foreground border-primary shadow-xs"
+                : "bg-background text-foreground/80 border-border/60 hover:bg-muted/50 hover:text-foreground",
+            )}
+            aria-label={annotateLabel(props.annotating, props.annotationCount)}
+            title={annotateLabel(props.annotating, props.annotationCount)}
+          >
+            <SparkleIcon
+              aria-hidden="true"
+              className={cn(
+                "size-3.5",
+                props.annotating ? "text-primary-foreground" : "text-primary",
+              )}
+            />
+            <span>{props.annotating ? "Stop commenting" : "Request edits"}</span>
+            {props.annotationCount > 0 ? (
+              <span className="ml-0.5 rounded-full bg-primary-foreground/20 px-1.5 py-0.2 text-ui-xs font-semibold">
+                {props.annotationCount}
+              </span>
+            ) : null}
+          </button>
+        ) : null}
+
         <ViewerZoomControl
           zoomMode={props.zoomMode}
           scale={props.scale}
@@ -104,6 +133,11 @@ export const PptxViewerToolbar = function PptxViewerToolbar(props: PptxViewerToo
           onFitWidth={props.onFitWidth}
           onFitPage={props.onFitPage}
         />
+        {props.onPresent ? (
+          <ChatHeaderIconButton label="Present slide show" tone="plain" onClick={props.onPresent}>
+            <PlayIcon aria-hidden="true" className="size-3.5" />
+          </ChatHeaderIconButton>
+        ) : null}
         {props.onReload ? (
           <ChatHeaderIconButton label="Reload file from disk" tone="plain" onClick={props.onReload}>
             <RefreshCwIcon aria-hidden="true" className="size-3.5" />

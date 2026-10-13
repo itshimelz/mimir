@@ -38,9 +38,10 @@ export function useViewerZoomController(input: {
   /** The page/slide the reader is on, re-anchored after a user-initiated zoom. */
   currentPage: number;
   scrollToPage: (pageNumber: number, behavior: ScrollBehavior) => void;
+  initialMode?: ViewerZoomMode | undefined;
 }): ViewerZoomController {
-  const { contentSize, containerSize, marginPx, currentPage, scrollToPage } = input;
-  const [zoomMode, setZoomMode] = useState<ViewerZoomMode>({ type: "fit-width" });
+  const { contentSize, containerSize, marginPx, currentPage, scrollToPage, initialMode } = input;
+  const [zoomMode, setZoomMode] = useState<ViewerZoomMode>(initialMode ?? { type: "fit-width" });
   // When the user zooms we re-anchor to the page they were on so the content
   // does not jump; resize-driven rescales intentionally leave this unset.
   const restorePageRef = useRef<number | null>(null);

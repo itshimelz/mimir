@@ -87,7 +87,7 @@ const { initMock, previewers } = vi.hoisted(() => {
         preview: () => Promise.resolve(),
         destroy: () => {
           destroy();
-          wrapper.remove();
+          // Real pptx-preview library does NOT remove its wrapper in destroy().
         },
       };
     }),
@@ -251,6 +251,9 @@ describe("PPTX preview resource generations", () => {
     await vi.waitFor(() => expect(previewers).toHaveLength(2));
     expect(previewers[1]!.width).toBeGreaterThan(fitWidth);
     expect([...fetchRequests.values()].flat()).toHaveLength(1);
+    await vi.waitFor(() =>
+      expect(document.querySelectorAll(".pptx-preview-slide-wrapper").length).toBe(3),
+    );
   });
 });
 

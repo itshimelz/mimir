@@ -330,78 +330,31 @@
      `.sidebar-icon-button` would otherwise supply a `hover:` fill, an
      `on-surface`-ish resting tone, and a 1px focus ring; each is undone here so the
      M3 state layer is the only thing painting behind the glyph. */
-  /* Box (56×32dp, full-round) comes from the utilities in appRailButtonClassName; this
-     class owns the M3 color roles and the pseudo-element states. */
+  /* ChatGPT / Codex Dock Item Style: 36×36 squircle with subtle tint and soft hover/active backgrounds */
   .app-rail-item {
     position: relative;
     padding: 0;
-    border-radius: var(--md-sys-shape-corner-full);
-    /* `!important` beats `.sidebar-icon-button`'s own resting tone, which is declared with
-       @apply in the same components layer. The rail's tones are M3 roles, and a
-       specificity war with a shared rule is the wrong way to win one. */
-    color: var(--md-sys-color-on-surface-variant) !important;
+    border-radius: var(--radius-md, 8px);
+    color: color-mix(in srgb, var(--foreground) 65%, transparent) !important;
     --tw-ring-color: transparent;
     background: transparent;
-    transition: color var(--md-sys-motion-spring-fast-effects-duration)
-      var(--md-sys-motion-spring-fast-effects);
-  }
-
-  /* M3's hover is a state layer, not a fill, so the shared sidebar button's hover fill and
-     resting-ink darkening are both undone here. */
-  .app-rail-item:hover {
-    color: var(--md-sys-color-on-surface) !important;
-    background: transparent;
-  }
-
-  .app-rail-indicator {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    overflow: hidden;
-    border-radius: inherit;
-    background: var(--md-sys-color-secondary-container);
-    opacity: 0;
-    /* Compose grows the active indicator in rather than fading it, so this is a
-       scale on the spatial spring; `scaleX` alone because the indicator is a wide
-       pill and a uniform scale would leave it visibly too tall mid-transition. */
-    scale: 0 1;
     transition:
-      scale var(--md-sys-motion-spring-fast-spatial-duration)
-        var(--md-sys-motion-spring-fast-spatial),
-      opacity var(--md-sys-motion-spring-fast-effects-duration)
-        var(--md-sys-motion-spring-fast-effects);
+      color 120ms ease-out,
+      background-color 120ms ease-out;
+  }
+
+  .app-rail-item:hover {
+    color: var(--foreground) !important;
+    background: color-mix(in srgb, var(--foreground) 7%, transparent) !important;
   }
 
   .app-rail-item[data-active] {
-    color: var(--md-sys-color-on-secondary-container) !important;
+    color: var(--foreground) !important;
+    background: color-mix(in srgb, var(--foreground) 10%, transparent) !important;
   }
 
-  .app-rail-item[data-active] .app-rail-indicator {
-    opacity: 1;
-    scale: 1 1;
-  }
-
-  /* Hover state layer under the glyph, at the M3 opacity. Keyboard focus is an outline
-     (below), not a layer — that is what Compose and M3E do, and it keeps the two signals
-     distinguishable. Pressed feedback is the ripple (components/m3/Ripple.tsx). */
-  .app-rail-item::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: inherit;
-    background: var(--md-sys-color-on-surface);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity var(--md-sys-motion-spring-fast-effects-duration)
-      var(--md-sys-motion-spring-fast-effects);
-  }
-
-  @media (hover: hover) {
-    .app-rail-item:not([data-active]):hover::before {
-      opacity: var(--md-sys-state-hover-opacity);
-    }
+  .dark .app-rail-item[data-active] {
+    background: color-mix(in srgb, var(--foreground) 12%, transparent) !important;
   }
 
   .app-rail-glyph {
@@ -411,17 +364,14 @@
     place-items: center;
   }
 
-  /* The unread marker rides the item's top-right, outside the indicator. */
+  /* The unread marker dot at the top-right */
   .app-rail-badge {
-    background: var(--md-sys-color-error);
+    background: var(--color-primary, var(--info, #3b82f6));
   }
 
-  /* Reduced motion: the ripple's grow animation is a Web Animations call, so it is
-     cancelled here rather than shortened, and the indicator fill stops transitioning. */
+  /* Reduced motion */
   @media (prefers-reduced-motion: reduce) {
-    .app-rail-item,
-    .app-rail-indicator,
-    .app-rail-item::before {
+    .app-rail-item {
       transition: none;
     }
   }
@@ -700,9 +650,8 @@
   --font-chat-code-family: var(--theme-font-code-family, var(--font-mono-family));
   --terminal-font-family: "JetBrainsMono NFM", "JetBrainsMono NF", "JetBrains Mono", monospace;
   --app-shell-background: transparent;
-  /* Width of the rail layout's fixed icon column (see AppRail): Material 3's collapsed
-     NavigationRail is 80dp, holding a 56dp item with 12dp either side. */
-  --app-rail-width: 5rem;
+  /* Width of the rail layout's fixed icon column (see AppRail): compact ChatGPT dock style (52px / 3.25rem). */
+  --app-rail-width: 3.25rem;
   /* Short vertical hairline marking a boundary inside a top bar: the rail header divider
      and the dividers between surface tabs share it so they read as the same mark. */
   --app-chrome-divider-height: 1.25rem;
@@ -2015,6 +1964,7 @@ label:has(> select#reasoning-effort) select {
   gap: 12px;
   padding: 12px;
   background: var(--app-user-message-background);
+  scrollbar-gutter: stable;
 }
 
 .pdf-viewer-page {

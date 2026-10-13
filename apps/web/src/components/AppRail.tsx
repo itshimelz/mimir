@@ -27,11 +27,11 @@ import {
   HubActiveIcon,
   HubIcon,
   InboxIcon,
+  SparkleIcon,
   TasksIcon,
 } from "~/lib/icons";
 import { projectAppearanceKey, type ProjectAppearance } from "~/lib/projectAppearance";
 import { cn } from "~/lib/utils";
-import { Ripple } from "./m3/Ripple";
 import { ProjectSidebarIcon } from "./ProjectSidebarIcon";
 import type { SidebarActionBadge } from "./Sidebar.logic";
 import { SidebarIconButton } from "./SidebarIconButton";
@@ -98,8 +98,8 @@ const RAIL_HUGEICON_GLYPHS: Record<HugeiconRailItemId, AppRailGlyphs> = {
   automations: sameGlyphs(ClockIcon),
   tasks: sameGlyphs(TasksIcon),
   spaces: sameGlyphs(BookIcon),
-  // Hubs (stored id "studio"): Hugeicons circles, with their own solid active glyph.
-  studio: { idle: HubIcon, active: HubActiveIcon },
+  // Studio: sparkles icon representing agent-crafted academic outputs.
+  studio: sameGlyphs(SparkleIcon),
 };
 
 /** Central glyphs matching the Codex rail for the remaining fixed rail items. */
@@ -147,38 +147,18 @@ type AppRailProps = {
 
 /** Rail glyph size (M3 nav icon is 24dp), shared with controls rendered into the rail
  *  slot (the Help menu). */
-export const APP_RAIL_GLYPH_CLASS_NAME = "size-6";
+export const APP_RAIL_GLYPH_CLASS_NAME = "size-5";
 
-/** Rail item box, indicator, and tone in Material 3 terms.
- *
- *  M3 NavigationRail puts each icon in a 56×32dp full-round indicator that sits in
- *  `secondary-container` while the item is the current destination; the glyph rests on
- *  `on-surface-variant` and turns to `on-secondary-container`. That class set is the M3
- *  layer — see theme/m3.material.css — and every state (idle, hover, pressed, focus) is
- *  defined once in `.app-rail-item` in index.css, so a caller only has to say which
- *  item is active.
- *
- *  Shared with the controls rendered into the rail slot (Help, the usage rings, the
- *  update pill), which is why it takes the flag rather than reading context.
- */
+/** Rail item box in ChatGPT dock style (36×36px squircle with continuous curvature). */
 export function appRailButtonClassName(): string {
-  // Geometry and the focus ring are Tailwind utilities, not CSS in index.css.
-  // SidebarIconButton puts `size-*` and `focus-visible:outline-none` on the same element,
-  // and utilities live in a later cascade layer than components, so anything declared in
-  // `.app-rail-item` would lose to both. 56×32dp is M3's active indicator; the 3px/2px
-  // outline is M3's focus indicator.
   return cn(
-    "app-rail-item h-8 w-14 rounded-full p-0",
-    // Undo `.sidebar-icon-button`'s 1px focus ring, then set M3's: a 3px secondary
-    // outline 2px outside.
-    "focus-visible:ring-0 focus-visible:outline-3 focus-visible:outline-solid focus-visible:outline-offset-2 focus-visible:outline-[var(--md-sys-color-secondary)]",
+    "app-rail-item size-9 rounded-[10px] p-0 flex items-center justify-center",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1",
   );
 }
 
 function AppRailButton({ item }: { item: AppRailItem }) {
   const label = item.badge ? `${item.label} · ${item.badge.accessibleLabel}` : item.label;
-  // Resolved once: the same component identity has to render in both the icon slot and
-  // the indicator, or React unmounts and remounts the glyph on every active change.
   const Glyph = item.active ? item.glyphs.active : item.glyphs.idle;
   const button = (
     <SidebarIconButton
@@ -189,17 +169,12 @@ function AppRailButton({ item }: { item: AppRailItem }) {
       tooltip={item.id === "tasks" ? undefined : label}
       tooltipSide="right"
       aria-current={item.active ? "page" : undefined}
-      // Empty string, not `true`: the CSS and the ripple's settle observer both test
-      // for presence, and React renders a boolean data attribute as "true".
       data-active={item.active ? "" : undefined}
       className={appRailButtonClassName()}
       onClick={item.onSelect}
       {...(item.onMouseEnter ? { onMouseEnter: item.onMouseEnter } : {})}
       {...(item.onFocus ? { onFocus: item.onFocus } : {})}
     >
-      <span className="app-rail-indicator" aria-hidden>
-        <Ripple />
-      </span>
       <span className="app-rail-glyph">
         <Glyph />
       </span>
@@ -208,11 +183,11 @@ function AppRailButton({ item }: { item: AppRailItem }) {
   return (
     <div className="app-rail-item-wrap relative shrink-0">
       {item.id === "tasks" ? <TasksCoachmark tooltip={label}>{button}</TasksCoachmark> : button}
-      {/* Same corner dot as the Activity bell's unread marker; the count is in the tooltip. */}
+      {/* Unread marker dot */}
       {item.badge ? (
         <span
           aria-hidden
-          className="app-rail-badge pointer-events-none absolute top-1.5 right-2.5 size-1.5 rounded-full"
+          className="app-rail-badge pointer-events-none absolute top-1 right-1 size-1.5 rounded-full"
         />
       ) : null}
     </div>
@@ -231,7 +206,7 @@ export function AppRail({
     <nav
       aria-label="Primary"
       onContextMenu={onContextMenu}
-      className="flex w-(--app-rail-width) shrink-0 flex-col items-center gap-1.5 pt-2.5 pb-2.5 font-system-ui"
+      className="flex w-(--app-rail-width) shrink-0 flex-col items-center gap-2 px-1.5 py-2.5 font-system-ui select-none"
     >
       <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto [scrollbar-width:none]">
         {items.map((item) => (
@@ -241,7 +216,7 @@ export function AppRail({
           <>
             <div
               aria-hidden
-              className="my-0.5 h-px w-5 shrink-0 bg-[var(--app-rail-inset-border)]"
+              className="my-1 h-px w-5 shrink-0 bg-[var(--app-rail-inset-border)] opacity-60"
             />
             {shortcuts.map((item) => (
               <AppRailButton key={item.id} item={item} />
@@ -250,7 +225,7 @@ export function AppRail({
         ) : null}
         {moreSlot}
       </div>
-      <div className="flex shrink-0 flex-col items-center gap-1.5">
+      <div className="flex shrink-0 flex-col items-center gap-2">
         {bottomSlot}
         {bottomItems.map((item) => (
           <AppRailButton key={item.id} item={item} />

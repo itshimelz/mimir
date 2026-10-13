@@ -284,7 +284,9 @@ import PlanSidebar from "./PlanSidebar";
 import { PullRequestThreadDialog } from "./PullRequestThreadDialog";
 import { RenameThreadDialog } from "./RenameThreadDialog";
 import { hasUnseenSnoozeReturn } from "./Sidebar.logic";
+import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import { SidebarHeaderNavigationControls } from "./SidebarHeaderNavigationControls";
+import { useOptionalSidebar } from "./ui/sidebar";
 import { SynaraLogo } from "./SynaraLogo";
 import { SponsorLandingBanner } from "./SponsorLandingBanner";
 import {
@@ -5598,6 +5600,7 @@ export default function ChatView({
             )}
           >
             <SidebarHeaderNavigationControls />
+            <ApplicationMenuBar className="ms-1" />
             <span className="text-ui leading-snug text-muted-foreground/50">No active thread</span>
           </div>
         )}

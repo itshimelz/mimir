@@ -7,7 +7,9 @@
 
 import type { ReactNode } from "react";
 
+import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import { SidebarHeaderNavigationControls } from "~/components/SidebarHeaderNavigationControls";
+import { useOptionalSidebar } from "./ui/sidebar";
 import {
   useDesktopTopBarTrafficLightGutterClassName,
   useDesktopTopBarWindowControlsGutterClassName,
@@ -38,6 +40,7 @@ export function RouteSurface({ children }: { children: ReactNode }) {
 export function RouteSurfaceHeader({
   divider = true,
   windowControlsGutter = true,
+  menuBar = false,
   className,
   rowClassName,
   children,
@@ -46,12 +49,16 @@ export function RouteSurfaceHeader({
   divider?: boolean;
   /** Off for a left column whose right neighbor already clears the window controls. */
   windowControlsGutter?: boolean;
+  /** Show the topbar application menu bar (File, Edit, View, Help). */
+  menuBar?: boolean;
   className?: string | undefined;
   rowClassName?: string | undefined;
   children?: ReactNode;
 }) {
   const trafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
   const windowControlsGutterClassName = useDesktopTopBarWindowControlsGutterClassName();
+  const sidebar = useOptionalSidebar();
+  const sidebarOpen = sidebar?.open ?? false;
   return (
     <header
       className={cn(
@@ -71,6 +78,7 @@ export function RouteSurfaceHeader({
         )}
       >
         <SidebarHeaderNavigationControls collapsedGapClassName="-me-2 sm:-me-3" />
+        {menuBar && !sidebarOpen ? <ApplicationMenuBar className="ms-1" /> : null}
         {children}
       </div>
     </header>

@@ -108,7 +108,9 @@ import { SelectItem } from "../components/ui/select";
 import { Switch } from "../components/ui/switch";
 import { toastManager } from "../components/ui/toast";
 import { RouteInsetSurface } from "../components/RouteInsetSurface";
+import { ApplicationMenuBar } from "../components/ApplicationMenuBar";
 import { SidebarHeaderNavigationControls } from "../components/SidebarHeaderNavigationControls";
+import { useOptionalSidebar } from "../components/ui/sidebar";
 import { useDesktopCustomTitleBarState } from "../hooks/useDesktopCustomTitleBar";
 import { useDesktopTopBarTrafficLightGutterClassName } from "../hooks/useDesktopTopBarGutter";
 import { useKeepAwakeState } from "../hooks/useKeepAwakeState";
@@ -362,6 +364,8 @@ function SettingsRouteView() {
     useAppSettings();
   const keepAwake = useKeepAwakeState();
   const desktopTopBarTrafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
+  const sidebar = useOptionalSidebar();
+  const sidebarOpen = sidebar?.open ?? false;
   const [releaseHistoryOpen, setReleaseHistoryOpen] = useState(false);
   const [resetEpoch, setResetEpoch] = useState(0);
   const platform = getNavigatorPlatform();
@@ -1699,8 +1703,9 @@ function SettingsRouteView() {
             desktopTopBarTrafficLightGutterClassName,
           )}
         >
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <SidebarHeaderNavigationControls />
+            {!sidebarOpen ? <ApplicationMenuBar className="ms-1" /> : null}
           </div>
         </div>
         <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">

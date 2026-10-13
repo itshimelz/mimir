@@ -12,6 +12,7 @@ import {
 import { AppRailSlotProvider } from "../components/AppRail";
 import { AppShellTopStrip } from "../components/AppShellTopStrip";
 import { SidebarLeadingControlsDock } from "../components/SidebarHeaderNavigationControls";
+import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
 import { resolveSelectableProviderInstanceId, useAppSettings } from "../appSettings";
 import ShortcutsDialog from "../components/ShortcutsDialog";
 import { RecentViewSwitcher } from "../components/RecentViewSwitcher";
@@ -515,12 +516,11 @@ function ChatRouteGlobalShortcuts() {
   ]);
 
   useEffect(() => {
-    const onMenuAction = window.desktopBridge?.onMenuAction;
-    if (typeof onMenuAction !== "function") {
-      return;
-    }
-
-    const unsubscribe = onMenuAction((action) => {
+    return subscribeDesktopMenuAction((action) => {
+      if (action === "new-thread") {
+        void handleNewChatForActiveSurface();
+        return;
+      }
       if (action === "toggle-sidebar") {
         toggleSidebar();
         return;
@@ -528,11 +528,7 @@ function ChatRouteGlobalShortcuts() {
       if (action !== "open-settings") return;
       void navigate({ to: "/settings" });
     });
-
-    return () => {
-      unsubscribe?.();
-    };
-  }, [navigate, toggleSidebar]);
+  }, [handleNewChatForActiveSurface, navigate, toggleSidebar]);
 
   return (
     <>

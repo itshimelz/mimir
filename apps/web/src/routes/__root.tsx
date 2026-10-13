@@ -56,6 +56,8 @@ import ShortcutsDialog from "../components/ShortcutsDialog";
 import WhatsNewDialog from "../components/WhatsNewDialog";
 import { useWhatsNew } from "../whatsNew/useWhatsNew";
 import { WhatsNewPopoutCard } from "../whatsNew/WhatsNewPopoutCard";
+import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
+import { useReleaseHistoryDialogStore } from "../releaseHistoryDialogStore";
 import { shouldRenderTerminalWorkspace } from "../components/ChatView.logic";
 import { Button, dialogActionButtonClassName } from "../components/ui/button";
 import { AnchoredToastProvider, ToastProvider, toastManager } from "../components/ui/toast";
@@ -366,6 +368,7 @@ function RootRouteView() {
           <BrowserVaultDialog />
           <GlobalFeedbackDialog />
           <GlobalWhatsNewSurface />
+          <GlobalReleaseHistoryDialog />
           <TaskCompletionNotifications />
           <QueuedComposerDrainCoordinator />
           {/* Beta welcome must resolve the first-run gate even while Safari is queued. */}
@@ -835,20 +838,11 @@ function GlobalShortcutsDialog() {
   });
 
   useEffect(() => {
-    const onMenuAction = window.desktopBridge?.onMenuAction;
-    if (typeof onMenuAction !== "function") {
-      return;
-    }
-
-    const unsubscribe = onMenuAction((action) => {
+    return subscribeDesktopMenuAction((action) => {
       if (action === "show-shortcuts") {
         setOpen(true);
       }
     });
-
-    return () => {
-      unsubscribe?.();
-    };
   }, []);
 
   return (
@@ -982,6 +976,31 @@ function GlobalWhatsNewSurface() {
         currentVersion={currentVersion}
       />
     </>
+  );
+}
+
+const ReleaseHistoryDialog = lazy(() => import("../components/ReleaseHistoryDialog"));
+
+function GlobalReleaseHistoryDialog() {
+  const isOpen = useReleaseHistoryDialogStore((store) => store.isOpen);
+  const version = useReleaseHistoryDialogStore((store) => store.version);
+  const setOpen = useReleaseHistoryDialogStore((store) => store.setOpen);
+  const [hasOpened, setHasOpened] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setHasOpened(true);
+  }, [isOpen]);
+
+  if (!isOpen && !hasOpened) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <ReleaseHistoryDialog
+        open={isOpen}
+        onOpenChange={setOpen}
+        defaultExpandedVersion={version ?? APP_VERSION}
+      />
+    </Suspense>
   );
 }
 

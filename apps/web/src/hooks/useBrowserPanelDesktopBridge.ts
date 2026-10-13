@@ -1,5 +1,6 @@
 import type { ThreadId } from "@synara/contracts";
 import { useEffect, useEffectEvent } from "react";
+import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
 
 export function useBrowserPanelDesktopBridge(input: {
   onToggle: (() => void) | null;
@@ -12,19 +13,27 @@ export function useBrowserPanelDesktopBridge(input: {
   const openEnabled = onOpen !== null;
 
   useEffect(() => {
+    if (!toggleEnabled) return;
+    const unsubLocal = subscribeDesktopMenuAction((action) => {
+      if (action === "toggle-browser") {
+        handleToggle();
+      }
+    });
+
     const onMenuAction = window.desktopBridge?.onMenuAction;
-    if (typeof onMenuAction !== "function" || !toggleEnabled) {
-      return;
+    if (typeof onMenuAction !== "function") {
+      return unsubLocal;
     }
 
-    const unsubscribe = onMenuAction((action) => {
+    const unsubBridge = onMenuAction((action) => {
       if (action === "toggle-browser") {
         handleToggle();
       }
     });
 
     return () => {
-      unsubscribe?.();
+      unsubLocal();
+      unsubBridge?.();
     };
   }, [toggleEnabled]);
 

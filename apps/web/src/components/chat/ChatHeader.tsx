@@ -46,6 +46,8 @@ import { ComposerPickerMenuPopup } from "./ComposerPickerMenuPopup";
 import { OpenInPicker } from "./OpenInPicker";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { SidebarHeaderNavigationControls } from "../SidebarHeaderNavigationControls";
+import { ApplicationMenuBar } from "../ApplicationMenuBar";
+import { useOptionalSidebar } from "../ui/sidebar";
 import ProjectScriptsControl, { type NewProjectScriptInput } from "../ProjectScriptsControl";
 import { Toggle } from "../ui/toggle";
 import { useAppSettings } from "../../appSettings";
@@ -463,6 +465,7 @@ export function ChatHeader({
   onRenameThread,
   onCloseThreadPane,
 }: ChatHeaderProps) {
+  const sidebarOpen = useOptionalSidebar()?.open ?? false;
   const hideSidebarControls = hideSidebarControlsProp ?? false;
   const hideHandoffControls = hideHandoffControlsProp ?? false;
   const showHandoffAction = showHandoffActionProp ?? true;
@@ -610,11 +613,14 @@ export function ChatHeader({
         )}
       >
         {hideSidebarControls ? null : (
-          // The extra end padding keeps the wider gap the collapsed header had (gap-4).
-          <SidebarHeaderNavigationControls
-            className="md:pe-1"
-            collapsedGapClassName="-me-2 sm:-me-3"
-          />
+          <>
+            {/* The extra end padding keeps the wider gap the collapsed header had (gap-4). */}
+            <SidebarHeaderNavigationControls
+              className="md:pe-1"
+              collapsedGapClassName="-me-2 sm:-me-3"
+            />
+            {!sidebarOpen ? <ApplicationMenuBar className="ms-1 shrink-0" /> : null}
+          </>
         )}
         {threadTabs ? (
           <div className="flex min-w-0 flex-1 items-center gap-2">

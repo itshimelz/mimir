@@ -284,6 +284,7 @@ import { PullRequestThreadDialog } from "./PullRequestThreadDialog";
 import { RenameThreadDialog } from "./RenameThreadDialog";
 import { hasUnseenSnoozeReturn } from "./Sidebar.logic";
 import { SidebarHeaderNavigationControls } from "./SidebarHeaderNavigationControls";
+import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import { SynaraLogo } from "./SynaraLogo";
 import { SponsorLandingBanner } from "./SponsorLandingBanner";
 import {
@@ -292,6 +293,7 @@ import {
 } from "@synara/shared/unavailableFeatures";
 import TerminalWorkspaceTabs from "./TerminalWorkspaceTabs";
 import { ThreadWorktreeHandoffDialog } from "./ThreadWorktreeHandoffDialog";
+import { useOptionalSidebar } from "./ui/sidebar";
 
 import { ChatComposerFooter } from "./chat/ChatComposerFooter";
 import { ChatHeader } from "./chat/ChatHeader";
@@ -623,6 +625,7 @@ export default function ChatView({
   // `panicThreshold` is unset) on this entire component, the hottest one in the app.
   // See chatHotPath.compiler.test.ts.
   const paneScopeId = paneScopeIdProp ?? SINGLE_CHAT_PANE_SCOPE_ID;
+  const sidebarOpen = useOptionalSidebar()?.open ?? false;
   const hideHeader = hideHeaderProp ?? false;
   const surfaceMode = surfaceModeProp ?? "single";
   const presentationMode = presentationModeProp ?? "default";
@@ -5523,12 +5526,13 @@ export default function ChatView({
           <div
             className={cn(
               CHAT_SURFACE_HEADER_ROW_CLASS_NAME,
-              "drag-region px-5",
+              "app-top-bar drag-region px-5",
               desktopTopBarTrafficLightGutterClassName,
               desktopTopBarWindowControlsGutterClassName,
             )}
           >
             <SidebarHeaderNavigationControls />
+            {!sidebarOpen ? <ApplicationMenuBar className="ms-1" /> : null}
             <span className="text-ui leading-snug text-muted-foreground/50">No active thread</span>
           </div>
         )}
@@ -6541,7 +6545,7 @@ export default function ChatView({
         className={cn(
           CHAT_SURFACE_HEADER_DIVIDER_CLASS_NAME,
           !isEditorRail && CHAT_SURFACE_HEADER_PADDING_X_CLASS,
-          "flex items-center",
+          "app-top-bar flex items-center",
           isEditorRail ? "h-10" : CHAT_SURFACE_HEADER_HEIGHT_CLASS,
           isElectron && "drag-region",
           // The editor-rail chat header sits in the editor's second row (inside the

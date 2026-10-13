@@ -64,6 +64,7 @@ import { resolveAndPersistPreferredEditor } from "../editorPreferences";
 import { useFeatureFlags } from "../featureFlags";
 import { useFocusedChatContext } from "../focusedChatContext";
 import { useFeedbackDialogStore } from "../feedbackDialogStore";
+import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
 import type { FeedbackThreadContext } from "../feedback";
 import { isTerminalFocused } from "../lib/terminalFocus";
 import {
@@ -834,20 +835,11 @@ function GlobalShortcutsDialog() {
   });
 
   useEffect(() => {
-    const onMenuAction = window.desktopBridge?.onMenuAction;
-    if (typeof onMenuAction !== "function") {
-      return;
-    }
-
-    const unsubscribe = onMenuAction((action) => {
+    return subscribeDesktopMenuAction((action) => {
       if (action === "show-shortcuts") {
         setOpen(true);
       }
     });
-
-    return () => {
-      unsubscribe?.();
-    };
   }, []);
 
   return (
@@ -957,6 +949,12 @@ function GlobalWhatsNewSurface() {
     dismissPopout,
     onDialogOpenChange,
   } = useWhatsNew();
+
+  useEffect(() => {
+    return subscribeDesktopMenuAction((action) => {
+      if (action === "show-whats-new") openDialog();
+    });
+  }, [openDialog]);
 
   if (!currentEntry) {
     // Silent-bootstrap or noop — nothing to render on either surface.

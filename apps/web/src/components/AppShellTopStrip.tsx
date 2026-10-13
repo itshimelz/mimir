@@ -8,6 +8,7 @@
 import { isElectron } from "~/env";
 import { DESKTOP_TOP_BAR_TRAFFIC_LIGHT_GUTTER_CLASS } from "~/hooks/useDesktopTopBarGutter";
 import { cn, isMacNavigatorPlatform } from "~/lib/utils";
+import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import { CHAT_SURFACE_HEADER_HEIGHT_CLASS } from "./chat/chatHeaderControls";
 import { SidebarLeadingControlsSlot } from "./SidebarHeaderNavigationControls";
 import { useSidebar } from "./ui/sidebar";
@@ -24,7 +25,7 @@ export function AppShellTopStrip() {
     // while the panel is collapsed.
     <header
       className={cn(
-        "drag-region flex w-0 min-w-full shrink-0 overflow-hidden font-system-ui",
+        "app-top-bar drag-region flex w-0 min-w-full shrink-0 overflow-hidden font-system-ui",
         CHAT_SURFACE_HEADER_HEIGHT_CLASS,
       )}
     >
@@ -34,7 +35,12 @@ export function AppShellTopStrip() {
           isElectron && isMacNavigatorPlatform() && DESKTOP_TOP_BAR_TRAFFIC_LIGHT_GUTTER_CLASS,
         )}
       >
-        {open ? <SidebarLeadingControlsSlot /> : null}
+        {open ? (
+          <>
+            <SidebarLeadingControlsSlot />
+            <ApplicationMenuBar className="ms-1" />
+          </>
+        ) : null}
       </div>
     </header>
   );

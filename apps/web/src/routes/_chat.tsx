@@ -57,6 +57,7 @@ import { useProviderStatusesForLocalConfig } from "~/hooks/useProviderStatusesFo
 import { useRefreshProviderStatusesNow } from "~/hooks/useProviderStatusRefresh";
 import { resolveProviderSendAvailabilityWithRefresh } from "~/lib/providerAvailability";
 import { toastManager } from "~/components/ui/toast";
+import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
 import {
   Sidebar,
   SIDEBAR_OFFCANVAS_MOTION_CLASS,
@@ -515,12 +516,11 @@ function ChatRouteGlobalShortcuts() {
   ]);
 
   useEffect(() => {
-    const onMenuAction = window.desktopBridge?.onMenuAction;
-    if (typeof onMenuAction !== "function") {
-      return;
-    }
-
-    const unsubscribe = onMenuAction((action) => {
+    return subscribeDesktopMenuAction((action) => {
+      if (action === "new-thread") {
+        void handleNewChatForActiveSurface();
+        return;
+      }
       if (action === "toggle-sidebar") {
         toggleSidebar();
         return;
@@ -528,11 +528,7 @@ function ChatRouteGlobalShortcuts() {
       if (action !== "open-settings") return;
       void navigate({ to: "/settings" });
     });
-
-    return () => {
-      unsubscribe?.();
-    };
-  }, [navigate, toggleSidebar]);
+  }, [handleNewChatForActiveSurface, navigate, toggleSidebar]);
 
   return (
     <>

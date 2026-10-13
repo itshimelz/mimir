@@ -101,6 +101,10 @@ function useSidebar() {
   return context;
 }
 
+function useOptionalSidebar() {
+  return React.useContext(SidebarContext);
+}
+
 function SidebarProvider({
   defaultOpen: defaultOpenProp,
   open: openProp,
@@ -1116,6 +1120,7 @@ export {
   SIDEBAR_OFFCANVAS_MOTION_CLASS,
   SIDEBAR_OFFCANVAS_MOTION_SUPPRESSED_CLASS,
   useSidebar,
+  useOptionalSidebar,
 };
 
 export type { SidebarResizableOptions };

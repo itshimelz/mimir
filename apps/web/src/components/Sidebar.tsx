@@ -7,7 +7,9 @@ import {
   AddPlusIcon,
   ArchiveIcon,
   BookIcon,
+  BookOpenIcon,
   BotIcon,
+  ChatBubbleIcon,
   CircleQuestionIcon,
   ChevronDownIcon,
   ClockIcon,
@@ -16,6 +18,7 @@ import {
   CustomizeIcon,
   FeedbackIcon,
   ExternalLinkIcon,
+  FolderIcon,
   FolderOpenIcon,
   GiftIcon,
   GitBranchIcon,
@@ -31,6 +34,7 @@ import {
   PinIcon,
   PlayIcon,
   SearchIcon,
+  SparkleIcon,
   StopFilledIcon,
   TemporaryThreadIcon,
   TerminalIcon,
@@ -1317,6 +1321,8 @@ export function SidebarSurfacePicker({
   );
 }
 
+export type CourseSidebarTab = "chats" | "files" | "studio";
+
 export default function Sidebar() {
   const optionalSidebar = useOptionalSidebar();
   const githubProvisioningAvailable = useSyncExternalStore(
@@ -1470,7 +1476,7 @@ export default function Sidebar() {
   const chatsSectionVisible = appSettings.showChatsSection;
   // Hubs is hidden in Mimir.
   const groupsSectionVisible = false;
-  const { handleNewThread } = useHandleNewThread();
+  const { handleNewThread, handleNewCourseStudyThread } = useHandleNewThread();
   const { handleNewChat } = useHandleNewChat();
   const { handleNewGroupChat } = useHandleNewGroupChat();
   const { continueThreadHandoff, createThreadHandoff } = useThreadHandoff();
@@ -1495,6 +1501,7 @@ export default function Sidebar() {
       ? settingsSectionSearch.editorFilePath
       : null;
   const [spacesBrowseMode, setSpacesBrowseMode] = useState<"files" | "courses">("files");
+  const [userSelectedCourseTab, setUserSelectedCourseTab] = useState<CourseSidebarTab | null>(null);
   const [workspaceExpandedDirs, setWorkspaceExpandedDirs] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
@@ -4923,6 +4930,27 @@ export default function Sidebar() {
     [navigate, setSelectedStudioOutputPath],
   );
 
+  const currentSearchView =
+    typeof settingsSectionSearch.view === "string" ? settingsSectionSearch.view : null;
+
+  const effectiveCourseTab: CourseSidebarTab = useMemo(() => {
+    if (userSelectedCourseTab !== null) return userSelectedCourseTab;
+    if (currentSearchView === "editor") {
+      return editorSurface === "studio" ? "studio" : "files";
+    }
+    return "chats";
+  }, [userSelectedCourseTab, currentSearchView, editorSurface]);
+
+  const courseThreads = useMemo(() => {
+    if (!courseProject) return [];
+    const list = displaySidebarThreads.filter((thread) => thread.projectId === courseProject.id);
+    const pinned = list.filter((t) => pinnedThreadIdSet.has(t.id));
+    const unpinned = list.filter((t) => !pinnedThreadIdSet.has(t.id));
+    return [...pinned, ...unpinned];
+  }, [displaySidebarThreads, courseProject, pinnedThreadIdSet]);
+
+  const courseThreadIds = useMemo(() => courseThreads.map((thread) => thread.id), [courseThreads]);
+
   // Reset per-project preview paging when a folder closes so reopening starts at five rows again.
   // The Spaces drill-in shows its project as open whatever the tree says, so its paging stays.
   useEffect(() => {
@@ -6081,71 +6109,142 @@ export default function Sidebar() {
     );
   }
 
-  // Rail layout Spaces panel: renders course workspace file explorer or studio artifacts
+  // Rail layout Spaces panel: renders course workspace with Chats, Files, and Deliverables
   function renderRailSpacesPanel() {
-    if (spacesBrowseMode !== "courses" && courseProject) {
+    if (!courseProject) {
       return (
-        <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1.5">
-          {editorSurface === "studio" ? (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <StudioArtifactsSidebar
-                entries={resolvedStudioOutputs.entries}
-                isLoading={resolvedStudioOutputs.isPending}
-                selectedOutputPath={selectedStudioOutputPath}
-                containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
-                onSelectOutput={handleSelectStudioOutput}
-              />
-            </div>
-          ) : (
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-              <WorkspaceFilesSidebar
-                workspaceRoot={courseProject.cwd}
-                selectedFilePath={selectedEditorFilePath}
-                expandedDirectories={workspaceExpandedDirs}
-                containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
-                onSelectFile={handleSelectWorkspaceFile}
-                onToggleDirectory={handleToggleWorkspaceDir}
-                onReferenceInChat={undefined}
-              />
-            </div>
-          )}
+        <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center">
+          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
+            <BookOpenIcon className="size-5" />
+          </div>
+          <p className="text-ui font-medium text-foreground">No course workspace</p>
+          <p className="mt-1 text-ui-xs text-muted-foreground">
+            Open or create a course folder to get started with your studies.
+          </p>
+          <Button
+            size="sm"
+            className="mt-4 gap-1.5"
+            onClick={() => setCreateProjectDialogOpen(true)}
+          >
+            <AddPlusIcon className="size-4" />
+            Open Course Folder
+          </Button>
         </SidebarGroup>
       );
     }
+
     return (
-      <SidebarGroup className="px-1.5 py-1.5">
-        {threadsHydrated
-          ? railSpacesSections.map((section) => (
-              <div key={section.key}>
-                {renderListSectionHeader(
-                  section.name,
-                  <SidebarIconButton
-                    icon={AddPlusIcon}
-                    label="Add project"
-                    onClick={() => {
-                      setCreateProjectSpaceId(section.spaceId);
-                      setCreateProjectDialogOpen(true);
-                    }}
-                    tooltip="Add project"
-                    tooltipSide="right"
-                  />,
-                )}
-                {section.items.length > 0 ? (
-                  <SidebarMenu className="gap-0.5">
-                    {section.items.map((project) => renderRailSpacesProjectRow(project))}
-                  </SidebarMenu>
-                ) : (
-                  <SpaceEmptyState
-                    space={spaces.find((space) => space.id === section.spaceId) ?? null}
-                    hasProjectsElsewhere={allStandardProjectsBase.length > 0}
-                    onMoveProjects={() => {
-                      if (section.spaceId !== null) openSpaceProjectPicker(section.spaceId);
-                    }}
-                  />
-                )}
+      <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1">
+        {/* Course Workspace Tabs: Chats, Files, Deliverables */}
+        <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-1 shrink-0">
+          <button
+            type="button"
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+              effectiveCourseTab === "chats"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+            )}
+            onClick={() => setUserSelectedCourseTab("chats")}
+            title="Study Chats"
+          >
+            <ChatBubbleIcon className="size-3.5 shrink-0" />
+            <span>Chats</span>
+            {courseThreads.length > 0 ? (
+              <span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.2 text-ui-2xs text-muted-foreground">
+                {courseThreads.length}
+              </span>
+            ) : null}
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+              effectiveCourseTab === "files"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+            )}
+            onClick={() => setUserSelectedCourseTab("files")}
+            title="Course Files"
+          >
+            <FolderIcon className="size-3.5 shrink-0" />
+            <span>Files</span>
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+              effectiveCourseTab === "studio"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+            )}
+            onClick={() => setUserSelectedCourseTab("studio")}
+            title="Deliverables"
+          >
+            <SparkleIcon className="size-3.5 shrink-0" />
+            <span>Outbox</span>
+            {resolvedStudioOutputs.entries.length > 0 ? (
+              <span className="ml-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-ui-2xs font-semibold">
+                {resolvedStudioOutputs.entries.length}
+              </span>
+            ) : null}
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {effectiveCourseTab === "chats" ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-0.5 py-1">
+            <div className="pb-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 text-ui font-medium shadow-xs"
+                onClick={() => void handleNewCourseStudyThread()}
+              >
+                <AddPlusIcon className="size-4 text-primary shrink-0" />
+                <span className="truncate">New Study Session</span>
+              </Button>
+            </div>
+            {courseThreads.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
+                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
+                  <SparkleIcon className="size-5" />
+                </div>
+                <p className="text-ui font-medium text-foreground">No study sessions yet</p>
+                <p className="mt-1 text-ui-xs text-muted-foreground">
+                  Start a guided session to review lecture materials, ask questions, or practice
+                  quizzes.
+                </p>
               </div>
-            ))
-          : null}
+            ) : (
+              <SidebarMenu className="gap-0.5">
+                {courseThreads.map((thread) => renderThreadRow(thread, courseThreadIds, 0, true))}
+              </SidebarMenu>
+            )}
+          </div>
+        ) : effectiveCourseTab === "studio" ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <StudioArtifactsSidebar
+              entries={resolvedStudioOutputs.entries}
+              isLoading={resolvedStudioOutputs.isPending}
+              selectedOutputPath={selectedStudioOutputPath}
+              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
+              onSelectOutput={handleSelectStudioOutput}
+            />
+          </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <WorkspaceFilesSidebar
+              workspaceRoot={courseProject.cwd}
+              selectedFilePath={selectedEditorFilePath}
+              expandedDirectories={workspaceExpandedDirs}
+              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
+              onSelectFile={handleSelectWorkspaceFile}
+              onToggleDirectory={handleToggleWorkspaceDir}
+              onReferenceInChat={undefined}
+            />
+          </div>
+        )}
       </SidebarGroup>
     );
   }
@@ -6946,11 +7045,18 @@ export default function Sidebar() {
           if (id === "spaces") {
             setActivityViewEnabledSmoothly(false);
             setSpacesBrowseMode("files");
+            setUserSelectedCourseTab("files");
             void navigate({
               search: ((prev: Record<string, unknown>) => ({
                 ...stripDiffSearchParams(prev),
                 view: "editor",
               })) as never,
+            });
+          } else if (id === "home") {
+            setUserSelectedCourseTab("chats");
+            void navigate({
+              to: "/",
+              search: { home: true },
             });
           } else {
             void navigate({
@@ -7155,10 +7261,10 @@ export default function Sidebar() {
   // Automations owns its panel (its list), like Settings and Groups do.
   const showRailAutomationsPanel = isOnAutomations;
   const showRailSpacesPanel =
-    railPanelView === "spaces" && !isOnGroups && !isOnSettings && !activityViewEnabled;
+    Boolean(courseProject) && !isOnGroups && !isOnSettings && !activityViewEnabled;
   // Switching Home/Spaces or the Spaces level replays the surface enter animation.
   const sidebarSurfaceKey = showRailSpacesPanel
-    ? `spaces:${railSpacesProject?.id ?? ""}`
+    ? `course-workspace:${courseProject?.id ?? ""}`
     : isOnGroups
       ? "groups"
       : activityViewEnabled
@@ -7342,7 +7448,7 @@ export default function Sidebar() {
                   className="flex items-center gap-1 pt-1.5 pb-1 pr-2.5 pl-1.5"
                 >
                   {showRailSpacesPanel && courseProject ? (
-                    <div className="flex min-w-0 items-center gap-1">
+                    <div className="flex min-w-0 flex-1 items-center gap-1">
                       <ProjectMenuPicker
                         projectOptions={projectMenuOptions}
                         selectedProjectId={courseProject.id}
@@ -7350,11 +7456,10 @@ export default function Sidebar() {
                           useCourseWorkspaceStore.getState().setActiveCourseId(projectId);
                           openRailSpacesProject(projectId);
                           setSpacesBrowseMode("files");
+                          setUserSelectedCourseTab("chats");
                           void navigate({
-                            search: ((prev: Record<string, unknown>) => ({
-                              ...stripDiffSearchParams(prev),
-                              view: "editor",
-                            })) as never,
+                            to: "/",
+                            search: { home: true },
                           });
                         }}
                         trigger={
@@ -7371,7 +7476,25 @@ export default function Sidebar() {
                         }
                       />
                       <SidebarSectionToolbar>
-                        {renderProjectThreadActions(courseProject)}
+                        <SidebarIconButton
+                          icon={AddPlusIcon}
+                          label="New study session"
+                          tooltip="New study session"
+                          tooltipSide="bottom"
+                          onClick={() => void handleNewCourseStudyThread()}
+                        />
+                        <SidebarIconButton
+                          icon={BookOpenIcon}
+                          label="Course Overview"
+                          tooltip="Course Overview"
+                          tooltipSide="bottom"
+                          onClick={() => {
+                            void navigate({
+                              to: "/",
+                              search: { home: true },
+                            });
+                          }}
+                        />
                       </SidebarSectionToolbar>
                     </div>
                   ) : (
@@ -7502,134 +7625,22 @@ export default function Sidebar() {
                   ) : showRailSpacesPanel ? (
                     renderRailSpacesPanel()
                   ) : (
-                    <SidebarGroup className="px-1.5 py-1.5">
-                      <SpaceSwitcher
-                        spaces={spaces}
-                        activeSpaceId={activeSpaceId}
-                        activityBySpaceId={spaceActivityById}
-                        voidSpace={voidSpace}
-                        onSelect={handleSelectSpace}
-                        onCreate={() => openSpaceCreator()}
-                        onEdit={(space) => openSpaceEditor(space.id)}
-                        onDelete={(space) => void handleDeleteSpace(space.id)}
-                        onReorder={handleReorderSpaces}
-                        onRenameSpace={(space, name) => void handleRenameSpace(space, name)}
-                        onEditVoid={openVoidEditor}
-                        onRenameVoid={handleRenameVoid}
-                        onResetVoid={resetVoidSpace}
-                        onDropProject={(projectId, spaceId) =>
-                          void handleMoveProjectToSpace(projectId, spaceId)
-                        }
-                        jumpShortcutLabelForTab={jumpShortcutLabelForSpaceTab}
-                      />
-                      {renderPinnedThreadsSection()}
-                      {renderListSectionHeader(
-                        "Projects",
-                        <>
-                          {standardProjects.length > 0 ? (
-                            <SidebarIconButton
-                              icon={allProjectsExpanded ? CollapseAllIcon : ExpandAllIcon}
-                              label={
-                                allProjectsExpanded
-                                  ? focusedProjectId
-                                    ? "Collapse all projects except the active project"
-                                    : "Collapse all projects"
-                                  : "Expand all projects"
-                              }
-                              className="disabled:cursor-default disabled:opacity-45"
-                              onClick={handleToggleProjects}
-                              tooltip={
-                                allProjectsExpanded
-                                  ? focusedProjectId
-                                    ? "Collapse all projects except the active chat's project"
-                                    : "Collapse all projects"
-                                  : "Expand all projects"
-                              }
-                              tooltipSide="bottom"
-                            />
-                          ) : null}
-                          <ProjectSortMenu
-                            projectSortOrder={appSettings.sidebarProjectSortOrder}
-                            threadSortOrder={appSettings.sidebarThreadSortOrder}
-                            onProjectSortOrderChange={(sortOrder) => {
-                              updateSettings({
-                                sidebarProjectSortOrder: sortOrder,
-                              });
-                            }}
-                            onThreadSortOrderChange={(sortOrder) => {
-                              updateSettings({
-                                sidebarThreadSortOrder: sortOrder,
-                              });
-                            }}
-                          />
-                          <SidebarIconButton
-                            icon={AddPlusIcon}
-                            label="Add project"
-                            onClick={handleStartAddProject}
-                            tooltip="Add project"
-                            tooltipSide="right"
-                          />
-                        </>,
-                      )}
-
-                      {isManualProjectSorting ? (
-                        <DndContext
-                          sensors={projectDnDSensors}
-                          collisionDetection={projectCollisionDetection}
-                          modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
-                          onDragStart={handleProjectDragStart}
-                          onDragEnd={handleProjectDragEnd}
-                          onDragCancel={handleProjectDragCancel}
-                        >
-                          <SidebarMenu className="gap-3">
-                            <SortableContext
-                              items={standardProjects.map((project) => project.id)}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              {standardProjects.map((project) => (
-                                <SortableProjectItem key={project.id} projectId={project.id}>
-                                  {(dragHandleProps) => renderProjectItem(project, dragHandleProps)}
-                                </SortableProjectItem>
-                              ))}
-                            </SortableContext>
-                          </SidebarMenu>
-                        </DndContext>
-                      ) : (
-                        <SidebarMenu ref={attachProjectListAutoAnimateRef} className="gap-3">
-                          {standardProjects.map((project) => (
-                            <SidebarMenuItem key={project.id} className="rounded-md">
-                              {renderProjectItem(project, null)}
-                            </SidebarMenuItem>
-                          ))}
-                        </SidebarMenu>
-                      )}
-
-                      {projectEmptyState === "loading" && (
-                        <div
-                          className="space-y-2 px-2 pt-4"
-                          aria-live="polite"
-                          aria-label="Loading projects"
-                        >
-                          <div className="text-center text-ui text-muted-foreground/58">
-                            Loading projects...
-                          </div>
-                          <div className="mx-auto grid w-full max-w-42 gap-1.5 opacity-70">
-                            <div className="h-2 rounded-full bg-muted/55 animate-pulse" />
-                            <div className="mx-auto h-2 w-4/5 rounded-full bg-muted/40 animate-pulse" />
-                            <div className="mx-auto h-2 w-3/5 rounded-full bg-muted/30 animate-pulse" />
-                          </div>
-                        </div>
-                      )}
-
-                      {projectEmptyState === "empty" && (
-                        <SpaceEmptyState
-                          space={activeSpace}
-                          hasProjectsElsewhere={allStandardProjectsBase.length > 0}
-                          onMoveProjects={() => {
-                            if (activeSpace) openSpaceProjectPicker(activeSpace.id);
-                          }}
-                        />
-                      )}
+                    <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center">
+                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
+                        <BookOpenIcon className="size-5" />
+                      </div>
+                      <p className="text-ui font-medium text-foreground">No course workspace</p>
+                      <p className="mt-1 text-ui-xs text-muted-foreground">
+                        Open or create a course folder to get started with your studies.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="mt-4 gap-1.5"
+                        onClick={() => setCreateProjectDialogOpen(true)}
+                      >
+                        <AddPlusIcon className="size-4" />
+                        Open Course Folder
+                      </Button>
                     </SidebarGroup>
                   )}
                 </div>

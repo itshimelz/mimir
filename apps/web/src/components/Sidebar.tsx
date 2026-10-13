@@ -544,6 +544,7 @@ import {
 import {
   FEEDBACK_UNAVAILABLE_FEATURE,
   HELP_MENU_UNAVAILABLE_FEATURE,
+  PULL_REQUESTS_UNAVAILABLE_FEATURE,
   isFeatureAvailable,
 } from "@synara/shared/unavailableFeatures";
 import { isSidechatThread } from "@synara/shared/sidechatThread";
@@ -5706,22 +5707,24 @@ export default function Sidebar() {
   function renderProjectThreadActions(project: (typeof sortedProjects)[number]) {
     return (
       <>
-        <SidebarIconButton
-          icon={CodeReviewIcon}
-          label={`Open code review for ${project.name}`}
-          tooltip="Code review"
-          tooltipSide="top"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            // Opens the in-app inbox scoped to this project for this visit (the URL
-            // override leaves the saved project filter alone) instead of leaving for GitHub.
-            void navigate({
-              to: "/pull-requests",
-              search: { projectId: project.id },
-            });
-          }}
-        />
+        {isFeatureAvailable(PULL_REQUESTS_UNAVAILABLE_FEATURE) ? (
+          <SidebarIconButton
+            icon={CodeReviewIcon}
+            label={`Open code review for ${project.name}`}
+            tooltip="Code review"
+            tooltipSide="top"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              // Opens the in-app inbox scoped to this project for this visit (the URL
+              // override leaves the saved project filter alone) instead of leaving for GitHub.
+              void navigate({
+                to: "/pull-requests",
+                search: { projectId: project.id },
+              });
+            }}
+          />
+        ) : null}
         <SidebarIconButton
           icon={TerminalIcon}
           label={`Create new terminal thread in ${project.name}`}
@@ -6048,12 +6051,12 @@ export default function Sidebar() {
     );
   }
 
-  // Rail layout Spaces panel: renders course workspace file explorer, studio artifacts, or courses list
+  // Rail layout Spaces panel: renders course workspace file explorer or studio artifacts
   function renderRailSpacesPanel() {
     if (spacesBrowseMode !== "courses" && courseProject) {
-      if (editorSurface === "studio") {
-        return (
-          <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1.5">
+      return (
+        <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1.5">
+          {editorSurface === "studio" ? (
             <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
               <StudioArtifactsSidebar
                 entries={resolvedStudioOutputs.entries}
@@ -6063,22 +6066,19 @@ export default function Sidebar() {
                 onSelectOutput={handleSelectStudioOutput}
               />
             </div>
-          </SidebarGroup>
-        );
-      }
-      return (
-        <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1.5">
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <WorkspaceFilesSidebar
-              workspaceRoot={courseProject.cwd}
-              selectedFilePath={selectedEditorFilePath}
-              expandedDirectories={workspaceExpandedDirs}
-              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
-              onSelectFile={handleSelectWorkspaceFile}
-              onToggleDirectory={handleToggleWorkspaceDir}
-              onReferenceInChat={undefined}
-            />
-          </div>
+          ) : (
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              <WorkspaceFilesSidebar
+                workspaceRoot={courseProject.cwd}
+                selectedFilePath={selectedEditorFilePath}
+                expandedDirectories={workspaceExpandedDirs}
+                containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
+                onSelectFile={handleSelectWorkspaceFile}
+                onToggleDirectory={handleToggleWorkspaceDir}
+                onReferenceInChat={undefined}
+              />
+            </div>
+          )}
         </SidebarGroup>
       );
     }

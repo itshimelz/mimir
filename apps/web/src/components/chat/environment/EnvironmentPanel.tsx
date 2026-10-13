@@ -46,7 +46,8 @@ import { usePinnedThreadsStore } from "~/pinnedThreadsStore";
 import { useSplitViewStore } from "~/splitViewStore";
 import { useTerminalStateStore } from "~/terminalStateStore";
 import { useTemporaryThreadStore } from "~/temporaryThreadStore";
-import { useRightDockStore } from "~/rightDockStore";
+import { selectRightDockState, useRightDockStore } from "~/rightDockStore";
+import { resolveSidechatPaneThreadId } from "~/rightDockStore.logic";
 
 import { EnvironmentEditorSection } from "./EnvironmentEditorSection";
 import {
@@ -270,6 +271,12 @@ export function EnvironmentPanel({
   const removeWorktreeMutation = useMutation(gitRemoveWorktreeMutationOptions({ queryClient }));
   const { settings } = useAppSettings();
   const openRightDockPane = useRightDockStore((store) => store.openPane);
+  // Read the pane's thread rather than the active tab, so the side chat section keeps naming
+  // the current session while the dock is collapsed. Selecting a thread id (not the pane)
+  // keeps the subscription to one primitive.
+  const activeSidechatId = useRightDockStore((store) =>
+    resolveSidechatPaneThreadId(selectRightDockState(activeThreadId)(store)),
+  );
   const { additions, deletions, hasChanges } = diffTotals;
 
   // Disable the Changes row only when the diff cannot be opened *and* is not already open
@@ -364,6 +371,7 @@ export function EnvironmentPanel({
       {sidechats && activeThreadId ? (
         <EnvironmentSidechatsSection
           sidechats={sidechats}
+          activeSidechatId={activeSidechatId}
           onCreate={() => {
             void waitForSidechatCreator(activeThreadId)
               .then((createSidechat) => {

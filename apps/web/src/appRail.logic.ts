@@ -15,6 +15,12 @@ import {
   VOID_SPACE_KEY,
   type VoidSpacePresentation,
 } from "./lib/spaceGrouping";
+import {
+  isFeatureAvailable,
+  KANBAN_UNAVAILABLE_FEATURE,
+  PULL_REQUESTS_UNAVAILABLE_FEATURE,
+  TASKS_UNAVAILABLE_FEATURE,
+} from "@synara/shared/unavailableFeatures";
 import { normalizeIdOrder, normalizeKnownIds } from "./lib/orderedIds";
 import type { SidebarNavItemId } from "./sidebarNavOrdering";
 import type { Space } from "./types";
@@ -81,12 +87,26 @@ export interface RailAvailability {
   readonly studioAvailable: boolean;
   /** Whether this host offers Inbox. */
   readonly inboxAvailable: boolean;
+  readonly pullRequestsAvailable?: boolean;
+  readonly kanbanAvailable?: boolean;
+  readonly tasksAvailable?: boolean;
 }
 
 /** Whether an item exists on this host at all: the rail and its Customize list agree. */
 export function isRailItemAvailable(id: RailOrderableItemId, availability: RailAvailability) {
   if (id === "studio") return availability.studioAvailable;
   if (id === "inbox") return availability.inboxAvailable;
+  if (id === "pullRequests") {
+    return (
+      availability.pullRequestsAvailable ?? isFeatureAvailable(PULL_REQUESTS_UNAVAILABLE_FEATURE)
+    );
+  }
+  if (id === "kanban") {
+    return availability.kanbanAvailable ?? isFeatureAvailable(KANBAN_UNAVAILABLE_FEATURE);
+  }
+  if (id === "tasks") {
+    return availability.tasksAvailable ?? isFeatureAvailable(TASKS_UNAVAILABLE_FEATURE);
+  }
   return true;
 }
 

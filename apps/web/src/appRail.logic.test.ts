@@ -66,7 +66,7 @@ describe("rail item order", () => {
         studioAvailable: false,
         inboxAvailable: false,
       }),
-    ).toEqual(["home", "kanban", "tasks", "pullRequests", "automations"]);
+    ).toEqual(["home", "automations"]);
     expect(
       buildRailItemOrder({
         order,
@@ -74,23 +74,24 @@ describe("rail item order", () => {
         activeItem: "home",
         studioAvailable: true,
         inboxAvailable: true,
+        pullRequestsAvailable: true,
+        kanbanAvailable: true,
+        tasksAvailable: true,
       }),
     ).toEqual(order);
   });
 
-  it("offers Inbox and Studio in Customize only where they exist", () => {
-    const stable = { studioAvailable: false, inboxAvailable: false };
-    expect(RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, stable))).toEqual([
-      "spaces",
-      "home",
-      "kanban",
-      "tasks",
-      "pullRequests",
-      "automations",
-    ]);
+  it("offers items in Customize only where they exist and hides developer surfaces", () => {
+    const academicDefaults = { studioAvailable: false, inboxAvailable: false };
+    expect(
+      RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, academicDefaults)),
+    ).toEqual(["spaces", "home", "automations"]);
     expect(isRailItemAvailable("inbox", { studioAvailable: false, inboxAvailable: true })).toBe(
       true,
     );
+    expect(isRailItemAvailable("pullRequests", academicDefaults)).toBe(false);
+    expect(isRailItemAvailable("kanban", academicDefaults)).toBe(false);
+    expect(isRailItemAvailable("tasks", academicDefaults)).toBe(false);
   });
 });
 

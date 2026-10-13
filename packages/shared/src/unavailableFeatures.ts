@@ -53,6 +53,13 @@ export const PROFILE_INSIGHTS_UNAVAILABLE_FEATURE = "profile-insights";
  */
 export const SPONSOR_BANNER_UNAVAILABLE_FEATURE = "sponsor-banner";
 
+/**
+ * Developer surfaces (pull requests, kanban, tasks) withheld in Mimir's academic learning workspace.
+ */
+export const PULL_REQUESTS_UNAVAILABLE_FEATURE = "pull-requests";
+export const KANBAN_UNAVAILABLE_FEATURE = "kanban";
+export const TASKS_UNAVAILABLE_FEATURE = "tasks";
+
 export const UNAVAILABLE_FEATURES: readonly string[] = [
   FEEDBACK_UNAVAILABLE_FEATURE,
   SHARE_CARD_UNAVAILABLE_FEATURE,
@@ -61,6 +68,9 @@ export const UNAVAILABLE_FEATURES: readonly string[] = [
   COMPUTER_UNAVAILABLE_FEATURE,
   PROFILE_INSIGHTS_UNAVAILABLE_FEATURE,
   SPONSOR_BANNER_UNAVAILABLE_FEATURE,
+  PULL_REQUESTS_UNAVAILABLE_FEATURE,
+  KANBAN_UNAVAILABLE_FEATURE,
+  TASKS_UNAVAILABLE_FEATURE,
 ];
 
 /**

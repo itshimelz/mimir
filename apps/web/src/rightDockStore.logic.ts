@@ -426,6 +426,15 @@ export function resolveActivePane(state: RightDockThreadState): RightDockPane | 
   return state.panes.find((pane) => pane.id === state.activePaneId) ?? null;
 }
 
+/**
+ * The thread this host's side chat pane is showing, or null when it has no pane. Read from
+ * the pane rather than the active tab so a collapsed dock still reports its side chat: the
+ * Environment panel's summary row names the current session whether or not the dock is open.
+ */
+export function resolveSidechatPaneThreadId(state: RightDockThreadState): ThreadId | null {
+  return findSingletonPane(state, "sidechat")?.threadId ?? null;
+}
+
 export function findMissingSidechatPaneIds(
   state: RightDockThreadState,
   existingThreadIds: ReadonlySet<ThreadId>,

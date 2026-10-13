@@ -10,13 +10,22 @@ import { useReleaseHistoryDialogStore } from "~/releaseHistoryDialogStore";
 import { useFeedbackDialogStore } from "~/feedbackDialogStore";
 import { openExternalLink } from "~/lib/linkChips";
 import { MIMIR_DOCS_URL } from "~/onboarding/tourContent";
-import { Menu, MenuItem, MenuSeparator, MenuShortcut, MenuTrigger } from "./ui/menu";
-import { ComposerPickerMenuPopup } from "./chat/ComposerPickerMenuPopup";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarShortcut,
+  MenubarTrigger,
+} from "./ui/menubar";
 import { toastManager } from "./ui/toast";
 import { useOptionalSidebar } from "./ui/sidebar";
 
 const MENU_TRIGGER_CLASS =
-  "inline-flex items-center px-1.5 py-0.5 rounded text-ui-xs font-normal text-muted-foreground/80 hover:text-foreground hover:bg-surface-secondary/80 select-none cursor-pointer outline-none transition-colors duration-75 [-webkit-app-region:no-drag]";
+  "inline-flex h-7 items-center rounded-md px-2 text-ui-sm font-normal text-muted-foreground hover:text-foreground hover:bg-surface-secondary/80 aria-expanded:text-foreground aria-expanded:bg-surface-secondary/80 select-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--color-background-surface-under)] transition-colors duration-100 [-webkit-app-region:no-drag]";
+const MENU_CONTENT_CLASS =
+  "rounded-xl border border-[color:var(--color-border-light)] bg-[var(--color-background-surface-under)] text-[var(--color-text-foreground)] shadow-md before:hidden";
 
 function handleCloseWindow(): void {
   if (window.desktopBridge?.windowControls?.close) {
@@ -107,7 +116,10 @@ async function handleCheckForUpdates(): Promise<void> {
     toastManager.add({
       type: "error",
       title: "Could not check for updates",
-      description: error instanceof Error ? error.message : "An unexpected error occurred.",
+      description:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred.",
     });
   }
 }
@@ -126,127 +138,179 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
     <nav
       aria-label="Application menu"
       className={cn(
-        "flex shrink-0 items-center gap-0.5 select-none font-system-ui [-webkit-app-region:no-drag]",
+        "flex shrink-0 items-center gap-0.5 after:ms-2 after:h-4 after:w-px after:shrink-0 after:bg-[var(--app-surface-divider)] after:content-[''] select-none font-system-ui [-webkit-app-region:no-drag]",
         className,
       )}
     >
-      {/* File Menu */}
-      <Menu>
-        <MenuTrigger className={MENU_TRIGGER_CLASS}>File</MenuTrigger>
-        <ComposerPickerMenuPopup align="start" side="bottom" sideOffset={4} className="min-w-48">
-          <MenuItem onClick={() => dispatchDesktopMenuAction("new-thread")}>
-            <span>New Thread</span>
-            <MenuShortcut>{isMac ? "⌘N" : "Ctrl+N"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={handleNewWindow}>
-            <span>New Window</span>
-            <MenuShortcut>{isMac ? "⇧⌘N" : "Ctrl+Shift+N"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={() => dispatchDesktopMenuAction("open-settings")}>
-            <span>Settings...</span>
-            <MenuShortcut>{isMac ? "⌘," : "Ctrl+,"}</MenuShortcut>
-          </MenuItem>
-          <MenuSeparator />
-          <MenuItem onClick={handleCloseWindow}>
-            <span>Close Window</span>
-            <MenuShortcut>{isMac ? "⌘W" : "Alt+F4"}</MenuShortcut>
-          </MenuItem>
-        </ComposerPickerMenuPopup>
-      </Menu>
+      <Menubar className="h-8 gap-0.5 rounded-none border-0 bg-transparent p-0">
+        {/* File Menu */}
+        <MenubarMenu>
+          <MenubarTrigger className={MENU_TRIGGER_CLASS}>File</MenubarTrigger>
+          <MenubarContent
+            align="start"
+            alignOffset={0}
+            side="bottom"
+            sideOffset={4}
+            className={cn(MENU_CONTENT_CLASS, "min-w-48")}
+          >
+            <MenubarItem
+              onClick={() => dispatchDesktopMenuAction("new-thread")}
+            >
+              <span>New Thread</span>
+              <MenubarShortcut>{isMac ? "⌘N" : "Ctrl+N"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={handleNewWindow}>
+              <span>New Window</span>
+              <MenubarShortcut>
+                {isMac ? "⇧⌘N" : "Ctrl+Shift+N"}
+              </MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem
+              onClick={() => dispatchDesktopMenuAction("open-settings")}
+            >
+              <span>Settings...</span>
+              <MenubarShortcut>{isMac ? "⌘," : "Ctrl+,"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={handleCloseWindow}>
+              <span>Close Window</span>
+              <MenubarShortcut>{isMac ? "⌘W" : "Alt+F4"}</MenubarShortcut>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-      {/* Edit Menu */}
-      <Menu>
-        <MenuTrigger className={MENU_TRIGGER_CLASS}>Edit</MenuTrigger>
-        <ComposerPickerMenuPopup align="start" side="bottom" sideOffset={4} className="min-w-48">
-          <MenuItem onClick={handleUndo}>
-            <span>Undo</span>
-            <MenuShortcut>{isMac ? "⌘Z" : "Ctrl+Z"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={handleRedo}>
-            <span>Redo</span>
-            <MenuShortcut>{isMac ? "⇧⌘Z" : "Ctrl+Y"}</MenuShortcut>
-          </MenuItem>
-          <MenuSeparator />
-          <MenuItem onClick={handleCut}>
-            <span>Cut</span>
-            <MenuShortcut>{isMac ? "⌘X" : "Ctrl+X"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={handleCopy}>
-            <span>Copy</span>
-            <MenuShortcut>{isMac ? "⌘C" : "Ctrl+C"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={handlePaste}>
-            <span>Paste</span>
-            <MenuShortcut>{isMac ? "⌘V" : "Ctrl+V"}</MenuShortcut>
-          </MenuItem>
-          <MenuSeparator />
-          <MenuItem onClick={handleSelectAll}>
-            <span>Select All</span>
-            <MenuShortcut>{isMac ? "⌘A" : "Ctrl+A"}</MenuShortcut>
-          </MenuItem>
-        </ComposerPickerMenuPopup>
-      </Menu>
+        {/* Edit Menu */}
+        <MenubarMenu>
+          <MenubarTrigger className={MENU_TRIGGER_CLASS}>Edit</MenubarTrigger>
+          <MenubarContent
+            align="start"
+            alignOffset={0}
+            side="bottom"
+            sideOffset={4}
+            className={cn(MENU_CONTENT_CLASS, "min-w-48")}
+          >
+            <MenubarItem onClick={handleUndo}>
+              <span>Undo</span>
+              <MenubarShortcut>{isMac ? "⌘Z" : "Ctrl+Z"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={handleRedo}>
+              <span>Redo</span>
+              <MenubarShortcut>{isMac ? "⇧⌘Z" : "Ctrl+Y"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={handleCut}>
+              <span>Cut</span>
+              <MenubarShortcut>{isMac ? "⌘X" : "Ctrl+X"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={handleCopy}>
+              <span>Copy</span>
+              <MenubarShortcut>{isMac ? "⌘C" : "Ctrl+C"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={handlePaste}>
+              <span>Paste</span>
+              <MenubarShortcut>{isMac ? "⌘V" : "Ctrl+V"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={handleSelectAll}>
+              <span>Select All</span>
+              <MenubarShortcut>{isMac ? "⌘A" : "Ctrl+A"}</MenubarShortcut>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-      {/* View Menu */}
-      <Menu>
-        <MenuTrigger className={MENU_TRIGGER_CLASS}>View</MenuTrigger>
-        <ComposerPickerMenuPopup align="start" side="bottom" sideOffset={4} className="min-w-52">
-          <MenuItem onClick={() => dispatchDesktopMenuAction("toggle-sidebar")}>
-            <span>Toggle Sidebar</span>
-            <MenuShortcut>{isMac ? "⌘B" : "Ctrl+B"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={() => dispatchDesktopMenuAction("toggle-browser")}>
-            <span>Toggle Browser</span>
-            <MenuShortcut>{isMac ? "⇧⌘B" : "Ctrl+Shift+B"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={() => dispatchDesktopMenuAction("new-terminal-tab")}>
-            <span>New Terminal Tab</span>
-            <MenuShortcut>{isMac ? "⇧⌘\\" : "Ctrl+Shift+\\"}</MenuShortcut>
-          </MenuItem>
-          <MenuSeparator />
-          <MenuItem onClick={() => window.location.reload()}>
-            <span>Reload</span>
-            <MenuShortcut>{isMac ? "⌘R" : "Ctrl+R"}</MenuShortcut>
-          </MenuItem>
-          <MenuSeparator />
-          <MenuItem onClick={() => dispatchDesktopMenuAction("reset-zoom")}>
-            <span>Actual Size</span>
-            <MenuShortcut>{isMac ? "⌘0" : "Ctrl+0"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={() => dispatchDesktopMenuAction("zoom-in")}>
-            <span>Zoom In</span>
-            <MenuShortcut>{isMac ? "⌘=" : "Ctrl+="}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={() => dispatchDesktopMenuAction("zoom-out")}>
-            <span>Zoom Out</span>
-            <MenuShortcut>{isMac ? "⌘-" : "Ctrl+-"}</MenuShortcut>
-          </MenuItem>
-        </ComposerPickerMenuPopup>
-      </Menu>
+        {/* View Menu */}
+        <MenubarMenu>
+          <MenubarTrigger className={MENU_TRIGGER_CLASS}>View</MenubarTrigger>
+          <MenubarContent
+            align="start"
+            alignOffset={0}
+            side="bottom"
+            sideOffset={4}
+            className={cn(MENU_CONTENT_CLASS, "min-w-52")}
+          >
+            <MenubarItem
+              onClick={() => dispatchDesktopMenuAction("toggle-sidebar")}
+            >
+              <span>Toggle Sidebar</span>
+              <MenubarShortcut>{isMac ? "⌘B" : "Ctrl+B"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem
+              onClick={() => dispatchDesktopMenuAction("toggle-browser")}
+            >
+              <span>Toggle Browser</span>
+              <MenubarShortcut>
+                {isMac ? "⇧⌘B" : "Ctrl+Shift+B"}
+              </MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem
+              onClick={() => dispatchDesktopMenuAction("new-terminal-tab")}
+            >
+              <span>New Terminal Tab</span>
+              <MenubarShortcut>
+                {isMac ? "⇧⌘\\" : "Ctrl+Shift+\\"}
+              </MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={() => window.location.reload()}>
+              <span>Reload</span>
+              <MenubarShortcut>{isMac ? "⌘R" : "Ctrl+R"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem
+              onClick={() => dispatchDesktopMenuAction("reset-zoom")}
+            >
+              <span>Actual Size</span>
+              <MenubarShortcut>{isMac ? "⌘0" : "Ctrl+0"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("zoom-in")}>
+              <span>Zoom In</span>
+              <MenubarShortcut>{isMac ? "⌘=" : "Ctrl+="}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("zoom-out")}>
+              <span>Zoom Out</span>
+              <MenubarShortcut>{isMac ? "⌘-" : "Ctrl+-"}</MenubarShortcut>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
 
-      {/* Help Menu */}
-      <Menu>
-        <MenuTrigger className={MENU_TRIGGER_CLASS}>Help</MenuTrigger>
-        <ComposerPickerMenuPopup align="start" side="bottom" sideOffset={4} className="min-w-48">
-          <MenuItem onClick={() => openExternalLink(MIMIR_DOCS_URL)}>
-            <span>Documentation</span>
-          </MenuItem>
-          <MenuItem onClick={() => dispatchDesktopMenuAction("show-shortcuts")}>
-            <span>Keyboard Shortcuts</span>
-            <MenuShortcut>{isMac ? "⌘/" : "Ctrl+/"}</MenuShortcut>
-          </MenuItem>
-          <MenuItem onClick={() => useReleaseHistoryDialogStore.getState().openDialog()}>
-            <span>What's New</span>
-          </MenuItem>
-          <MenuItem onClick={() => useFeedbackDialogStore.getState().openDialog()}>
-            <span>Send Feedback</span>
-          </MenuItem>
-          <MenuSeparator />
-          <MenuItem onClick={() => void handleCheckForUpdates()}>
-            <span>Check for Updates...</span>
-          </MenuItem>
-        </ComposerPickerMenuPopup>
-      </Menu>
+        {/* Help Menu */}
+        <MenubarMenu>
+          <MenubarTrigger className={MENU_TRIGGER_CLASS}>Help</MenubarTrigger>
+          <MenubarContent
+            align="start"
+            alignOffset={0}
+            side="bottom"
+            sideOffset={4}
+            className={cn(MENU_CONTENT_CLASS, "min-w-48")}
+          >
+            <MenubarItem onClick={() => openExternalLink(MIMIR_DOCS_URL)}>
+              <span>Documentation</span>
+            </MenubarItem>
+            <MenubarItem
+              onClick={() => dispatchDesktopMenuAction("show-shortcuts")}
+            >
+              <span>Keyboard Shortcuts</span>
+              <MenubarShortcut>{isMac ? "⌘/" : "Ctrl+/"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem
+              onClick={() =>
+                useReleaseHistoryDialogStore.getState().openDialog()
+              }
+            >
+              <span>What's New</span>
+            </MenubarItem>
+            <MenubarItem
+              onClick={() => useFeedbackDialogStore.getState().openDialog()}
+            >
+              <span>Send Feedback</span>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={() => void handleCheckForUpdates()}>
+              <span>Check for Updates...</span>
+            </MenubarItem>
+          </MenubarContent>
+        </MenubarMenu>
+      </Menubar>
     </nav>
   );
 }

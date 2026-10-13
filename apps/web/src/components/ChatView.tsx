@@ -5594,7 +5594,7 @@ export default function ChatView({
           <div
             className={cn(
               CHAT_SURFACE_HEADER_ROW_CLASS_NAME,
-              "drag-region px-5",
+              "app-top-bar drag-region px-5",
               desktopTopBarTrafficLightGutterClassName,
               desktopTopBarWindowControlsGutterClassName,
             )}
@@ -6631,7 +6631,7 @@ export default function ChatView({
         className={cn(
           CHAT_SURFACE_HEADER_DIVIDER_CLASS_NAME,
           !isEditorRail && CHAT_SURFACE_HEADER_PADDING_X_CLASS,
-          "flex items-center",
+          "app-top-bar flex items-center",
           isEditorRail ? "h-10" : CHAT_SURFACE_HEADER_HEIGHT_CLASS,
           isElectron && "drag-region",
           // The editor-rail chat header sits in the editor's second row (inside the

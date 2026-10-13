@@ -327,6 +327,13 @@
     background-size: 100% 1px;
   }
 
+  /* Application chrome sits on the quieter under-surface, so menus and active course/chat
+     context read as window controls before the eye reaches the learning workspace below. */
+  .app-top-bar {
+    background-color: var(--color-background-surface-under);
+    background-image: none;
+  }
+
   /* Settings uses a route-level surface so the frosted window material is not
      hidden by nested scroll containers. */
   .app-settings-surface {
@@ -3164,6 +3171,14 @@ diffs-container {
   /* The traffic-light gutter (below) arrives with the panel's collapse; ease it on the
      panel's own curve so the header's content glides instead of stepping. */
   transition: padding-left 300ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Continue the route card's top hairline across the left window-chrome strip. */
+[data-sidebar-layout="rail"] .app-top-bar:has(.app-shell-top-strip) {
+  background-image: linear-gradient(var(--app-surface-divider), var(--app-surface-divider));
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 1px;
 }
 
 /* Reduced motion keeps the header, reserved controls, and block edges on the same

@@ -9,7 +9,7 @@ import { MUTED_LABEL_TEXT_CLASS_NAME } from "~/surfaceStyles";
 export { COMPOSER_PICKER_SIZE, type ComposerPickerSize } from "./composerPickerSize";
 
 /** M3 Expressive elevation for floating surfaces and composer chrome. */
-export const COMPOSER_SURFACE_SHADOW_CLASS_NAME = "shadow-elevation-1";
+export const COMPOSER_SURFACE_SHADOW_CLASS_NAME = "shadow-sm";
 
 // Uses the UI-sm token so picker labels sit slightly below the editor text size.
 // The sm: override is required to beat the Button component's base responsive text classes.
@@ -167,13 +167,13 @@ export const COMPOSER_INPUT_SURFACE_CLASS_NAME = `chat-composer-surface squircle
 export const APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden border border-[color:var(--overlay-border)] bg-popover text-popover-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
 
 /** Default floating popup shell with M3 Expressive container corners and elevation-2. */
-export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xl shadow-elevation-2`;
+export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xl shadow-md`;
 
 /** Chrome for plain tooltips and the sidebar hover cards: M3 small/medium corners and elevation-1. */
-export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xs shadow-elevation-1`;
+export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xs shadow-sm`;
 
 /** Shared border, radius, and shadow for composer-attached popup panels. */
-export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-[color:var(--overlay-border)] ${COMPOSER_PICKER_RADIUS_CLASS_NAME} shadow-elevation-2`;
+export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-[color:var(--overlay-border)] ${COMPOSER_PICKER_RADIUS_CLASS_NAME} shadow-md`;
 
 /** Visual shell for composer picker dropdown panels (menus attached to the composer). */
 export const COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} ${COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME}`;
@@ -205,7 +205,7 @@ export const COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME = `${COMPOSER_PICKER_MEN
  *  Picker border/radius/shadow, but a solid fill: the menu floats over the
  *  transcript, so frosted bg-popover/70 would let chat content bleed through. */
 export const COMPOSER_COMMAND_MENU_SURFACE_CLASS_NAME =
-  "relative overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-elevation-3";
+  "relative overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-lg";
 
 /** Environment panel card. Opaque for the same reason as the command menu (it overlays the
  *  transcript), except on a whole-window glass shell, where it takes the shared raised

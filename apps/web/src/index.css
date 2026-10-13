@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "./styles/m3e.css";
 
 @custom-variant dark (&:is(.dark, .dark *));
 
@@ -73,6 +72,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --radius-xs: calc(var(--radius) * 0.4);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -119,8 +119,37 @@
 }
 
 @layer components {
+  /* Syntax highlighting follows the active app palette instead of Material color roles. */
+  .th-comment,
+  .th-meta {
+    color: var(--color-text-foreground-tertiary, var(--muted-foreground));
+  }
+  .th-keyword,
+  .th-function,
+  .th-command,
+  .th-tag,
+  .th-selector,
+  .th-number,
+  .th-literal,
+  .th-type,
+  .th-attr,
+  .th-heading,
+  .th-link {
+    color: var(--color-text-accent, var(--info));
+  }
+  .th-string,
+  .th-inserted {
+    color: var(--color-decoration-added, var(--success));
+  }
+  .th-operator {
+    color: var(--color-text-foreground-secondary, var(--muted-foreground));
+  }
+  .th-deleted {
+    color: var(--color-decoration-deleted, var(--destructive));
+  }
+
   .sidebar-icon-button {
-    @apply items-center justify-center rounded-full p-0.5 text-muted-foreground/70 transition-all motion-spatial-fast hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary active:scale-90;
+    @apply items-center justify-center rounded-full p-0.5 text-muted-foreground/70 transition-all duration-150 ease-out hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary active:scale-90;
     background: transparent;
   }
 

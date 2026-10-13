@@ -180,7 +180,7 @@ function Slider({
                 the track edge and expose the fill behind it. */}
             <span
               aria-hidden="true"
-              className="block size-full rounded-full bg-primary border-2 border-background shadow-elevation-2 transition-all motion-spatial-fast group-hover/slider:shadow-elevation-3 group-data-pressed/slider:scale-125 group-data-pressed/slider:shadow-elevation-4 motion-reduce:transition-none"
+              className="block size-full rounded-full bg-primary border-2 border-background shadow-md transition-all duration-150 ease-out group-hover/slider:shadow-lg group-data-pressed/slider:scale-125 group-data-pressed/slider:shadow-xl motion-reduce:transition-none"
             />
           </SliderPrimitive.Thumb>
         </SliderPrimitive.Track>

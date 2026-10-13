@@ -79,7 +79,7 @@ function TooltipPopup({
       >
         <TooltipPrimitive.Popup
           className={cn(
-            "motion-popup flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance rounded-xs shadow-elevation-1 text-ui-sm transition-[width,height,scale,opacity] data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0 data-instant:duration-0",
+            "transition-[opacity,scale,translate] duration-150 ease-out flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance rounded-xs shadow-sm text-ui-sm transition-[width,height,scale,opacity] data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0 data-instant:duration-0",
             TOOLTIP_SURFACE_BY_VARIANT[variant],
             className,
           )}

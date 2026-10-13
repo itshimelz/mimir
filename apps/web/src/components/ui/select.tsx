@@ -156,7 +156,7 @@ function SelectPopup({
   const viewportClassName = cn(
     COMPOSER_PICKER_MENU_POPUP_VIEWPORT_CLASS_NAME,
     surface === "settings"
-      ? cn(APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME, "rounded-md", "shadow-elevation-2")
+      ? cn(APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME, "rounded-md", "shadow-md")
       : COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME,
     shellClassName,
   );
@@ -185,7 +185,7 @@ function SelectPopup({
           sideOffset={sideOffset}
         >
           <SelectPrimitive.Popup
-            className="origin-(--transform-origin) motion-popup rounded-md shadow-elevation-2 text-[var(--color-text-foreground)]"
+            className="origin-(--transform-origin) transition-[opacity,scale,translate] duration-150 ease-out rounded-md shadow-md text-[var(--color-text-foreground)]"
             data-slot="select-popup"
             {...props}
           >

@@ -22,7 +22,7 @@ export function ModelStarButton(props: {
       aria-label={props.label}
       aria-pressed={props.starred}
       className={cn(
-        "inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground/50 transition-all motion-spatial-fast hover:bg-foreground/10 hover:text-foreground active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
+        "inline-flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground/50 transition-all duration-150 ease-out hover:bg-foreground/10 hover:text-foreground active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary",
         props.starred && "text-amber-400 hover:text-amber-300",
       )}
       onClick={(event) => {

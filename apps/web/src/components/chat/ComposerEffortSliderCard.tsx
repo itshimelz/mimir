@@ -41,7 +41,7 @@ type ComposerEffortSliderCardProps = {
 };
 
 const CARD_ICON_BUTTON_CLASS_NAME =
-  "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all motion-spatial-fast hover:bg-foreground/10 active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-35";
+  "flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full transition-all duration-150 ease-out hover:bg-foreground/10 active:scale-90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-35";
 
 // Effort ladder as a stepped slider. Every level the model exposes is one stop
 // (including prompt-injected ones such as Ultrathink), so the ladder matches the

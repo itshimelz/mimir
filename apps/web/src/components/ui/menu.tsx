@@ -115,7 +115,7 @@ function MenuPopupBase({
       >
         <MenuPrimitive.Popup
           className={cn(
-            "motion-menu relative flex origin-(--transform-origin) text-[var(--color-text-foreground)] outline-none focus:outline-none transition-shape",
+            "transition-[opacity,scale] duration-[120ms] ease-out data-starting-style:opacity-0 data-starting-style:scale-95 data-ending-style:opacity-0 data-ending-style:scale-95 relative flex origin-(--transform-origin) text-[var(--color-text-foreground)] outline-none focus:outline-none",
             isComposerSurface ? "min-w-0 max-w-[92vw]" : "w-full min-w-full",
             popupSurfaceClassName,
             // Last so a caller's className can override surface tokens (e.g. a rounder radius).

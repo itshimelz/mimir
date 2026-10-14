@@ -47,7 +47,7 @@ export default function ClosingCTA({
               <Icon name="arrow_forward" data-icon="inline-end" />
             </Button>
             <p className="text-body-small text-on-primary-container/80">
-              In active development · Made by Himelz Studio
+              Local-first cognitive architecture · Engineered for university rigor
             </p>
           </div>
         </Card>

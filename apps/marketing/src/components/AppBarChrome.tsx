@@ -39,9 +39,6 @@ export default function AppBarChrome({ stars }: { stars?: number | null } = {}) 
             priority
           />
           <span className="font-heading font-medium tracking-tight">Mimir</span>
-          <span className="hidden sm:inline-flex rounded-full bg-surface-container px-2.5 py-0.5 text-label-small font-mono text-on-surface-variant border border-outline-variant/50">
-            Preview
-          </span>
         </Link>
       }
       trailing={
@@ -55,9 +52,6 @@ export default function AppBarChrome({ stars }: { stars?: number | null } = {}) 
           </nav>
           <div className="flex items-center gap-1.5 sm:gap-2">
             <ThemeToggle />
-            <span className="hidden sm:inline-flex rounded-full bg-secondary-container px-3 py-1 text-label-small font-medium text-on-secondary-container">
-              In development
-            </span>
           </div>
           <MobileNav />
         </>

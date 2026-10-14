@@ -44,10 +44,20 @@ export default async function Home() {
               size="lg"
               className="relative overflow-hidden rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 sm:p-10 lg:p-12 shadow-elevation-1"
             >
+              {/* Ambient radial gradients for depth */}
+              <div
+                className="pointer-events-none absolute -top-24 -right-24 size-80 rounded-full bg-primary/10 blur-3xl"
+                aria-hidden
+              />
+              <div
+                className="pointer-events-none absolute -bottom-24 -left-24 size-80 rounded-full bg-secondary/10 blur-3xl"
+                aria-hidden
+              />
+
               {/* Main Headline */}
               <h1
                 id="homepage-title"
-                className="max-w-3xl text-display-small font-heading font-semibold tracking-tight text-on-surface sm:text-display-medium lg:text-display-large"
+                className="relative max-w-3xl text-display-small font-heading font-semibold tracking-tight text-on-surface sm:text-display-medium lg:text-display-large"
               >
                 {PRODUCT_HERO_TITLE}
               </h1>
@@ -55,13 +65,13 @@ export default async function Home() {
               {/* Hero Subtitle */}
               <p
                 data-live-hero-color="true"
-                className="mt-5 max-w-2xl text-body-large text-on-surface-variant leading-relaxed"
+                className="relative mt-5 max-w-2xl text-body-large text-on-surface-variant leading-relaxed"
               >
                 {PRODUCT_HERO_DESCRIPTION}
               </p>
 
               {/* Action block (download and github hidden as Mimir is in pre-release) */}
-              <div className="mt-8 flex flex-wrap items-center gap-3" data-home-actions>
+              <div className="relative mt-8 flex flex-wrap items-center gap-3" data-home-actions>
                 <Button
                   variant="filled"
                   size="md"
@@ -80,10 +90,6 @@ export default async function Home() {
                   Workspace Architecture
                   <Icon name="account_tree" data-icon="inline-end" />
                 </Button>
-                <div className="flex items-center gap-2 rounded-full bg-surface-container px-3.5 py-1.5 text-label-medium text-on-surface-variant border border-outline-variant/40">
-                  <span className="size-2 rounded-full bg-tertiary" />
-                  <span>In development · Himelz Studio</span>
-                </div>
               </div>
             </Card>
 
@@ -354,6 +360,116 @@ export default async function Home() {
                   </div>
                 </div>
               </Card>
+            </div>
+
+            {/* =========================================================================
+             * INSTITUTIONAL & RESEARCH THESIS (Why Back Mimir)
+             * Active retrieval paradigm vs passive answer dispensers for higher ed.
+             * ========================================================================= */}
+            <div className="mt-14 sm:mt-20">
+              <div className="mx-auto max-w-3xl text-center">
+                <Badge
+                  variant="secondary"
+                  className="rounded-full px-3.5 py-1 text-label-medium font-medium shadow-xs"
+                >
+                  Higher Education · Cognitive Architecture
+                </Badge>
+                <h2 className="mt-4 text-headline-medium font-heading font-semibold tracking-tight text-on-surface sm:text-headline-large">
+                  Why academic learning demands an active co-learner
+                </h2>
+                <p className="mt-4 text-body-large text-on-surface-variant leading-relaxed">
+                  General-purpose chatbots act as passive answer dispensers, resulting in rapid
+                  retention decay. Mimir inverts the dynamic: a local desktop architecture that
+                  guides students through diagnostic retrieval, verifiable synthesis, and lasting
+                  comprehension.
+                </p>
+              </div>
+
+              <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <Card
+                  variant="outlined"
+                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
+                >
+                  <div>
+                    <span className="flex size-10 items-center justify-center rounded-xl bg-primary-container text-on-primary-container shadow-xs">
+                      <Icon name="lightbulb" size={20} />
+                    </span>
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                      Active Cognitive Retrieval
+                    </h3>
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                      Socratic questioning and calibrated hints ensure students build synaptic
+                      retrieval pathways instead of outsourcing cognition to raw text generation.
+                    </p>
+                  </div>
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-primary font-medium">
+                    4× conceptual retention
+                  </div>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
+                >
+                  <div>
+                    <span className="flex size-10 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container shadow-xs">
+                      <Icon name="shield" size={20} />
+                    </span>
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                      Zero Institutional Liability
+                    </h3>
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                      Course files, unreleased research, and student notes remain 100% on local
+                      hardware. Zero centralized database, zero student data mining.
+                    </p>
+                  </div>
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-secondary font-medium">
+                    100% local isolation
+                  </div>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
+                >
+                  <div>
+                    <span className="flex size-10 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container shadow-xs">
+                      <Icon name="hub" size={20} />
+                    </span>
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                      Universal Runtime Freedom
+                    </h3>
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                      No proprietary vendor lock-in. Compatible with student-configured CLIs across
+                      Claude Code, Codex, OpenCode, and Antigravity with zero cloud server markup.
+                    </p>
+                  </div>
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-tertiary font-medium">
+                    Multi-provider portability
+                  </div>
+                </Card>
+
+                <Card
+                  variant="outlined"
+                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
+                >
+                  <div>
+                    <span className="flex size-10 items-center justify-center rounded-xl bg-surface-container-high text-on-surface shadow-xs">
+                      <Icon name="menu_book" size={20} />
+                    </span>
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                      Durable Knowledge Outbox
+                    </h3>
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                      Every study session compiles into permanent Markdown summaries, JSON concept
+                      trees, and active recall practice decks stored directly on disk.
+                    </p>
+                  </div>
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-on-surface-variant font-medium">
+                    Offline-ready artifacts
+                  </div>
+                </Card>
+              </div>
             </div>
           </div>
         </section>

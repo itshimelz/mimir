@@ -4935,11 +4935,15 @@ export default function Sidebar() {
 
   const effectiveCourseTab: CourseSidebarTab = useMemo(() => {
     if (userSelectedCourseTab !== null) return userSelectedCourseTab;
+    if (railActiveItem === "chats" || railPanelView === "chats") return "chats";
+    if (railActiveItem === "spaces") {
+      return editorSurface === "studio" ? "studio" : "files";
+    }
     if (currentSearchView === "editor") {
       return editorSurface === "studio" ? "studio" : "files";
     }
     return "chats";
-  }, [userSelectedCourseTab, currentSearchView, editorSurface]);
+  }, [userSelectedCourseTab, railActiveItem, railPanelView, currentSearchView, editorSurface]);
 
   const courseThreads = useMemo(() => {
     if (!courseProject) return [];
@@ -6135,61 +6139,44 @@ export default function Sidebar() {
 
     return (
       <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1">
-        {/* Course Workspace Tabs: Chats, Files, Deliverables */}
-        <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-1 shrink-0">
-          <button
-            type="button"
-            className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
-              effectiveCourseTab === "chats"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
-            )}
-            onClick={() => setUserSelectedCourseTab("chats")}
-            title="Study Chats"
-          >
-            <ChatBubbleIcon className="size-3.5 shrink-0" />
-            <span>Chats</span>
-            {courseThreads.length > 0 ? (
-              <span className="ml-0.5 rounded-full bg-muted px-1.5 py-0.2 text-ui-2xs text-muted-foreground">
-                {courseThreads.length}
-              </span>
-            ) : null}
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
-              effectiveCourseTab === "files"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
-            )}
-            onClick={() => setUserSelectedCourseTab("files")}
-            title="Course Files"
-          >
-            <FolderIcon className="size-3.5 shrink-0" />
-            <span>Files</span>
-          </button>
-          <button
-            type="button"
-            className={cn(
-              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
-              effectiveCourseTab === "studio"
-                ? "bg-background text-foreground shadow-xs"
-                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
-            )}
-            onClick={() => setUserSelectedCourseTab("studio")}
-            title="Deliverables"
-          >
-            <SparkleIcon className="size-3.5 shrink-0" />
-            <span>Outbox</span>
-            {resolvedStudioOutputs.entries.length > 0 ? (
-              <span className="ml-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-ui-2xs font-semibold">
-                {resolvedStudioOutputs.entries.length}
-              </span>
-            ) : null}
-          </button>
-        </div>
+        {/* Course Workspace Tabs: Files, Deliverables (Chats is in App Rail) */}
+        {effectiveCourseTab !== "chats" ? (
+          <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-1 shrink-0">
+            <button
+              type="button"
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+                effectiveCourseTab === "files"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+              )}
+              onClick={() => setUserSelectedCourseTab("files")}
+              title="Course Files"
+            >
+              <FolderIcon className="size-3.5 shrink-0" />
+              <span>Files</span>
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+                effectiveCourseTab === "studio"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+              )}
+              onClick={() => setUserSelectedCourseTab("studio")}
+              title="Deliverables"
+            >
+              <SparkleIcon className="size-3.5 shrink-0" />
+              <span>Outbox</span>
+              {resolvedStudioOutputs.entries.length > 0 ? (
+                <span className="ml-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-ui-2xs font-semibold">
+                  {resolvedStudioOutputs.entries.length}
+                </span>
+              ) : null}
+            </button>
+          </div>
+        ) : null}
 
         {/* Tab Content */}
         {effectiveCourseTab === "chats" ? (
@@ -7020,14 +7007,14 @@ export default function Sidebar() {
     ),
   );
   const railItemLabel = (id: RailOrderableItemId): string =>
-    id === "home" || id === "spaces"
+    id === "home" || id === "spaces" || id === "chats"
       ? RAIL_PANEL_ITEM_LABELS[id]
       : id === "studio"
         ? "Hubs"
         : sidebarNavDescriptors[id].label;
   const railItemFor = (id: RailOrderableItemId): AppRailItem => {
     const base = { id, glyphs: railItemGlyphs(id), label: railItemLabel(id) };
-    if (id === "home" || id === "spaces") {
+    if (id === "home" || id === "spaces" || id === "chats") {
       return {
         ...base,
         badge: null,
@@ -7052,6 +7039,9 @@ export default function Sidebar() {
                 view: "editor",
               })) as never,
             });
+          } else if (id === "chats") {
+            setActivityViewEnabledSmoothly(false);
+            setUserSelectedCourseTab("chats");
           } else if (id === "home") {
             setUserSelectedCourseTab("chats");
             void navigate({

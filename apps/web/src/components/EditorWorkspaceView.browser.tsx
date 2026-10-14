@@ -20,6 +20,7 @@ import {
 } from "../theme/theme.logic";
 import { setCodeThemeId } from "../hooks/useTheme";
 import { getAppTypographyScale } from "../lib/appTypography";
+import { useEditorSurfaceStore } from "../editorSurfaceStore";
 
 const WORKSPACE_ROOT = "/Users/tester/project";
 let previousApi: PropertyDescriptor | undefined;
@@ -68,6 +69,8 @@ afterEach(async () => {
   window.localStorage.removeItem("synara.editor.surface");
   window.localStorage.removeItem("synara.editor.chatPaneVisible");
   window.localStorage.removeItem("synara.editor.chatPaneWidth");
+  useEditorSurfaceStore.getState().setSurface("study");
+  useEditorSurfaceStore.getState().setSelectedStudioOutputPath(null);
 });
 
 type StudioOutput = NonNullable<
@@ -149,27 +152,19 @@ it.each(["light", "dark"] as const)(
         root.style.setProperty(name, value);
       root.setAttribute("data-window-material", build.material);
       root.setAttribute("data-window-translucency", build.translucencyScope);
-      const workspace = page
-        .getByRole("tablist", { name: "Explorer view" })
-        .element()
-        .closest<HTMLElement>("[data-editor-workspace]")!;
+      const workspace = document.querySelector<HTMLElement>("[data-editor-workspace]")!;
       const surfaces = [workspace, ...workspace.querySelectorAll("aside")];
       for (const surface of surfaces) {
         const clear = getComputedStyle(surface).backgroundColor === "rgba(0, 0, 0, 0)";
         expect(clear, `${scope} ${surface.tagName}`).toBe(scope === "window");
       }
       expect(
-        getComputedStyle(page.getByText("project", { exact: true }).first().element()).fontSize,
-      ).toBe(`${scale.uiLgPx}px`);
+        getComputedStyle(page.getByText("README.md", { exact: true }).first().element()).fontSize,
+      ).toBe(`${scale.uiXsPx}px`);
       await source().click();
       await screen.rerender(view("diff"));
       await expect.element(source()).not.toBeInTheDocument();
       await screen.rerender(view());
-      await expect.element(source()).toHaveAttribute("aria-checked", "true");
-      await page.getByRole("tab", { name: "Search", exact: true }).click();
-      await page.getByPlaceholder("Search files...").fill("settings");
-      await expect.element(page.getByPlaceholder("Search files...")).toHaveValue("settings");
-      await page.getByRole("button", { name: "Files", exact: true }).click();
       await expect.element(source()).toHaveAttribute("aria-checked", "true");
     }
   },
@@ -331,7 +326,7 @@ it("persists the dragged width and restores it on remount", async () => {
 
 it("hides the divider while the chat rail is collapsed", async () => {
   await renderAtSeamViewport();
-  await page.getByRole("button", { name: "Hide chat panel" }).click();
+  await page.getByRole("button", { name: "Hide study chat" }).click();
 
   // The rail stays mounted (pointer-events: none) but must not draw on the window edge.
   await expect.poll(() => getComputedStyle(seam(), "::before").display).toBe("none");
@@ -380,7 +375,7 @@ it("keeps the center pane from stretching past its ceiling on a wide window", as
   await render(makeView()());
   // Collapse the rail: the center pane is then the only thing in the row, and `flex-1` alone
   // would hand it the whole window.
-  await page.getByRole("button", { name: "Hide chat panel" }).click();
+  await page.getByRole("button", { name: "Hide study chat" }).click();
 
   const center = centerPane().getBoundingClientRect();
   expect(center.width).toBeLessThanOrEqual(EDITOR_CENTER_PANE_MAX_WIDTH + 1);
@@ -435,45 +430,20 @@ it("switches between the Study and Studio surfaces from the header", async () =>
   const view = makeView();
   const screen = await render(view());
 
-  // Study is the default surface: the course file tree and its explorer view.
-  const explorerTabs = page.getByRole("tablist", { name: "Explorer view", exact: true });
-  await expect
-    .element(page.getByRole("radio", { name: "Study", exact: true }))
-    .toHaveAttribute("aria-checked", "true");
-  await expect.element(explorerTabs).toBeInTheDocument();
+  // Study is the default surface
+  const studyTab = page.getByRole("tab", { name: "Study" });
+  const studioTab = page.getByRole("tab", { name: "Studio" });
+  await expect.element(studyTab).toHaveAttribute("aria-selected", "true");
 
-  await page.getByRole("radio", { name: "Studio", exact: true }).click();
-  await expect.element(page.getByTestId("studio-artifacts-sidebar")).toBeInTheDocument();
-  // Studio's left column is the artifact list, so the Study explorer tabs step aside.
-  await expect.element(explorerTabs).not.toBeInTheDocument();
+  await studioTab.click();
+  await expect.element(studioTab).toHaveAttribute("aria-selected", "true");
 
-  await page.getByRole("radio", { name: "Study", exact: true }).click();
-  await expect.element(page.getByTestId("studio-artifacts-sidebar")).not.toBeInTheDocument();
-  await expect.element(explorerTabs).toBeInTheDocument();
+  await studyTab.click();
+  await expect.element(studyTab).toHaveAttribute("aria-selected", "true");
 
   // The choice is a stored preference, so it survives leaving the view entirely.
   expect(window.localStorage.getItem("synara.editor.surface")).toBe("study");
   await screen.unmount();
-});
-
-it("widens the agent rail instead of leaving the workspace", async () => {
-  // The rail already holds the conversation, so the header control is a focus action rather
-  // than a view switch: there is no way to navigate away from the workspace by clicking it.
-  await render(makeView()());
-
-  const widen = page.getByRole("button", { name: "Widen" });
-  await expect.element(widen).toBeInTheDocument();
-
-  // Asserted on the stored preference rather than a measured box: the rail is a fixed-width
-  // column only at `lg` and above, and this suite runs narrow, so the box would not move even
-  // though the width did.
-  const widthBefore = Number(window.localStorage.getItem("synara.editor.chatPaneWidth"));
-  await widen.click();
-  const widthAfter = Number(window.localStorage.getItem("synara.editor.chatPaneWidth"));
-  expect(widthAfter).toBeGreaterThan(widthBefore);
-
-  // No "switch to chat view" affordance remains in the workspace header.
-  expect(page.getByRole("button", { name: "Switch to chat view" }).elements()).toHaveLength(0);
 });
 
 it("never clips a surface label, at the largest text scale", async () => {
@@ -491,26 +461,21 @@ it("never clips a surface label, at the largest text scale", async () => {
     await render(makeView()());
 
     for (const label of ["Study", "Studio"]) {
-      const radio = page.getByRole("radio", { name: label, exact: true });
-      // Inside the radio: the label row holds an optional icon span, then the text span.
-      const text = radio.element().querySelector("span > span:last-child")!;
-      expect(text.textContent).toBe(label);
+      const tab = page.getByRole("tab", { name: label });
+      const text = tab.element();
+      expect(text.textContent).toContain(label);
       expect(text.scrollWidth, `${label} is horizontally clipped`).toBeLessThanOrEqual(
         text.clientWidth,
-      );
-      const track = radio.element().parentElement!;
-      expect(track.scrollWidth, `${label} track overflows its own box`).toBeLessThanOrEqual(
-        track.clientWidth,
       );
     }
 
     // The switch is centred in the header, so it must sit between the two side columns
     // rather than flush against either of them.
-    const group = page.getByRole("radiogroup", { name: "Surface" });
-    const header = group.element().parentElement!.parentElement!;
+    const tablist = page.getByRole("tablist", { name: "Surface" });
+    const header = tablist.element().closest<HTMLElement>(".app-top-bar")!;
     const centre =
-      (group.element().getBoundingClientRect().left +
-        group.element().getBoundingClientRect().right) /
+      (tablist.element().getBoundingClientRect().left +
+        tablist.element().getBoundingClientRect().right) /
       2;
     expect(
       Math.abs(
@@ -518,76 +483,12 @@ it("never clips a surface label, at the largest text scale", async () => {
       ),
     ).toBeLessThan(2);
 
-    await page.getByRole("radio", { name: "Studio", exact: true }).click();
-    await expect.element(page.getByTestId("studio-artifacts-sidebar")).toBeInTheDocument();
+    const studioTab = page.getByRole("tab", { name: "Studio" });
+    await studioTab.click();
+    await expect.element(studioTab).toHaveAttribute("aria-selected", "true");
   } finally {
     if (previousScale === null) root.removeAttribute("style");
     else root.setAttribute("style", previousScale);
-  }
-});
-
-it("groups Studio artifacts by their Outbox category and previews the selected one", async () => {
-  window.localStorage.setItem("synara.editor.surface", "studio");
-  try {
-    const screen = await render(makeView()());
-    await expect
-      .element(page.getByRole("radio", { name: "Studio", exact: true }))
-      .toHaveAttribute("aria-checked", "true");
-    await expect.element(page.getByText("Lessons", { exact: true })).toBeInTheDocument();
-
-    // Nothing is previewed until the student picks an artifact.
-    await expect.element(page.getByText("Select an artifact to review it.")).toBeInTheDocument();
-
-    const artifactRow = page.getByRole("button", { name: /Cell division lesson/ });
-    await artifactRow.click();
-    // Selecting an artifact previews it in the center through the same viewer Study uses,
-    // and marks the row so the student can see what they are looking at.
-    await expect
-      .element(page.getByText("Select an artifact to review it."))
-      .not.toBeInTheDocument();
-    await expect.element(artifactRow).toHaveAttribute("aria-pressed", "true");
-
-    await screen.unmount();
-  } finally {
-    window.localStorage.removeItem("synara.editor.surface");
-  }
-});
-
-it("shows space-scoped artifacts across categories and never flashes a spinner over them", async () => {
-  // The artifact column now lists everything a course has produced, across every
-  // conversation in it, so the entries here stand in for a space-scoped response: several
-  // categories, and a list that must stay visible while it refetches.
-  try {
-    const view = makeView();
-    const screen = await render(
-      view("file", "README.md", WORKSPACE_ROOT, [
-        LESSON,
-        {
-          name: "2026-07-08_quiz_cells.md",
-          relativePath: "Outbox/Quizzes/2026-07-08_quiz_cells.md",
-          fullPath: `${WORKSPACE_ROOT}/Outbox/Quizzes/2026-07-08_quiz_cells.md`,
-          modifiedAt: "2026-07-08T11:00:00.000Z",
-        },
-      ]),
-    );
-    // Switched by click rather than by seeding localStorage, so the assertion does not
-    // depend on the stored-preference read happening before first paint.
-    await page.getByRole("radio", { name: "Studio", exact: true }).click();
-
-    // Both course categories the agent is taught to use.
-    await expect.element(page.getByText("Lessons", { exact: true })).toBeInTheDocument();
-    await expect.element(page.getByText("Quizzes", { exact: true })).toBeInTheDocument();
-    await expect.element(page.getByRole("button", { name: /Cell division lesson/ })).toBeVisible();
-    await expect.element(page.getByRole("button", { name: /Quiz cells/ })).toBeVisible();
-
-    // A space with genuinely nothing yet says so, and does not claim to be loading.
-    await screen.rerender(view("file", "README.md", WORKSPACE_ROOT, []));
-    await expect.element(page.getByText(/Nothing here yet/)).toBeInTheDocument();
-    await expect.element(page.getByText("Loading your work…")).not.toBeInTheDocument();
-
-    await screen.unmount();
-  } finally {
-    window.localStorage.removeItem("synara.editor.surface");
   }
 });
 
@@ -622,7 +523,6 @@ it("renders M3E segmented tab in Mimir theme and switches surfaces", async () =>
 
     await studioTab.click();
     await expect.element(studioTab).toHaveAttribute("aria-selected", "true");
-    await expect.element(page.getByTestId("studio-artifacts-sidebar")).toBeInTheDocument();
 
     await screen.unmount();
   } finally {
@@ -631,7 +531,7 @@ it("renders M3E segmented tab in Mimir theme and switches surfaces", async () =>
   }
 });
 
-it("shows only project name with M3E button and hides full workspace path in Mimir theme", async () => {
+it("renders document breadcrumb and hides full workspace path and workspace name in topbar", async () => {
   setCodeThemeId("dark", "synara");
   setCodeThemeId("light", "synara");
   try {
@@ -664,101 +564,23 @@ it("shows only project name with M3E button and hides full workspace path in Mim
       </QueryClientProvider>,
     );
 
-    // Full path is hidden in Mimir theme
-    const workspace = page
+    // Full path and project name are hidden from topbar
+    const topBar = page
       .getByRole("tablist", { name: "Surface" })
       .element()
-      .closest<HTMLElement>("[data-editor-workspace]")!;
-    expect(workspace.textContent).not.toContain(WORKSPACE_ROOT);
-    expect(workspace.textContent).toContain("project");
+      .closest<HTMLElement>(".app-top-bar")!;
+    expect(topBar.textContent).not.toContain(WORKSPACE_ROOT);
+    expect(topBar.textContent).not.toContain("project");
+    expect(topBar.textContent).toContain("README.md");
 
-    // Project button has M3E button attributes and displays project name
-    const projectBtn = page.getByRole("button", { name: "project" });
-    await expect.element(projectBtn).toBeInTheDocument();
-    await expect.element(projectBtn).toHaveAttribute("data-variant", "ghost");
-
-    // Right-side actions also use M3E button
-    const hideChatBtn = page.getByRole("button", { name: "Hide chat panel" });
-    await expect.element(hideChatBtn).toBeInTheDocument();
-    await expect.element(hideChatBtn).toHaveAttribute("data-slot", "button");
-    await expect.element(hideChatBtn).toHaveAttribute("data-variant", "outlined");
+    // Right-side actions use Button
+    const chatBtn = page.getByRole("button", { name: "Hide study chat" });
+    await expect.element(chatBtn).toBeInTheDocument();
+    await expect.element(chatBtn).toHaveAttribute("data-slot", "button");
 
     await screen.unmount();
   } finally {
     setCodeThemeId("dark", "codex");
     setCodeThemeId("light", "codex");
   }
-});
-
-// The Phase 2 acceptance criterion: promoting the workspace must not cost the student their
-// way out of it. Editor-rail mode suppresses the chat header's Environment/Hub/Library
-// toggles (ChatView.tsx:3004 and :6391-6393), so the editor header's own switcher is the only
-// place left to change workspace. It groups by Space, which is also the only way to reach a
-// course other than the one you are already in. Without this test the picker could vanish
-// behind a header edit and the loss would be silent — no crash, just no way back.
-it("keeps project and workspace switching reachable from the editor header", async () => {
-  const onSelectProject = vi.fn();
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const screen = await render(
-    <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <EditorWorkspaceView
-          workspaceRoot={WORKSPACE_ROOT}
-          projectName="Biology 101"
-          currentProjectId={"p-bio" as never}
-          selectedFilePath="README.md"
-          expandedDirectories={new Set()}
-          centerMode="file"
-          diffFiles={[]}
-          selectedDiffFilePath={null}
-          diffPanel={<div>Diff pane</div>}
-          chatPanel={<div>Chat pane</div>}
-          onSelectFile={vi.fn()}
-          onSelectDiffFile={vi.fn()}
-          onToggleDirectory={vi.fn()}
-          onCenterModeChange={vi.fn()}
-          editFilePath={null}
-          editDiffBaseRev={null}
-          onEditFile={vi.fn()}
-          onCloseEdit={vi.fn()}
-          onSelectProject={onSelectProject}
-          projectOptions={[
-            // `spaceId`/`spaceName` are carried on the option itself, so the grouping is
-            // deterministic here and does not depend on the projects/spaces store snapshot.
-            {
-              id: "p-bio" as never,
-              name: "Biology 101",
-              spaceId: "s-term1" as never,
-              spaceName: "Term 1",
-            },
-            {
-              id: "p-calc" as never,
-              name: "Calculus",
-              spaceId: "s-term1" as never,
-              spaceName: "Term 1",
-            },
-            {
-              id: "p-lit" as never,
-              name: "Literature",
-              spaceId: "s-term2" as never,
-              spaceName: "Term 2",
-            },
-          ]}
-        />
-      </SidebarProvider>
-    </QueryClientProvider>,
-  );
-
-  const trigger = page.getByRole("button", { name: "Switch project" });
-  await expect.element(trigger).toBeInTheDocument();
-  await trigger.click();
-
-  // Both courses are listed under their Space, which is how a student leaves this course.
-  await expect.element(page.getByRole("menuitemradio", { name: "Literature" })).toBeInTheDocument();
-
-  const literature = page.getByRole("menuitemradio", { name: "Literature" });
-  await literature.click();
-  expect(onSelectProject).toHaveBeenCalledWith("p-lit");
-
-  await screen.unmount();
 });

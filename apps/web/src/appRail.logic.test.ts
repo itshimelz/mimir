@@ -26,6 +26,7 @@ describe("rail item order", () => {
       "automations",
       "home",
       "spaces",
+      "chats",
       "inbox",
       "kanban",
       "tasks",
@@ -39,21 +40,25 @@ describe("rail item order", () => {
       "kanban",
       "home",
       "spaces",
+      "chats",
       "inbox",
       "tasks",
       "pullRequests",
       "automations",
       "studio",
     ]);
-    expect(normalizeRailItemOrder(["spaces", "home", "inbox"]).slice(0, 3)).toEqual([
+    expect(normalizeRailItemOrder(["spaces", "chats", "home", "inbox"]).slice(0, 4)).toEqual([
       "spaces",
+      "chats",
       "home",
       "inbox",
     ]);
   });
 
-  it("never keeps Home hidden", () => {
-    expect(normalizeHiddenRailItems(["home", "kanban", "gone", "kanban"])).toEqual(["kanban"]);
+  it("never keeps Home or Chats hidden", () => {
+    expect(normalizeHiddenRailItems(["home", "chats", "kanban", "gone", "kanban"])).toEqual([
+      "kanban",
+    ]);
   });
 
   it("drops hidden items unless active, and Studio or Inbox unless available", () => {
@@ -66,7 +71,7 @@ describe("rail item order", () => {
         studioAvailable: false,
         inboxAvailable: false,
       }),
-    ).toEqual(["home", "automations"]);
+    ).toEqual(["chats", "home", "automations"]);
     expect(
       buildRailItemOrder({
         order,
@@ -85,7 +90,7 @@ describe("rail item order", () => {
     const academicDefaults = { studioAvailable: false, inboxAvailable: false };
     expect(
       RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, academicDefaults)),
-    ).toEqual(["spaces", "home", "automations"]);
+    ).toEqual(["spaces", "chats", "home", "automations"]);
     expect(isRailItemAvailable("inbox", { studioAvailable: false, inboxAvailable: true })).toBe(
       true,
     );

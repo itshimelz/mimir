@@ -104,7 +104,7 @@ describe("CourseWorkspaceHome", () => {
     await page.getByRole("button", { name: "Switch Course" }).click();
     expect(onSwitchCourse).toHaveBeenCalledTimes(1);
 
-    await page.getByRole("button", { name: "Course Files" }).click();
+    await page.getByRole("button", { name: "Course Files" }).first().click();
     expect(onOpenEditor).toHaveBeenCalledTimes(1);
   });
 });

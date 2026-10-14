@@ -11,6 +11,7 @@ import { parseDiffRouteSearch, type DiffRouteSearch } from "../diffRouteSearch";
 import { readSidebarUiState } from "../components/Sidebar.uiState";
 import { ChatMountLoader } from "../components/chat/ChatThreadSurfacePrimitives";
 import { useComposerDraftStore } from "../composerDraftStore";
+import { useCourseWorkspaceStore } from "../courseWorkspaceStore";
 import { useHandleNewThread } from "../hooks/useHandleNewThread";
 import { useRailShellStore } from "../railShellStore";
 import { useSplitViewStore } from "../splitViewStore";
@@ -42,47 +43,79 @@ function ChatEditorRouteView() {
         useComposerDraftStore.getState().draftThreadsByThreadId[id as ThreadId],
       );
 
-    // 1. Try lastThreadRoute
+    const activeCourseId = useCourseWorkspaceStore.getState().activeCourseId;
+    const recentThreadIdByCourse = useCourseWorkspaceStore.getState().recentThreadIdByCourse;
+    const courseRecentThreadId = activeCourseId
+      ? recentThreadIdByCourse[activeCourseId]
+      : undefined;
+
+    const buildEditorSearch = (previous?: Record<string, unknown>) => {
+      const { home: _, ...rest } = previous ?? {};
+      return {
+        ...rest,
+        ...search,
+        view: "editor" as const,
+      };
+    };
+
+    // 1. If active course has a recent thread, navigate to it in editor view
+    if (courseRecentThreadId && isThreadKnown(courseRecentThreadId)) {
+      void navigate({
+        to: "/$threadId",
+        params: { threadId: courseRecentThreadId },
+        replace: true,
+        search: (previous) => buildEditorSearch(previous as Record<string, unknown>),
+      });
+      return;
+    }
+
+    // 2. Try any thread belonging to active course
+    if (activeCourseId) {
+      const courseThread = threadIds.find((id) => {
+        const shell = threadShellById?.[id as ThreadId];
+        const summary = sidebarThreadSummaryById[id as ThreadId];
+        return (shell?.projectId ?? summary?.projectId) === activeCourseId;
+      });
+      if (courseThread) {
+        void navigate({
+          to: "/$threadId",
+          params: { threadId: courseThread },
+          replace: true,
+          search: (previous) => buildEditorSearch(previous as Record<string, unknown>),
+        });
+        return;
+      }
+    }
+
+    // 3. Try lastThreadRoute
     const lastThreadRoute = readSidebarUiState().lastThreadRoute;
     if (lastThreadRoute?.threadId && isThreadKnown(lastThreadRoute.threadId)) {
       void navigate({
         to: "/$threadId",
         params: { threadId: lastThreadRoute.threadId },
         replace: true,
-        search: (previous) => ({
-          ...previous,
-          ...search,
-          view: "editor",
-        }),
+        search: (previous) => buildEditorSearch(previous as Record<string, unknown>),
       });
       return;
     }
 
-    // 2. Try the first available thread
+    // 4. Try the first available thread
     const candidateThreadId = threadIds[0];
     if (candidateThreadId) {
       void navigate({
         to: "/$threadId",
         params: { threadId: candidateThreadId },
         replace: true,
-        search: (previous) => ({
-          ...previous,
-          ...search,
-          view: "editor",
-        }),
+        search: (previous) => buildEditorSearch(previous as Record<string, unknown>),
       });
       return;
     }
 
-    // 3. Fallback: create fresh thread for the first project
-    const firstProject = projects[0];
-    if (firstProject) {
-      void handleNewThread(firstProject.id, undefined, {
-        search: (previous) => ({
-          ...previous,
-          ...search,
-          view: "editor",
-        }),
+    // 5. Fallback: create fresh thread for the active course or first project
+    const targetProjectId = activeCourseId ?? projects[0]?.id;
+    if (targetProjectId) {
+      void handleNewThread(targetProjectId, undefined, {
+        search: (previous) => buildEditorSearch(previous as Record<string, unknown>),
       });
     }
   }, [

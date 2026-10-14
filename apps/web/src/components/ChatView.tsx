@@ -6633,6 +6633,12 @@ export default function ChatView({
           !isEditorRail && CHAT_SURFACE_HEADER_PADDING_X_CLASS,
           "app-top-bar flex items-center",
           isEditorRail ? "h-10" : CHAT_SURFACE_HEADER_HEIGHT_CLASS,
+          // The study-chat rail's header sits a row below the window's top bar, inside
+          // the rail block, so the rail-layout rule that leaves a route header clear
+          // (the block's top border stands in for its hairline) does not apply to it.
+          // The marker hands it a chrome band of its own — see "Study-chat rail" in
+          // index.css, which is also why the rail needs its seam.
+          isEditorRail ? "study-chat-rail-header" : undefined,
           isElectron && "drag-region",
           // The editor-rail chat header sits in the editor's second row (inside the
           // right-side chat pane), not flush against the window edges — the editor's

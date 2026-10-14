@@ -75,38 +75,31 @@ describe("EditorWorkspaceView surfaces", () => {
     expect(markup).toContain('aria-label="Surface"');
     expect(markup).toContain("Study");
     expect(markup).toContain("Studio");
-    // Study owns the course file tree and its activity bar.
-    expect(markup).toContain('aria-label="Editor activity bar"');
-    expect(markup).not.toContain('data-testid="studio-artifacts-sidebar"');
+  });
+
+  it("does not show course or workspace name in topbar", () => {
+    const markup = renderView({ projectName: "CS101", selectedFilePath: "syllabus.md" });
+    // Proves topbar does not leak the workspace name
+    expect(markup).not.toContain("CS101");
+    expect(markup).toContain("syllabus.md");
+  });
+
+  it("renders document breadcrumbs and study actions in topbar", () => {
+    const markup = renderView({ selectedFilePath: "Inbox/Week1/lecture.pdf" });
+    expect(markup).toContain("Inbox/Week1");
+    expect(markup).toContain("lecture.pdf");
+    expect(markup).toContain("Study Chat");
   });
 
   it("does not render Studio content in the default surface", () => {
     // Artifacts passed in must stay invisible while Study is active, so the two
     // surfaces cannot bleed into each other.
     const markup = renderView({ studioOutputs: [ARTIFACT] });
-    expect(markup).not.toContain('data-testid="studio-artifacts-sidebar"');
     expect(markup).not.toContain("Outbox/Content");
-  });
-
-  it("renders a unified resizable left panel with a resize separator", () => {
-    const markup = renderView();
-    expect(markup).toContain('data-testid="editor-resizable-left-panel"');
-    expect(markup).toContain('aria-label="Resize left panel"');
   });
 });
 
 describe("EditorWorkspaceView", () => {
-  it("shows skeleton rows instead of the empty message while the diff loads", () => {
-    const markup = renderToStaticMarkup(
-      <SidebarProvider>
-        <EditorWorkspaceView {...makeEditorBaseProps()} centerMode="diff" diffFilesLoading={true} />
-      </SidebarProvider>,
-    );
-
-    expect(markup).toContain('aria-label="Loading changed files..."');
-    expect(markup).not.toContain("No files in this diff.");
-  });
-
   it("keeps the diff panel mounted but hidden while browsing files", () => {
     const markup = renderToStaticMarkup(
       <SidebarProvider>

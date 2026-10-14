@@ -26,10 +26,11 @@ import type { SidebarNavItemId } from "./sidebarNavOrdering";
 import type { Space } from "./types";
 
 /** Rail items that switch the panel content instead of navigating. */
-export const RAIL_PANEL_ITEM_IDS = ["spaces", "home"] as const;
+export const RAIL_PANEL_ITEM_IDS = ["spaces", "chats", "home"] as const;
 export type RailPanelItemId = (typeof RAIL_PANEL_ITEM_IDS)[number];
 export const RAIL_PANEL_ITEM_LABELS: Record<RailPanelItemId, string> = {
   spaces: "Courses",
+  chats: "Chats",
   home: "Today",
 };
 /**
@@ -45,6 +46,7 @@ export type RailItemId = RailPanelItemId | RailRouteItemId;
  */
 export const RAIL_ORDERABLE_ITEM_IDS = [
   "spaces",
+  "chats",
   "home",
   "inbox",
   "kanban",
@@ -69,9 +71,9 @@ export function isRailOrderableItemId(value: string): value is RailOrderableItem
   return RAIL_ORDERABLE_ITEM_ID_SET.has(value);
 }
 
-/** Courses and Today are the primary panels: they can move but never be hidden. */
+/** Courses, Chats, and Today are the primary panels: they can move but never be hidden. */
 export function railItemCanHide(id: RailOrderableItemId): boolean {
-  return id !== "spaces" && id !== "home";
+  return id !== "spaces" && id !== "home" && id !== "chats";
 }
 
 export function normalizeRailItemOrder(order: readonly string[]): RailOrderableItemId[] {
@@ -250,7 +252,7 @@ export function reconcileActiveRailItem(input: {
   panelView: RailPanelItemId;
 }): RailItemId {
   if (input.pathname === "/editor" || input.pathname.startsWith("/editor/")) {
-    return "spaces";
+    return input.panelView === "chats" ? "chats" : "spaces";
   }
   return (
     railItemForPathname(input.pathname) ?? (input.onStudioSurface ? "studio" : input.panelView)

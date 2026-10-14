@@ -19,7 +19,7 @@ import {
   useState,
 } from "react";
 
-import { ChatBubbleIcon, FoldersIcon, SparkleIcon } from "~/lib/icons";
+import { BookOpenIcon, ChatBubbleIcon, PageTextIcon, SparkleIcon } from "~/lib/icons";
 import {
   useDesktopTopBarTrafficLightGutterClassName,
   useDesktopTopBarWindowControlsGutterClassName,
@@ -49,6 +49,9 @@ import {
 } from "./EditorWorkspaceView.logic";
 import { StudioEmptyState } from "./chat/StudioEmptyState";
 import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { SidebarHeaderNavigationControls } from "./SidebarHeaderNavigationControls";
+import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import type { ProjectMenuPickerOption } from "./ProjectMenuPicker";
 import { SegmentedPicker } from "./SegmentedPicker";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
@@ -57,6 +60,7 @@ import {
   Sidebar,
   SidebarProvider,
   SidebarRail,
+  useOptionalSidebar,
 } from "./ui/sidebar";
 import { WorkspaceFileDiffEditorPane } from "./chat/WorkspaceFileDiffEditorPane";
 import { useQueryClient } from "@tanstack/react-query";
@@ -174,18 +178,28 @@ export interface EditorLeaveGuard {
  * The seam between the center workspace and the chat rail.
  *
  * `SidebarRail` supplies the 16px hit area and the pointer drag; this only paints it. The
- * shared rail's own `after` line is transparent at rest (a hit area, not a divider), and
- * this panel is `border-l`-edged already, so the resting seam is the shared divider token
- * and the line widens to a 3px accent only while the seam is hoverable or grabbed. The
- * `data-resizing` variants matter because a drag outruns the 16px hit area immediately —
- * without them the highlight would blink off on the first pointer move.
+ * shared rail's own `after` line is transparent at rest (a hit area, not a divider).
+ *
+ * The line sits one pixel INSIDE the panel's leading edge rather than centered on it. The
+ * provider above is paint-contained, which clips everything at its own left edge, so a line
+ * centered on the boundary loses its outer half to the clip and the panel's leading edge
+ * draws nothing at all. One pixel in, the hairline paints whole and the 3px hover/drag
+ * accent still has all three pixels to spend.
+ *
+ * The resting weight is the shared `--seam-line`, the same outer-content-edge value the
+ * sidebar↔route divider uses, and not `--app-surface-divider`: that internal-divider token
+ * is thinned to a fraction of `--color-border` and disappeared entirely at this edge,
+ * which is why the rail read as a flat continuation of the workspace. The line widens to a
+ * 3px accent only while the seam is hoverable or grabbed. The `data-resizing` variants
+ * matter because a drag outruns the 16px hit area immediately — without them the highlight
+ * would blink off on the first pointer move.
  */
 function EditorWorkspaceSeamRail() {
   return (
     <SidebarRail
       className={cn(
-        "before:absolute before:inset-y-0 before:left-1/2 before:w-px before:-translate-x-1/2",
-        "before:bg-[var(--app-surface-divider)]",
+        "before:absolute before:inset-y-0 before:left-[calc(50%+1px)] before:w-px",
+        "before:bg-[var(--seam-line)]",
         "before:transition-[width,background-color] before:duration-150 before:ease-out",
         "hover:before:w-[3px] hover:before:bg-foreground/45",
         "data-[resizing]:before:w-[3px] data-[resizing]:before:bg-foreground/45",
@@ -301,6 +315,22 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     });
   };
 
+  const sidebar = useOptionalSidebar();
+  const sidebarOpen = sidebar?.open ?? false;
+
+  const selectedDirectoryPath = useMemo(() => {
+    if (!props.selectedFilePath) return null;
+    const parts = props.selectedFilePath.split("/");
+    parts.pop();
+    return parts.length > 0 ? parts.join("/") : null;
+  }, [props.selectedFilePath]);
+
+  const studioCategory = useMemo(() => {
+    if (!selectedStudioOutput?.relativePath) return null;
+    const parts = selectedStudioOutput.relativePath.split("/");
+    return parts.length > 1 ? parts[0] : null;
+  }, [selectedStudioOutput]);
+
   return (
     <div
       data-editor-workspace
@@ -308,110 +338,124 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     >
       <div
         className={cn(
-          "flex shrink-0 items-center px-2 sm:px-3",
+          "relative flex shrink-0 items-center justify-between px-2 sm:px-3",
           CHAT_SURFACE_HEADER_HEIGHT_CLASS,
           CHAT_SURFACE_HEADER_DIVIDER_CLASS_NAME,
           desktopTopBarWindowControlsGutterClassName,
         )}
       >
-        {/* Three columns (`1fr auto 1fr`) so the surface switch is optically centred and both
-            side columns truncate symmetrically. Absolutely positioning it instead would let
-            it collide with a long workspace name or the chat controls on a narrow window. */}
-        <div className="grid w-full min-w-0 grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <div className={cn("flex min-w-0 items-center gap-1.5", trafficLightGutterClassName)}>
-            {props.projectName ? (
-              <div className="flex min-w-0 items-center gap-1.5 text-ui-xs text-muted-foreground truncate">
-                <span className="font-semibold text-foreground truncate max-w-[10rem]">
-                  {props.projectName}
-                </span>
-                {activeFilename ? (
-                  <>
-                    <span className="opacity-40">/</span>
-                    <span className="truncate max-w-[12rem] font-medium text-foreground">
-                      {activeFilename}
-                    </span>
-                  </>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-          {isMimirTheme ? (
-            <Tabs
-              value={surface}
-              onValueChange={(val) => handleSelectSurface(val as EditorSurface)}
-              className="shrink-0 justify-self-center"
-            >
-              <TabsList variant="segmented" aria-label="Surface" className="h-9 p-0.5">
-                <TabsTrigger
-                  value="study"
-                  title="Study — the course's own files"
-                  className="px-3.5"
-                >
-                  <FoldersIcon className="size-4" />
-                  <span>Study</span>
-                </TabsTrigger>
-                <TabsTrigger
-                  value="studio"
-                  title="Studio — what the agent produced"
-                  className="px-3.5"
-                >
-                  <SparkleIcon className="size-4" />
-                  <span>Studio</span>
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          ) : (
-            <SegmentedPicker
-              // The header track is `w-max`, so the switch sizes to its own content and never
-              // clips a label at any text scale. `justify-self-center` keeps it optically
-              // centred in the grid's middle column.
-              className="shrink-0 justify-self-center"
-              ariaLabel="Surface"
-              variant="header"
-              value={surface}
-              onValueChange={handleSelectSurface}
-              options={[
-                {
-                  value: "study",
-                  label: "Study",
-                  icon: <FoldersIcon />,
-                  title: "Study — the course's own files",
-                },
-                {
-                  value: "studio",
-                  label: "Studio",
-                  icon: <SparkleIcon />,
-                  title: "Studio — what the agent produced",
-                },
-              ]}
-            />
+        {/* Left Column: Navigation controls when sidebar collapsed + contextual document breadcrumb */}
+        <div
+          className={cn(
+            "relative z-10 flex min-w-0 max-w-[calc(50%-110px)] items-center gap-2",
+            trafficLightGutterClassName,
           )}
-          <div className="flex min-w-0 items-center justify-end gap-2">
+        >
+          {sidebar ? (
+            <SidebarHeaderNavigationControls collapsedGapClassName="-me-2 sm:-me-3" />
+          ) : null}
+          {!sidebarOpen ? <ApplicationMenuBar className="ms-1 shrink-0" /> : null}
+
+          {surface === "study" ? (
+            props.selectedFilePath ? (
+              <div className="flex min-w-0 items-center gap-1.5 overflow-hidden text-ui-xs">
+                <PageTextIcon className="size-4 shrink-0 text-primary" />
+                <div className="flex min-w-0 items-center gap-1 truncate font-system-ui">
+                  {selectedDirectoryPath ? (
+                    <span className="text-muted-foreground/75 truncate max-w-[8rem] sm:max-w-[12rem]">
+                      {selectedDirectoryPath} /
+                    </span>
+                  ) : null}
+                  <span className="font-semibold text-foreground truncate max-w-[10rem] sm:max-w-[16rem]">
+                    {activeFilename}
+                  </span>
+                </div>
+              </div>
+            ) : null
+          ) : selectedStudioOutput ? (
+            <div className="flex min-w-0 items-center gap-1.5 overflow-hidden text-ui-xs">
+              <SparkleIcon className="size-4 shrink-0 text-primary" />
+              <span className="font-semibold text-foreground truncate max-w-[12rem] sm:max-w-[18rem]">
+                {activeFilename}
+              </span>
+              {studioCategory ? (
+                <Badge variant="secondary" className="text-ui-2xs py-0 px-1.5 font-normal shrink-0">
+                  {studioCategory}
+                </Badge>
+              ) : (
+                <Badge variant="secondary" className="text-ui-2xs py-0 px-1.5 font-normal shrink-0">
+                  Deliverable
+                </Badge>
+              )}
+            </div>
+          ) : null}
+        </div>
+
+        {/* Center: Segmented Surface Picker (Study vs Studio), placed exactly in the middle of the topbar */}
+        <div className="pointer-events-none absolute inset-x-0 flex items-center justify-center">
+          <div className="pointer-events-auto">
             {isMimirTheme ? (
-              <Button
-                variant={chatPaneVisible ? "secondary" : "outlined"}
-                size="icon-xs"
-                aria-pressed={chatPaneVisible}
-                aria-label={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                onClick={toggleChatPaneVisible}
+              <Tabs
+                value={surface}
+                onValueChange={(val) => handleSelectSurface(val as EditorSurface)}
+                className="shrink-0"
               >
-                <ChatBubbleIcon className="size-4" />
-              </Button>
+                <TabsList variant="segmented" aria-label="Surface" className="h-9 p-0.5">
+                  <TabsTrigger
+                    value="study"
+                    title="Study — course notes, slides & materials"
+                    className="px-3 gap-1.5 text-ui-xs"
+                  >
+                    <BookOpenIcon className="size-3.5" />
+                    <span>Study</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="studio"
+                    title="Studio — deliverables produced by Mimir"
+                    className="px-3 gap-1.5 text-ui-xs"
+                  >
+                    <SparkleIcon className="size-3.5" />
+                    <span>Studio</span>
+                    {(props.studioOutputs?.length ?? 0) > 0 ? (
+                      <span className="ml-1 inline-flex items-center justify-center rounded-full bg-primary/15 px-1.5 py-0.2 text-ui-2xs font-semibold text-primary leading-none">
+                        {props.studioOutputs?.length}
+                      </span>
+                    ) : null}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             ) : (
-              <ChatHeaderIconButton
-                type="button"
-                tone={chatPaneVisible ? "surface" : "plain"}
-                aria-pressed={chatPaneVisible}
-                label={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                title={chatPaneVisible ? "Hide chat panel" : "Show chat panel"}
-                className="size-7 shrink-0 text-muted-foreground hover:text-foreground"
-                onClick={toggleChatPaneVisible}
-              >
-                <ChatBubbleIcon className="size-4" />
-              </ChatHeaderIconButton>
+              <SegmentedPicker
+                className="w-[9.5rem] shrink-0"
+                ariaLabel="Surface"
+                value={surface}
+                onValueChange={handleSelectSurface}
+                options={[
+                  { value: "study", label: "Study" },
+                  { value: "studio", label: "Studio" },
+                ]}
+              />
             )}
           </div>
+        </div>
+
+        {/* Right Column: Single Study Chat toggle button */}
+        <div className="relative z-10 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+          <Button
+            variant={chatPaneVisible ? "secondary" : "outlined"}
+            size="xs"
+            aria-pressed={chatPaneVisible}
+            aria-label={chatPaneVisible ? "Hide study chat" : "Show study chat"}
+            title={chatPaneVisible ? "Hide study chat" : "Show study chat"}
+            onClick={toggleChatPaneVisible}
+            className={cn(
+              "gap-1.5 text-ui-xs font-medium",
+              chatPaneVisible && "bg-primary/10 text-primary border-primary/25",
+            )}
+          >
+            <ChatBubbleIcon className="size-3.5" />
+            <span className="hidden sm:inline">Study Chat</span>
+          </Button>
         </div>
       </div>
       <div ref={rowRef} className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
@@ -503,7 +547,18 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               </>
             )}
           </main>
-          {/* Right dock panel: ONLY the chat in editor view */}
+          {/* Right dock panel: ONLY the chat in editor view.
+
+              `data-sidebar-block-inset` marks this rail as the one whose provider IS the
+              containing block for its `fixed` panel (it carries `contain: paint`), so the
+              panel is already flush with the rail block's inset. The rail-layout rule that
+              offsets the RightDock by the shell gap has to skip it: the extra offset used to
+              pull this panel 3px out of its own provider, and those 3px are exactly what the
+              provider's paint containment clipped — taking the panel's leading seam with them
+              and leaving the rail flush with the workspace.
+
+              No `border-l` here — the seam belongs to {@link EditorWorkspaceSeamRail}, which
+              can also widen it on hover and drag. */}
           <SidebarProvider
             defaultOpen={true}
             open={chatPaneVisible}
@@ -517,11 +572,9 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             <Sidebar
               side="right"
               collapsible="offcanvas"
-              className={cn(
-                "border-l border-border text-foreground !h-full",
-                SIDEBAR_OFFCANVAS_MOTION_CLASS,
-              )}
-              innerClassName={cn(CHAT_BACKGROUND_CLASS_NAME, "border-l border-border")}
+              data-sidebar-block-inset=""
+              className={cn("text-foreground !h-full", SIDEBAR_OFFCANVAS_MOTION_CLASS)}
+              innerClassName={cn(CHAT_BACKGROUND_CLASS_NAME, "app-study-chat-rail")}
               gapClassName={SIDEBAR_OFFCANVAS_MOTION_CLASS}
               transparentSurface
               rail={<EditorWorkspaceSeamRail />}

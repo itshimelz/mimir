@@ -82,10 +82,8 @@ function ChatIndexRouteView() {
 
   const handleOpenEditor = () => {
     void navigate({
-      search: ((prev: Record<string, unknown>) => ({
-        ...prev,
-        view: "editor",
-      })) as never,
+      to: "/editor",
+      search: { view: "editor" },
     });
   };
 

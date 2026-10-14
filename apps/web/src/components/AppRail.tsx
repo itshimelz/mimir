@@ -20,6 +20,7 @@ import type { RailItemId } from "~/appRail.logic";
 import { createCentralIconComponent } from "~/lib/central-icons";
 import {
   BookIcon,
+  ChatBubbleIcon,
   ClockIcon,
   CodeReviewIcon,
   FoldersIcon,
@@ -85,6 +86,7 @@ const sameGlyphs = (glyph: RailGlyph): AppRailGlyphs => ({ idle: glyph, active: 
 /** Hugeicons rail items. Only Hubs ship a solid active glyph; the rest match at rest and active. */
 type HugeiconRailItemId =
   | "home"
+  | "chats"
   | "inbox"
   | "pullRequests"
   | "automations"
@@ -93,6 +95,7 @@ type HugeiconRailItemId =
   | "studio";
 const RAIL_HUGEICON_GLYPHS: Record<HugeiconRailItemId, AppRailGlyphs> = {
   home: sameGlyphs(HomeIcon),
+  chats: sameGlyphs(ChatBubbleIcon),
   inbox: sameGlyphs(InboxIcon),
   pullRequests: sameGlyphs(CodeReviewIcon),
   automations: sameGlyphs(ClockIcon),

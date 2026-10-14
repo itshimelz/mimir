@@ -72,6 +72,7 @@ import { cn, getNavigatorPlatform } from "~/lib/utils";
 const EMPTY_KEYBINDINGS: ResolvedKeybindingsConfig = [];
 const THREAD_SIDEBAR_WIDTH_STORAGE_KEY = "chat_thread_sidebar_width";
 const THREAD_SIDEBAR_MIN_WIDTH = 13 * 16;
+const THREAD_SIDEBAR_MAX_WIDTH = 25 * 16;
 const THREAD_MAIN_CONTENT_MIN_WIDTH = 40 * 16;
 
 // Single source of truth for the thread sidebar resize behavior. Shared by <Sidebar>
@@ -79,7 +80,9 @@ const THREAD_MAIN_CONTENT_MIN_WIDTH = 40 * 16;
 // drag handle keeps working even though the rail lives outside <Sidebar> (above the card).
 const THREAD_SIDEBAR_RESIZABLE: SidebarResizableOptions = {
   minWidth: THREAD_SIDEBAR_MIN_WIDTH,
+  maxWidth: THREAD_SIDEBAR_MAX_WIDTH,
   shouldAcceptWidth: ({ nextWidth, wrapper }) =>
+    nextWidth <= THREAD_SIDEBAR_MAX_WIDTH &&
     wrapper.clientWidth - nextWidth >= THREAD_MAIN_CONTENT_MIN_WIDTH,
   storageKey: THREAD_SIDEBAR_WIDTH_STORAGE_KEY,
 };
@@ -588,8 +591,9 @@ function ChatRouteLayout() {
       collapsible="offcanvas"
       // Match the right dock's soft drawer slide (shared token) instead of the
       // shell's default `ease-linear`. Applied to the container + gap in lockstep.
-      className={cn("h-full text-foreground", SIDEBAR_OFFCANVAS_MOTION_CLASS)}
-      gapClassName={SIDEBAR_OFFCANVAS_MOTION_CLASS}
+      // Clamped to a fixed max width (25rem / 400px) like VS Code primary sidebar.
+      className={cn("h-full text-foreground max-w-[25rem]", SIDEBAR_OFFCANVAS_MOTION_CLASS)}
+      gapClassName={cn("max-w-[25rem]", SIDEBAR_OFFCANVAS_MOTION_CLASS)}
       transparentSurface
       resizable={THREAD_SIDEBAR_RESIZABLE}
     >

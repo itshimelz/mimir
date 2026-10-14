@@ -104,4 +104,44 @@ describe("CourseSidebar logic and invariants", () => {
     // Does not leak threads from other courses
     expect(courseThreads.some((t) => t.projectId === otherCourseId)).toBe(false);
   });
+
+  it("resolves tab based on rail item selection", () => {
+    function resolveEffectiveCourseTabWithRail(input: {
+      userSelectedTab: CourseSidebarTab | null;
+      railActiveItem: string;
+      railPanelView: string;
+      currentSearchView: string | null;
+      editorSurface: "files" | "studio";
+    }): CourseSidebarTab {
+      if (input.userSelectedTab !== null) return input.userSelectedTab;
+      if (input.railActiveItem === "chats" || input.railPanelView === "chats") return "chats";
+      if (input.railActiveItem === "spaces") {
+        return input.editorSurface === "studio" ? "studio" : "files";
+      }
+      if (input.currentSearchView === "editor") {
+        return input.editorSurface === "studio" ? "studio" : "files";
+      }
+      return "chats";
+    }
+
+    expect(
+      resolveEffectiveCourseTabWithRail({
+        userSelectedTab: null,
+        railActiveItem: "chats",
+        railPanelView: "chats",
+        currentSearchView: "editor",
+        editorSurface: "files",
+      }),
+    ).toBe("chats");
+
+    expect(
+      resolveEffectiveCourseTabWithRail({
+        userSelectedTab: null,
+        railActiveItem: "spaces",
+        railPanelView: "spaces",
+        currentSearchView: "editor",
+        editorSurface: "files",
+      }),
+    ).toBe("files");
+  });
 });

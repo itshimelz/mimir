@@ -19,14 +19,16 @@ export default function FAQ() {
     >
       <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
         <div className="max-w-2xl">
-          <p className="text-label-large text-primary">Product questions</p>
+          <p className="text-label-large text-primary font-medium tracking-wide">
+            Product questions
+          </p>
           <h2
             id="faq-heading"
-            className="mt-3 text-headline-medium text-on-surface sm:text-headline-large"
+            className="mt-3 text-headline-medium text-on-surface sm:text-headline-large text-balance"
           >
             Understand the boundary before you run the work.
           </h2>
-          <p className="mt-4 max-w-xl text-body-large text-on-surface-variant">
+          <p className="mt-4 max-w-xl text-body-large text-on-surface-variant text-pretty leading-relaxed">
             How providers, subscriptions, study tasks, provider handoffs, and local course data fit
             together.
           </p>
@@ -35,9 +37,11 @@ export default function FAQ() {
         <Accordion multiple={false} className="mt-10 sm:mt-12">
           {FAQ_ITEMS.map(({ question, answer }) => (
             <AccordionItem key={question} value={question}>
-              <AccordionTrigger>{question}</AccordionTrigger>
+              <AccordionTrigger className="text-balance">{question}</AccordionTrigger>
               <AccordionContent>
-                <p>{answer}</p>
+                <p className="pb-4 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
+                  {answer}
+                </p>
               </AccordionContent>
             </AccordionItem>
           ))}

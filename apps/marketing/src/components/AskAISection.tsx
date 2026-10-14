@@ -52,8 +52,9 @@ const aiLinks: readonly AiLink[] = [
   },
 ];
 
-const heading = "text-headline-medium text-on-surface sm:text-headline-large";
-const body = "mx-auto mt-5 max-w-xl text-body-large text-on-surface-variant";
+const heading = "text-headline-medium text-on-surface sm:text-headline-large text-balance";
+const body =
+  "mx-auto mt-5 max-w-xl text-body-large text-on-surface-variant text-pretty leading-relaxed";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 function openMobileDeepLink(
@@ -112,7 +113,9 @@ export default function AskAISection() {
     <section className="border-t border-outline-variant py-14 sm:py-20">
       <div className={container}>
         <div className="text-center">
-          <p className="text-label-large text-primary">Model evaluation</p>
+          <p className="text-label-large text-primary font-medium tracking-wide">
+            Model evaluation
+          </p>
           <h2 className={`${heading} mt-3`}>Ask external AI models about Mimir</h2>
           <p className={body}>
             Ask ChatGPT, Claude, or Gemini to evaluate Mimir&apos;s architecture. The prefilled

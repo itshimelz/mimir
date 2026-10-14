@@ -84,7 +84,7 @@ export default function SiteFooter() {
                 </span>
               </Link>
 
-              <p className="mt-4 max-w-sm text-body-small leading-relaxed text-on-surface-variant">
+              <p className="mt-4 max-w-sm text-body-small leading-relaxed text-on-surface-variant text-pretty">
                 The desktop-first agentic co-learner engineered for university rigor. Inverts
                 passive text generation into active cognitive retrieval, keeping course materials
                 and research 100% on local hardware.
@@ -96,7 +96,9 @@ export default function SiteFooter() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
                 </span>
-                <span className="font-mono font-medium text-on-surface">100% Local Isolation</span>
+                <span className="font-mono font-medium text-on-surface tabular-nums">
+                  100% Local Isolation
+                </span>
                 <span className="text-outline-variant">·</span>
                 <span>Zero Telemetry</span>
               </div>
@@ -188,7 +190,10 @@ export default function SiteFooter() {
         {/* Bottom Metadata Bar */}
         <div className="flex flex-col gap-4 text-label-small text-on-surface-variant sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span>© {new Date().getFullYear()} Mimir · Himelz Studio. MIT Licensed.</span>
+            <span>
+              © <span className="tabular-nums">{new Date().getFullYear()}</span> Mimir · Himelz
+              Studio. MIT Licensed.
+            </span>
             <span className="hidden text-outline-variant sm:inline">·</span>
             <span>Engineered for University Rigor</span>
           </div>

@@ -22,8 +22,8 @@ import { Icon } from "@/components/m3e/icon";
 type GenericIcon = ComponentType<{ className?: string }>;
 
 const heading =
-  "text-headline-medium text-on-surface sm:text-headline-large font-heading font-semibold tracking-tight";
-const body = "mt-4 max-w-2xl text-body-large text-on-surface-variant leading-relaxed";
+  "text-headline-medium text-on-surface sm:text-headline-large font-heading font-semibold tracking-tight text-balance";
+const body = "mt-4 max-w-2xl text-body-large text-on-surface-variant leading-relaxed text-pretty";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 type Harness = {
@@ -170,7 +170,7 @@ export default function Features() {
                     {status}
                   </Badge>
                 </div>
-                <p className="mt-3 text-body-medium text-on-surface-variant leading-relaxed">
+                <p className="mt-3 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
                   {tagline}
                 </p>
               </Card>
@@ -191,7 +191,7 @@ export default function Features() {
             >
               Durable task ownership
             </Badge>
-            <h2 className={`${heading} mt-3 max-w-3xl`}>
+            <h2 className={`${heading} mt-3 max-w-3xl text-balance`}>
               One course space. Autonomous study tasks. Permanent traces.
             </h2>
             <p className={body}>
@@ -213,8 +213,10 @@ export default function Features() {
                   <div className="flex size-9 items-center justify-center rounded-xl bg-primary-container text-on-primary-container">
                     <Icon name={icon} size={18} />
                   </div>
-                  <h3 className="mt-4 text-title-small font-semibold text-on-surface">{title}</h3>
-                  <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                  <h3 className="mt-4 text-title-small font-semibold text-on-surface text-balance">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                     {description}
                   </p>
                 </div>
@@ -225,13 +227,13 @@ export default function Features() {
           {/* Deep Showcase 1: Bounded Study Task Execution */}
           <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center lg:gap-12">
             <div>
-              <p className="text-label-medium font-mono font-medium text-primary uppercase tracking-wide">
+              <p className="text-label-medium font-mono font-medium text-primary uppercase tracking-wider tabular-nums">
                 01 / Task Execution
               </p>
-              <h3 className="mt-2 text-headline-small font-heading font-semibold text-on-surface">
+              <h3 className="mt-2 text-headline-small font-heading font-semibold text-on-surface text-balance">
                 Autonomous tasks with verifiable learning checkpoints
               </h3>
-              <p className="mt-3 text-body-large text-on-surface-variant leading-relaxed">
+              <p className="mt-3 text-body-large text-on-surface-variant leading-relaxed text-pretty">
                 Assign high-level objectives—like &ldquo;Synthesize Chapter 4 with Lecture 05
                 Slides&rdquo;—inside an isolated environment. The agent inspects referenced
                 documents, writes step-by-step reasoning in
@@ -318,13 +320,13 @@ export default function Features() {
           {/* Deep Showcase 2: Studio Artifact Outbox */}
           <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center lg:gap-12">
             <div className="lg:order-2">
-              <p className="text-label-medium font-mono font-medium text-secondary uppercase tracking-wide">
+              <p className="text-label-medium font-mono font-medium text-secondary uppercase tracking-wider tabular-nums">
                 02 / Studio Artifacts
               </p>
-              <h3 className="mt-2 text-headline-small font-heading font-semibold text-on-surface">
+              <h3 className="mt-2 text-headline-small font-heading font-semibold text-on-surface text-balance">
                 Artifacts that live beyond the conversation
               </h3>
-              <p className="mt-3 text-body-large text-on-surface-variant leading-relaxed">
+              <p className="mt-3 text-body-large text-on-surface-variant leading-relaxed text-pretty">
                 Standard chat windows bury valuable conclusions in a linear scroll that disappears
                 when the session ends. Mimir deposits concrete, interactive learning
                 objects—practice quizzes with step-by-step hints, visual concept diagrams, and
@@ -356,7 +358,7 @@ export default function Features() {
                       Outbox · Biology 101 knowledge assets
                     </span>
                   </div>
-                  <Badge variant="secondary" className="font-mono text-label-small">
+                  <Badge variant="secondary" className="font-mono text-label-small tabular-nums">
                     3 new artifacts
                   </Badge>
                 </div>
@@ -371,7 +373,7 @@ export default function Features() {
                         <p className="text-label-medium font-medium text-on-surface">
                           Glycolysis vs Krebs Quiz
                         </p>
-                        <p className="text-label-small text-on-surface-variant">
+                        <p className="text-label-small text-on-surface-variant tabular-nums">
                           12 Questions · 92% Retrieval score
                         </p>
                       </div>

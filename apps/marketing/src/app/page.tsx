@@ -57,7 +57,7 @@ export default async function Home() {
               {/* Main Headline */}
               <h1
                 id="homepage-title"
-                className="relative max-w-3xl text-display-small font-heading font-semibold tracking-tight text-on-surface sm:text-display-medium lg:text-display-large"
+                className="relative max-w-3xl text-display-small font-heading font-semibold tracking-tight text-on-surface sm:text-display-medium lg:text-display-large text-balance"
               >
                 {PRODUCT_HERO_TITLE}
               </h1>
@@ -65,7 +65,7 @@ export default async function Home() {
               {/* Hero Subtitle */}
               <p
                 data-live-hero-color="true"
-                className="relative mt-5 max-w-2xl text-body-large text-on-surface-variant leading-relaxed"
+                className="relative mt-5 max-w-2xl text-body-large text-on-surface-variant leading-relaxed text-pretty"
               >
                 {PRODUCT_HERO_DESCRIPTION}
               </p>
@@ -107,10 +107,10 @@ export default async function Home() {
                       <Icon name="hub" size={18} />
                     </span>
                     <div>
-                      <h2 className="text-title-small font-heading font-semibold text-on-surface">
+                      <h2 className="text-title-small font-heading font-semibold text-on-surface text-balance">
                         Mimir Workspace Topology
                       </h2>
-                      <p className="text-label-small text-on-surface-variant">
+                      <p className="text-label-small text-on-surface-variant text-pretty">
                         Desktop-first cognitive architecture · Local isolation · Agentic runtime
                       </p>
                     </div>
@@ -147,9 +147,9 @@ export default async function Home() {
                           className={`flex items-center gap-1.5 text-label-small font-medium ${colors[i % colors.length]}`}
                         >
                           <Icon name={icons[i % icons.length]} size={16} />
-                          <span>{pillar.title}</span>
+                          <span className="text-balance">{pillar.title}</span>
                         </div>
-                        <p className="text-body-small text-on-surface-variant line-clamp-2">
+                        <p className="text-body-small text-on-surface-variant line-clamp-2 text-pretty">
                           {pillar.description}
                         </p>
                       </div>
@@ -163,7 +163,7 @@ export default async function Home() {
                   <div className="flex flex-col justify-between p-6 sm:p-7">
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-label-small font-mono font-medium text-primary uppercase tracking-wider">
+                        <span className="text-label-small font-mono font-medium text-primary uppercase tracking-wider tabular-nums">
                           Layer 01 · Local Files
                         </span>
                         <Badge
@@ -173,10 +173,10 @@ export default async function Home() {
                           Space
                         </Badge>
                       </div>
-                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface">
+                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface text-balance">
                         Dedicated Course Space
                       </h3>
-                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                         Each university course lives in its own dedicated course folder. Store
                         lecture slides, syllabi, textbook PDFs, and lab assignments together without
                         cross-course context bleed.
@@ -195,7 +195,9 @@ export default async function Home() {
                             <Icon name="menu_book" size={16} className="text-secondary" />
                             lecture-slides-w4.pdf
                           </span>
-                          <span className="text-label-small text-on-surface-variant">42 pages</span>
+                          <span className="text-label-small text-on-surface-variant tabular-nums">
+                            42 pages
+                          </span>
                         </div>
                         <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2 text-body-small">
                           <span className="flex items-center gap-2 text-on-surface font-medium">
@@ -219,7 +221,7 @@ export default async function Home() {
                   <div className="flex flex-col justify-between p-6 sm:p-7">
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-label-small font-mono font-medium text-secondary uppercase tracking-wider">
+                        <span className="text-label-small font-mono font-medium text-secondary uppercase tracking-wider tabular-nums">
                           Layer 02 · Dual Engine
                         </span>
                         <Badge
@@ -229,10 +231,10 @@ export default async function Home() {
                           Views
                         </Badge>
                       </div>
-                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface">
+                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface text-balance">
                         Study &amp; Studio Views
                       </h3>
-                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                         Seamlessly switch between reading source materials in Study and exploring
                         synthesized lessons, concept graphs, and active practice sets in Studio.
                       </p>
@@ -266,7 +268,7 @@ export default async function Home() {
                   <div className="flex flex-col justify-between p-6 sm:p-7">
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-label-small font-mono font-medium text-tertiary uppercase tracking-wider">
+                        <span className="text-label-small font-mono font-medium text-tertiary uppercase tracking-wider tabular-nums">
                           Layer 03 · Agent Loop
                         </span>
                         <Badge
@@ -276,10 +278,10 @@ export default async function Home() {
                           Tutor
                         </Badge>
                       </div>
-                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface">
+                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface text-balance">
                         Active Retrieval Tutor
                       </h3>
-                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                         Rather than summarizing text passively, Mimir prompts diagnostic questions,
                         offers calibrated hints, and verifies your reasoning before explanations.
                       </p>
@@ -290,7 +292,7 @@ export default async function Home() {
                             <Icon name="lightbulb" size={14} />
                             Guiding Question
                           </div>
-                          <p className="mt-1 text-on-surface text-body-small">
+                          <p className="mt-1 text-on-surface text-body-small text-pretty">
                             &ldquo;What happens to daughter cells if spindle fibers fail in
                             metaphase?&rdquo;
                           </p>
@@ -300,7 +302,7 @@ export default async function Home() {
                             <Icon name="help" size={14} className="text-tertiary" />
                             Step-by-step hint scaffolding
                           </span>
-                          <span className="text-primary font-medium">3 hints</span>
+                          <span className="text-primary font-medium tabular-nums">3 hints</span>
                         </div>
                       </div>
                     </div>
@@ -315,7 +317,7 @@ export default async function Home() {
                 {/* Bottom Architectural Guarantee Strip */}
                 <div className="grid grid-cols-2 divide-y divide-outline-variant/20 border-t border-outline-variant/30 bg-surface-container-low sm:grid-cols-4 sm:divide-x sm:divide-y-0">
                   <div className="p-4 sm:p-5">
-                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                    <p className="text-label-small font-mono uppercase tracking-wider text-on-surface-variant">
                       Engine
                     </p>
                     <p className="mt-1 text-title-small font-semibold text-on-surface">
@@ -326,7 +328,7 @@ export default async function Home() {
                     </p>
                   </div>
                   <div className="p-4 sm:p-5">
-                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                    <p className="text-label-small font-mono uppercase tracking-wider text-on-surface-variant">
                       Runtime
                     </p>
                     <p className="mt-1 text-title-small font-semibold text-on-surface">
@@ -337,7 +339,7 @@ export default async function Home() {
                     </p>
                   </div>
                   <div className="p-4 sm:p-5">
-                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                    <p className="text-label-small font-mono uppercase tracking-wider text-on-surface-variant">
                       Method
                     </p>
                     <p className="mt-1 text-title-small font-semibold text-on-surface">
@@ -348,10 +350,10 @@ export default async function Home() {
                     </p>
                   </div>
                   <div className="p-4 sm:p-5">
-                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                    <p className="text-label-small font-mono uppercase tracking-wider text-on-surface-variant">
                       Privacy
                     </p>
-                    <p className="mt-1 text-title-small font-semibold text-on-surface">
+                    <p className="mt-1 text-title-small font-semibold text-on-surface tabular-nums">
                       100% Private
                     </p>
                     <p className="mt-0.5 text-body-small text-on-surface-variant">
@@ -374,10 +376,10 @@ export default async function Home() {
                 >
                   Higher Education · Cognitive Architecture
                 </Badge>
-                <h2 className="mt-4 text-headline-medium font-heading font-semibold tracking-tight text-on-surface sm:text-headline-large">
+                <h2 className="mt-4 text-headline-medium font-heading font-semibold tracking-tight text-on-surface sm:text-headline-large text-balance">
                   Why academic learning demands an active co-learner
                 </h2>
-                <p className="mt-4 text-body-large text-on-surface-variant leading-relaxed">
+                <p className="mt-4 text-body-large text-on-surface-variant leading-relaxed text-pretty">
                   General-purpose chatbots act as passive answer dispensers, resulting in rapid
                   retention decay. Mimir inverts the dynamic: a local desktop architecture that
                   guides students through diagnostic retrieval, verifiable synthesis, and lasting
@@ -394,15 +396,15 @@ export default async function Home() {
                     <span className="flex size-10 items-center justify-center rounded-xl bg-primary-container text-on-primary-container shadow-xs">
                       <Icon name="lightbulb" size={20} />
                     </span>
-                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface text-balance">
                       Active Cognitive Retrieval
                     </h3>
-                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                       Socratic questioning and calibrated hints ensure students build synaptic
                       retrieval pathways instead of outsourcing cognition to raw text generation.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-primary font-medium">
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono tabular-nums text-primary font-medium tracking-wide">
                     4× conceptual retention
                   </div>
                 </Card>
@@ -415,15 +417,15 @@ export default async function Home() {
                     <span className="flex size-10 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container shadow-xs">
                       <Icon name="shield" size={20} />
                     </span>
-                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface text-balance">
                       Zero Institutional Liability
                     </h3>
-                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                       Course files, unreleased research, and student notes remain 100% on local
                       hardware. Zero centralized database, zero student data mining.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-secondary font-medium">
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono tabular-nums text-secondary font-medium tracking-wide">
                     100% local isolation
                   </div>
                 </Card>
@@ -436,15 +438,15 @@ export default async function Home() {
                     <span className="flex size-10 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container shadow-xs">
                       <Icon name="hub" size={20} />
                     </span>
-                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface text-balance">
                       Universal Runtime Freedom
                     </h3>
-                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                       No proprietary vendor lock-in. Compatible with student-configured CLIs across
                       Claude Code, Codex, OpenCode, and Antigravity with zero cloud server markup.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-tertiary font-medium">
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-tertiary font-medium tracking-wide">
                     Multi-provider portability
                   </div>
                 </Card>
@@ -457,15 +459,15 @@ export default async function Home() {
                     <span className="flex size-10 items-center justify-center rounded-xl bg-surface-container-high text-on-surface shadow-xs">
                       <Icon name="menu_book" size={20} />
                     </span>
-                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface">
+                    <h3 className="mt-4 text-title-small font-heading font-semibold text-on-surface text-balance">
                       Durable Knowledge Outbox
                     </h3>
-                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                    <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
                       Every study session compiles into permanent Markdown summaries, JSON concept
                       trees, and active recall practice decks stored directly on disk.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-on-surface-variant font-medium">
+                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-on-surface-variant font-medium tracking-wide">
                     Offline-ready artifacts
                   </div>
                 </Card>

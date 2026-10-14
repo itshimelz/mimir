@@ -17,10 +17,10 @@ export default function Workflow() {
           >
             Co-learning cycle
           </Badge>
-          <h2 className="mt-4 text-headline-medium font-heading font-semibold tracking-tight text-on-surface sm:text-headline-large">
+          <h2 className="mt-4 text-headline-medium font-heading font-semibold tracking-tight text-on-surface sm:text-headline-large text-balance">
             How students and researchers learn with Mimir
           </h2>
-          <p className="mt-4 text-body-large text-on-surface-variant leading-relaxed">
+          <p className="mt-4 text-body-large text-on-surface-variant leading-relaxed text-pretty">
             A structured cognitive cycle that turns passive reading into active retrieval, durable
             comprehension, and permanent learning artifacts—all inside your local Course Space.
           </p>
@@ -36,17 +36,17 @@ export default function Workflow() {
           >
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-semibold text-label-large">
+                <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-mono font-semibold text-label-large tabular-nums">
                   01
                 </span>
                 <Badge variant="outline" className="rounded-full font-mono text-label-small">
                   Course space
                 </Badge>
               </div>
-              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface">
+              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 Organize materials in a dedicated Course Space
               </h3>
-              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed">
+              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
                 Organize each class into its own isolated Space. Drop in syllabi, lecture slide
                 decks, textbook PDFs, and research notes. Everything stays local on your machine
                 with zero cloud tracking.
@@ -106,17 +106,17 @@ export default function Workflow() {
           >
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container font-semibold text-label-large">
+                <span className="flex size-8 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container font-semibold text-label-large font-mono tabular-nums">
                   02
                 </span>
                 <Badge variant="outline" className="rounded-full font-mono text-label-small">
                   Study view
                 </Badge>
               </div>
-              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface">
+              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 Inspect slides & PDFs with in-context notes
               </h3>
-              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed">
+              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
                 Read multi-page lecture decks, textbooks, and papers in Mimir&apos;s integrated
                 viewer. Highlight key mechanisms, draft margin reflections, and bookmark tough
                 formulas without leaving your reading flow.
@@ -128,14 +128,16 @@ export default function Workflow() {
               <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
                 <div className="flex items-center gap-2 text-label-medium font-medium text-on-surface">
                   <Icon name="menu_book" size={18} className="text-secondary" />
-                  <span>Document reader · Page 14 of 48</span>
+                  <span>
+                    Document reader · <span className="tabular-nums">Page 14 of 48</span>
+                  </span>
                 </div>
                 <span className="rounded-full bg-secondary-container/40 px-2.5 py-0.5 text-label-small text-on-secondary-container">
                   Reading active
                 </span>
               </div>
               <div className="mt-3 rounded-xl bg-surface-container-low p-3.5 border border-outline-variant/20 text-body-small">
-                <p className="text-on-surface italic leading-relaxed border-l-2 border-primary pl-3">
+                <p className="text-on-surface italic leading-relaxed border-l-2 border-primary pl-3 text-pretty">
                   &ldquo;During anaphase, sister chromatids separate at the centromere and are
                   pulled toward opposite spindle poles by kinetochore microtubules.&rdquo;
                 </p>
@@ -159,17 +161,17 @@ export default function Workflow() {
           >
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container font-semibold text-label-large">
+                <span className="flex size-8 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container font-semibold text-label-large font-mono tabular-nums">
                   03
                 </span>
                 <Badge variant="outline" className="rounded-full font-mono text-label-small">
                   Active retrieval
                 </Badge>
               </div>
-              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface">
+              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 The tutor prompts retrieval before explaining
               </h3>
-              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed">
+              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
                 Passive rereading creates the illusion of competence. Mimir&apos;s agentic tutor
                 asks you to diagnose patterns, explain mechanisms, and test predictions before
                 revealing answers. Step-by-step hints arrive only when needed.
@@ -189,7 +191,7 @@ export default function Workflow() {
               </div>
               <div className="mt-3 space-y-2.5 text-body-small">
                 <div className="rounded-xl bg-surface-container-low p-3 border border-outline-variant/20">
-                  <p className="font-medium text-on-surface">
+                  <p className="font-medium text-on-surface text-pretty">
                     &ldquo;What molecular event must occur before sister chromatids can separate
                     during anaphase?&rdquo;
                   </p>
@@ -204,7 +206,7 @@ export default function Workflow() {
                 </div>
                 <div className="rounded-xl bg-primary-container/30 p-2.5 border border-primary/20 text-on-surface">
                   <p className="text-label-small text-primary font-medium">Your retrieval:</p>
-                  <p className="mt-0.5">
+                  <p className="mt-0.5 text-pretty">
                     &ldquo;Separase cleaves the cohesin complex once APC/C activates.&rdquo;
                   </p>
                   <div className="mt-2 flex items-center gap-1.5 text-label-small font-semibold text-primary">
@@ -224,17 +226,17 @@ export default function Workflow() {
           >
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-semibold text-label-large">
+                <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-semibold text-label-large font-mono tabular-nums">
                   04
                 </span>
                 <Badge variant="outline" className="rounded-full font-mono text-label-small">
                   Studio outbox
                 </Badge>
               </div>
-              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface">
+              <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 Generate structured learning artifacts
               </h3>
-              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed">
+              <p className="mt-2.5 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
                 Work doesn&apos;t vanish into endless chat transcripts. Mimir deposits concrete
                 learning artifacts into your course Outbox: practice quizzes, interactive lessons,
                 and visual concept maps ready for exam revision.
@@ -253,18 +255,18 @@ export default function Workflow() {
                 </span>
               </div>
               <div className="mt-3 space-y-2 text-body-small">
-                <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                <div className="flex flex-wrap items-center gap-1.5 pb-1 font-mono">
                   <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-label-small font-medium text-on-surface">
-                    Lessons (4)
+                    Lessons (<span className="tabular-nums">4</span>)
                   </span>
                   <span className="rounded-full bg-secondary-container px-2.5 py-1 text-label-small font-medium text-on-secondary-container">
-                    Quizzes (12)
+                    Quizzes (<span className="tabular-nums">12</span>)
                   </span>
                   <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-label-small font-medium text-on-surface">
-                    Diagrams (3)
+                    Diagrams (<span className="tabular-nums">3</span>)
                   </span>
                   <span className="rounded-full bg-surface-container-high px-2.5 py-1 text-label-small font-medium text-on-surface">
-                    Handouts (6)
+                    Handouts (<span className="tabular-nums">6</span>)
                   </span>
                 </div>
                 <div className="rounded-xl bg-surface-container-low p-3 border border-outline-variant/20">

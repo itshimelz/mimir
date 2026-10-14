@@ -8,8 +8,8 @@ import { Button } from "@/components/m3e/button";
 import { Card } from "@/components/m3e/card";
 import { Icon } from "@/components/m3e/icon";
 
-const heading = "text-headline-medium text-on-surface sm:text-headline-large";
-const body = "mt-5 max-w-2xl text-body-large text-on-surface-variant";
+const heading = "text-headline-medium text-on-surface sm:text-headline-large text-balance";
+const body = "mt-5 max-w-2xl text-body-large text-on-surface-variant text-pretty leading-relaxed";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 const pillars = [
@@ -43,7 +43,9 @@ export default function PrivacySection() {
   return (
     <section className="border-t border-outline-variant py-14 sm:py-20">
       <div className={container}>
-        <p className="text-label-large text-primary">Local-first boundary</p>
+        <p className="text-label-large text-primary font-medium tracking-wide">
+          Local-first boundary
+        </p>
         <h2 className={`${heading} mt-3`}>Know where every part of the work goes.</h2>
         <p className={body}>
           Mimir keeps its workspace layer local and connects to the provider runtime you select. The
@@ -58,9 +60,11 @@ export default function PrivacySection() {
                 <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-surface-container-high">
                   <Icon name={icon} className="text-on-surface" />
                 </span>
-                <span className="text-title-medium text-on-surface">{title}</span>
+                <span className="text-title-medium text-on-surface text-balance">{title}</span>
               </div>
-              <p className="mt-3 text-body-medium text-on-surface-variant">{description}</p>
+              <p className="mt-3 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
+                {description}
+              </p>
             </Card>
           ))}
         </div>

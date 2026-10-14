@@ -25,13 +25,13 @@ export default function ClosingCTA({
           >
             Mimir co-learner workspace
           </Badge>
-          <p className="mt-6 text-on-primary-container/80 tracking-wide uppercase font-mono text-label-small">
+          <p className="mt-6 text-on-primary-container/80 tracking-wider uppercase font-mono text-label-small">
             {PRODUCT_CATEGORY}
           </p>
-          <h2 className="mx-auto mt-4 max-w-3xl text-display-small text-on-primary-container font-heading font-semibold sm:text-display-medium">
+          <h2 className="mx-auto mt-4 max-w-3xl text-display-small text-on-primary-container font-heading font-semibold sm:text-display-medium text-balance">
             {PRODUCT_HERO_TITLE}
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-body-large text-on-primary-container leading-relaxed">
+          <p className="mx-auto mt-6 max-w-2xl text-body-large text-on-primary-container leading-relaxed text-pretty">
             Turn lecture notes, textbooks, and syllabus files into an interactive learning
             environment. Inspect coursework in Study mode, review interactive lessons and quizzes in
             Studio mode, and build lasting knowledge with an AI co-learner.
@@ -46,7 +46,7 @@ export default function ClosingCTA({
               Return to overview
               <Icon name="arrow_forward" data-icon="inline-end" />
             </Button>
-            <p className="text-body-small text-on-primary-container/80">
+            <p className="text-body-small text-on-primary-container/80 text-pretty">
               Local-first cognitive architecture · Engineered for university rigor
             </p>
           </div>

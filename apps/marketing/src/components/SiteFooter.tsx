@@ -8,7 +8,6 @@ import Link from "next/link";
 import { Button } from "@/components/m3e/button";
 import { Icon } from "@/components/m3e/icon";
 import { Separator } from "@/components/m3e/separator";
-import { GITHUB_REPO_URL } from "@/lib/seo";
 
 const ARCHITECTURE_LINKS = [
   { href: "/#overview", label: "Course Spaces" },
@@ -27,11 +26,6 @@ const ACADEMIC_LINKS = [
 
 const ECOSYSTEM_LINKS = [
   {
-    href: GITHUB_REPO_URL,
-    label: "Source Code",
-    external: true,
-  },
-  {
     href: "/llms.txt",
     label: "llms.txt (Agent Context)",
     external: true,
@@ -39,11 +33,6 @@ const ECOSYSTEM_LINKS = [
   {
     href: "/llms-full.txt",
     label: "llms-full.txt (Full Corpus)",
-    external: true,
-  },
-  {
-    href: "https://opensource.org/licenses/MIT",
-    label: "MIT License",
     external: true,
   },
 ] as const;
@@ -192,7 +181,7 @@ export default function SiteFooter() {
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span>
               © <span className="tabular-nums">{new Date().getFullYear()}</span> Mimir · Himelz
-              Studio. MIT Licensed.
+              Studio.
             </span>
             <span className="hidden text-outline-variant sm:inline">·</span>
             <span>Engineered for University Rigor</span>

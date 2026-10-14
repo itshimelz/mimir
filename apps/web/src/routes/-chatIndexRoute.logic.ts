@@ -4,8 +4,15 @@
 // Layer: Route UI logic helpers
 // Exports: home-chat restore-route resolution.
 
-import type { ProjectId, SpaceId, ThreadId, ThreadSidechatContext } from "@synara/contracts";
+import type {
+  ProjectAgentSummary,
+  ProjectId,
+  SpaceId,
+  ThreadId,
+  ThreadSidechatContext,
+} from "@synara/contracts";
 
+import { isGroupThreadRoute } from "../components/SidebarGroupsSurface.logic";
 import { resolveRestorableThreadRoute, type LastThreadRoute } from "../chatRouteRestore";
 import type { ServerWorkspacePaths } from "../lib/serverWorkspacePaths";
 import { isThreadReachableFromSpace } from "../lib/spaceNavigation";
@@ -41,6 +48,10 @@ export function resolveChatIndexRestoreRoute(input: {
     >
   >;
   readonly groupProjectIds: ReadonlySet<ProjectId>;
+  readonly summariesByProjectId?: ReadonlyMap<
+    ProjectId,
+    Pick<ProjectAgentSummary, "memberThreadIds">
+  >;
   /**
    * Still-unsent chat drafts. They have a route id but no sidebar summary yet, so the summary
    * lookup below never matches them — mirrors the /groups landing's draft handling so a cold
@@ -73,6 +84,7 @@ export function resolveChatIndexRestoreRoute(input: {
     selectedCourseId,
     courseRecentThreadRoute,
   } = input;
+  const summariesByProjectId = input.summariesByProjectId ?? new Map();
 
   const availableThreadIds = new Set<string>();
   for (const threadId of [...input.threadIds, ...draftProjectIdByThreadId.keys()]) {
@@ -83,16 +95,24 @@ export function resolveChatIndexRestoreRoute(input: {
     if (threadSummary && isSidechatThread(threadSummary)) continue;
     const projectId = threadSummary?.projectId ?? draftProjectIdByThreadId.get(threadId);
     if (projectId === undefined) continue;
-
     // Course-scoped filter: when selectedCourseId is provided, ONLY threads
     // owned by selectedCourseId are eligible for restoration from this route.
     if (selectedCourseId && projectId !== selectedCourseId) {
       continue;
     }
 
-    // Group threads belong to the /groups surface; restoring one from "/" would silently
+    // Hub members belong to Hubs even when their project is a linked repository;
+    // restoring one from "/" would silently
     // switch the user into that segment.
-    if (groupProjectIds.has(projectId)) continue;
+    if (
+      isGroupThreadRoute({
+        threadId: threadId as ThreadId,
+        projectId,
+        groupProjectIds,
+        summariesByProjectId,
+      })
+    )
+      continue;
     if (
       landingSpace &&
       !isThreadReachableFromSpace({

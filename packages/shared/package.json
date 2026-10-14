@@ -20,6 +20,14 @@
       "types": "./src/unavailableFeatures.ts",
       "import": "./src/unavailableFeatures.ts"
     },
+    "./inlineVisual": {
+      "types": "./src/inlineVisual.ts",
+      "import": "./src/inlineVisual.ts"
+    },
+    "./inlineVisualFormula": {
+      "types": "./src/inlineVisualFormula.ts",
+      "import": "./src/inlineVisualFormula.ts"
+    },
     "./cuaActionDiagnostics": {
       "types": "./src/cuaActionDiagnostics.ts",
       "import": "./src/cuaActionDiagnostics.ts"
@@ -454,7 +462,6 @@
     }
   },
   "scripts": {
-    "prepare": "effect-language-service patch",
     "typecheck": "node ../../node_modules/@typescript/native/bin/tsc --noEmit",
     "typecheck:native": "bun run typecheck",
     "typecheck:legacy": "tsc --noEmit",

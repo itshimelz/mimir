@@ -25,7 +25,6 @@ import {
   CodeReviewIcon,
   FoldersIcon,
   HomeIcon,
-  HubActiveIcon,
   HubIcon,
   InboxIcon,
   SparkleIcon,
@@ -83,7 +82,7 @@ export function railProjectGlyphs(
 /** A rail item whose glyph has no solid twin: the same icon at rest and while active. */
 const sameGlyphs = (glyph: RailGlyph): AppRailGlyphs => ({ idle: glyph, active: glyph });
 
-/** Hugeicons rail items. Only Hubs ship a solid active glyph; the rest match at rest and active. */
+/** Hugeicons rail items: the same stroke glyph at rest and active. */
 type HugeiconRailItemId =
   | "home"
   | "chats"

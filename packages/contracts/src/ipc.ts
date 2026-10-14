@@ -282,6 +282,10 @@ import type {
 } from "./studio";
 import type { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
 import type {
+  OrchestrationGetInlineVisualInput,
+  OrchestrationGetInlineVisualResult,
+} from "./inlineVisual";
+import type {
   ServerConfig,
   ServerDiagnosticsResult,
   ServerReadThreadDiagnosticsInput,
@@ -1390,6 +1394,9 @@ export interface NativeApi {
     getFullThreadDiff: (
       input: OrchestrationGetFullThreadDiffInput,
     ) => Promise<OrchestrationGetFullThreadDiffResult>;
+    getInlineVisual: (
+      input: OrchestrationGetInlineVisualInput,
+    ) => Promise<OrchestrationGetInlineVisualResult>;
     replayEvents: (
       fromSequenceExclusive: number,
       threadId?: ThreadId,

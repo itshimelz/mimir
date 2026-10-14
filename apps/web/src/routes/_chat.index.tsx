@@ -13,6 +13,7 @@ import {
   RestoreOrCreateChatRoute,
   type RestoreRouteResolver,
 } from "../components/RestoreOrCreateChatRoute";
+import { useProjectAgentSummariesStore } from "../components/chat/project/useProjectAgentSummaries";
 import { readSidebarUiState } from "../components/Sidebar.uiState";
 import { SplashScreen } from "../components/SplashScreen";
 import { useComposerDraftStore } from "../composerDraftStore";
@@ -43,6 +44,7 @@ function ChatIndexRouteView() {
   const threadsHydrated = useStore((state) => state.threadsHydrated);
   const threadIds = useStore((state) => state.threadIds ?? EMPTY_THREAD_IDS);
   const projects = useStore((state) => state.projects);
+  const summariesByProjectId = useProjectAgentSummariesStore((state) => state.summariesByProjectId);
   const sidebarThreadSummaryById = useStore((state) => state.sidebarThreadSummaryById);
   const draftThreadsByThreadId = useComposerDraftStore((state) => state.draftThreadsByThreadId);
   const homeDir = useWorkspacePathsStore((state) => state.homeDir);
@@ -137,6 +139,7 @@ function ChatIndexRouteView() {
       threadIds,
       sidebarThreadSummaryById,
       groupProjectIds,
+      summariesByProjectId,
       draftProjectIdByThreadId,
       rememberedSplitViewThreadIds: rememberedSplitView
         ? resolveSplitViewThreadIds(rememberedSplitView)

@@ -136,7 +136,11 @@ import {
   ProjectStopDevServerInput,
   ProjectWriteFileInput,
 } from "./project";
-import { StudioListSpaceOutputsInput, StudioListThreadOutputsInput } from "./studio";
+import {
+  StudioListProjectOutputsInput,
+  StudioListSpaceOutputsInput,
+  StudioListThreadOutputsInput,
+} from "./studio";
 import { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
 import { OrchestrationGetInlineVisualInput } from "./inlineVisual";
 import { FilesystemBrowseInput, FilesystemPickFolderInput } from "./filesystem";
@@ -247,6 +251,7 @@ export const WS_METHODS = {
 
   // Studio methods
   studioListThreadOutputs: "studio.listThreadOutputs",
+  studioListProjectOutputs: "studio.listProjectOutputs",
   studioListSpaceOutputs: "studio.listSpaceOutputs",
 
   // Course methods
@@ -512,6 +517,7 @@ const WebSocketRequestBody = Schema.Union([
   // Filesystem browse
   // Studio
   tagRequestBody(WS_METHODS.studioListThreadOutputs, StudioListThreadOutputsInput),
+  tagRequestBody(WS_METHODS.studioListProjectOutputs, StudioListProjectOutputsInput),
   tagRequestBody(WS_METHODS.studioListSpaceOutputs, StudioListSpaceOutputsInput),
 
   // Course

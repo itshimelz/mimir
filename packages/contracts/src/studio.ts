@@ -1,5 +1,5 @@
 import { Schema } from "effect";
-import { SpaceId, ThreadId, TrimmedNonEmptyString } from "./baseSchemas";
+import { ProjectId, SpaceId, ThreadId, TrimmedNonEmptyString } from "./baseSchemas";
 
 /**
  * Thread-activity kind persisted by the server's per-turn Studio output capture
@@ -11,6 +11,16 @@ export const STUDIO_OUTPUTS_ACTIVITY_KIND = "studio.outputs.captured";
 export const StudioListThreadOutputsInput = Schema.Struct({
   /** Thread whose produced Studio files should be listed. */
   threadId: ThreadId,
+  /**
+   * Restrict the result to what this conversation produced, dropping the workspace-wide
+   * `Outbox/` scan that normally makes the list course-cumulative.
+   *
+   * The chat Environment panel asks for this: it answers "what did we just make together",
+   * which is a different question from the course's whole body of work. Without it the panel
+   * would restate the Studio sidebar verbatim, because the disk scan returns every artifact
+   * in the course folder regardless of which chat wrote it.
+   */
+  includeWorkspaceScan: Schema.optional(Schema.Boolean),
 });
 export type StudioListThreadOutputsInput = typeof StudioListThreadOutputsInput.Type;
 
@@ -66,3 +76,23 @@ export const StudioListSpaceOutputsResult = Schema.Struct({
   entries: Schema.Array(StudioSpaceOutputEntry),
 });
 export type StudioListSpaceOutputsResult = typeof StudioListSpaceOutputsResult.Type;
+
+/**
+ * A course's artifacts, aggregated across every conversation in one project.
+ *
+ * A student works one course at a time, so the project — not the space, and never the open
+ * chat — is the unit their work accumulates in. The same `StudioOutputEntry` shape as the
+ * per-thread listing is returned deliberately: the sidebar only needs name, path, and
+ * timestamp, and keeping the two identical means switching scope is not a UI branch.
+ */
+export const StudioListProjectOutputsInput = Schema.Struct({
+  /** Course project whose conversations and produced files should be aggregated. */
+  projectId: ProjectId,
+});
+export type StudioListProjectOutputsInput = typeof StudioListProjectOutputsInput.Type;
+
+export const StudioListProjectOutputsResult = Schema.Struct({
+  /** Newest first, deduplicated by absolute path across every conversation in the project. */
+  entries: Schema.Array(StudioOutputEntry),
+});
+export type StudioListProjectOutputsResult = typeof StudioListProjectOutputsResult.Type;

@@ -3,7 +3,7 @@
 // Layer: Web domain helper (no React, no I/O)
 // Exports: resolveStudioOutputScope
 
-import type { SpaceId, StudioOutputEntry, ThreadId } from "@synara/contracts";
+import type { ProjectId, StudioOutputEntry, ThreadId } from "@synara/contracts";
 
 /**
  * Studio lists artifacts at one of two scopes.
@@ -17,16 +17,16 @@ import type { SpaceId, StudioOutputEntry, ThreadId } from "@synara/contracts";
  * Kept pure so the choice is testable without standing up the editor view and both queries.
  */
 export type StudioOutputScope =
-  | { readonly kind: "space"; readonly spaceId: SpaceId }
+  | { readonly kind: "project"; readonly projectId: ProjectId }
   | { readonly kind: "thread"; readonly threadId: ThreadId }
   | { readonly kind: "none" };
 
 export function resolveStudioOutputScope(input: {
-  readonly spaceId: SpaceId | null | undefined;
+  readonly projectId: ProjectId | null | undefined;
   readonly threadId: ThreadId | null | undefined;
 }): StudioOutputScope {
-  if (input.spaceId) {
-    return { kind: "space", spaceId: input.spaceId };
+  if (input.projectId) {
+    return { kind: "project", projectId: input.projectId };
   }
   if (input.threadId) {
     return { kind: "thread", threadId: input.threadId };
@@ -42,15 +42,15 @@ export function resolveStudioOutputScope(input: {
  */
 export function resolveStudioOutputEntries(input: {
   readonly scope: StudioOutputScope;
-  readonly spaceEntries: ReadonlyArray<StudioOutputEntry> | undefined;
-  readonly spaceIsPending: boolean;
+  readonly projectEntries: ReadonlyArray<StudioOutputEntry> | undefined;
+  readonly projectIsPending: boolean;
   readonly threadEntries: ReadonlyArray<StudioOutputEntry> | undefined;
   readonly threadIsPending: boolean;
 }): { readonly entries: ReadonlyArray<StudioOutputEntry>; readonly isPending: boolean } {
-  if (input.scope.kind === "space") {
+  if (input.scope.kind === "project") {
     return {
-      entries: input.spaceEntries ?? [],
-      isPending: input.spaceIsPending && input.spaceEntries === undefined,
+      entries: input.projectEntries ?? [],
+      isPending: input.projectIsPending && input.projectEntries === undefined,
     };
   }
   if (input.scope.kind === "thread") {

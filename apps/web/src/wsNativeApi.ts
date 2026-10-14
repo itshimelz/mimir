@@ -633,6 +633,7 @@ export function createWsNativeApi(): NativeApi {
     },
     studio: {
       listThreadOutputs: (input) => transport.request(WS_METHODS.studioListThreadOutputs, input),
+      listProjectOutputs: (input) => transport.request(WS_METHODS.studioListProjectOutputs, input),
       listSpaceOutputs: (input) => transport.request(WS_METHODS.studioListSpaceOutputs, input),
     },
     course: {

@@ -208,7 +208,7 @@ import {
   hasReconciledServerProviderStatuses,
   serverConfigQueryOptions,
   serverSettingsQueryOptions,
-  studioSpaceOutputsQueryOptions,
+  studioProjectOutputsQueryOptions,
   studioThreadOutputsQueryOptions,
 } from "../lib/serverReactQuery";
 import {
@@ -5019,7 +5019,7 @@ export default function Sidebar() {
   }, [routeThreadId, courseProject, sidebarThreadSummaryById]);
 
   const studioOutputScope = resolveStudioOutputScope({
-    spaceId: courseProject?.spaceId,
+    projectId: courseProject?.id ?? null,
     threadId: activeCourseThreadId,
   });
   const editorStudioOutputs = useQuery(
@@ -5028,16 +5028,16 @@ export default function Sidebar() {
       enabled: studioOutputScope.kind === "thread",
     }),
   );
-  const editorStudioSpaceOutputs = useQuery(
-    studioSpaceOutputsQueryOptions({
-      spaceId: studioOutputScope.kind === "space" ? studioOutputScope.spaceId : null,
-      enabled: studioOutputScope.kind === "space",
+  const editorStudioProjectOutputs = useQuery(
+    studioProjectOutputsQueryOptions({
+      projectId: studioOutputScope.kind === "project" ? studioOutputScope.projectId : null,
+      enabled: studioOutputScope.kind === "project",
     }),
   );
   const resolvedStudioOutputs = resolveStudioOutputEntries({
     scope: studioOutputScope,
-    spaceEntries: editorStudioSpaceOutputs.data?.entries,
-    spaceIsPending: editorStudioSpaceOutputs.isPending,
+    projectEntries: editorStudioProjectOutputs.data?.entries,
+    projectIsPending: editorStudioProjectOutputs.isPending,
     threadEntries: editorStudioOutputs.data?.entries,
     threadIsPending: editorStudioOutputs.isPending,
   });

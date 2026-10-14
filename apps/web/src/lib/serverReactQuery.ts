@@ -9,6 +9,7 @@ import type {
   SpaceId,
   StatsGetRecapInput,
   ThreadId,
+  ProjectId,
 } from "@synara/contracts";
 import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
 import { ensureNativeApi } from "~/nativeApi";
@@ -37,6 +38,8 @@ export const serverQueryKeys = {
     ["server", "recap", input.from, input.to, input.slotBoundaries.join(",")] as const,
   studioThreadOutputs: (threadId: ThreadId | null) =>
     ["server", "studioThreadOutputs", threadId] as const,
+  studioProjectOutputs: (projectId: ProjectId | null) =>
+    ["server", "studioProjectOutputs", projectId] as const,
   studioSpaceOutputs: (spaceId: SpaceId | null) =>
     ["server", "studioSpaceOutputs", spaceId] as const,
   computerStatus: () => ["server", "computerStatus"] as const,
@@ -377,9 +380,11 @@ const STUDIO_THREAD_OUTPUTS_STALE_TIME_MS = 10_000;
  * Outbox files attributed server-side to one Studio chat. Domain events invalidate this
  * query after checkpoint and non-Git file-change updates.
  *
- * Per-conversation: this is what the chat Environment panel shows, and it is the fallback
- * for a project that is not filed in a space. The Studio surface itself uses the
- * space-scoped query below so a course accumulates its artifacts.
+ * Per-conversation, and only ever used for that: the chat Environment panel's "Output"
+ * section, which answers "what did we just make together". `includeWorkspaceScan: false`
+ * drops the course-wide `Outbox/` scan so the panel reports this conversation's work rather
+ * than restating the whole course folder. Anything that wants the course's body of work uses
+ * the project-scoped query below.
  */
 export function studioThreadOutputsQueryOptions(input: {
   threadId: ThreadId | null;
@@ -393,7 +398,7 @@ export function studioThreadOutputsQueryOptions(input: {
       if (!threadId) {
         return { entries: [] };
       }
-      return api.studio.listThreadOutputs({ threadId });
+      return api.studio.listThreadOutputs({ threadId, includeWorkspaceScan: false });
     },
     enabled: (input.enabled ?? true) && threadId !== null,
     staleTime: STUDIO_THREAD_OUTPUTS_STALE_TIME_MS,
@@ -411,21 +416,21 @@ export function studioThreadOutputsQueryOptions(input: {
  * resolved, a refetch keeps the previous entries on screen rather than flashing the loading
  * state. The sidebar distinguishes the two by using `isPending` rather than `isFetching`.
  */
-export function studioSpaceOutputsQueryOptions(input: {
-  spaceId: SpaceId | null;
+export function studioProjectOutputsQueryOptions(input: {
+  projectId: ProjectId | null;
   enabled?: boolean;
 }) {
-  const spaceId = input.spaceId;
+  const projectId = input.projectId;
   return queryOptions({
-    queryKey: serverQueryKeys.studioSpaceOutputs(spaceId),
+    queryKey: serverQueryKeys.studioProjectOutputs(projectId),
     queryFn: async () => {
       const api = ensureNativeApi();
-      if (!spaceId) {
+      if (!projectId) {
         return { entries: [] };
       }
-      return api.studio.listSpaceOutputs({ spaceId });
+      return api.studio.listProjectOutputs({ projectId });
     },
-    enabled: (input.enabled ?? true) && spaceId !== null,
+    enabled: (input.enabled ?? true) && projectId !== null,
     staleTime: STUDIO_THREAD_OUTPUTS_STALE_TIME_MS,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,

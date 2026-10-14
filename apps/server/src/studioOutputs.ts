@@ -451,6 +451,15 @@ export const listStudioThreadOutputs = Effect.fnUntraced(function* (input: {
   readonly workspaceRoot: string;
   readonly checkpoints: ReadonlyArray<CheckpointLike>;
   readonly fileChangeActivityPayloads?: ReadonlyArray<unknown>;
+  /**
+   * Append every file under the workspace's `Outbox/`, not just what this thread produced.
+   *
+   * On by default, and that default is why the course view keeps working: the scan is what
+   * makes a lesson written by a shell script — which no checkpoint or file-change activity
+   * records — show up at all. The chat Environment panel turns it off so "Output" can mean
+   * this conversation rather than restating the whole course folder.
+   */
+  readonly includeWorkspaceOutboxScan?: boolean;
 }) {
   const fileSystem = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
@@ -490,16 +499,18 @@ export const listStudioThreadOutputs = Effect.fnUntraced(function* (input: {
     relativePaths.push(posixRelativePath);
   }
 
-  const diskOutboxPaths = yield* scanDiskOutboxRelativePaths({
-    workspaceRoot: input.workspaceRoot,
-  });
-  for (const outboxPath of diskOutboxPaths) {
-    if (relativePaths.length >= MAX_THREAD_OUTPUT_FILES) {
-      break;
-    }
-    if (!seenRelativePaths.has(outboxPath)) {
-      seenRelativePaths.add(outboxPath);
-      relativePaths.push(outboxPath);
+  if (input.includeWorkspaceOutboxScan !== false) {
+    const diskOutboxPaths = yield* scanDiskOutboxRelativePaths({
+      workspaceRoot: input.workspaceRoot,
+    });
+    for (const outboxPath of diskOutboxPaths) {
+      if (relativePaths.length >= MAX_THREAD_OUTPUT_FILES) {
+        break;
+      }
+      if (!seenRelativePaths.has(outboxPath)) {
+        seenRelativePaths.add(outboxPath);
+        relativePaths.push(outboxPath);
+      }
     }
   }
 
@@ -579,6 +590,37 @@ export function mergeStudioThreadOutputEntries(
         projectId: listing.projectId,
         projectName: listing.projectName,
       });
+    }
+  }
+  return [...byFullPath.values()]
+    .toSorted((left, right) => right.modifiedAt.localeCompare(left.modifiedAt))
+    .slice(0, limit);
+}
+
+/**
+ * Merge per-thread listings into one course-wide list, newest first and deduplicated by
+ * absolute path.
+ *
+ * The same shape `mergeStudioThreadOutputEntries` produces, minus the attribution fields: a
+ * course belongs to one project, so "which project made this" is not a question the student
+ * can ask, and the sidebar reads only name, path, and timestamp. Attribution stays available
+ * where it is actually ambiguous — inside a space that holds several courses.
+ */
+export function mergeStudioProjectOutputEntries(
+  listings: ReadonlyArray<{
+    readonly entries: ReadonlyArray<StudioOutputEntry>;
+  }>,
+  limit: number = MAX_SPACE_OUTPUT_FILES,
+): ReadonlyArray<StudioOutputEntry> {
+  const byFullPath = new Map<string, StudioOutputEntry>();
+  for (const listing of listings) {
+    for (const entry of listing.entries) {
+      // First listing wins: callers pass threads newest-first and each listing is itself
+      // newest-first, so an already-present path needs no replacement.
+      if (byFullPath.has(entry.fullPath)) {
+        continue;
+      }
+      byFullPath.set(entry.fullPath, entry);
     }
   }
   return [...byFullPath.values()]

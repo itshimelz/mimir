@@ -49,7 +49,7 @@ import { gitBranchesQueryOptions } from "../../lib/gitReactQuery";
 import { canComposerHandlePanelWidth } from "../../lib/panelResize";
 import { projectListDirectoriesQueryOptions } from "../../lib/projectReactQuery";
 import {
-  studioSpaceOutputsQueryOptions,
+  studioProjectOutputsQueryOptions,
   studioThreadOutputsQueryOptions,
 } from "../../lib/serverReactQuery";
 import { resolveStudioOutputEntries, resolveStudioOutputScope } from "./studioOutputScope";
@@ -346,7 +346,7 @@ export function SingleChatSurface(props: {
   // (still Void) falls back to this thread. Both queries are declared unconditionally so the
   // hook order never changes with the surface, and only the matching one is enabled.
   const studioOutputScope = resolveStudioOutputScope({
-    spaceId: activeProject?.spaceId,
+    projectId: activeProject?.id ?? null,
     threadId: props.threadId,
   });
   const editorStudioOutputs = useQuery(
@@ -355,17 +355,17 @@ export function SingleChatSurface(props: {
       enabled: studioOutputScope.kind === "thread",
     }),
   );
-  const editorStudioSpaceOutputs = useQuery(
-    studioSpaceOutputsQueryOptions({
-      spaceId: studioOutputScope.kind === "space" ? studioOutputScope.spaceId : null,
+  const editorStudioProjectOutputs = useQuery(
+    studioProjectOutputsQueryOptions({
+      projectId: studioOutputScope.kind === "project" ? studioOutputScope.projectId : null,
     }),
   );
-  // A space entry is a structural superset of a thread entry (same four fields plus the
-  // producing thread and project), so the sidebar consumes either without branching.
+  // A project entry has the same four fields as a thread entry (name, path, full path, mtime),
+  // so the sidebar consumes either without branching.
   const resolvedStudioOutputs = resolveStudioOutputEntries({
     scope: studioOutputScope,
-    spaceEntries: editorStudioSpaceOutputs.data?.entries,
-    spaceIsPending: editorStudioSpaceOutputs.isPending,
+    projectEntries: editorStudioProjectOutputs.data?.entries,
+    projectIsPending: editorStudioProjectOutputs.isPending,
     threadEntries: editorStudioOutputs.data?.entries,
     threadIsPending: editorStudioOutputs.isPending,
   });

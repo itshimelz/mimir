@@ -275,6 +275,8 @@ import type {
 } from "./computer";
 import type { ComputerGetAuditHistoryInput, ComputerGetAuditHistoryResult } from "./computerAudit";
 import type {
+  StudioListProjectOutputsInput,
+  StudioListProjectOutputsResult,
   StudioListSpaceOutputsInput,
   StudioListSpaceOutputsResult,
   StudioListThreadOutputsInput,
@@ -1213,6 +1215,10 @@ export interface NativeApi {
     listThreadOutputs: (
       input: StudioListThreadOutputsInput,
     ) => Promise<StudioListThreadOutputsResult>;
+    /** Every artifact produced anywhere in one course project, across all its chats. */
+    listProjectOutputs: (
+      input: StudioListProjectOutputsInput,
+    ) => Promise<StudioListProjectOutputsResult>;
     /** Aggregated across every project and thread in a space, each entry attributed. */
     listSpaceOutputs: (input: StudioListSpaceOutputsInput) => Promise<StudioListSpaceOutputsResult>;
   };

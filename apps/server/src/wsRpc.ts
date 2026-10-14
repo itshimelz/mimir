@@ -116,10 +116,11 @@ import {
 import {
   listStudioThreadOutputs,
   MAX_SPACE_OUTPUT_THREADS,
+  mergeStudioProjectOutputEntries,
   mergeStudioThreadOutputEntries,
 } from "./studioOutputs";
 
-/** Threads resolved concurrently while aggregating a space's artifacts. */
+/** Threads resolved concurrently while aggregating a course's or space's artifacts. */
 const SPACE_OUTPUT_LOOKUP_CONCURRENCY = 8;
 import {
   courseWorkspaceSubdirectories,
@@ -1996,6 +1997,11 @@ const makeWsRpcHandlersLayer = () =>
                 ...(context.value.fileChangeActivityPayloads
                   ? { fileChangeActivityPayloads: context.value.fileChangeActivityPayloads }
                   : {}),
+                // The chat Environment panel asks for this conversation's own output; the
+                // default course-cumulative scan belongs to the project listing instead.
+                ...(input.includeWorkspaceScan === false
+                  ? { includeWorkspaceOutboxScan: false }
+                  : {}),
               });
             }),
             "Failed to list studio thread outputs",
@@ -2077,6 +2083,86 @@ const makeWsRpcHandlersLayer = () =>
               return { entries: mergeStudioThreadOutputEntries(present) };
             }),
             "Failed to list studio space outputs",
+          ),
+        // A course's artifacts, aggregated across every conversation in one project. A
+        // student works one course at a time, so the project — not the open chat and not a
+        // space holding several courses — is the unit their work accumulates in.
+        [WS_METHODS.studioListProjectOutputs]: (input) =>
+          rpcEffect(
+            Effect.gen(function* () {
+              const projectOption = yield* projectionReadModelQuery.getProjectShellById(
+                input.projectId,
+              );
+              // An unknown project has produced nothing; that is not an error.
+              if (Option.isNone(projectOption)) {
+                return { entries: [] };
+              }
+              const project = projectOption.value;
+              if (!participatesInStudioOutputs(project.kind)) {
+                return { entries: [] };
+              }
+              const threads = yield* projectionReadModelQuery.listRecentActiveThreadIdsByProjectIds(
+                [project.id],
+                MAX_SPACE_OUTPUT_THREADS,
+              );
+              if (threads.length === 0) {
+                return { entries: [] };
+              }
+
+              const listings = yield* Effect.forEach(
+                threads,
+                (thread) =>
+                  Effect.gen(function* () {
+                    const context = yield* projectionReadModelQuery.getThreadCheckpointContext(
+                      thread.threadId,
+                      { includeFileChangeActivityPayloads: true },
+                    );
+                    if (
+                      Option.isNone(context) ||
+                      !participatesInStudioOutputs(context.value.projectKind)
+                    ) {
+                      return null;
+                    }
+                    const workspaceCwd = resolveThreadWorkspaceCwd({
+                      thread: {
+                        projectId: context.value.projectId,
+                        envMode: context.value.envMode,
+                        worktreePath: context.value.worktreePath,
+                        workingDirectory: context.value.workingDirectory,
+                      },
+                      projects: [
+                        {
+                          id: context.value.projectId,
+                          kind: context.value.projectKind,
+                          workspaceRoot: context.value.workspaceRoot,
+                        },
+                      ],
+                    });
+                    if (!workspaceCwd) {
+                      return null;
+                    }
+                    // Read-only for the same reason the space listing is: a course aggregates
+                    // many chats, so scaffolding here would write into the student's folder
+                    // from a single prefetch.
+                    const { entries } = yield* listStudioThreadOutputs({
+                      workspaceRoot: workspaceCwd,
+                      checkpoints: context.value.checkpoints,
+                      ...(context.value.fileChangeActivityPayloads
+                        ? { fileChangeActivityPayloads: context.value.fileChangeActivityPayloads }
+                        : {}),
+                    });
+                    return { entries };
+                  }),
+                { concurrency: SPACE_OUTPUT_LOOKUP_CONCURRENCY },
+              );
+
+              // Chats that used "Use a folder" each contribute their own root, and every chat
+              // sharing the project root contributes the same one. The merge deduplicates by
+              // absolute path, so a repeated scan root costs work but cannot double a row.
+              const present = listings.filter((listing) => listing !== null);
+              return { entries: mergeStudioProjectOutputEntries(present) };
+            }),
+            "Failed to list studio project outputs",
           ),
         [WS_METHODS.filesystemBrowse]: (input) =>
           rpcEffect(workspaceEntries.browse(input), "Failed to browse filesystem"),

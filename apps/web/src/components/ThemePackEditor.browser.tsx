@@ -85,7 +85,7 @@ it("previews an inactive light preset and applies it only when the user chooses 
 });
 
 it.each(["dark", "light"] as const)(
-  "replaces Linear completely with Codex and an orange accent when selecting Synara (%s)",
+  "replaces Linear completely with Codex and an orange accent when selecting Mimir (%s)",
   async (variant) => {
     const title = variant === "dark" ? "Dark" : "Light";
     const accent = variant === "dark" ? "#f2612d" : "#c74614";
@@ -110,7 +110,7 @@ it.each(["dark", "light"] as const)(
     await expect.poll(() => root.getAttribute("data-code-theme-id")).toBe("linear");
 
     await page.getByRole("combobox", { name: `${title} theme code theme` }).click();
-    await page.getByRole("option", { name: "Synara", exact: true }).click();
+    await page.getByRole("option", { name: "Mimir", exact: true }).click();
     await expect.poll(() => root.getAttribute("data-code-theme-id")).toBe("synara");
 
     const saved = parseStoredThemeState(localStorage.getItem("synara:theme"));
@@ -122,7 +122,7 @@ it.each(["dark", "light"] as const)(
     expect(root.style.getPropertyValue("--codex-base-ink")).toBe(codex.ink);
     expect(root.style.getPropertyValue("--color-accent-purple")).toBe(codex.semanticColors.skill);
     expect(root.style.getPropertyValue("--theme-font-ui-family")).toBe("");
-    const preview = page.getByRole("img", { name: `${title} theme preview: Synara` });
+    const preview = page.getByRole("img", { name: `${title} theme preview: Mimir` });
     const fontFamily = getComputedStyle(preview.element()).fontFamily;
     expect(fontFamily).toContain("system-ui");
     expect(fontFamily).not.toContain("Inter");

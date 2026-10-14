@@ -1189,7 +1189,7 @@ export class WsTransport {
       let failure = error;
       if (abortScope.didTimeout()) {
         failure = new WsTransportRequestInterruptedError({
-          message: `WebSocket RPC ${method} timed out after ${requestOptions.timeoutMs}ms. ${this.serverBusy?.getSnapshot().reason === "unresponsive" ? "Synara server is not responding. " : "The server did not finish this request in time. "}${method === ORCHESTRATION_WS_METHODS.dispatchCommand ? "Check the result before retrying; the command may have been applied." : "Try again when the server responds."}`,
+          message: `WebSocket RPC ${method} timed out after ${requestOptions.timeoutMs}ms. ${this.serverBusy?.getSnapshot().reason === "unresponsive" ? "Mimir server is not responding. " : "The server did not finish this request in time. "}${method === ORCHESTRATION_WS_METHODS.dispatchCommand ? "Check the result before retrying; the command may have been applied." : "Try again when the server responds."}`,
           code: "WS_REQUEST_TIMEOUT",
           method,
           ...(requestOptions.timeoutMs !== undefined && requestOptions.timeoutMs !== null

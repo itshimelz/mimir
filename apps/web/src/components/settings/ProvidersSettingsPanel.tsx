@@ -2194,7 +2194,7 @@ export function ProvidersSettingsPanel({
       <SettingsSection title="Provider activity">
         <SettingsRow
           title="Enabled providers"
-          description="Enable providers across Synara. Disabled providers are hidden from pickers and settings; their saved configuration and existing threads are kept, and running turns continue. Enabling does not install a CLI or sign it in."
+          description="Enable providers across Mimir. Disabled providers are hidden from pickers and settings; their saved configuration and existing threads are kept, and running turns continue. Enabling does not install a CLI or sign it in."
           control={
             <Button
               variant="outline"
@@ -2327,13 +2327,13 @@ export function ProvidersSettingsPanel({
 
       <SettingsSection title="Performance">
         <SettingsRow
-          title="Keep Synara responsive"
+          title="Keep Mimir responsive"
           description="Give agent processes and their commands a moderately lower CPU priority when the machine is busy."
           status="Applies to newly launched agent processes. Restart existing sessions to apply consistently."
           resetAction={
             settings.lowerProviderProcessPriority !== defaults.lowerProviderProcessPriority ? (
               <SettingResetButton
-                label="Keep Synara responsive"
+                label="Keep Mimir responsive"
                 onClick={() =>
                   updateSettings({
                     lowerProviderProcessPriority: defaults.lowerProviderProcessPriority,
@@ -2348,7 +2348,7 @@ export function ProvidersSettingsPanel({
               onCheckedChange={(checked) =>
                 updateSettings({ lowerProviderProcessPriority: Boolean(checked) })
               }
-              aria-label="Keep Synara responsive"
+              aria-label="Keep Mimir responsive"
             />
           }
         />

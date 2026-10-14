@@ -95,7 +95,7 @@ export function InlineVisualBlocks({
     );
   }
   if (spec === null) {
-    return <BlocksNotice title={visual.title} message="This visual needs a newer Synara." />;
+    return <BlocksNotice title={visual.title} message="This visual needs a newer Mimir." />;
   }
   return (
     <figure

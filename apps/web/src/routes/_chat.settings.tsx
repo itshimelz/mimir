@@ -558,7 +558,7 @@ function SettingsRouteView() {
       ? ["Provider update checks"]
       : []),
     ...(settings.lowerProviderProcessPriority !== defaults.lowerProviderProcessPriority
-      ? ["Keep Synara responsive"]
+      ? ["Keep Mimir responsive"]
       : []),
     ...(defaultDiffRenderMode !== DEFAULT_DIFF_RENDER_MODE ? ["Diff layout"] : []),
     ...(settings.diffWordWrap !== defaults.diffWordWrap ? ["Diff line wrapping"] : []),

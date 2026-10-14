@@ -50,9 +50,7 @@ it("shows Beta welcome before the first-run gate and releases it only on acknowl
   window.desktopBridge = { beta: { getState: async () => state } } as unknown as DesktopBridge;
   const screen = await render(<BetaWelcomeDialog />);
   try {
-    await expect
-      .element(page.getByRole("dialog", { name: "Welcome to Synara Beta" }))
-      .toBeVisible();
+    await expect.element(page.getByRole("dialog", { name: "Welcome to Mimir Beta" })).toBeVisible();
     expect(useOnboardingDialogStore.getState().betaWelcomePending).toBe(true);
     expect(localStorage.getItem(storageKey)).toBeNull();
     await page.getByRole("button", { name: "Get started" }).click();

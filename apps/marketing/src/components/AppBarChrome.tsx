@@ -30,7 +30,14 @@ export default function AppBarChrome({ stars }: { stars?: number | null } = {}) 
           aria-label="Mimir home"
           className="focus-ring inline-flex items-center gap-2.5 rounded-full outline-none"
         >
-          <Image src="/mimir-icon.png" alt="" width={26} height={26} className="rounded-sm" />
+          <Image
+            src="/mimir-logo.png"
+            alt="Mimir"
+            width={28}
+            height={28}
+            className="h-7 w-7 object-contain"
+            priority
+          />
           <span className="font-heading font-medium tracking-tight">Mimir</span>
           <span className="hidden sm:inline-flex rounded-full bg-surface-container px-2.5 py-0.5 text-label-small font-mono text-on-surface-variant border border-outline-variant/50">
             Preview
@@ -46,9 +53,9 @@ export default function AppBarChrome({ stars }: { stars?: number | null } = {}) 
               </Button>
             ))}
           </nav>
-          <div className="hidden items-center gap-2 sm:flex">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <ThemeToggle />
-            <span className="rounded-full bg-secondary-container px-3 py-1 text-label-small font-medium text-on-secondary-container">
+            <span className="hidden sm:inline-flex rounded-full bg-secondary-container px-3 py-1 text-label-small font-medium text-on-secondary-container">
               In development
             </span>
           </div>

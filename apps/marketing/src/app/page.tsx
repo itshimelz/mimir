@@ -2,7 +2,6 @@
 // Purpose: Public marketing homepage for Mimir (M3E expressive).
 // Layer: App Router page (server component)
 
-import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Features from "@/components/Features";
 import Workflow from "@/components/Workflow";
@@ -45,33 +44,10 @@ export default async function Home() {
               size="lg"
               className="relative overflow-hidden rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 sm:p-10 lg:p-12 shadow-elevation-1"
             >
-              {/* Expressive eyebrow chips */}
-              <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="secondary"
-                  className="gap-2 rounded-full px-3.5 py-1 text-label-medium font-medium shadow-xs"
-                >
-                  <span className="relative flex size-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
-                    <span className="relative inline-flex size-2 rounded-full bg-primary" />
-                  </span>
-                  Mimir · Agentic co-learner
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="rounded-full px-3 py-1 font-mono text-label-small border-outline-variant/70 text-on-surface-variant"
-                >
-                  Material 3 Expressive
-                </Badge>
-                <Badge variant="tertiary" className="rounded-full px-3 py-1 text-label-small">
-                  Himelz Studio preview
-                </Badge>
-              </div>
-
               {/* Main Headline */}
               <h1
                 id="homepage-title"
-                className="mt-6 max-w-3xl text-display-small font-heading font-semibold tracking-tight text-on-surface sm:text-display-medium lg:text-display-large"
+                className="max-w-3xl text-display-small font-heading font-semibold tracking-tight text-on-surface sm:text-display-medium lg:text-display-large"
               >
                 {PRODUCT_HERO_TITLE}
               </h1>
@@ -109,140 +85,272 @@ export default async function Home() {
                   <span>In development · Himelz Studio</span>
                 </div>
               </div>
-
-              {/* M3E Architecture Pillars Strip */}
-              <div className="mt-10 grid grid-cols-1 gap-3 pt-6 border-t border-outline-variant/30 sm:grid-cols-2 lg:grid-cols-4">
-                {PRODUCT_PILLARS.map((pillar, i) => {
-                  const icons = ["home", "hub", "help", "history"] as const;
-                  const colors = [
-                    "text-primary",
-                    "text-secondary",
-                    "text-tertiary",
-                    "text-primary",
-                  ] as const;
-                  return (
-                    <div
-                      key={pillar.title}
-                      className="flex flex-col gap-1 rounded-2xl bg-surface-container/60 p-3.5 border border-outline-variant/20"
-                    >
-                      <div
-                        className={`flex items-center gap-1.5 text-label-small font-medium ${colors[i % colors.length]}`}
-                      >
-                        <Icon name={icons[i % icons.length]} size={16} />
-                        <span>{pillar.title}</span>
-                      </div>
-                      <p className="text-body-small text-on-surface-variant line-clamp-2">
-                        {pillar.description}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
             </Card>
 
-            {/* Prominent Mimir Workspace Concept Preview */}
-            <div className="relative mt-8 sm:mt-10" data-hero-preview>
+            {/* Authentic M3E Workspace Architecture & Co-Learning Showcase */}
+            <div className="relative mt-6 sm:mt-8" data-hero-preview>
               <Card
                 variant="elevated"
                 size="lg"
-                className="overflow-hidden rounded-2xl sm:rounded-3xl border border-outline-variant/60 bg-surface-container p-0 shadow-elevation-2"
+                className="overflow-hidden rounded-3xl border border-outline-variant/50 bg-surface-container-low p-0 shadow-elevation-2"
               >
-                {/* Simulated M3E Expressive App Bar & Window Chrome */}
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/40 bg-surface-container-high px-4 py-3 sm:px-6">
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1.5">
-                      <span className="size-2.5 rounded-full bg-error/70" />
-                      <span className="size-2.5 rounded-full bg-secondary-container" />
-                      <span className="size-2.5 rounded-full bg-primary/40" />
-                    </div>
-                    <div className="ml-3 hidden sm:flex items-center gap-2 rounded-full bg-surface-container-low px-3 py-1 text-label-small font-medium text-on-surface-variant border border-outline-variant/40">
-                      <Icon name="menu_book" size={14} className="text-primary" />
-                      <span>Space: Cell Division · Biology 101</span>
-                    </div>
-                  </div>
-
-                  {/* Signature Study / Studio Switcher from Mimir Architecture */}
-                  <div className="flex items-center rounded-full bg-surface-container-low p-1 border border-outline-variant/40 shadow-xs">
-                    <div className="flex items-center gap-1.5 rounded-full px-3 py-1 text-label-small text-on-surface-variant">
-                      <Icon name="menu_book" size={14} />
-                      <span>Study</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 rounded-full bg-secondary-container px-3.5 py-1 text-label-small font-medium text-on-secondary-container shadow-elevation-1">
-                      <Icon name="hub" size={14} />
-                      <span>Studio</span>
+                {/* Surface Bar / Architectural Banner */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-outline-variant/40 bg-surface-container px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container shadow-xs">
+                      <Icon name="hub" size={18} />
+                    </span>
+                    <div>
+                      <h2 className="text-title-small font-heading font-semibold text-on-surface">
+                        Mimir Workspace Topology
+                      </h2>
+                      <p className="text-label-small text-on-surface-variant">
+                        Desktop-first cognitive architecture · Local isolation · Agentic runtime
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <Badge
-                      variant="outline"
-                      className="hidden sm:inline-flex rounded-full text-label-small border-outline-variant/60 font-mono"
-                    >
-                      Mimir v0.9
-                    </Badge>
-                    <Badge
-                      variant="secondary"
-                      className="gap-1.5 rounded-full px-2.5 py-0.5 text-label-small"
-                    >
-                      <span className="size-1.5 rounded-full bg-primary" />
-                      Co-learner rail
-                    </Badge>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-high px-3 py-1 text-label-small font-medium text-on-surface-variant border border-outline-variant/30">
+                      <Icon name="hard_drive" size={14} className="text-primary" />
+                      Local-first storage
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-surface-container-high px-3 py-1 text-label-small font-medium text-on-surface-variant border border-outline-variant/30">
+                      <Icon name="shield" size={14} className="text-secondary" />
+                      Zero cloud telemetry
+                    </span>
                   </div>
                 </div>
 
-                {/* Workspace Screenshot */}
-                <div className="relative aspect-[1586/992] w-full bg-surface-container-lowest overflow-hidden">
-                  <Image
-                    src="/mimir-learning-workspace-concept.png"
-                    alt="Mimir Desktop Agentic Learning Workspace showing integrated Study files, Outbox visual Studio artifacts, and persistent AI tutor rail"
-                    width={1586}
-                    height={992}
-                    priority
-                    className="w-full h-auto object-cover"
-                  />
+                {/* M3E Architecture Pillars Strip */}
+                <div className="grid grid-cols-1 gap-3 p-4 sm:p-6 border-b border-outline-variant/30 sm:grid-cols-2 lg:grid-cols-4 bg-surface-container/20">
+                  {PRODUCT_PILLARS.map((pillar, i) => {
+                    const icons = ["home", "hub", "help", "history"] as const;
+                    const colors = [
+                      "text-primary",
+                      "text-secondary",
+                      "text-tertiary",
+                      "text-primary",
+                    ] as const;
+                    return (
+                      <div
+                        key={pillar.title}
+                        className="flex flex-col gap-1 rounded-2xl bg-surface-container/60 p-3.5 border border-outline-variant/20 hover:border-outline-variant/40 hover:bg-surface-container transition-all"
+                      >
+                        <div
+                          className={`flex items-center gap-1.5 text-label-small font-medium ${colors[i % colors.length]}`}
+                        >
+                          <Icon name={icons[i % icons.length]} size={16} />
+                          <span>{pillar.title}</span>
+                        </div>
+                        <p className="text-body-small text-on-surface-variant line-clamp-2">
+                          {pillar.description}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* Three-part Learning Surface Breakdown Bar */}
-                <div className="grid grid-cols-1 divide-y divide-outline-variant/30 border-t border-outline-variant/40 bg-surface-container-low sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-                  <div className="flex items-start gap-3 p-4 sm:p-5">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-semibold text-label-medium">
-                      1
-                    </span>
+                {/* 3-Column Expressive Architecture Surfaces */}
+                <div className="grid grid-cols-1 divide-y divide-outline-variant/30 lg:grid-cols-3 lg:divide-x lg:divide-y-0 bg-surface-container-lowest">
+                  {/* Surface 1: Dedicated Course Space */}
+                  <div className="flex flex-col justify-between p-6 sm:p-7">
                     <div>
-                      <p className="text-title-small font-medium text-on-surface">
-                        Integrated Study rail
+                      <div className="flex items-center justify-between">
+                        <span className="text-label-small font-mono font-medium text-primary uppercase tracking-wider">
+                          Layer 01 · Local Files
+                        </span>
+                        <Badge
+                          variant="secondary"
+                          className="rounded-full px-2.5 py-0.5 font-mono text-label-small"
+                        >
+                          Space
+                        </Badge>
+                      </div>
+                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface">
+                        Dedicated Course Space
+                      </h3>
+                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                        Each university course lives in its own dedicated course folder. Store
+                        lecture slides, syllabi, textbook PDFs, and lab assignments together without
+                        cross-course context bleed.
                       </p>
-                      <p className="mt-0.5 text-body-small text-on-surface-variant">
-                        Lecture slides, PDFs, notes, and datasets live inside your local course
-                        space.
-                      </p>
+
+                      <div className="mt-5 space-y-2 rounded-2xl bg-surface-container p-3 border border-outline-variant/30">
+                        <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2 text-body-small">
+                          <span className="flex items-center gap-2 text-on-surface font-medium">
+                            <Icon name="menu_book" size={16} className="text-primary" />
+                            course-syllabus.pdf
+                          </span>
+                          <span className="text-label-small text-on-surface-variant">Syllabus</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2 text-body-small">
+                          <span className="flex items-center gap-2 text-on-surface font-medium">
+                            <Icon name="menu_book" size={16} className="text-secondary" />
+                            lecture-slides-w4.pdf
+                          </span>
+                          <span className="text-label-small text-on-surface-variant">42 pages</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2 text-body-small">
+                          <span className="flex items-center gap-2 text-on-surface font-medium">
+                            <Icon name="hub" size={16} className="text-tertiary" />
+                            outbox/artifacts/
+                          </span>
+                          <span className="text-label-small font-medium text-primary">
+                            Local artifacts
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex items-center gap-2 text-label-small text-on-surface-variant pt-4 border-t border-outline-variant/20">
+                      <Icon name="check" size={16} className="text-primary" />
+                      <span>Zero sync requirement · Works fully offline</span>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 sm:p-5">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container font-semibold text-label-medium">
-                      2
-                    </span>
+
+                  {/* Surface 2: Dual Study & Studio Views */}
+                  <div className="flex flex-col justify-between p-6 sm:p-7">
                     <div>
-                      <p className="text-title-small font-medium text-on-surface">
-                        Studio artifact canvas
+                      <div className="flex items-center justify-between">
+                        <span className="text-label-small font-mono font-medium text-secondary uppercase tracking-wider">
+                          Layer 02 · Dual Engine
+                        </span>
+                        <Badge
+                          variant="outline"
+                          className="rounded-full px-2.5 py-0.5 font-mono text-label-small"
+                        >
+                          Views
+                        </Badge>
+                      </div>
+                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface">
+                        Study &amp; Studio Views
+                      </h3>
+                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                        Seamlessly switch between reading source materials in Study and exploring
+                        synthesized lessons, concept graphs, and active practice sets in Studio.
                       </p>
-                      <p className="mt-0.5 text-body-small text-on-surface-variant">
-                        Review interactive lessons, active retrieval quizzes, and concept maps in
-                        Outbox.
-                      </p>
+
+                      <div className="mt-5 space-y-2 rounded-2xl bg-surface-container p-3 border border-outline-variant/30">
+                        <div className="flex items-center gap-2 rounded-xl bg-secondary-container/40 px-3 py-2 text-body-small text-on-secondary-container font-medium border border-secondary/20">
+                          <Icon name="menu_book" size={16} className="text-secondary" />
+                          <span>Study View: Reader &amp; notes</span>
+                        </div>
+                        <div className="flex items-center gap-2 rounded-xl bg-tertiary-container/40 px-3 py-2 text-body-small text-on-tertiary-container font-medium border border-tertiary/20">
+                          <Icon name="hub" size={16} className="text-tertiary" />
+                          <span>Studio View: Active quizzes &amp; maps</span>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2 text-body-small text-on-surface-variant">
+                          <span className="flex items-center gap-1.5">
+                            <Icon name="history" size={14} />
+                            Revision timeline
+                          </span>
+                          <span className="text-label-small font-mono">Auto-saved</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 flex items-center gap-2 text-label-small text-on-surface-variant pt-4 border-t border-outline-variant/20">
+                      <Icon name="check" size={16} className="text-secondary" />
+                      <span>Split-pane or full canvas view</span>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-4 sm:p-5">
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container font-semibold text-label-medium">
-                      3
-                    </span>
+
+                  {/* Surface 3: Cognitive Scaffolding & Agent Loop */}
+                  <div className="flex flex-col justify-between p-6 sm:p-7">
                     <div>
-                      <p className="text-title-small font-medium text-on-surface">Agentic tutor</p>
-                      <p className="mt-0.5 text-body-small text-on-surface-variant">
-                        Asks guiding questions before explaining, prompting deep cognitive
-                        retrieval.
+                      <div className="flex items-center justify-between">
+                        <span className="text-label-small font-mono font-medium text-tertiary uppercase tracking-wider">
+                          Layer 03 · Agent Loop
+                        </span>
+                        <Badge
+                          variant="tertiary"
+                          className="rounded-full px-2.5 py-0.5 font-mono text-label-small"
+                        >
+                          Tutor
+                        </Badge>
+                      </div>
+                      <h3 className="mt-3 text-title-medium font-heading font-semibold text-on-surface">
+                        Active Retrieval Tutor
+                      </h3>
+                      <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed">
+                        Rather than summarizing text passively, Mimir prompts diagnostic questions,
+                        offers calibrated hints, and verifies your reasoning before explanations.
                       </p>
+
+                      <div className="mt-5 space-y-2 rounded-2xl bg-surface-container p-3 border border-outline-variant/30">
+                        <div className="rounded-xl bg-surface-container-low p-2.5 text-body-small">
+                          <div className="flex items-center gap-1.5 text-label-small font-medium text-primary">
+                            <Icon name="lightbulb" size={14} />
+                            Guiding Question
+                          </div>
+                          <p className="mt-1 text-on-surface text-body-small">
+                            &ldquo;What happens to daughter cells if spindle fibers fail in
+                            metaphase?&rdquo;
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between rounded-xl bg-surface-container-low px-3 py-2 text-label-small text-on-surface-variant">
+                          <span className="flex items-center gap-1.5">
+                            <Icon name="help" size={14} className="text-tertiary" />
+                            Step-by-step hint scaffolding
+                          </span>
+                          <span className="text-primary font-medium">3 hints</span>
+                        </div>
+                      </div>
                     </div>
+
+                    <div className="mt-6 flex items-center gap-2 text-label-small text-on-surface-variant pt-4 border-t border-outline-variant/20">
+                      <Icon name="check" size={16} className="text-tertiary" />
+                      <span>Compatible with local Claude, Codex &amp; Antigravity</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Architectural Guarantee Strip */}
+                <div className="grid grid-cols-2 divide-y divide-outline-variant/20 border-t border-outline-variant/30 bg-surface-container-low sm:grid-cols-4 sm:divide-x sm:divide-y-0">
+                  <div className="p-4 sm:p-5">
+                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                      Engine
+                    </p>
+                    <p className="mt-1 text-title-small font-semibold text-on-surface">
+                      Local Desktop
+                    </p>
+                    <p className="mt-0.5 text-body-small text-on-surface-variant">
+                      Fast, native execution
+                    </p>
+                  </div>
+                  <div className="p-4 sm:p-5">
+                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                      Runtime
+                    </p>
+                    <p className="mt-1 text-title-small font-semibold text-on-surface">
+                      Multi-Provider
+                    </p>
+                    <p className="mt-0.5 text-body-small text-on-surface-variant">
+                      Your configured CLIs
+                    </p>
+                  </div>
+                  <div className="p-4 sm:p-5">
+                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                      Method
+                    </p>
+                    <p className="mt-1 text-title-small font-semibold text-on-surface">
+                      Active Retrieval
+                    </p>
+                    <p className="mt-0.5 text-body-small text-on-surface-variant">
+                      Long-term retention
+                    </p>
+                  </div>
+                  <div className="p-4 sm:p-5">
+                    <p className="text-label-small font-mono uppercase text-on-surface-variant">
+                      Privacy
+                    </p>
+                    <p className="mt-1 text-title-small font-semibold text-on-surface">
+                      100% Private
+                    </p>
+                    <p className="mt-0.5 text-body-small text-on-surface-variant">
+                      Zero cloud telemetry
+                    </p>
                   </div>
                 </div>
               </Card>

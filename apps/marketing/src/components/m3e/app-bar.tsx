@@ -36,6 +36,8 @@ type AppBarProps = Omit<React.ComponentProps<"header">, "title"> &
   VariantProps<typeof appBarVariants> & {
     title: React.ReactNode;
     subtitle?: React.ReactNode;
+    /** Container tag for title; defaults to "div" to avoid multiple h1 elements per page */
+    titleAs?: "h1" | "h2" | "h3" | "div" | "span";
     /** navigation icon / back button */
     leading?: React.ReactNode;
     /** action buttons */
@@ -51,6 +53,7 @@ function AppBar({
   size = "small",
   title,
   subtitle,
+  titleAs: TitleTag = "div",
   leading,
   trailing,
   scrolled,
@@ -62,7 +65,7 @@ function AppBar({
 
   const titleText = (
     <>
-      <h1
+      <TitleTag
         className={cn(
           "truncate",
           small
@@ -73,7 +76,7 @@ function AppBar({
         )}
       >
         {title}
-      </h1>
+      </TitleTag>
       {subtitle && (
         <p
           className={cn(

@@ -15,11 +15,11 @@ export function docsLayoutOptions(): BaseLayoutProps {
       title: (
         <span className="flex items-center gap-2 text-title-small text-on-surface">
           <Image
-            src="/mimir-icon.png"
-            alt=""
-            width={22}
-            height={22}
-            className="rounded-xs border border-outline-variant"
+            src="/mimir-logo.png"
+            alt="Mimir"
+            width={24}
+            height={24}
+            className="h-6 w-6 object-contain"
           />
           Mimir
           <span className="rounded-full border border-outline-variant px-2 py-px text-label-medium text-on-surface-variant">

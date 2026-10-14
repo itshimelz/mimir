@@ -142,7 +142,7 @@ function NavItem({
     props: mergeProps<"button">(
       {
         type: "button",
-        "aria-current": active ? "page" : undefined,
+        "aria-current": active ? (ctx.rail ? "location" : "page") : undefined,
         className: cn(
           "group/nav-item relative flex cursor-pointer items-center outline-none select-none",
           horizontal

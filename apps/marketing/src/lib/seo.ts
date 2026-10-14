@@ -71,7 +71,7 @@ export const OG_IMAGE = {
 };
 
 export const SITE_IMAGES = {
-  icon: "/mimir-icon.png",
+  icon: "/mimir-logo.png",
   og: "/og.png",
 };
 

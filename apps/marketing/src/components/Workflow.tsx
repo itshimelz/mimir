@@ -27,21 +27,54 @@ export default function Workflow() {
         </div>
 
         {/* 4-Stage Co-Learning Cycle Grid (Zero Images) */}
-        <div className="mt-12 grid grid-cols-1 gap-8 lg:grid-cols-2">
+        {/* Horizontal Progressive Flow Indicator */}
+        <div className="mt-10 hidden sm:flex items-center justify-between border-y border-outline-variant/30 py-4 px-2">
+          <div className="flex items-center gap-2.5 text-label-small font-mono text-primary font-medium">
+            <span className="flex size-6 items-center justify-center rounded-full bg-primary text-on-primary text-label-small font-bold">
+              1
+            </span>
+            <span>Space Ingestion</span>
+          </div>
+          <Icon name="arrow_forward" size={16} className="text-outline-variant" />
+          <div className="flex items-center gap-2.5 text-label-small font-mono text-secondary font-medium">
+            <span className="flex size-6 items-center justify-center rounded-full bg-secondary text-on-secondary text-label-small font-bold">
+              2
+            </span>
+            <span>Study Reader</span>
+          </div>
+          <Icon name="arrow_forward" size={16} className="text-outline-variant" />
+          <div className="flex items-center gap-2.5 text-label-small font-mono text-tertiary font-medium">
+            <span className="flex size-6 items-center justify-center rounded-full bg-tertiary text-on-tertiary text-label-small font-bold">
+              3
+            </span>
+            <span>Socratic Tutor</span>
+          </div>
+          <Icon name="arrow_forward" size={16} className="text-outline-variant" />
+          <div className="flex items-center gap-2.5 text-label-small font-mono text-on-surface font-medium">
+            <span className="flex size-6 items-center justify-center rounded-full bg-primary-container text-on-primary-container text-label-small font-bold">
+              4
+            </span>
+            <span>Knowledge Outbox</span>
+          </div>
+        </div>
+
+        {/* 4-Stage Co-Learning Cycle Grid (Zero Images) */}
+        <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
           {/* Stage 1: Course Space Organization */}
-          <Card
-            variant="elevated"
-            size="lg"
-            className="flex flex-col justify-between rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 sm:p-8 shadow-elevation-1"
-          >
+          <div className="flex flex-col justify-between rounded-3xl border border-outline-variant/30 bg-surface-container-lowest/70 p-6 sm:p-8 hover:border-outline-variant/60 transition-all">
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-mono font-semibold text-label-large tabular-nums">
-                  01
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-mono font-semibold text-label-large tabular-nums">
+                    01
+                  </span>
+                  <Badge variant="outline" className="rounded-full font-mono text-label-small">
+                    Course space
+                  </Badge>
+                </div>
+                <span className="hidden sm:inline-flex items-center gap-1 text-label-small font-mono text-on-surface-variant/80">
+                  Phase 1 of 4 <Icon name="arrow_forward" size={14} className="text-primary" />
                 </span>
-                <Badge variant="outline" className="rounded-full font-mono text-label-small">
-                  Course space
-                </Badge>
               </div>
               <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 Organize materials in a dedicated Course Space
@@ -54,7 +87,7 @@ export default function Workflow() {
             </div>
 
             {/* M3E Interactive Card Representation (No Images) */}
-            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container p-4">
+            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container/60 p-4">
               <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
                 <div className="flex items-center gap-2">
                   <Icon name="home" size={18} className="text-primary" />
@@ -96,22 +129,23 @@ export default function Workflow() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Stage 2: Deep Reading in Study View */}
-          <Card
-            variant="elevated"
-            size="lg"
-            className="flex flex-col justify-between rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 sm:p-8 shadow-elevation-1"
-          >
+          <div className="flex flex-col justify-between rounded-3xl border border-outline-variant/30 bg-surface-container-lowest/70 p-6 sm:p-8 hover:border-outline-variant/60 transition-all">
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container font-semibold text-label-large font-mono tabular-nums">
-                  02
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-8 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container font-semibold text-label-large font-mono tabular-nums">
+                    02
+                  </span>
+                  <Badge variant="outline" className="rounded-full font-mono text-label-small">
+                    Study view
+                  </Badge>
+                </div>
+                <span className="hidden sm:inline-flex items-center gap-1 text-label-small font-mono text-on-surface-variant/80">
+                  Phase 2 of 4 <Icon name="arrow_forward" size={14} className="text-secondary" />
                 </span>
-                <Badge variant="outline" className="rounded-full font-mono text-label-small">
-                  Study view
-                </Badge>
               </div>
               <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 Inspect slides & PDFs with in-context notes
@@ -124,7 +158,7 @@ export default function Workflow() {
             </div>
 
             {/* M3E Interactive Card Representation (No Images) */}
-            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container p-4">
+            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container/60 p-4">
               <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
                 <div className="flex items-center gap-2 text-label-medium font-medium text-on-surface">
                   <Icon name="menu_book" size={18} className="text-secondary" />
@@ -151,22 +185,23 @@ export default function Workflow() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Stage 3: The Agentic Tutor Loop */}
-          <Card
-            variant="elevated"
-            size="lg"
-            className="flex flex-col justify-between rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 sm:p-8 shadow-elevation-1"
-          >
+          <div className="flex flex-col justify-between rounded-3xl border border-outline-variant/30 bg-surface-container-lowest/70 p-6 sm:p-8 hover:border-outline-variant/60 transition-all">
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container font-semibold text-label-large font-mono tabular-nums">
-                  03
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-8 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container font-semibold text-label-large font-mono tabular-nums">
+                    03
+                  </span>
+                  <Badge variant="outline" className="rounded-full font-mono text-label-small">
+                    Active retrieval
+                  </Badge>
+                </div>
+                <span className="hidden sm:inline-flex items-center gap-1 text-label-small font-mono text-on-surface-variant/80">
+                  Phase 3 of 4 <Icon name="arrow_forward" size={14} className="text-tertiary" />
                 </span>
-                <Badge variant="outline" className="rounded-full font-mono text-label-small">
-                  Active retrieval
-                </Badge>
               </div>
               <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 The tutor prompts retrieval before explaining
@@ -179,7 +214,7 @@ export default function Workflow() {
             </div>
 
             {/* M3E Interactive Card Representation (No Images) */}
-            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container p-4">
+            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container/60 p-4">
               <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
                 <div className="flex items-center gap-2 text-label-medium font-medium text-on-surface">
                   <Icon name="help" size={18} className="text-tertiary" />
@@ -216,22 +251,23 @@ export default function Workflow() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
 
           {/* Stage 4: Studio Artifact Outbox */}
-          <Card
-            variant="elevated"
-            size="lg"
-            className="flex flex-col justify-between rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 sm:p-8 shadow-elevation-1"
-          >
+          <div className="flex flex-col justify-between rounded-3xl border border-outline-variant/30 bg-surface-container-lowest/70 p-6 sm:p-8 hover:border-outline-variant/60 transition-all">
             <div>
               <div className="flex items-center justify-between gap-3">
-                <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-semibold text-label-large font-mono tabular-nums">
-                  04
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-8 items-center justify-center rounded-xl bg-primary-container text-on-primary-container font-semibold text-label-large font-mono tabular-nums">
+                    04
+                  </span>
+                  <Badge variant="outline" className="rounded-full font-mono text-label-small">
+                    Studio outbox
+                  </Badge>
+                </div>
+                <span className="hidden sm:inline-flex items-center gap-1 text-label-small font-mono text-primary font-medium">
+                  Final Phase · Studio Assets ✓
                 </span>
-                <Badge variant="outline" className="rounded-full font-mono text-label-small">
-                  Studio outbox
-                </Badge>
               </div>
               <h3 className="mt-5 text-title-large font-heading font-semibold text-on-surface text-balance">
                 Generate structured learning artifacts
@@ -244,7 +280,7 @@ export default function Workflow() {
             </div>
 
             {/* M3E Interactive Card Representation (No Images) */}
-            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container p-4">
+            <div className="mt-6 rounded-2xl border border-outline-variant/30 bg-surface-container/60 p-4">
               <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
                 <div className="flex items-center gap-2 text-label-medium font-medium text-on-surface">
                   <Icon name="hub" size={18} className="text-primary" />
@@ -284,7 +320,7 @@ export default function Workflow() {
                 </div>
               </div>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </section>

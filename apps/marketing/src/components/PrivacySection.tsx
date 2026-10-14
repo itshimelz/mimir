@@ -53,19 +53,21 @@ export default function PrivacySection() {
           sessions receive the context they need to perform the task.
         </p>
 
-        <div className="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-12 grid grid-cols-1 gap-x-12 gap-y-10 sm:grid-cols-2">
           {pillars.map(({ icon, title, description }) => (
-            <Card key={title} variant="outlined" className="rounded-lg p-6">
+            <div key={title} className="flex flex-col gap-2.5">
               <div className="flex items-center gap-3">
-                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-md bg-surface-container-high">
-                  <Icon name={icon} className="text-on-surface" />
+                <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-container-high text-primary">
+                  <Icon name={icon} className="size-5" />
                 </span>
-                <span className="text-title-medium text-on-surface text-balance">{title}</span>
+                <span className="text-title-medium font-heading font-medium text-on-surface text-balance">
+                  {title}
+                </span>
               </div>
-              <p className="mt-3 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
+              <p className="text-body-medium text-on-surface-variant leading-relaxed text-pretty ps-13">
                 {description}
               </p>
-            </Card>
+            </div>
           ))}
         </div>
 

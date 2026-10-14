@@ -150,30 +150,31 @@ export default function Features() {
             course spaces, document study, and interactive learning outbox.
           </p>
 
-          <div className="mt-12 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {activeHarnesses.map(({ name, tagline, Icon, accent, status }) => (
-              <Card
+              <div
                 key={name}
-                variant="outlined"
-                className="rounded-2xl p-5 hover:border-outline transition-colors"
+                className="group flex flex-col justify-between rounded-2xl border border-outline-variant/30 bg-surface-container-low/50 p-5 transition-all hover:bg-surface-container-low hover:border-outline-variant/70"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-container-high">
-                      <Icon className={`size-5 ${accent}`} aria-hidden="true" />
-                    </span>
-                    <span className="truncate text-title-medium font-medium text-on-surface">
-                      {name}
-                    </span>
+                <div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-container-high transition-transform group-hover:scale-105">
+                        <Icon className={`size-5 ${accent}`} aria-hidden="true" />
+                      </span>
+                      <span className="truncate text-title-medium font-medium text-on-surface">
+                        {name}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="shrink-0 font-mono text-label-small">
+                      {status}
+                    </Badge>
                   </div>
-                  <Badge variant="outline" className="shrink-0 font-mono text-label-small">
-                    {status}
-                  </Badge>
+                  <p className="mt-3 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
+                    {tagline}
+                  </p>
                 </div>
-                <p className="mt-3 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
-                  {tagline}
-                </p>
-              </Card>
+              </div>
             ))}
           </div>
         </div>
@@ -202,15 +203,14 @@ export default function Features() {
           </div>
 
           {/* 4 Task Architecture Pillars */}
-          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {TASK_PILLARS.map(({ icon, title, description }) => (
-              <Card
+              <div
                 key={title}
-                variant="outlined"
-                className="flex flex-col justify-between rounded-2xl p-5 border-outline-variant/40 bg-surface-container-low"
+                className="flex flex-col justify-between rounded-2xl p-4 transition-all hover:bg-surface-container-low"
               >
                 <div>
-                  <div className="flex size-9 items-center justify-center rounded-xl bg-primary-container text-on-primary-container">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-primary-container text-on-primary-container shadow-xs">
                     <Icon name={icon} size={18} />
                   </div>
                   <h3 className="mt-4 text-title-small font-semibold text-on-surface text-balance">
@@ -220,7 +220,7 @@ export default function Features() {
                     {description}
                   </p>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
 

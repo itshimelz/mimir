@@ -39,18 +39,15 @@ export default async function Home() {
           className="hero-section scroll-mt-20 pt-8 pb-12 sm:pt-14 sm:pb-20"
         >
           <div className="mx-auto w-full max-w-6xl px-4 sm:px-6">
-            <Card
-              variant="elevated"
-              size="lg"
-              className="relative overflow-hidden rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 sm:p-10 lg:p-12 shadow-elevation-1"
-            >
+            {/* Open Canvas Hero Header with Ambient Lighting */}
+            <div className="relative pt-2 pb-6">
               {/* Ambient radial gradients for depth */}
               <div
-                className="pointer-events-none absolute -top-24 -right-24 size-80 rounded-full bg-primary/10 blur-3xl"
+                className="pointer-events-none absolute -top-16 -left-20 size-80 rounded-full bg-primary/10 blur-3xl"
                 aria-hidden
               />
               <div
-                className="pointer-events-none absolute -bottom-24 -left-24 size-80 rounded-full bg-secondary/10 blur-3xl"
+                className="pointer-events-none absolute -top-10 right-0 size-72 rounded-full bg-secondary/10 blur-3xl"
                 aria-hidden
               />
 
@@ -91,7 +88,7 @@ export default async function Home() {
                   <Icon name="account_tree" data-icon="inline-end" />
                 </Button>
               </div>
-            </Card>
+            </div>
 
             {/* Authentic M3E Workspace Architecture & Co-Learning Showcase */}
             <div className="relative mt-6 sm:mt-8" data-hero-preview>
@@ -387,11 +384,8 @@ export default async function Home() {
                 </p>
               </div>
 
-              <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <Card
-                  variant="outlined"
-                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
-                >
+              <div className="mt-12 divide-y divide-outline-variant/30 border-y border-outline-variant/30 sm:grid sm:grid-cols-2 sm:divide-y-0 sm:divide-x lg:grid-cols-4">
+                <div className="flex flex-col justify-between py-6 px-4 sm:px-6">
                   <div>
                     <span className="flex size-10 items-center justify-center rounded-xl bg-primary-container text-on-primary-container shadow-xs">
                       <Icon name="lightbulb" size={20} />
@@ -404,15 +398,12 @@ export default async function Home() {
                       retrieval pathways instead of outsourcing cognition to raw text generation.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono tabular-nums text-primary font-medium tracking-wide">
+                  <div className="mt-6 pt-3 border-t border-outline-variant/20 text-label-small font-mono tabular-nums text-primary font-medium tracking-wide">
                     4× conceptual retention
                   </div>
-                </Card>
+                </div>
 
-                <Card
-                  variant="outlined"
-                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
-                >
+                <div className="flex flex-col justify-between py-6 px-4 sm:px-6">
                   <div>
                     <span className="flex size-10 items-center justify-center rounded-xl bg-secondary-container text-on-secondary-container shadow-xs">
                       <Icon name="shield" size={20} />
@@ -425,15 +416,12 @@ export default async function Home() {
                       hardware. Zero centralized database, zero student data mining.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono tabular-nums text-secondary font-medium tracking-wide">
+                  <div className="mt-6 pt-3 border-t border-outline-variant/20 text-label-small font-mono tabular-nums text-secondary font-medium tracking-wide">
                     100% local isolation
                   </div>
-                </Card>
+                </div>
 
-                <Card
-                  variant="outlined"
-                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
-                >
+                <div className="flex flex-col justify-between py-6 px-4 sm:px-6">
                   <div>
                     <span className="flex size-10 items-center justify-center rounded-xl bg-tertiary-container text-on-tertiary-container shadow-xs">
                       <Icon name="hub" size={20} />
@@ -446,15 +434,12 @@ export default async function Home() {
                       Claude Code, Codex, OpenCode, and Antigravity with zero cloud server markup.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-tertiary font-medium tracking-wide">
+                  <div className="mt-6 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-tertiary font-medium tracking-wide">
                     Multi-provider portability
                   </div>
-                </Card>
+                </div>
 
-                <Card
-                  variant="outlined"
-                  className="flex flex-col justify-between rounded-2xl border border-outline-variant/40 bg-surface-container-low p-6 transition-all hover:border-outline-variant/80 hover:shadow-elevation-1"
-                >
+                <div className="flex flex-col justify-between py-6 px-4 sm:px-6">
                   <div>
                     <span className="flex size-10 items-center justify-center rounded-xl bg-surface-container-high text-on-surface shadow-xs">
                       <Icon name="menu_book" size={20} />
@@ -467,10 +452,10 @@ export default async function Home() {
                       trees, and active recall practice decks stored directly on disk.
                     </p>
                   </div>
-                  <div className="mt-5 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-on-surface-variant font-medium tracking-wide">
+                  <div className="mt-6 pt-3 border-t border-outline-variant/20 text-label-small font-mono text-on-surface-variant font-medium tracking-wide">
                     Offline-ready artifacts
                   </div>
-                </Card>
+                </div>
               </div>
             </div>
           </div>

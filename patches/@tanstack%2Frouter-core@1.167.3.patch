@@ -1,0 +1,47 @@
+diff --git a/dist/esm/load-matches.js b/dist/esm/load-matches.js
+index 105cb786bef04fd802e4e99e50fca07f074851e4..b2ecd2b12f19634bf093a7f5ff9c42c28d42c6a7 100644
+--- a/dist/esm/load-matches.js
++++ b/dist/esm/load-matches.js
+@@ -421,6 +421,11 @@ var runLoader = async (inner, matchPromises, matchId, index, route) => {
+ 		handleRedirectAndNotFound(inner, match, err);
+ 	}
+ };
++// Patched by Mimir (patches/@tanstack%2Frouter-core@1.167.3.patch): a
++// speculative preload's match can be evicted by a navigation that commits while
++// this lane is still awaiting (TanStack Router #7759), and getMatch() then
++// returns undefined. Upstream dropped the getMatch() lookups in its
++// match-loading rewrite, so this patch goes away with the next router upgrade.
+ var loadRouteMatch = async (inner, matchPromises, index) => {
+ 	async function handleLoader(preload, prevMatch, previousRouteMatchId, match, route) {
+ 		const age = Date.now() - prevMatch.updatedAt;
+@@ -459,18 +464,22 @@ var loadRouteMatch = async (inner, matchPromises, index) => {
+ 		if (isServer ?? inner.router.isServer) return inner.router.getMatch(matchId);
+ 	} else {
+ 		const prevMatch = inner.router.getMatch(matchId);
++		// Evicted while an earlier match in this lane awaited: leave the lane alone.
++		if (!prevMatch) return inner.matches[index];
+ 		const previousRouteMatchId = inner.router.state.matches[index]?.routeId === routeId ? inner.router.state.matches[index].id : inner.router.state.matches.find((d) => d.routeId === routeId)?.id;
+ 		const preload = resolvePreload(inner, matchId);
+ 		if (prevMatch._nonReactive.loaderPromise) {
+ 			if (prevMatch.status === "success" && !inner.sync && !prevMatch.preload && shouldReloadInBackground) return prevMatch;
+ 			await prevMatch._nonReactive.loaderPromise;
+ 			const match = inner.router.getMatch(matchId);
++			if (!match) return inner.matches[index];
+ 			const error = match._nonReactive.error || match.error;
+ 			if (error) handleRedirectAndNotFound(inner, match, error);
+ 			if (match.status === "pending") await handleLoader(preload, prevMatch, previousRouteMatchId, match, route);
+ 		} else {
+ 			const nextPreload = preload && !inner.router.state.matches.some((d) => d.id === matchId);
+ 			const match = inner.router.getMatch(matchId);
++			if (!match) return inner.matches[index];
+ 			match._nonReactive.loaderPromise = createControlledPromise();
+ 			if (nextPreload !== match.preload) inner.updateMatch(matchId, (prev) => ({
+ 				...prev,
+@@ -480,6 +489,7 @@ var loadRouteMatch = async (inner, matchPromises, index) => {
+ 		}
+ 	}
+ 	const match = inner.router.getMatch(matchId);
++	if (!match) return inner.matches[index];
+ 	if (!loaderIsRunningAsync) {
+ 		match._nonReactive.loaderPromise?.resolve();
+ 		match._nonReactive.loadPromise?.resolve();

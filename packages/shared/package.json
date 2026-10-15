@@ -16,6 +16,10 @@
       "types": "./src/betaFeatures.ts",
       "import": "./src/betaFeatures.ts"
     },
+    "./mcpConnectors": {
+      "types": "./src/mcpConnectors.ts",
+      "import": "./src/mcpConnectors.ts"
+    },
     "./unavailableFeatures": {
       "types": "./src/unavailableFeatures.ts",
       "import": "./src/unavailableFeatures.ts"

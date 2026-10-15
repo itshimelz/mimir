@@ -85,6 +85,7 @@ import {
   ProjectThreadIndexEntry,
 } from "./projectAgent";
 import { OpenInEditorInput } from "./editor";
+import { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
 import {
   ExternalMcpCreateIntegrationInput,
   ExternalMcpCreateIntegrationResult,
@@ -162,12 +163,24 @@ import {
   ThreadComputerState,
 } from "./computer";
 import { ComputerGetAuditHistoryInput, ComputerGetAuditHistoryResult } from "./computerAudit";
-import { FilesystemBrowseInput, FilesystemBrowseResult } from "./filesystem";
+import {
+  FilesystemBrowseInput,
+  FilesystemBrowseResult,
+  FilesystemPickFolderInput,
+  FilesystemPickFolderResult,
+} from "./filesystem";
 import {
   GitHubProjectProvisionInput,
   GitHubProjectProvisionProgressEvent,
 } from "./githubProjectProvisioning";
-import { StudioListThreadOutputsInput, StudioListThreadOutputsResult } from "./studio";
+import {
+  StudioListProjectOutputsInput,
+  StudioListProjectOutputsResult,
+  StudioListSpaceOutputsInput,
+  StudioListSpaceOutputsResult,
+  StudioListThreadOutputsInput,
+  StudioListThreadOutputsResult,
+} from "./studio";
 import {
   GitCheckoutInput,
   GitActionProgressEvent,
@@ -467,6 +480,15 @@ export const WsOrchestrationGetTurnDiffRpc = Rpc.make(ORCHESTRATION_WS_METHODS.g
   error: WsRpcError,
 });
 
+export const WsOrchestrationGetInlineVisualRpc = Rpc.make(
+  ORCHESTRATION_WS_METHODS.getInlineVisual,
+  {
+    payload: OrchestrationRpcSchemas.getInlineVisual.input,
+    success: OrchestrationRpcSchemas.getInlineVisual.output,
+    error: WsRpcError,
+  },
+);
+
 export const WsOrchestrationGetFullThreadDiffRpc = Rpc.make(
   ORCHESTRATION_WS_METHODS.getFullThreadDiff,
   {
@@ -692,9 +714,27 @@ export const WsStudioListThreadOutputsRpc = Rpc.make(WS_METHODS.studioListThread
   error: WsRpcError,
 });
 
+export const WsStudioListProjectOutputsRpc = Rpc.make(WS_METHODS.studioListProjectOutputs, {
+  payload: StudioListProjectOutputsInput,
+  success: StudioListProjectOutputsResult,
+  error: WsRpcError,
+});
+
+export const WsStudioListSpaceOutputsRpc = Rpc.make(WS_METHODS.studioListSpaceOutputs, {
+  payload: StudioListSpaceOutputsInput,
+  success: StudioListSpaceOutputsResult,
+  error: WsRpcError,
+});
+
 export const WsFilesystemBrowseRpc = Rpc.make(WS_METHODS.filesystemBrowse, {
   payload: FilesystemBrowseInput,
   success: FilesystemBrowseResult,
+  error: WsRpcError,
+});
+
+export const WsFilesystemPickFolderRpc = Rpc.make(WS_METHODS.filesystemPickFolder, {
+  payload: FilesystemPickFolderInput,
+  success: FilesystemPickFolderResult,
   error: WsRpcError,
 });
 
@@ -1036,6 +1076,12 @@ export const WsComputerRpcGroup = RpcGroup.make(
 export const WsShellOpenInEditorRpc = Rpc.make(WS_METHODS.shellOpenInEditor, {
   payload: OpenInEditorInput,
   success: Schema.Void,
+  error: WsRpcError,
+});
+
+export const WsCoursePrepareWorkspaceRpc = Rpc.make(WS_METHODS.coursePrepareWorkspace, {
+  payload: CoursePrepareWorkspaceInput,
+  success: CoursePrepareWorkspaceResult,
   error: WsRpcError,
 });
 
@@ -1915,6 +1961,7 @@ export const WsFeatureRpcGroup = RpcGroup.make(
   WsOrchestrationRepairStateRpc,
   WsOrchestrationGetTurnDiffRpc,
   WsOrchestrationGetFullThreadDiffRpc,
+  WsOrchestrationGetInlineVisualRpc,
   WsOrchestrationReplayEventsRpc,
   WsOrchestrationListProviderDeliveryBlockersRpc,
   WsOrchestrationReconcileProviderDeliveryRpc,
@@ -1942,8 +1989,12 @@ export const WsFeatureRpcGroup = RpcGroup.make(
   WsSubscribeProjectDevServerEventsRpc,
   WsProjectsProvisionFromGitHubRpc,
   WsStudioListThreadOutputsRpc,
+  WsStudioListProjectOutputsRpc,
+  WsStudioListSpaceOutputsRpc,
   WsFilesystemBrowseRpc,
+  WsFilesystemPickFolderRpc,
   WsShellOpenInEditorRpc,
+  WsCoursePrepareWorkspaceRpc,
   WsGitGithubRepositoryRpc,
   WsGitStatusRpc,
   WsGitReadWorkingTreeDiffRpc,

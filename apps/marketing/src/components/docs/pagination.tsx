@@ -1,14 +1,13 @@
 // FILE: components/docs/pagination.tsx
-// Purpose: Previous/Next footer for docs pages as compact shadcn outline
-//          buttons (shadcn.com-docs style) — replaces fumadocs' default
-//          footer cards, which read as large empty surfaces.
+// Purpose: Previous/Next footer for docs pages as compact M3E buttons —
+//          replaces fumadocs' default footer cards, which read as large empty
+//          surfaces.
 // Layer: server component (no client hooks).
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/m3e/button";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/m3e/symbols";
 
 type PageLink = { name: ReactNode; url: string } | undefined;
 
@@ -18,24 +17,18 @@ export function DocsPagination({ previous, next }: { previous: PageLink; next: P
   return (
     <nav className="not-prose flex items-center justify-between gap-3" aria-label="Docs pages">
       {previous ? (
-        <Link
-          href={previous.url}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5 ps-2")}
-        >
-          <ChevronLeft className="size-3.5 text-muted-foreground" />
+        <Button variant="outlined" size="sm" render={<Link href={previous.url} />}>
+          <ChevronLeftIcon className="text-on-surface-variant" />
           {previous.name}
-        </Link>
+        </Button>
       ) : (
         <span />
       )}
       {next ? (
-        <Link
-          href={next.url}
-          className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1.5 pe-2")}
-        >
+        <Button variant="outlined" size="sm" render={<Link href={next.url} />}>
           {next.name}
-          <ChevronRight className="size-3.5 text-muted-foreground" />
-        </Link>
+          <ChevronRightIcon className="text-on-surface-variant" />
+        </Button>
       ) : null}
     </nav>
   );

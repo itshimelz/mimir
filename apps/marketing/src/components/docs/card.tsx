@@ -1,13 +1,13 @@
 // FILE: components/docs/card.tsx
-// Purpose: MDX <Cards>/<Card> for docs pages, built on the shadcn Card
-//          primitives so docs surfaces match the rest of the design system.
+// Purpose: MDX <Cards>/<Card> for docs pages, built on the M3E Card primitives
+//          so docs surfaces match the rest of the design system.
 // Layer: server component (no client hooks).
 
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ArrowUpRight } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Card as UICard, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/m3e/cn";
+import { Card as M3Card, CardDescription, CardHeader, CardTitle } from "@/components/m3e/card";
+import { Icon } from "@/components/m3e/icon";
 
 export function Cards({ className, children }: { className?: string; children: ReactNode }) {
   return (
@@ -26,37 +26,40 @@ type DocsCardProps = {
 
 export function Card({ title, description, href, icon, className, children }: DocsCardProps) {
   const card = (
-    <UICard
+    <M3Card
       size="sm"
-      className={cn(
-        "h-full gap-1 ring-border",
-        href &&
-          "transition-[background-color,box-shadow] group-hover/doccard:bg-accent group-hover/doccard:ring-ring",
-        className,
-      )}
+      variant="outlined"
+      interactive={Boolean(href)}
+      className={cn("h-full gap-1", className)}
     >
       <CardHeader className="gap-1">
-        <CardTitle className="flex items-center gap-2 text-[13.5px]">
-          {icon ? <span className="text-muted-foreground [&_svg]:size-4">{icon}</span> : null}
+        <CardTitle className="flex items-center gap-2 text-title-small">
+          {icon ? <span className="text-on-surface-variant [&_svg]:size-4">{icon}</span> : null}
           {title}
           {href ? (
-            <ArrowUpRight className="ms-auto size-3.5 shrink-0 text-muted-foreground transition-transform group-hover/doccard:-translate-y-px group-hover/doccard:translate-x-px" />
+            <Icon
+              name="arrow_outward"
+              size={14}
+              className="ms-auto shrink-0 text-on-surface-variant transition-transform group-hover/card:translate-x-px group-hover/card:-translate-y-px"
+            />
           ) : null}
         </CardTitle>
         {description ? (
-          <CardDescription className="text-[13px] leading-relaxed">{description}</CardDescription>
+          <CardDescription className="text-body-medium leading-relaxed">
+            {description}
+          </CardDescription>
         ) : null}
         {children ? (
-          <div className="text-[13px] leading-relaxed text-muted-foreground">{children}</div>
+          <div className="text-body-medium leading-relaxed text-on-surface-variant">{children}</div>
         ) : null}
       </CardHeader>
-    </UICard>
+    </M3Card>
   );
 
   if (!href) return card;
 
   return (
-    <Link href={href} className="group/doccard block no-underline">
+    <Link href={href} className="group/doccard block no-underline focus-ring rounded-md">
       {card}
     </Link>
   );

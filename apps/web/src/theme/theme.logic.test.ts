@@ -180,6 +180,8 @@ describe("theme share strings", () => {
       codeThemeId: "linear",
       theme: {
         accent: "#606acc",
+        // The share string predates the pinnable chrome plane; absent means "derive it".
+        chromeSurface: null,
         contrast: 30,
         fonts: {
           code: '"Jetbrains Mono"',
@@ -264,6 +266,8 @@ describe("code theme seeds", () => {
       codeThemeId: "linear",
       theme: {
         accent: "#606acc",
+        // Linear's seed pins no chrome plane, so the patch clears it back to derived.
+        chromeSurface: null,
         contrast: 12,
         fonts: {
           code: '"JetBrains Mono"',
@@ -340,6 +344,46 @@ describe("code theme seeds", () => {
       codeThemeId: "vercel",
       theme: getCodeThemeSeed("vercel", "dark"),
     });
+  });
+});
+
+describe("chromeSurface override", () => {
+  // Switching code theme is the real path a user takes to reach a pack's palette: the stored
+  // theme is merged with that pack's seed patch rather than replaced wholesale.
+  const packWith = (id: string, variant: "light" | "dark") =>
+    resolveThemePack(setThemeCodeThemeId(DEFAULT_THEME_STATE, variant, id), variant);
+
+  it.each(["light", "dark"] as const)("pins the %s chrome plane", (variant) => {
+    const tokens = buildResolvedThemeTokens(packWith("synara", variant), variant);
+    // Mimir's chrome plane is the elevated window surface. The derivation
+    // cannot reach it: in light mode the mix clamps to zero, and in dark it only ever
+    // moves toward black, while this plane sits *above* the surface in both variants.
+    const expected = variant === "light" ? "#f5f2fc" : "#13131a";
+
+    expect(tokens.computed.surfaceUnder).toBe(expected);
+    expect(tokens.codexVariables["--color-background-surface-under"]).toBe(expected);
+  });
+
+  it("leaves every other pack on the derived chrome plane", () => {
+    // Only Mimir pins it; the rest of the catalog must render exactly as before.
+    for (const variant of ["light", "dark"] as const) {
+      const tokens = buildResolvedThemeTokens(packWith("nord", variant), variant);
+      expect(tokens.computed.surfaceUnder).not.toBe(variant === "light" ? "#f5f2fc" : "#13131a");
+    }
+  });
+
+  it("round-trips the override through a share string", () => {
+    const pack = packWith("synara", "dark");
+    const parsed = parseThemeShareString(createThemeShareString("dark", pack));
+    expect(parsed.theme.chromeSurface).toBe(pack.theme.chromeSurface);
+
+    // A share string written before the field existed must still parse, deriving as it did.
+    const legacy = JSON.parse(
+      createThemeShareString("dark", pack).replace("codex-theme-v1:", ""),
+    ) as { theme: Record<string, unknown> };
+    delete legacy.theme.chromeSurface;
+    const reparsed = parseThemeShareString(`codex-theme-v1:${JSON.stringify(legacy)}`);
+    expect(reparsed.theme.chromeSurface).toBeNull();
   });
 });
 

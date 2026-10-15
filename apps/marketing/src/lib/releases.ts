@@ -3,15 +3,15 @@
 //          download map (macOS arm64/x64, Windows, Linux) for the /install page.
 // Layer: Server utility
 // Depends on: GitHub Releases API, optional GITHUB_TOKEN
-// Note: The repo was renamed from its previous identity to synara. We hit the
-//       canonical "synara" slug
+// Note: The repo was renamed from its previous identity to mimir. We hit the
+//       canonical "mimir" slug
 //       directly so we don't depend on the API following GitHub's 301 redirect.
 
 import "server-only";
 
 import storedLatestReleaseDownloads from "@/data/latest-release-downloads.json";
 
-const REPO = "Emanuele-web04/synara";
+const REPO = "itshimelz/mimir";
 const LATEST_RELEASE_API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
 
 export const RELEASES_URL = `https://github.com/${REPO}/releases`;
@@ -55,8 +55,17 @@ const FALLBACK: ReleaseDownloads = {
 
 // Uses the checked-in snapshot before the generic releases page so installer
 // links remain direct even when GitHub's API blocks the production server.
+//
+// The snapshot is only usable when it points at this repository's releases. The
+// committed snapshot is upstream provenance, so serving it here would hand
+// visitors another product's binaries behind a "Download Mimir" button. When it
+// does not match, fall through to the releases listing page instead.
 function getFallbackDownloads(): ReleaseDownloads {
-  return STORED_FALLBACK.version &&
+  const storedTargetsThisRepo = STORED_FALLBACK.releasesUrl?.startsWith(
+    `https://github.com/${REPO}/releases`,
+  );
+  return storedTargetsThisRepo &&
+    STORED_FALLBACK.version &&
     STORED_FALLBACK.mac?.arm64 &&
     STORED_FALLBACK.mac?.x64 &&
     STORED_FALLBACK.windows &&

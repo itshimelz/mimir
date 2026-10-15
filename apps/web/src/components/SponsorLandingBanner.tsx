@@ -27,7 +27,7 @@ export function SponsorLandingBanner(props: { className?: string }) {
           <StarIcon className="size-5" />
         </span>
         <span className="flex min-w-0 flex-col gap-0.5">
-          <span className="truncate text-ui font-medium text-foreground">Support Synara</span>
+          <span className="truncate text-ui font-medium text-foreground">Support Mimir</span>
           <span className="truncate text-ui text-muted-foreground">
             Explore sponsorships and help fund development
           </span>

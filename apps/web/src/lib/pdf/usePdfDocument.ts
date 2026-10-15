@@ -9,7 +9,7 @@
 import { useEffect, useState } from "react";
 
 import { loadPdfDocument, type PDFDocumentProxy } from "./pdfEngine";
-import type { PdfPageIntrinsicSize } from "./pdfZoom";
+import type { ViewerContentSize } from "../viewer/viewerZoom";
 
 export type PdfDocumentStatus = "loading" | "ready" | "error";
 
@@ -18,7 +18,7 @@ export interface PdfDocumentState {
   document: PDFDocumentProxy | null;
   numPages: number;
   /** Size of page 1 at scale 1, used to lay out the scroll area before render. */
-  firstPageSize: PdfPageIntrinsicSize | null;
+  firstPageSize: ViewerContentSize | null;
   error: string | null;
 }
 

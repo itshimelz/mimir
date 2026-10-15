@@ -20,6 +20,14 @@
       "types": "./src/unavailableFeatures.ts",
       "import": "./src/unavailableFeatures.ts"
     },
+    "./inlineVisual": {
+      "types": "./src/inlineVisual.ts",
+      "import": "./src/inlineVisual.ts"
+    },
+    "./inlineVisualFormula": {
+      "types": "./src/inlineVisualFormula.ts",
+      "import": "./src/inlineVisualFormula.ts"
+    },
     "./cuaActionDiagnostics": {
       "types": "./src/cuaActionDiagnostics.ts",
       "import": "./src/cuaActionDiagnostics.ts"
@@ -236,6 +244,10 @@
       "types": "./src/projectContainers.ts",
       "import": "./src/projectContainers.ts"
     },
+    "./studioOutputs": {
+      "types": "./src/studioOutputs.ts",
+      "import": "./src/studioOutputs.ts"
+    },
     "./projectDirectoryName": {
       "types": "./src/projectDirectoryName.ts",
       "import": "./src/projectDirectoryName.ts"
@@ -450,7 +462,6 @@
     }
   },
   "scripts": {
-    "prepare": "effect-language-service patch",
     "typecheck": "node ../../node_modules/@typescript/native/bin/tsc --noEmit",
     "typecheck:native": "bun run typecheck",
     "typecheck:legacy": "tsc --noEmit",

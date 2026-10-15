@@ -6,9 +6,10 @@
 import { isElectron } from "~/env";
 import { isMacNavigatorPlatform, cn } from "~/lib/utils";
 import { dispatchDesktopMenuAction } from "~/lib/desktopMenuActions";
+import { useReleaseHistoryDialogStore } from "~/releaseHistoryDialogStore";
 import { useFeedbackDialogStore } from "~/feedbackDialogStore";
 import { openExternalLink } from "~/lib/linkChips";
-import { SYNARA_DOCS_URL } from "~/onboarding/tourContent";
+import { MIMIR_DOCS_URL } from "~/onboarding/tourContent";
 import {
   Menubar,
   MenubarContent,
@@ -115,10 +116,7 @@ async function handleCheckForUpdates(): Promise<void> {
     toastManager.add({
       type: "error",
       title: "Could not check for updates",
-      description:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred.",
+      description: error instanceof Error ? error.message : "An unexpected error occurred.",
     });
   }
 }
@@ -152,21 +150,15 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
             sideOffset={4}
             className={cn(MENU_CONTENT_CLASS, "min-w-48")}
           >
-            <MenubarItem
-              onClick={() => dispatchDesktopMenuAction("new-thread")}
-            >
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("new-thread")}>
               <span>New Thread</span>
               <MenubarShortcut>{isMac ? "⌘N" : "Ctrl+N"}</MenubarShortcut>
             </MenubarItem>
             <MenubarItem onClick={handleNewWindow}>
               <span>New Window</span>
-              <MenubarShortcut>
-                {isMac ? "⇧⌘N" : "Ctrl+Shift+N"}
-              </MenubarShortcut>
+              <MenubarShortcut>{isMac ? "⇧⌘N" : "Ctrl+Shift+N"}</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem
-              onClick={() => dispatchDesktopMenuAction("open-settings")}
-            >
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("open-settings")}>
               <span>Settings...</span>
               <MenubarShortcut>{isMac ? "⌘," : "Ctrl+,"}</MenubarShortcut>
             </MenubarItem>
@@ -227,32 +219,35 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
             sideOffset={4}
             className={cn(MENU_CONTENT_CLASS, "min-w-52")}
           >
-            <MenubarItem
-              onClick={() => dispatchDesktopMenuAction("toggle-sidebar")}
-            >
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("toggle-sidebar")}>
               <span>Toggle Sidebar</span>
               <MenubarShortcut>{isMac ? "⌘B" : "Ctrl+B"}</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem
-              onClick={() => dispatchDesktopMenuAction("toggle-browser")}
-            >
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("toggle-browser")}>
               <span>Toggle Browser</span>
-              <MenubarShortcut>
-                {isMac ? "⇧⌘B" : "Ctrl+Shift+B"}
-              </MenubarShortcut>
+              <MenubarShortcut>{isMac ? "⇧⌘B" : "Ctrl+Shift+B"}</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem
-              onClick={() => dispatchDesktopMenuAction("new-terminal-tab")}
-            >
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("new-terminal-tab")}>
               <span>New Terminal Tab</span>
-              <MenubarShortcut>
-                {isMac ? "⇧⌘\\" : "Ctrl+Shift+\\"}
-              </MenubarShortcut>
+              <MenubarShortcut>{isMac ? "⇧⌘\\" : "Ctrl+Shift+\\"}</MenubarShortcut>
             </MenubarItem>
             <MenubarSeparator />
             <MenubarItem onClick={() => window.location.reload()}>
               <span>Reload</span>
               <MenubarShortcut>{isMac ? "⌘R" : "Ctrl+R"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarSeparator />
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("reset-zoom")}>
+              <span>Actual Size</span>
+              <MenubarShortcut>{isMac ? "⌘0" : "Ctrl+0"}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("zoom-in")}>
+              <span>Zoom In</span>
+              <MenubarShortcut>{isMac ? "⌘=" : "Ctrl+="}</MenubarShortcut>
+            </MenubarItem>
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("zoom-out")}>
+              <span>Zoom Out</span>
+              <MenubarShortcut>{isMac ? "⌘-" : "Ctrl+-"}</MenubarShortcut>
             </MenubarItem>
           </MenubarContent>
         </MenubarMenu>
@@ -267,25 +262,17 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
             sideOffset={4}
             className={cn(MENU_CONTENT_CLASS, "min-w-48")}
           >
-            <MenubarItem onClick={() => openExternalLink(SYNARA_DOCS_URL)}>
+            <MenubarItem onClick={() => openExternalLink(MIMIR_DOCS_URL)}>
               <span>Documentation</span>
             </MenubarItem>
-            <MenubarItem
-              onClick={() => dispatchDesktopMenuAction("show-shortcuts")}
-            >
+            <MenubarItem onClick={() => dispatchDesktopMenuAction("show-shortcuts")}>
               <span>Keyboard Shortcuts</span>
               <MenubarShortcut>{isMac ? "⌘/" : "Ctrl+/"}</MenubarShortcut>
             </MenubarItem>
-            <MenubarItem
-              onClick={() =>
-                dispatchDesktopMenuAction("show-whats-new")
-              }
-            >
+            <MenubarItem onClick={() => useReleaseHistoryDialogStore.getState().openDialog()}>
               <span>What's New</span>
             </MenubarItem>
-            <MenubarItem
-              onClick={() => useFeedbackDialogStore.getState().openDialog()}
-            >
+            <MenubarItem onClick={() => useFeedbackDialogStore.getState().openDialog()}>
               <span>Send Feedback</span>
             </MenubarItem>
             <MenubarSeparator />

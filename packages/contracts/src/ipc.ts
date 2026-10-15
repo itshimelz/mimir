@@ -274,7 +274,19 @@ import type {
   ThreadComputerState,
 } from "./computer";
 import type { ComputerGetAuditHistoryInput, ComputerGetAuditHistoryResult } from "./computerAudit";
-import type { StudioListThreadOutputsInput, StudioListThreadOutputsResult } from "./studio";
+import type {
+  StudioListProjectOutputsInput,
+  StudioListProjectOutputsResult,
+  StudioListSpaceOutputsInput,
+  StudioListSpaceOutputsResult,
+  StudioListThreadOutputsInput,
+  StudioListThreadOutputsResult,
+} from "./studio";
+import type { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
+import type {
+  OrchestrationGetInlineVisualInput,
+  OrchestrationGetInlineVisualResult,
+} from "./inlineVisual";
 import type {
   ServerConfig,
   ServerDiagnosticsResult,
@@ -1203,6 +1215,15 @@ export interface NativeApi {
     listThreadOutputs: (
       input: StudioListThreadOutputsInput,
     ) => Promise<StudioListThreadOutputsResult>;
+    /** Every artifact produced anywhere in one course project, across all its chats. */
+    listProjectOutputs: (
+      input: StudioListProjectOutputsInput,
+    ) => Promise<StudioListProjectOutputsResult>;
+    /** Aggregated across every project and thread in a space, each entry attributed. */
+    listSpaceOutputs: (input: StudioListSpaceOutputsInput) => Promise<StudioListSpaceOutputsResult>;
+  };
+  course: {
+    prepareWorkspace: (input: CoursePrepareWorkspaceInput) => Promise<CoursePrepareWorkspaceResult>;
   };
   shell: {
     openInEditor: (cwd: string, editor: EditorId) => Promise<void>;
@@ -1379,6 +1400,9 @@ export interface NativeApi {
     getFullThreadDiff: (
       input: OrchestrationGetFullThreadDiffInput,
     ) => Promise<OrchestrationGetFullThreadDiffResult>;
+    getInlineVisual: (
+      input: OrchestrationGetInlineVisualInput,
+    ) => Promise<OrchestrationGetInlineVisualResult>;
     replayEvents: (
       fromSequenceExclusive: number,
       threadId?: ThreadId,

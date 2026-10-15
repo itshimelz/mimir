@@ -15,11 +15,11 @@ import { type RefObject, useEffect, useRef, useState } from "react";
 import type { PDFDocumentProxy, PageViewport, RenderedTextLayer } from "./pdfEngine";
 import { type PDFPageProxy, renderPageTextLayer } from "./pdfEngine";
 import { extractPageLinks, type PdfLink } from "./pdfLinks";
-import type { PdfPageIntrinsicSize } from "./pdfZoom";
+import type { ViewerContentSize } from "../viewer/viewerZoom";
 
 export interface PdfPageRenderState {
   /** Intrinsic page size (at scale 1) once measured; null before first paint. */
-  renderedSize: PdfPageIntrinsicSize | null;
+  renderedSize: ViewerContentSize | null;
   links: PdfLink[];
   /** Non-null when this page failed to paint, so the UI can surface it instead
    *  of silently showing a blank white sheet. */
@@ -73,7 +73,7 @@ export function usePdfPageRender(input: {
   const [pageRender, setPageRender] = useState<{
     doc: PDFDocumentProxy;
     page: number;
-    renderedSize: PdfPageIntrinsicSize | null;
+    renderedSize: ViewerContentSize | null;
     links: PdfLink[];
     error: string | null;
   } | null>(null);
@@ -115,7 +115,7 @@ export function usePdfPageRender(input: {
     let renderTask: ReturnType<PDFPageProxy["render"]> | null = null;
     let textLayer: RenderedTextLayer | null = null;
     const patchRender = (patch: {
-      renderedSize?: PdfPageIntrinsicSize | null;
+      renderedSize?: ViewerContentSize | null;
       links?: PdfLink[];
       error?: string | null;
     }) =>

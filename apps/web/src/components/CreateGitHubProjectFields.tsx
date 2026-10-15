@@ -7,7 +7,10 @@ import { Button } from "./ui/button";
 import { dialogFieldLabelClassName } from "./ui/dialog";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
 
-export const PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME = "h-9 rounded-lg border-foreground/12";
+export const PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME =
+  // Height and corner only: the outline and its focus/invalid colours come from the
+  // InputGroup shell, so a grouped field cannot drift from a bare one.
+  "h-9 rounded-lg";
 
 export function CreateGitHubProjectFields(props: {
   readonly repositoryInputId: string;
@@ -50,15 +53,12 @@ export function CreateGitHubProjectFields(props: {
       </div>
 
       <div className="space-y-2">
-        <label
-          htmlFor={props.repositoryInputId}
-          className={cn("block", dialogFieldLabelClassName, "text-ui text-foreground")}
-        >
+        <label htmlFor={props.repositoryInputId} className={cn("block", dialogFieldLabelClassName)}>
           Repository
         </label>
         <InputGroup className={PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME}>
-          <InputGroupAddon className="w-10 self-stretch border-e border-foreground/12 ps-0">
-            <GitHubIcon className="size-4 text-muted-foreground/70" aria-hidden="true" />
+          <InputGroupAddon className="w-10 self-stretch border-e border-border ps-0">
+            <GitHubIcon className="size-4 text-muted-foreground" aria-hidden="true" />
           </InputGroupAddon>
           <InputGroupInput
             id={props.repositoryInputId}
@@ -66,6 +66,7 @@ export function CreateGitHubProjectFields(props: {
             aria-invalid={props.formError ? true : undefined}
             {...(props.formError ? { "aria-describedby": props.errorId } : {})}
             placeholder="owner/repository or GitHub URL"
+            autoComplete="off"
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"
@@ -78,19 +79,20 @@ export function CreateGitHubProjectFields(props: {
       <div className="space-y-2">
         <label
           htmlFor={props.destinationParentInputId}
-          className={cn("block", dialogFieldLabelClassName, "text-ui text-foreground")}
+          className={cn("block", dialogFieldLabelClassName)}
         >
           Clone into
         </label>
         <div className="flex items-center gap-2">
           <InputGroup className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "min-w-0 flex-1")}>
-            <InputGroupAddon className="w-10 self-stretch border-e border-foreground/12 ps-0">
-              <FolderIcon className="size-4 text-muted-foreground/70" aria-hidden="true" />
+            <InputGroupAddon className="w-10 self-stretch border-e border-border ps-0">
+              <FolderIcon className="size-4 text-muted-foreground" aria-hidden="true" />
             </InputGroupAddon>
             <InputGroupInput
               id={props.destinationParentInputId}
               value={props.destinationParent}
               placeholder="/parent/folder"
+              autoComplete="off"
               spellCheck={false}
               autoCorrect="off"
               autoCapitalize="off"
@@ -98,24 +100,22 @@ export function CreateGitHubProjectFields(props: {
               onKeyDown={props.onSubmitKeyDown}
             />
           </InputGroup>
-          {props.isElectron ? (
-            <Button
-              type="button"
-              variant="outline"
-              className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "shrink-0 px-3")}
-              disabled={props.isPickingFolder || props.submitting}
-              onClick={props.onBrowse}
-            >
-              Browse
-            </Button>
-          ) : null}
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "shrink-0 px-3")}
+            disabled={props.isPickingFolder || props.submitting}
+            onClick={props.onBrowse}
+          >
+            Browse
+          </Button>
         </div>
       </div>
 
       <div className="space-y-2">
         <label
           htmlFor={props.directoryNameInputId}
-          className={cn("block", dialogFieldLabelClassName, "text-ui text-foreground")}
+          className={cn("block", dialogFieldLabelClassName)}
         >
           Folder name
         </label>
@@ -124,6 +124,7 @@ export function CreateGitHubProjectFields(props: {
             id={props.directoryNameInputId}
             value={props.directoryName}
             placeholder="repository"
+            autoComplete="off"
             spellCheck={false}
             autoCorrect="off"
             autoCapitalize="off"
@@ -132,7 +133,7 @@ export function CreateGitHubProjectFields(props: {
           />
         </InputGroup>
         {props.finalClonePath ? (
-          <p className="truncate text-ui-xs text-muted-foreground/70">
+          <p className="truncate text-ui-xs text-muted-foreground">
             Final location: {props.finalClonePath}
           </p>
         ) : null}

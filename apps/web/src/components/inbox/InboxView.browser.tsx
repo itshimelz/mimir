@@ -98,9 +98,7 @@ it("offers Tasks in the Stable Inbox", async () => {
   );
   try {
     await expect.element(view.getByRole("heading", { name: "Inbox", exact: true })).toBeVisible();
-    await expect
-      .element(view.getByText("The day recap needs a newer Synara server."))
-      .toBeVisible();
+    await expect.element(view.getByText("The day recap needs a newer Mimir server.")).toBeVisible();
     expect(fixture.getRecap).toHaveBeenCalled();
     expect(fixture.navigate).not.toHaveBeenCalled();
     expect(fixture.listTodos).toHaveBeenCalled();

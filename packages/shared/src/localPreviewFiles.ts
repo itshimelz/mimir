@@ -2,8 +2,8 @@
 // Purpose: Single source of truth for the /api/local-image route shape consumed by
 //          both the server (HTTP route + filesystem allowlist) and the web client
 //          (URL builder + markdown image source detection). The route serves every
-//          allowlisted preview file: images (rendered via <img>) and PDFs (rendered
-//          by the browser's built-in viewer in an <iframe>).
+//          allowlisted preview file: images (rendered via <img>), PDFs (rendered by
+//          pdf.js), and .pptx presentations (unzipped and drawn in the browser).
 // Layer: Shared utility (no runtime dependencies)
 // Exports: route path, preview-file extension allowlists, and helper predicates
 //          derived from them.
@@ -50,11 +50,46 @@ export function isSupportedLocalPdfPath(filePath: string): boolean {
   return lowerCaseExtensionOf(filePath) === SUPPORTED_LOCAL_PDF_EXTENSION;
 }
 
+/**
+ * PowerPoint presentations. Only the OOXML `.pptx` container is previewable: the
+ * legacy binary `.ppt` format predates the ZIP/XML package and cannot be read in
+ * the browser, so it stays out of this list and keeps its read-as-text path.
+ */
+export const SUPPORTED_LOCAL_PPTX_EXTENSIONS = [".pptx"] as const;
+
+const SUPPORTED_LOCAL_PPTX_EXTENSIONS_SET: ReadonlySet<string> = new Set(
+  SUPPORTED_LOCAL_PPTX_EXTENSIONS,
+);
+
+export function isSupportedLocalPptxPath(filePath: string): boolean {
+  const extension = lowerCaseExtensionOf(filePath);
+  return extension !== null && SUPPORTED_LOCAL_PPTX_EXTENSIONS_SET.has(extension);
+}
+
+/**
+ * JSON Canvas files (.canvas) following the open specification (jsoncanvas.org).
+ */
+export const SUPPORTED_LOCAL_CANVAS_EXTENSIONS = [".canvas"] as const;
+
+const SUPPORTED_LOCAL_CANVAS_EXTENSIONS_SET: ReadonlySet<string> = new Set(
+  SUPPORTED_LOCAL_CANVAS_EXTENSIONS,
+);
+
+export function isSupportedLocalCanvasPath(filePath: string): boolean {
+  const extension = lowerCaseExtensionOf(filePath);
+  return extension !== null && SUPPORTED_LOCAL_CANVAS_EXTENSIONS_SET.has(extension);
+}
+
 // Full allowlist for the /api/local-image serving route. Markdown image source
 // detection (below) intentionally stays image-only: a `.pdf` link in chat
 // markdown must never be inlined as an <img>.
 export function isSupportedLocalPreviewFilePath(filePath: string): boolean {
-  return isSupportedLocalImagePath(filePath) || isSupportedLocalPdfPath(filePath);
+  return (
+    isSupportedLocalImagePath(filePath) ||
+    isSupportedLocalPdfPath(filePath) ||
+    isSupportedLocalPptxPath(filePath) ||
+    isSupportedLocalCanvasPath(filePath)
+  );
 }
 
 // Built from the canonical extensions list so the web regex never drifts from the

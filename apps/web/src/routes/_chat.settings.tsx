@@ -108,7 +108,9 @@ import { SelectItem } from "../components/ui/select";
 import { Switch } from "../components/ui/switch";
 import { toastManager } from "../components/ui/toast";
 import { RouteInsetSurface } from "../components/RouteInsetSurface";
+import { ApplicationMenuBar } from "../components/ApplicationMenuBar";
 import { SidebarHeaderNavigationControls } from "../components/SidebarHeaderNavigationControls";
+import { useOptionalSidebar } from "../components/ui/sidebar";
 import { useDesktopCustomTitleBarState } from "../hooks/useDesktopCustomTitleBar";
 import { useDesktopTopBarTrafficLightGutterClassName } from "../hooks/useDesktopTopBarGutter";
 import { useKeepAwakeState } from "../hooks/useKeepAwakeState";
@@ -362,6 +364,8 @@ function SettingsRouteView() {
     useAppSettings();
   const keepAwake = useKeepAwakeState();
   const desktopTopBarTrafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
+  const sidebar = useOptionalSidebar();
+  const sidebarOpen = sidebar?.open ?? false;
   const [releaseHistoryOpen, setReleaseHistoryOpen] = useState(false);
   const [resetEpoch, setResetEpoch] = useState(0);
   const platform = getNavigatorPlatform();
@@ -473,6 +477,7 @@ function SettingsRouteView() {
     ...(settings.anchorSentMessagesToTop !== defaults.anchorSentMessagesToTop
       ? ["Move sent messages to top"]
       : []),
+    ...(settings.showOpenThreadTabs !== defaults.showOpenThreadTabs ? ["Thread tabs"] : []),
     ...(settings.archiveDeletesOrphanedWorktree !== defaults.archiveDeletesOrphanedWorktree
       ? ["Delete worktree on archive"]
       : []),
@@ -481,6 +486,9 @@ function SettingsRouteView() {
       : []),
     ...(settings.sidebarThreadSortOrder !== defaults.sidebarThreadSortOrder
       ? ["Thread sort order"]
+      : []),
+    ...(settings.sidebarThreadAttentionFirst !== defaults.sidebarThreadAttentionFirst
+      ? ["Working and unread on top"]
       : []),
     ...(settings.showChatsSection !== defaults.showChatsSection ? ["Chats section"] : []),
     ...(GROUPS_ON && settings.showGroupsSection !== defaults.showGroupsSection
@@ -550,7 +558,7 @@ function SettingsRouteView() {
       ? ["Provider update checks"]
       : []),
     ...(settings.lowerProviderProcessPriority !== defaults.lowerProviderProcessPriority
-      ? ["Keep Synara responsive"]
+      ? ["Keep Mimir responsive"]
       : []),
     ...(defaultDiffRenderMode !== DEFAULT_DIFF_RENDER_MODE ? ["Diff layout"] : []),
     ...(settings.diffWordWrap !== defaults.diffWordWrap ? ["Diff line wrapping"] : []),
@@ -765,6 +773,15 @@ function SettingsRouteView() {
           ariaLabel: "Move sent messages to top",
         })}
 
+        {renderBooleanSettingRow({
+          settingKey: "showOpenThreadTabs",
+          title: "Thread tabs",
+          description:
+            "Show open threads as tabs in the chat header. Turn off to show only the current thread's title.",
+          resetLabel: "thread tabs",
+          ariaLabel: "Show open threads as tabs in the chat header",
+        })}
+
         <SettingsRow
           title="Welcome tour"
           description="Replay the first-run setup: feature tour, provider selection, appearance, and first project."
@@ -856,6 +873,15 @@ function SettingsRouteView() {
             </SettingsSelectControl>
           }
         />
+
+        {renderBooleanSettingRow({
+          settingKey: "sidebarThreadAttentionFirst",
+          title: "Working and unread on top",
+          description:
+            "With Recently active order, move working and unread threads above the rest. The list holds still while your pointer is over it.",
+          resetLabel: "working and unread on top",
+          ariaLabel: "Move working and unread threads to the top of the sidebar",
+        })}
       </SettingsSection>
 
       <SettingsSection title="Sidebar sections">
@@ -1699,8 +1725,9 @@ function SettingsRouteView() {
             desktopTopBarTrafficLightGutterClassName,
           )}
         >
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center">
             <SidebarHeaderNavigationControls />
+            {!sidebarOpen ? <ApplicationMenuBar className="ms-1" /> : null}
           </div>
         </div>
         <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col">

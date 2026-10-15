@@ -1,27 +1,28 @@
 // FILE: lib/docsLayout.tsx
 // Purpose: Shared Fumadocs layout options styled after the site chrome —
-//          same wordmark, compact nav links, full-width Download CTA, and top-chrome theme toggle.
+//          same M3E wordmark, compact nav links, Download CTA, and top-chrome theme toggle.
 // Layer: docs layout configuration (server-importable).
 
 import Image from "next/image";
 import Link from "next/link";
 import type { BaseLayoutProps } from "fumadocs-ui/layouts/shared";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Button } from "@/components/m3e/button";
 
 export function docsLayoutOptions(): BaseLayoutProps {
   return {
     nav: {
       title: (
-        <span className="flex items-center gap-2 text-[14px] font-medium tracking-[-0.02em] text-[var(--text-primary)]">
+        <span className="flex items-center gap-2 text-title-small text-on-surface">
           <Image
-            src="/synara-icon.png"
-            alt=""
-            width={22}
-            height={22}
-            className="rounded-[5px] border border-[var(--divide)]"
+            src="/mimir-logo.png"
+            alt="Mimir"
+            width={24}
+            height={24}
+            className="h-6 w-6 object-contain"
           />
-          Synara
-          <span className="rounded-full border border-[var(--divide)] px-2 py-px text-[11px] font-medium tracking-normal text-[var(--text-tertiary)]">
+          Mimir
+          <span className="rounded-full border border-outline-variant px-2 py-px text-label-medium text-on-surface-variant">
             Docs
           </span>
         </span>
@@ -40,12 +41,14 @@ export function docsLayoutOptions(): BaseLayoutProps {
       {
         type: "custom",
         children: (
-          <Link
-            href="/install"
-            className="mx-2 mt-1 flex min-h-9 items-center justify-center rounded-lg border border-[var(--divide)] px-4 py-2 text-[12.5px] font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--mock-row)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-link)]"
+          <Button
+            variant="outlined"
+            size="sm"
+            className="mx-2 mt-1"
+            render={<Link href="/install" />}
           >
             Download
-          </Link>
+          </Button>
         ),
       },
     ],

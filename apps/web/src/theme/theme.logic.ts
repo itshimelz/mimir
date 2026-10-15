@@ -29,6 +29,16 @@ export interface ThemeSemanticColors {
 
 export interface ChromeTheme {
   accent: string;
+  /**
+   * The window-body plane behind the content surface — the chrome the rail and overlays sit
+   * against. `null` keeps the historical derivation (a fixed mix of `surface` and `ink`).
+   *
+   * Stored rather than only derived because a tonal ladder cannot be reached through the
+   * mix: in light mode the derived mix clamps to zero at the default contrast, and in dark mode
+   * it only ever moves toward black, so a plane that sits *above* the surface is unreachable.
+   * Mimir's elevated chrome surface needs exactly that, so the Mimir theme pins it. Absent on every other pack, which is what keeps them unchanged.
+   */
+  chromeSurface?: string | null;
   contrast: number;
   fonts: ThemeFonts;
   ink: string;
@@ -141,7 +151,7 @@ export interface ResolvedThemeTokens {
 }
 
 type ChromeThemeSeedPatch = Partial<
-  Pick<ChromeTheme, "accent" | "contrast" | "ink" | "opaqueWindows" | "surface">
+  Pick<ChromeTheme, "accent" | "chromeSurface" | "contrast" | "ink" | "opaqueWindows" | "surface">
 > & {
   fonts?: Partial<ThemeFonts>;
   semanticColors?: Partial<ThemeSemanticColors>;
@@ -399,6 +409,7 @@ export function normalizeChromeTheme(value: unknown, variant: ThemeVariant): Chr
 
   return {
     accent: normalizeHexColor(theme.accent) ?? fallback.accent,
+    chromeSurface: normalizeHexColor(theme.chromeSurface),
     contrast: normalizeStoredContrast(theme.contrast, fallback.contrast),
     fonts: normalizeThemeFonts(theme.fonts),
     ink: normalizeHexColor(theme.ink) ?? fallback.ink,
@@ -672,6 +683,7 @@ function getCodeThemeSeedPatch(codeThemeId: string, variant: ThemeVariant): Chro
   const metadata = CODE_THEME_SEED_PATCH_METADATA[codeThemeId]?.[variant];
   const patch: ChromeThemeSeedPatch = {
     accent: normalizedSeed.accent,
+    chromeSurface: normalizedSeed.chromeSurface ?? null,
     ink: normalizedSeed.ink,
     semanticColors: normalizedSeed.semanticColors,
     surface: normalizedSeed.surface,
@@ -790,6 +802,7 @@ export function areThemePacksEqual(left: ThemePack, right: ThemePack): boolean {
   return (
     left.codeThemeId === right.codeThemeId &&
     left.theme.accent === right.theme.accent &&
+    (left.theme.chromeSurface ?? null) === (right.theme.chromeSurface ?? null) &&
     left.theme.contrast === right.theme.contrast &&
     left.theme.fonts.code === right.theme.fonts.code &&
     left.theme.fonts.ui === right.theme.fonts.ui &&
@@ -1357,6 +1370,10 @@ function buildSurfaceUnder(
   ink: RgbColor,
   variant: ThemeVariant,
 ): string {
+  // A pack that pins the chrome plane wins over the derivation — see ChromeTheme.chromeSurface.
+  if (typeof theme.chromeSurface === "string") {
+    return theme.chromeSurface;
+  }
   const baseline = CONTRAST_CURVE_BASELINE[variant];
   const mixAmount =
     SURFACE_UNDER_BASE_ALPHA[variant] +
@@ -1427,6 +1444,9 @@ function parseStrictChromeTheme(value: unknown): ChromeTheme {
 
   return {
     accent: parseRequiredHexColor(value.accent, "Theme accent"),
+    // Optional: share strings written before the chrome plane was pinnable must still parse,
+    // and their absence means "derive it", not "reject the payload".
+    chromeSurface: parseOptionalHexColor(value.chromeSurface, "Theme chromeSurface"),
     contrast: parseRequiredContrast(value.contrast),
     fonts: parseStrictThemeFonts(value.fonts),
     ink: parseRequiredHexColor(value.ink, "Theme ink"),
@@ -1500,6 +1520,14 @@ function parseRequiredHexColor(value: unknown, label: string): string {
     throw new Error(`${label} must be a 6-digit hex color.`);
   }
   return normalizedColor;
+}
+
+/** Absent or null means "derive this tone"; a present value must still be a valid hex. */
+function parseOptionalHexColor(value: unknown, label: string): string | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  return parseRequiredHexColor(value, label);
 }
 
 function normalizeStoredContrast(value: unknown, fallback: number): number {

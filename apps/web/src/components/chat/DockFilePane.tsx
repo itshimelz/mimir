@@ -7,6 +7,7 @@
 
 import type { ChatFileReference } from "~/lib/chatReferences";
 import type { FileCommentSelection } from "~/lib/fileComments";
+import type { PptxAnnotationDraft, PptxAnnotationSelection } from "~/lib/pptxAnnotations";
 import { WorkspaceFilePreview } from "../WorkspaceFilePreview";
 import { PanelStateMessage } from "./PanelStateMessage";
 
@@ -17,6 +18,8 @@ export function DockFilePane(props: {
   onReferenceInChat?: ((reference: ChatFileReference) => void) | undefined;
   onAskWhyInChat?: ((reference: ChatFileReference) => void) | undefined;
   onCommentInChat?: ((comment: FileCommentSelection) => void) | undefined;
+  pptxAnnotations?: ReadonlyArray<PptxAnnotationDraft> | undefined;
+  onPptxCommentInChat?: ((annotation: PptxAnnotationSelection) => void) | undefined;
 }) {
   return (
     <WorkspaceFilePreview
@@ -32,6 +35,8 @@ export function DockFilePane(props: {
       onReferenceInChat={props.onReferenceInChat}
       onAskWhyInChat={props.onAskWhyInChat}
       onCommentInChat={props.onCommentInChat}
+      pptxAnnotations={props.pptxAnnotations}
+      onPptxCommentInChat={props.onPptxCommentInChat}
     />
   );
 }

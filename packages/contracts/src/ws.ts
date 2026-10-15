@@ -136,8 +136,14 @@ import {
   ProjectStopDevServerInput,
   ProjectWriteFileInput,
 } from "./project";
-import { StudioListThreadOutputsInput } from "./studio";
-import { FilesystemBrowseInput } from "./filesystem";
+import {
+  StudioListProjectOutputsInput,
+  StudioListSpaceOutputsInput,
+  StudioListThreadOutputsInput,
+} from "./studio";
+import { CoursePrepareWorkspaceInput, CoursePrepareWorkspaceResult } from "./course";
+import { OrchestrationGetInlineVisualInput } from "./inlineVisual";
+import { FilesystemBrowseInput, FilesystemPickFolderInput } from "./filesystem";
 import {
   DEVICE_WS_CHANNELS,
   DEVICE_WS_METHODS,
@@ -245,9 +251,15 @@ export const WS_METHODS = {
 
   // Studio methods
   studioListThreadOutputs: "studio.listThreadOutputs",
+  studioListProjectOutputs: "studio.listProjectOutputs",
+  studioListSpaceOutputs: "studio.listSpaceOutputs",
+
+  // Course methods
+  coursePrepareWorkspace: "course.prepareWorkspace",
 
   // Filesystem browse methods
   filesystemBrowse: "filesystem.browse",
+  filesystemPickFolder: "filesystem.pickFolder",
 
   // Shell methods
   shellOpenInEditor: "shell.openInEditor",
@@ -467,6 +479,7 @@ const WebSocketRequestBody = Schema.Union([
   tagRequestBody(ORCHESTRATION_WS_METHODS.repairState, OrchestrationRepairStateInput),
   tagRequestBody(ORCHESTRATION_WS_METHODS.getTurnDiff, OrchestrationGetTurnDiffInput),
   tagRequestBody(ORCHESTRATION_WS_METHODS.getFullThreadDiff, OrchestrationGetFullThreadDiffInput),
+  tagRequestBody(ORCHESTRATION_WS_METHODS.getInlineVisual, OrchestrationGetInlineVisualInput),
   tagRequestBody(ORCHESTRATION_WS_METHODS.replayEvents, OrchestrationReplayEventsInput),
   tagRequestBody(ORCHESTRATION_WS_METHODS.subscribeShell, OrchestrationSubscribeShellInput),
   tagRequestBody(ORCHESTRATION_WS_METHODS.unsubscribeShell, OrchestrationUnsubscribeShellInput),
@@ -504,8 +517,14 @@ const WebSocketRequestBody = Schema.Union([
   // Filesystem browse
   // Studio
   tagRequestBody(WS_METHODS.studioListThreadOutputs, StudioListThreadOutputsInput),
+  tagRequestBody(WS_METHODS.studioListProjectOutputs, StudioListProjectOutputsInput),
+  tagRequestBody(WS_METHODS.studioListSpaceOutputs, StudioListSpaceOutputsInput),
+
+  // Course
+  tagRequestBody(WS_METHODS.coursePrepareWorkspace, CoursePrepareWorkspaceInput),
 
   tagRequestBody(WS_METHODS.filesystemBrowse, FilesystemBrowseInput),
+  tagRequestBody(WS_METHODS.filesystemPickFolder, FilesystemPickFolderInput),
 
   // Device pane (macOS only; the server refuses these off darwin)
   tagRequestBody(DEVICE_WS_METHODS.list, DeviceListInput),

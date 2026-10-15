@@ -124,7 +124,7 @@ function RailFixture({
               icon={RAIL_MORE_GLYPHS.idle}
               label="More"
               size="lg"
-              className={appRailButtonClassName(false)}
+              className={appRailButtonClassName()}
             />
           }
           bottomItems={[item("settings")]}
@@ -134,7 +134,7 @@ function RailFixture({
               <SidebarIconButton
                 icon={CircleQuestionIcon}
                 label="Help"
-                className={appRailButtonClassName(false)}
+                className={appRailButtonClassName()}
               />
               {showUpdate ? (
                 <DesktopUpdateRailButton

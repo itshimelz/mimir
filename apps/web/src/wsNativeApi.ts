@@ -39,6 +39,7 @@ import {
   ORCHESTRATION_WS_CHANNELS,
   ORCHESTRATION_WS_METHODS,
   type ContextMenuItem,
+  type FilesystemPickFolderResult,
   type NativeApi,
   ServerConfigUpdatedPayload,
   WS_CHANNELS,
@@ -552,8 +553,18 @@ export function createWsNativeApi(): NativeApi {
   const api: NativeApi = {
     dialogs: {
       pickFolder: async () => {
-        if (!window.desktopBridge) return null;
-        return window.desktopBridge.pickFolder();
+        if (window.desktopBridge?.pickFolder) {
+          return window.desktopBridge.pickFolder();
+        }
+        try {
+          const result = await transport.request<FilesystemPickFolderResult>(
+            WS_METHODS.filesystemPickFolder,
+            {},
+          );
+          return result?.path ?? null;
+        } catch {
+          return null;
+        }
       },
       saveFile: async (input) => {
         if (window.desktopBridge?.saveFile) {
@@ -622,6 +633,11 @@ export function createWsNativeApi(): NativeApi {
     },
     studio: {
       listThreadOutputs: (input) => transport.request(WS_METHODS.studioListThreadOutputs, input),
+      listProjectOutputs: (input) => transport.request(WS_METHODS.studioListProjectOutputs, input),
+      listSpaceOutputs: (input) => transport.request(WS_METHODS.studioListSpaceOutputs, input),
+    },
+    course: {
+      prepareWorkspace: (input) => transport.request(WS_METHODS.coursePrepareWorkspace, input),
     },
     shell: {
       openInEditor: (cwd, editor) =>
@@ -859,6 +875,8 @@ export function createWsNativeApi(): NativeApi {
         }),
       repairState: () => transport.request(ORCHESTRATION_WS_METHODS.repairState),
       getTurnDiff: (input) => transport.request(ORCHESTRATION_WS_METHODS.getTurnDiff, input),
+      getInlineVisual: (input) =>
+        transport.request(ORCHESTRATION_WS_METHODS.getInlineVisual, input),
       getFullThreadDiff: (input) =>
         transport.request(ORCHESTRATION_WS_METHODS.getFullThreadDiff, input),
       replayEvents: (fromSequenceExclusive, threadId) =>

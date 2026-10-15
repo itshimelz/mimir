@@ -19,7 +19,7 @@ describe("remote access policy", () => {
         authToken: undefined,
         publicUrl: new URL("https://synara.example.test/"),
       }),
-    ).toContain("without SYNARA_AUTH_TOKEN");
+    ).toContain("without MIMIR_AUTH_TOKEN");
   });
 
   it("rejects invalid public URLs in the shared embedded-server policy", () => {

@@ -1,9 +1,9 @@
 // FILE: WelcomeStep.tsx
 // Purpose: Intro of the welcome tour: the three ideas that shape everything that follows
-//          (local-first, bring your own agents, verify before done), one quiet tile each.
+//          (local-first, bring your own agent, read before you accept), one quiet tile each.
 // Layer: Web UI component
 
-import { BotIcon, CircleCheckIcon, FolderIcon, type LucideIcon } from "~/lib/icons";
+import { BrainIcon, CircleCheckIcon, FolderIcon, type LucideIcon } from "~/lib/icons";
 import { cn } from "~/lib/utils";
 import { ONBOARDING_TILE_CLASS_NAME } from "../layout";
 
@@ -14,17 +14,18 @@ const WELCOME_POINTS: ReadonlyArray<{
 }> = [
   {
     title: "Local-first",
-    description: "No account. Workspace data stays on this machine.",
+    description:
+      "No account. Your material and everything the agent writes stay in your own folder.",
     icon: FolderIcon,
   },
   {
     title: "Your own agents",
-    description: "Drives the CLIs, accounts and keys already set up here.",
-    icon: BotIcon,
+    description: "Drives the AI tools, accounts and keys already set up here. You keep the keys.",
+    icon: BrainIcon,
   },
   {
-    title: "Verify before done",
-    description: "Diff, terminal, browser and PR stay in one loop.",
+    title: "Read before you accept",
+    description: "Everything the agent makes opens in the same view you read your own notes in.",
     icon: CircleCheckIcon,
   },
 ];

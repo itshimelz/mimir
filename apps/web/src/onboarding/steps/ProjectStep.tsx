@@ -1,6 +1,6 @@
 // FILE: ProjectStep.tsx
-// Purpose: First-project step of the welcome tour: drop a folder (anywhere in the window),
-//          browse (desktop) or type a path, create the project through the shared
+// Purpose: First-folder step of the welcome tour: drop a course folder (anywhere in the
+//          window), browse (desktop) or type a path, create the project through the shared
 //          create-or-recover flow, and list what was added. Several folders can be added
 //          before continuing.
 // Layer: Web UI component
@@ -156,7 +156,7 @@ export function ProjectStep(props: {
                 <span>Opening the folder picker…</span>
               ) : (
                 <span>
-                  Drop a folder here, or{" "}
+                  Drop your course folder here, or{" "}
                   <span className="underline decoration-dotted decoration-[1.5px] underline-offset-[5px]">
                     browse
                   </span>
@@ -176,8 +176,8 @@ export function ProjectStep(props: {
                   setPath(event.target.value);
                   setError(null);
                 }}
-                placeholder={homeDir ? `${homeDir}/code/my-repo` : "/path/to/repository"}
-                aria-label="Project folder path"
+                placeholder={homeDir ? `${homeDir}/Documents/My Course` : "/path/to/your/course"}
+                aria-label="Course folder path"
                 spellCheck={false}
                 autoCorrect="off"
                 autoCapitalize="off"
@@ -202,7 +202,7 @@ export function ProjectStep(props: {
         </>
       )}
       {props.results.length > 0 ? (
-        <ul className="flex flex-col gap-1.5" aria-label="Added projects">
+        <ul className="flex flex-col gap-1.5" aria-label="Added course folders">
           {props.results.map((result) => (
             <li
               key={result.projectId}

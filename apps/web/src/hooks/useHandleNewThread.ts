@@ -52,6 +52,8 @@ import { useStore } from "../store";
 import { useProjectEnvironmentStore } from "../projectEnvironmentStore";
 import { useTemporaryThreadStore } from "../temporaryThreadStore";
 import { useTerminalStateStore } from "../terminalStateStore";
+import { type CourseStudyIntent, buildCourseStudyPrompt } from "../lib/courseStudyPrompts";
+import { useCourseWorkspaceStore } from "../courseWorkspaceStore";
 
 export interface NewThreadNavigationOptions {
   /**
@@ -60,6 +62,12 @@ export interface NewThreadNavigationOptions {
    * across the route change; default navigation clears all search params.
    */
   search?: (previous: Record<string, unknown>) => Record<string, unknown>;
+}
+
+export interface HandleNewCourseStudyThreadOptions {
+  readonly intent?: CourseStudyIntent | undefined;
+  readonly topic?: string | undefined;
+  readonly initialPrompt?: string | undefined;
 }
 
 // Coordinator hand-off threads never mint through this hook, so every caller
@@ -468,12 +476,37 @@ export function useHandleNewThread() {
     });
   };
 
+  const handleNewCourseStudyThread = async (
+    options?: HandleNewCourseStudyThreadOptions,
+  ): Promise<ThreadId | null> => {
+    const activeCourseId = useCourseWorkspaceStore.getState().activeCourseId;
+    if (!activeCourseId) {
+      return null;
+    }
+    const threadId = await handleNewThread(activeCourseId, {
+      fresh: true,
+      envMode: "local",
+    });
+    if (!threadId) {
+      return null;
+    }
+    useCourseWorkspaceStore.getState().setCourseRecentThreadId(activeCourseId, threadId);
+    const prompt =
+      options?.initialPrompt ??
+      (options?.intent ? buildCourseStudyPrompt(options.intent, options.topic) : undefined);
+    if (prompt) {
+      useComposerDraftStore.getState().setPrompt(threadId, prompt);
+    }
+    return threadId;
+  };
+
   return {
     activeDraftThread,
     activeProjectId,
     activeThread,
     activeContextThreadId: focusedThreadId,
     handleNewThread,
+    handleNewCourseStudyThread,
     projects,
     routeThreadId,
   };

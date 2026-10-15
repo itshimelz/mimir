@@ -3,6 +3,16 @@ import type { ContextMenuItem } from "@synara/contracts";
 import { createCentralIconElement } from "./lib/central-icons";
 import { isInlineSvgMenuIcon } from "./lib/nativeMenuIcons";
 
+/**
+ * Browser fallback for native context menus, styled with the app's shared semantic surface
+ * and text tokens.
+ */
+
+/** Shared focus styling for the currently highlighted item. */
+const HIGHLIGHT_CLASS = "bg-accent text-accent-foreground";
+const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-md border border-border shadow-md animate-in fade-in zoom-in-95`;
+const VIEWPORT_MARGIN = 4;
+
 function createMenuIconElement(icon: string): HTMLElement | null {
   if (!isInlineSvgMenuIcon(icon)) return createCentralIconElement(icon, "opacity-60");
   const wrapper = document.createElement("span");
@@ -11,9 +21,6 @@ function createMenuIconElement(icon: string): HTMLElement | null {
   return wrapper;
 }
 
-const HIGHLIGHT_CLASS = "bg-[var(--sidebar-accent)]";
-const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-sm border border-[color:var(--overlay-border)] shadow-sm animate-in fade-in zoom-in-95`;
-const VIEWPORT_MARGIN = 4;
 /** Small overlap so the pointer never crosses a gap between a row and its submenu. */
 const SUBMENU_OVERLAP = 4;
 /**
@@ -194,8 +201,8 @@ export function showContextMenuFallback<T extends string>(
         const btn = document.createElement("button");
         btn.type = "button";
         btn.className = isDestructive
-          ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-ui text-foreground/86 transition-colors"
-          : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-ui text-foreground/86 transition-colors";
+          ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-md px-3.5 py-1.5 text-left text-ui text-destructive transition-colors duration-150 ease-out"
+          : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-md px-3.5 py-1.5 text-left text-ui text-foreground transition-colors duration-150 ease-out";
 
         const icon = item.icon ? createMenuIconElement(item.icon) : null;
         if (icon) {

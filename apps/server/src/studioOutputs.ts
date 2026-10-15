@@ -6,7 +6,12 @@
 // Layer: Server workspace helper
 // Exports: Pure attribution/scan-diff helpers + listStudioThreadOutputs (Effect I/O).
 
-import type { StudioOutputEntry } from "@synara/contracts";
+import type {
+  ProjectId,
+  StudioOutputEntry,
+  StudioSpaceOutputEntry,
+  ThreadId,
+} from "@synara/contracts";
 import { Effect, FileSystem, Path } from "effect";
 
 // Managed Studio subtrees that hold inputs or infrastructure, never produced content.
@@ -17,8 +22,28 @@ const EXCLUDED_TOP_LEVEL_DIRECTORY_NAMES = new Set(["tmp", "logs", "inbox", "con
 // infrastructure even when the self-healing scaffold creates them mid-turn.
 const EXCLUDED_ROOT_FILE_NAMES = new Set(["agents.md", "claude.md"]);
 
-// Never treated as outputs (or descended into) at any depth.
-const EXCLUDED_NESTED_DIRECTORY_NAMES = new Set(["node_modules"]);
+// Never treated as outputs (or descended into) at any depth. `node_modules` predates
+// this; the rest are build and environment output that a course folder (typically a Git
+// repository) accumulates. They are regenerated rather than authored, so attributing them
+// to a turn would fill Studio with compiled bundles and bytecode instead of the lesson
+// the student asked for. Hidden directories are already dropped by `isSafeVisibleSegments`
+// (`.git`, `.venv`, `.next`, `.cache`), so only the non-hidden ones are listed here.
+const EXCLUDED_NESTED_DIRECTORY_NAMES = new Set([
+  "node_modules",
+  "dist",
+  "build",
+  "target",
+  "out",
+  "coverage",
+  "venv",
+  "env",
+  "vendor",
+  "cmake-build-debug",
+  "cmake-build-release",
+  "bin",
+  "obj",
+  "__pycache__",
+]);
 
 // Upper bound on how many distinct files a single request will stat. Checkpoint file
 // lists are deduplicated, so a realistic chat stays far below this; the cap only guards
@@ -30,13 +55,22 @@ export const MAX_THREAD_OUTPUT_FILES = 500;
 // hundreds of file descriptors at once.
 export const STAT_CONCURRENCY = 16;
 
-// Bounds for the per-turn workspace scan: the Studio root is a content folder, not a
-// codebase, so realistic trees stay far below these limits. They only guard pathological
-// content (an agent cloning a repository into the root).
+// Bounds for the per-turn workspace scan. They guard pathological trees (an agent cloning a
+// repository into the root) and, since phase 1.2, cap a legitimately large course repository.
+// The file cap is the one that binds first on a real course folder: a single flat directory of
+// slides or scripts reaches it before the walk reaches anything deeper, which is why the
+// Outbox subtree is seeded into the frontier below rather than left to traversal order.
 export const MAX_SCAN_DEPTH = 8;
 export const MAX_SCAN_FILES = 4_000;
 export const MAX_SCAN_ENTRIES = 20_000;
 const SCAN_STAT_BATCH_SIZE = STAT_CONCURRENCY * 4;
+
+/**
+ * The `Outbox/` subtree, seeded into the scan frontier. Not an exclusion: it is the one
+ * place a produced artifact is expected to land, so it is scanned first regardless of the
+ * surrounding tree's size.
+ */
+const OUTBOX_TOP_LEVEL_SEGMENTS = ["Outbox"] as const;
 
 interface CheckpointFileLike {
   readonly path: string;
@@ -62,8 +96,8 @@ function isExcludedRootFileName(fileName: string): boolean {
 }
 
 // Rejects empty/dot segments so a crafted or malformed path can never escape the
-// workspace root, and skips hidden files (e.g. .DS_Store, .git) plus nested
-// infrastructure folders like node_modules.
+// workspace root, and skips hidden entries (`.git`, `.venv`, `.DS_Store`) plus the
+// build/infrastructure directories in `EXCLUDED_NESTED_DIRECTORY_NAMES`.
 function isSafeVisibleSegments(segments: readonly string[]): boolean {
   return segments.every(
     (segment) =>
@@ -202,6 +236,13 @@ export const scanStudioWorkspaceFiles = Effect.fnUntraced(function* (input: {
   const files = new Map<string, StudioWorkspaceFileStat>();
   const pendingDirectories: Array<{ readonly segments: readonly string[] }> = [{ segments: [] }];
   let scannedEntryCount = 0;
+  // Directories are visited breadth-first and each one contributes its whole listing before
+  // the next. A single flat directory holding thousands of files therefore exhausted
+  // MAX_SCAN_FILES before the walk ever reached `Outbox/`, and a course folder is not an
+  // unusual place for that. Seeding the frontier with the managed Outbox subtree means the
+  // categories the student actually sees are always covered, whatever the rest of the
+  // workspace looks like.
+  pendingDirectories.push({ segments: [...OUTBOX_TOP_LEVEL_SEGMENTS] });
 
   while (
     pendingDirectories.length > 0 &&
@@ -341,6 +382,68 @@ export function studioOutputsCapturedActivityPayload(
 }
 
 /**
+ * Scans the managed Outbox/ folder (and outbox/) directly on disk, gathering existing
+ * output deliverables. In Mimir's course workspace, deliverables land in Outbox/
+ * (e.g. Outbox/Rubrics/, Outbox/Quizzes/).
+ */
+export const scanDiskOutboxRelativePaths = Effect.fnUntraced(function* (input: {
+  readonly workspaceRoot: string;
+}) {
+  const fileSystem = yield* FileSystem.FileSystem;
+  const path = yield* Path.Path;
+
+  const outboxCandidateNames = ["Outbox", "outbox"] as const;
+  const foundRelativePaths: string[] = [];
+
+  for (const outboxDir of outboxCandidateNames) {
+    const outboxRoot = path.join(input.workspaceRoot, outboxDir);
+    const exists = yield* fileSystem
+      .exists(outboxRoot)
+      .pipe(Effect.catch(() => Effect.succeed(false)));
+    if (!exists) {
+      continue;
+    }
+
+    const pending: Array<{
+      readonly dirPath: string;
+      readonly relativeSegments: readonly string[];
+    }> = [{ dirPath: outboxRoot, relativeSegments: [outboxDir] }];
+    let depth = 0;
+
+    while (pending.length > 0 && depth < 6 && foundRelativePaths.length < MAX_THREAD_OUTPUT_FILES) {
+      depth += 1;
+      const current = pending.pop();
+      if (!current) break;
+
+      const entries = yield* fileSystem
+        .readDirectory(current.dirPath)
+        .pipe(Effect.catch(() => Effect.succeed<string[]>([])));
+
+      for (const entryName of entries) {
+        if (!isSafeVisibleSegments([entryName])) {
+          continue;
+        }
+        const fullEntryPath = path.join(current.dirPath, entryName);
+        const relativeSegments = [...current.relativeSegments, entryName];
+        const stat = yield* fileSystem
+          .stat(fullEntryPath)
+          .pipe(Effect.catch(() => Effect.succeed(null)));
+        if (!stat) {
+          continue;
+        }
+        if (stat.type === "File") {
+          foundRelativePaths.push(relativeSegments.join("/"));
+        } else if (stat.type === "Directory") {
+          pending.push({ dirPath: fullEntryPath, relativeSegments });
+        }
+      }
+    }
+  }
+
+  return foundRelativePaths;
+});
+
+/**
  * Stats the thread-attributed output files and returns the ones that still exist, most
  * recently modified first. Missing or unreadable files are omitted instead of failing.
  */
@@ -348,6 +451,15 @@ export const listStudioThreadOutputs = Effect.fnUntraced(function* (input: {
   readonly workspaceRoot: string;
   readonly checkpoints: ReadonlyArray<CheckpointLike>;
   readonly fileChangeActivityPayloads?: ReadonlyArray<unknown>;
+  /**
+   * Append every file under the workspace's `Outbox/`, not just what this thread produced.
+   *
+   * On by default, and that default is why the course view keeps working: the scan is what
+   * makes a lesson written by a shell script — which no checkpoint or file-change activity
+   * records — show up at all. The chat Environment panel turns it off so "Output" can mean
+   * this conversation rather than restating the whole course folder.
+   */
+  readonly includeWorkspaceOutboxScan?: boolean;
 }) {
   const fileSystem = yield* FileSystem.FileSystem;
   const path = yield* Path.Path;
@@ -387,6 +499,21 @@ export const listStudioThreadOutputs = Effect.fnUntraced(function* (input: {
     relativePaths.push(posixRelativePath);
   }
 
+  if (input.includeWorkspaceOutboxScan !== false) {
+    const diskOutboxPaths = yield* scanDiskOutboxRelativePaths({
+      workspaceRoot: input.workspaceRoot,
+    });
+    for (const outboxPath of diskOutboxPaths) {
+      if (relativePaths.length >= MAX_THREAD_OUTPUT_FILES) {
+        break;
+      }
+      if (!seenRelativePaths.has(outboxPath)) {
+        seenRelativePaths.add(outboxPath);
+        relativePaths.push(outboxPath);
+      }
+    }
+  }
+
   const statResults = yield* Effect.forEach(
     relativePaths,
     (relativePath) => {
@@ -415,3 +542,88 @@ export const listStudioThreadOutputs = Effect.fnUntraced(function* (input: {
 
   return { entries };
 });
+
+/**
+ * Upper bound on entries returned for one space. A space aggregates every thread in every
+ * project, so the per-thread cap cannot bound it; this keeps the response predictable for a
+ * space holding one very chatty project. Newest wins, matching the per-thread listing.
+ */
+export const MAX_SPACE_OUTPUT_FILES = 500;
+
+/** Threads examined per space listing, newest first. Bounds the work, not the result. */
+export const MAX_SPACE_OUTPUT_THREADS = 50;
+
+/**
+ * Merge per-thread listings into one space-wide list, newest first and deduplicated by
+ * absolute path.
+ *
+ * Deduplication is by `fullPath` rather than relative path because two projects in one space
+ * can legitimately hold different files with the same relative name, and because several
+ * threads sharing a root may both claim the same file. Attribution is deliberately generous
+ * rather than lossy — the same tradeoff the per-turn reactor makes — so the newest thread that
+ * produced a file wins and the rest are dropped rather than shown as duplicates.
+ */
+export function mergeStudioThreadOutputEntries(
+  listings: ReadonlyArray<{
+    readonly threadId: ThreadId;
+    readonly projectId: ProjectId;
+    readonly projectName: string;
+    readonly entries: ReadonlyArray<StudioOutputEntry>;
+  }>,
+  limit: number = MAX_SPACE_OUTPUT_FILES,
+): ReadonlyArray<StudioSpaceOutputEntry> {
+  const byFullPath = new Map<string, StudioSpaceOutputEntry>();
+  for (const listing of listings) {
+    for (const entry of listing.entries) {
+      const existing = byFullPath.get(entry.fullPath);
+      // The first listing seen is the newest, since callers pass threads newest-first and
+      // each listing is itself newest-first, so an already-present path needs no replacement.
+      if (existing) {
+        continue;
+      }
+      byFullPath.set(entry.fullPath, {
+        name: entry.name,
+        relativePath: entry.relativePath,
+        fullPath: entry.fullPath,
+        modifiedAt: entry.modifiedAt,
+        threadId: listing.threadId,
+        projectId: listing.projectId,
+        projectName: listing.projectName,
+      });
+    }
+  }
+  return [...byFullPath.values()]
+    .toSorted((left, right) => right.modifiedAt.localeCompare(left.modifiedAt))
+    .slice(0, limit);
+}
+
+/**
+ * Merge per-thread listings into one course-wide list, newest first and deduplicated by
+ * absolute path.
+ *
+ * The same shape `mergeStudioThreadOutputEntries` produces, minus the attribution fields: a
+ * course belongs to one project, so "which project made this" is not a question the student
+ * can ask, and the sidebar reads only name, path, and timestamp. Attribution stays available
+ * where it is actually ambiguous — inside a space that holds several courses.
+ */
+export function mergeStudioProjectOutputEntries(
+  listings: ReadonlyArray<{
+    readonly entries: ReadonlyArray<StudioOutputEntry>;
+  }>,
+  limit: number = MAX_SPACE_OUTPUT_FILES,
+): ReadonlyArray<StudioOutputEntry> {
+  const byFullPath = new Map<string, StudioOutputEntry>();
+  for (const listing of listings) {
+    for (const entry of listing.entries) {
+      // First listing wins: callers pass threads newest-first and each listing is itself
+      // newest-first, so an already-present path needs no replacement.
+      if (byFullPath.has(entry.fullPath)) {
+        continue;
+      }
+      byFullPath.set(entry.fullPath, entry);
+    }
+  }
+  return [...byFullPath.values()]
+    .toSorted((left, right) => right.modifiedAt.localeCompare(left.modifiedAt))
+    .slice(0, limit);
+}

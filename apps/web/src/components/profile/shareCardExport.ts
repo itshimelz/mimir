@@ -12,7 +12,7 @@ export { downloadBlob } from "~/lib/browserDownload";
 
 const SHARE_BRAND_HANDLE = "@tryMimir";
 export const SHARE_TWEET_TEXT = `Just checking my ${SHARE_BRAND_HANDLE} dev stats. Absolute masterpiece of an IDE.`;
-const SHARE_URL = "https://trysynara.com";
+const SHARE_URL = "https://mimir.himelz.studio";
 
 export type ShareTarget = "x" | "linkedin" | "reddit";
 

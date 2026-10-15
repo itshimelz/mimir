@@ -129,38 +129,44 @@ export const THEME_SEED_CATALOG: Record<string, Partial<Record<ThemeVariant, Chr
     },
   },
   codex: CODEX_THEME_SEEDS,
+  // Mimir uses a violet palette. Its seed fields feed the app semantic color derivation:
+  // surface and ink define the base plane, accent provides the highlight, and
+  // chromeSurface sets the window plane behind the content. Diff and skill colors
+  // remain explicit semantic accents.
   synara: {
     dark: {
-      accent: "#d0bcff",
+      accent: "#cbbeff",
+      chromeSurface: "#13131a",
       contrast: 0,
       fonts: {
         code: null,
         ui: null,
       },
-      ink: "#e6e0e9",
+      ink: "#e6e4f3",
       opaqueWindows: false,
       semanticColors: {
-        diffAdded: "#40c977",
-        diffRemoved: "#f2b8b5",
-        skill: "#efb8c8",
+        diffAdded: "#e6e4f3",
+        diffRemoved: "#7a7a86",
+        skill: "#c2bbdc",
       },
-      surface: "#141218",
+      surface: "#0e0e13",
     },
     light: {
-      accent: "#6750a4",
+      accent: "#6341d9",
+      chromeSurface: "#f5f2fc",
       contrast: 0,
       fonts: {
         code: null,
         ui: null,
       },
-      ink: "#1d1b20",
+      ink: "#32313d",
       opaqueWindows: false,
       semanticColors: {
-        diffAdded: "#386a20",
-        diffRemoved: "#b3261e",
-        skill: "#7d5260",
+        diffAdded: "#32313d",
+        diffRemoved: "#8a8a93",
+        skill: "#534e6a",
       },
-      surface: "#fef7ff",
+      surface: "#fcf8ff",
     },
   },
   dracula: {

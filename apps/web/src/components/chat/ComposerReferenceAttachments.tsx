@@ -10,6 +10,7 @@ import {
 import { type BrowserAnnotationDraft } from "../../lib/browserAnnotations";
 import { type PastedTextDraft } from "../../lib/composerPastedText";
 import { type FileCommentDraft } from "../../lib/fileComments";
+import { type PptxAnnotationDraft } from "../../lib/pptxAnnotations";
 import { type PullRequestContextDraft } from "../../lib/pullRequestContext";
 import { type ChatAssistantSelectionAttachment } from "../../types";
 import { type ExpandedImagePreview } from "./ExpandedImagePreview";
@@ -20,11 +21,13 @@ import { ComposerPastedTextCard } from "./PastedTextChip";
 import { ComposerPullRequestContextCard } from "./PullRequestContextCard";
 import { FileCommentsSummaryChip } from "./FileCommentsSummaryChip";
 import { BrowserAnnotationStrip } from "./BrowserAnnotationStrip";
+import { PptxAnnotationsSummaryChip } from "./PptxAnnotationsSummaryChip";
 
 interface ComposerReferenceAttachmentsProps {
   assistantSelections: ReadonlyArray<ChatAssistantSelectionAttachment>;
   browserAnnotations?: ReadonlyArray<BrowserAnnotationDraft>;
   fileComments: ReadonlyArray<FileCommentDraft>;
+  pptxAnnotations?: ReadonlyArray<PptxAnnotationDraft>;
   pastedTexts?: ReadonlyArray<PastedTextDraft>;
   pullRequestContexts?: ReadonlyArray<PullRequestContextDraft>;
   files: ReadonlyArray<ComposerFileAttachment>;
@@ -34,6 +37,7 @@ interface ComposerReferenceAttachmentsProps {
   onRemoveAssistantSelections: () => void;
   onRemoveBrowserAnnotation?: (annotationId: string) => void;
   onRemoveFileComments: () => void;
+  onRemovePptxAnnotation?: ((annotationId: string) => void) | undefined;
   onRemovePastedText?: (pastedTextId: string) => void;
   onShowPastedTextInField?: (pastedTextId: string) => void;
   onRemovePullRequestContext?: (contextId: string) => void;
@@ -45,6 +49,7 @@ export function ComposerReferenceAttachments({
   assistantSelections,
   browserAnnotations = [],
   fileComments,
+  pptxAnnotations = [],
   pastedTexts: pastedTextsProp,
   pullRequestContexts: pullRequestContextsProp,
   files,
@@ -54,6 +59,7 @@ export function ComposerReferenceAttachments({
   onRemoveAssistantSelections,
   onRemoveBrowserAnnotation,
   onRemoveFileComments,
+  onRemovePptxAnnotation,
   onRemovePastedText,
   onShowPastedTextInField,
   onRemovePullRequestContext,
@@ -66,6 +72,7 @@ export function ComposerReferenceAttachments({
     assistantSelections.length === 0 &&
     browserAnnotations.length === 0 &&
     fileComments.length === 0 &&
+    pptxAnnotations.length === 0 &&
     pastedTexts.length === 0 &&
     pullRequestContexts.length === 0 &&
     files.length === 0 &&
@@ -87,6 +94,18 @@ export function ComposerReferenceAttachments({
       <FileCommentsSummaryChip
         comments={fileComments}
         onRemove={fileComments.length > 0 ? onRemoveFileComments : undefined}
+      />
+      <PptxAnnotationsSummaryChip
+        annotations={pptxAnnotations}
+        onRemove={
+          pptxAnnotations.length > 0 && onRemovePptxAnnotation
+            ? () => {
+                for (const annotation of pptxAnnotations) {
+                  onRemovePptxAnnotation(annotation.id);
+                }
+              }
+            : undefined
+        }
       />
       {pastedTexts.map((pasted) => (
         <ComposerPastedTextCard

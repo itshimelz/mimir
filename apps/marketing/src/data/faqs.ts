@@ -6,37 +6,37 @@ import { PRODUCT_DESCRIPTION } from "@/data/product";
 
 export const FAQ_ITEMS = [
   {
-    question: "What is Synara?",
+    question: "What is Mimir?",
     answer: PRODUCT_DESCRIPTION,
   },
   {
-    question: "Does Synara include models or require another AI subscription?",
+    question: "Does Mimir include models or require another AI subscription?",
     answer:
-      "Synara does not sell a separate model plan. It connects to supported coding-agent runtimes and the provider accounts already configured on your machine. Each provider keeps its own authentication, models, limits, tools, and permissions.",
+      "Mimir does not sell a separate model plan. It connects to your existing AI provider runtimes and accounts configured on your machine. Each provider maintains its own authentication, models, tools, and permissions.",
   },
   {
     question: "What must be installed before I start?",
     answer:
-      "Install the Synara desktop app and at least one supported coding-agent runtime. Authenticate that runtime outside Synara, verify that its executable works from a fresh terminal, then confirm that Synara detects it in provider settings.",
+      "Install the Mimir desktop app and connect at least one supported AI runtime. Mimir automatically detects your configured providers and local models in settings.",
   },
   {
     question: "Can several agents work at the same time?",
     answer:
-      "Yes. Create separate tasks and use isolated Git worktrees when agents may edit concurrently. Each task keeps its own provider session, working directory, terminal, browser, diff, and delivery state so ownership remains visible.",
+      "Yes. You can run multiple study tasks simultaneously across different Course Spaces. Each task maintains its own document context, reasoning scratchpad, and outbox artifacts so your courses never interfere with each other.",
   },
   {
     question: "Can I switch providers without starting the task over?",
     answer:
-      "Synara supports provider handoffs for supported runtimes. The next provider continues in the same task environment with the context Synara passes forward. Review the working tree before and after a handoff because providers do not have identical tools or session semantics.",
+      "Yes. Mimir supports provider handoffs. You can switch between connected AI providers within a task while preserving your active Course Space context, reading notes, and generated artifacts.",
   },
   {
-    question: "How does Synara fit into Git and pull-request workflows?",
+    question: "How does Mimir organize course materials and files?",
     answer:
-      "Use a normal branch or an isolated worktree, inspect the resulting diff, run the required checks, commit the intended changes, push the branch, and open or review the pull request from the same task workflow.",
+      "Mimir organizes each class into an isolated Course Space on your computer. Add lecture slides, syllabi, reading PDFs, and notes into the space. Mimir stores intermediate scratchpads in .mimir/work and delivers generated quizzes, lessons, and diagrams into your permanent Outbox.",
   },
   {
-    question: "Does Synara upload my code to its own cloud?",
+    question: "Does Mimir upload coursework to its own cloud?",
     answer:
-      "Synara does not require a Synara cloud workspace account or proxy normal provider traffic through its own model service. The selected provider still receives the prompts, files, diffs, command output, and tool results required for that provider session.",
+      "No. Mimir runs locally and does not require a cloud workspace account. Your documents, task history, and study notes remain on your machine. Selected AI providers only receive the context required for that specific study session.",
   },
 ] as const;

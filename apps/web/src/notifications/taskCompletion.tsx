@@ -10,6 +10,7 @@ import { toastManager } from "../components/ui/toast";
 import { resolveVisibleToastThreadIds } from "../components/ui/toastRouteVisibility";
 import { useAppSettings } from "../appSettings";
 import { isElectron } from "../env";
+import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
 import { useDiffRouteSearch } from "../hooks/useDiffRouteSearch";
 import { selectSplitView, useSplitViewStore } from "../splitViewStore";
 import { selectRightDockState, useRightDockStore } from "../rightDockStore";
@@ -196,12 +197,7 @@ export function TaskCompletionNotifications() {
   const notifiedSnoozeKeysRef = useRef(new Set<string>());
 
   useEffect(() => {
-    const onMenuAction = window.desktopBridge?.onMenuAction;
-    if (typeof onMenuAction !== "function") {
-      return;
-    }
-
-    const unsubscribe = onMenuAction((action) => {
+    return subscribeDesktopMenuAction((action) => {
       const prefix = "notification-open-thread:";
       if (!action.startsWith(prefix)) {
         return;
@@ -212,10 +208,6 @@ export function TaskCompletionNotifications() {
       }
       focusThread(threadId as Thread["id"], navigate);
     });
-
-    return () => {
-      unsubscribe?.();
-    };
   }, [navigate]);
 
   useEffect(() => {

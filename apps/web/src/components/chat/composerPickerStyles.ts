@@ -8,7 +8,7 @@ import { MUTED_LABEL_TEXT_CLASS_NAME } from "~/surfaceStyles";
 
 export { COMPOSER_PICKER_SIZE, type ComposerPickerSize } from "./composerPickerSize";
 
-/** M3 Expressive elevation for floating surfaces and composer chrome. */
+/** Shared shadow for floating surfaces and composer chrome. */
 export const COMPOSER_SURFACE_SHADOW_CLASS_NAME = "shadow-sm";
 
 // Uses the UI-sm token so picker labels sit slightly below the editor text size.
@@ -55,10 +55,10 @@ export const COMPOSER_PICKER_MODEL_LIST_MAX_HEIGHT_CLASS_NAME =
 /** Scroll chrome for long model-provider lists. */
 export const COMPOSER_PICKER_MODEL_LIST_SCROLL_CLASS_NAME = "composer-picker-scroll";
 
-/** Corner radius for picker panel chrome: M3 container scale. */
+/** Corner radius for picker panel chrome. */
 export const COMPOSER_PICKER_RADIUS_CLASS_NAME = "rounded-xl";
 
-/** Corner radius for option rows / selection pills inside picker panels: M3 medium (12dp). */
+/** Corner radius for option rows / selection pills inside picker panels. */
 export const COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME = "rounded-md";
 
 /** Collapsible section headers inside model provider lists. */
@@ -126,13 +126,13 @@ export const COMPOSER_COLUMN_FRAME_CLASS_NAME = CHAT_COLUMN_FRAME_CLASS_NAME;
 
 /**
  * Frame for rows stacked above the composer (queued steer/queue rows, live file
- * changes, active task list). It uses the same width contract as the composer
- * input so the stack stays aligned at every viewport size.
+ * changes, active task list). Sits at `w-14/15` and is centered (`mx-auto`) so the
+ * stack reads as an inset rail above the full-width composer input.
  *
  * Prefer ComposerStackedPanel inside ComposerColumnFrame instead of using this
  * token directly so chrome and attached-radius behavior stay centralized.
  */
-export const COMPOSER_STACKED_HEADER_FRAME_CLASS_NAME = "w-full -mb-px min-w-0";
+export const COMPOSER_STACKED_HEADER_FRAME_CLASS_NAME = "mx-auto -mb-px w-14/15 min-w-0";
 
 /** Shell around the composer surface. Deliberately has NO background: the composer
  *  floats over the scrolling transcript (see `composerOverlay.ts`) and its frosted
@@ -166,10 +166,10 @@ export const COMPOSER_INPUT_SURFACE_CLASS_NAME = `chat-composer-surface squircle
  *  The `before:` layer is the inner-surface hook dependents add hairlines to. */
 export const APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden border border-[color:var(--overlay-border)] bg-popover text-popover-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
 
-/** Default floating popup shell with M3 Expressive container corners and elevation-2. */
+/** Default floating popup shell. */
 export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xl shadow-md`;
 
-/** Chrome for plain tooltips and the sidebar hover cards: M3 small/medium corners and elevation-1. */
+/** Chrome for plain tooltips and the sidebar hover cards. */
 export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xs shadow-sm`;
 
 /** Shared border, radius, and shadow for composer-attached popup panels. */

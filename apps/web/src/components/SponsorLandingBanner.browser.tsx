@@ -23,7 +23,7 @@ afterEach(() => {
 
 it("opens the sponsor page externally without dismissing the banner", async () => {
   await render(<SponsorLandingBanner />);
-  await page.getByRole("button", { name: /Support Synara/ }).click();
+  await page.getByRole("button", { name: /Support Mimir/ }).click();
   expect(openExternal).toHaveBeenCalledExactlyOnceWith("https://www.trysynara.com/sponsor");
   await expect.element(page.getByTestId("sponsor-landing-banner")).toBeVisible();
 });

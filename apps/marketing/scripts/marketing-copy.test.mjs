@@ -54,7 +54,7 @@ test("canonical product language is centralized and consumed by every discovery 
 
   assert.equal(
     exportedString(product, "PRODUCT_HERO_TITLE"),
-    "Run every coding agent in one workspace",
+    "The desktop-first agentic co-learner",
   );
   assert.ok(exportedString(product, "PRODUCT_HERO_DESCRIPTION").length >= 100);
   assert.ok(exportedString(product, "PRODUCT_DESCRIPTION").length >= 220);
@@ -87,7 +87,11 @@ test("homepage hierarchy keeps one thesis, one proof image, and a coherent actio
   assert.ok(homepage.includes("PRODUCT_HERO_DESCRIPTION"));
   assert.ok(homepage.includes("data-home-actions"));
   assert.ok(homepage.includes("data-hero-preview"));
-  assert.ok(homepage.includes("Star on GitHub"));
+  assert.equal(
+    homepage.includes("Star on GitHub"),
+    false,
+    "GitHub star button must be hidden when Mimir is not ready",
+  );
   assert.ok(homepage.includes("HomepageRail"));
 
   for (const removedHeroLabel of [
@@ -179,7 +183,7 @@ test("privacy copy states both the local workspace boundary and provider boundar
   for (const marker of [
     "Workspace state stays on your machine",
     "Provider traffic goes to the selected provider",
-    "No Synara account is required",
+    "No Mimir account is required",
     "Anonymous analytics are opt-in",
     "provider sessions receive the context",
   ]) {
@@ -201,7 +205,7 @@ test("install and metadata surfaces share the new category", () => {
   const seo = read("src/lib/seo.ts");
 
   assert.ok(install.includes("PRODUCT_CATEGORY"));
-  assert.ok(install.includes("Download Synara — Coding Agent Workspace"));
+  assert.ok(install.includes("Download Mimir — Coding Agent Workspace"));
   assert.ok(seo.includes("PRODUCT_HERO_TITLE"));
   assert.ok(seo.includes("PRODUCT_META_DESCRIPTION"));
   assert.ok(seo.includes("Coding agent workspace and control plane"));

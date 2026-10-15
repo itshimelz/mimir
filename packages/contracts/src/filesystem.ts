@@ -20,3 +20,15 @@ export const FilesystemBrowseResult = Schema.Struct({
   entries: Schema.Array(FilesystemBrowseEntry),
 });
 export type FilesystemBrowseResult = typeof FilesystemBrowseResult.Type;
+
+export const FilesystemPickFolderInput = Schema.Struct({
+  initialPath: Schema.optional(
+    TrimmedNonEmptyString.check(Schema.isMaxLength(FILESYSTEM_PATH_MAX_LENGTH)),
+  ),
+});
+export type FilesystemPickFolderInput = typeof FilesystemPickFolderInput.Type;
+
+export const FilesystemPickFolderResult = Schema.Struct({
+  path: Schema.NullOr(TrimmedNonEmptyString),
+});
+export type FilesystemPickFolderResult = typeof FilesystemPickFolderResult.Type;

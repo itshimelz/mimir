@@ -1,8 +1,8 @@
 // FILE: SponsorRow.tsx
-// Purpose: The one sponsor list row — avatar, name, quiet meta line — shared by
+// Purpose: The one sponsor list row — avatar/logo, name, quiet meta line — shared by
 //          /sponsors and the preview strip on /sponsor.
-// Layer: Presentational component
-// Depends on: next/image, data/sponsors, lib/sponsors, design tokens in globals.css
+// Layer: Presentational component (M3E item + avatar)
+// Depends on: next/image, data/sponsors, lib/sponsors
 //
 // Why one row and not a set of tiles:
 //   The wall used to render two different shapes (a bordered chip and a large
@@ -15,49 +15,40 @@
 import Image from "next/image";
 import type { Sponsor } from "@/data/sponsors";
 import { sponsorLink, sponsorMetaLabel } from "@/lib/sponsors";
+import { Avatar, AvatarImage } from "@/components/m3e/avatar";
+import { Item, ItemContent, ItemDescription, ItemMedia, ItemTitle } from "@/components/m3e/item";
 
 export function SponsorRow({ sponsor }: { sponsor: Sponsor }) {
   const meta = sponsorMetaLabel(sponsor);
 
   return (
-    <a
-      href={sponsorLink(sponsor)}
-      target="_blank"
-      rel="noopener noreferrer"
-      // The negative inset lets the hover tint bleed past the text column so the
-      // row reads as a list item rather than a re-introduced card.
-      className="-mx-2 flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-[var(--mock-row)]"
+    <Item
+      size="sm"
+      render={<a href={sponsorLink(sponsor)} target="_blank" rel="noopener noreferrer" />}
+      className="-mx-2 rounded-xl hover:bg-on-surface/8"
     >
       {sponsor.logoUrl ? (
         // The $149+ tiers are sold on logo placement, so a sponsor who has sent
         // a logo gets it shown in place of the avatar — same row, same height.
-        <Image
-          src={sponsor.logoUrl}
-          alt={`${sponsor.name} logo`}
-          width={132}
-          height={36}
-          className="h-9 w-auto max-w-[132px] shrink-0 object-contain object-left"
-        />
+        <ItemMedia variant="image" className="h-9 w-[132px] rounded-sm bg-transparent">
+          <Image
+            src={sponsor.logoUrl}
+            alt={`${sponsor.name} logo`}
+            width={132}
+            height={36}
+            className="h-9 w-auto max-w-[132px] object-contain object-left"
+          />
+        </ItemMedia>
       ) : (
-        <Image
-          src={sponsor.avatarUrl}
-          alt=""
-          width={36}
-          height={36}
-          className="size-9 shrink-0 rounded-full object-cover ring-1 ring-[var(--divide)]"
-        />
+        <Avatar size="sm">
+          <AvatarImage src={sponsor.avatarUrl} alt="" />
+        </Avatar>
       )}
 
-      <span className="min-w-0">
-        <span className="block truncate text-[14px] leading-[1.35] font-medium text-[var(--text-primary)]">
-          {sponsor.name}
-        </span>
-        {meta ? (
-          <span className="block truncate text-[12px] leading-[1.35] text-[var(--text-tertiary)]">
-            {meta}
-          </span>
-        ) : null}
-      </span>
-    </a>
+      <ItemContent>
+        <ItemTitle>{sponsor.name}</ItemTitle>
+        {meta ? <ItemDescription>{meta}</ItemDescription> : null}
+      </ItemContent>
+    </Item>
   );
 }

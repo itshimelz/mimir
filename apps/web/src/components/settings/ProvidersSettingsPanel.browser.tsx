@@ -132,7 +132,7 @@ it("saves provider CPU priority opt-out and exposes reset to the default", async
   const result = await render(
     <ProvidersSettingsPanel {...props} updateSettings={updateSettings} />,
   );
-  const control = page.getByRole("switch", { name: "Keep Synara responsive" });
+  const control = page.getByRole("switch", { name: "Keep Mimir responsive" });
   await expect.element(control).toBeChecked();
   await control.click();
   expect(updateSettings).toHaveBeenCalledWith({ lowerProviderProcessPriority: false });
@@ -143,7 +143,7 @@ it("saves provider CPU priority opt-out and exposes reset to the default", async
       updateSettings={updateSettings}
     />,
   );
-  await page.getByRole("button", { name: "Reset Keep Synara responsive to default" }).click();
+  await page.getByRole("button", { name: "Reset Keep Mimir responsive to default" }).click();
   expect(updateSettings).toHaveBeenLastCalledWith({ lowerProviderProcessPriority: true });
   expect(control.element().closest('[data-slot="settings-row"]')?.textContent).toContain(
     "Restart existing sessions",

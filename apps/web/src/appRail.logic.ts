@@ -15,16 +15,23 @@ import {
   VOID_SPACE_KEY,
   type VoidSpacePresentation,
 } from "./lib/spaceGrouping";
-import { normalizeIdOrder, normalizeKnownIds, placeNewIdAfter } from "./lib/orderedIds";
+import {
+  isFeatureAvailable,
+  KANBAN_UNAVAILABLE_FEATURE,
+  PULL_REQUESTS_UNAVAILABLE_FEATURE,
+  TASKS_UNAVAILABLE_FEATURE,
+} from "@synara/shared/unavailableFeatures";
+import { normalizeIdOrder, normalizeKnownIds } from "./lib/orderedIds";
 import type { SidebarNavItemId } from "./sidebarNavOrdering";
 import type { Space } from "./types";
 
 /** Rail items that switch the panel content instead of navigating. */
-export const RAIL_PANEL_ITEM_IDS = ["home", "spaces"] as const;
+export const RAIL_PANEL_ITEM_IDS = ["spaces", "chats", "home"] as const;
 export type RailPanelItemId = (typeof RAIL_PANEL_ITEM_IDS)[number];
 export const RAIL_PANEL_ITEM_LABELS: Record<RailPanelItemId, string> = {
-  home: "Home",
-  spaces: "Spaces",
+  spaces: "Courses",
+  chats: "Chats",
+  home: "Today",
 };
 /**
  * Rail items that navigate to a route. "New thread" stays in the panel, never the rail;
@@ -35,12 +42,13 @@ export type RailItemId = RailPanelItemId | RailRouteItemId;
 
 /**
  * Rail items the user orders and hides from Customize. Settings stays pinned at the bottom;
- * Studio is also reachable from the "…" menu, so it starts hidden.
+ * developer-only surfaces start hidden in the learning workspace.
  */
 export const RAIL_ORDERABLE_ITEM_IDS = [
+  "spaces",
+  "chats",
   "home",
   "inbox",
-  "spaces",
   "kanban",
   "tasks",
   "pullRequests",
@@ -48,7 +56,14 @@ export const RAIL_ORDERABLE_ITEM_IDS = [
   "studio",
 ] as const;
 export type RailOrderableItemId = (typeof RAIL_ORDERABLE_ITEM_IDS)[number];
-export const DEFAULT_HIDDEN_RAIL_ITEMS: readonly RailOrderableItemId[] = ["studio"];
+export const DEFAULT_HIDDEN_RAIL_ITEMS: readonly RailOrderableItemId[] = [
+  "inbox",
+  "kanban",
+  "tasks",
+  "pullRequests",
+  "automations",
+  "studio",
+];
 
 const RAIL_ORDERABLE_ITEM_ID_SET: ReadonlySet<string> = new Set(RAIL_ORDERABLE_ITEM_IDS);
 
@@ -56,15 +71,13 @@ export function isRailOrderableItemId(value: string): value is RailOrderableItem
   return RAIL_ORDERABLE_ITEM_ID_SET.has(value);
 }
 
-/** Home is the rail's anchor for the panel: it can move but never be hidden. */
+/** Courses, Chats, and Today are the primary panels: they can move but never be hidden. */
 export function railItemCanHide(id: RailOrderableItemId): boolean {
-  return id !== "home";
+  return id !== "spaces" && id !== "home" && id !== "chats";
 }
 
 export function normalizeRailItemOrder(order: readonly string[]): RailOrderableItemId[] {
-  const normalized = normalizeIdOrder(order, RAIL_ORDERABLE_ITEM_IDS, isRailOrderableItemId);
-  // Inbox shipped after users saved an order: it joins next to Home, as by default.
-  return placeNewIdAfter(normalized, order, "inbox", "home");
+  return normalizeIdOrder(order, RAIL_ORDERABLE_ITEM_IDS, isRailOrderableItemId);
 }
 
 export function normalizeHiddenRailItems(hidden: readonly string[]): RailOrderableItemId[] {
@@ -76,12 +89,26 @@ export interface RailAvailability {
   readonly studioAvailable: boolean;
   /** Whether this host offers Inbox. */
   readonly inboxAvailable: boolean;
+  readonly pullRequestsAvailable?: boolean;
+  readonly kanbanAvailable?: boolean;
+  readonly tasksAvailable?: boolean;
 }
 
 /** Whether an item exists on this host at all: the rail and its Customize list agree. */
 export function isRailItemAvailable(id: RailOrderableItemId, availability: RailAvailability) {
   if (id === "studio") return availability.studioAvailable;
   if (id === "inbox") return availability.inboxAvailable;
+  if (id === "pullRequests") {
+    return (
+      availability.pullRequestsAvailable ?? isFeatureAvailable(PULL_REQUESTS_UNAVAILABLE_FEATURE)
+    );
+  }
+  if (id === "kanban") {
+    return availability.kanbanAvailable ?? isFeatureAvailable(KANBAN_UNAVAILABLE_FEATURE);
+  }
+  if (id === "tasks") {
+    return availability.tasksAvailable ?? isFeatureAvailable(TASKS_UNAVAILABLE_FEATURE);
+  }
   return true;
 }
 
@@ -224,6 +251,9 @@ export function reconcileActiveRailItem(input: {
   onStudioSurface: boolean;
   panelView: RailPanelItemId;
 }): RailItemId {
+  if (input.pathname === "/editor" || input.pathname.startsWith("/editor/")) {
+    return input.panelView === "chats" ? "chats" : "spaces";
+  }
   return (
     railItemForPathname(input.pathname) ?? (input.onStudioSurface ? "studio" : input.panelView)
   );

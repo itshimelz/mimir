@@ -7,14 +7,18 @@ import {
   AddPlusIcon,
   ArchiveIcon,
   BookIcon,
+  BookOpenIcon,
   BotIcon,
+  ChatBubbleIcon,
   CircleQuestionIcon,
+  ChevronDownIcon,
   ClockIcon,
   CodeReviewIcon,
   CopyIcon,
   CustomizeIcon,
   FeedbackIcon,
   ExternalLinkIcon,
+  FolderIcon,
   FolderOpenIcon,
   GiftIcon,
   GitBranchIcon,
@@ -30,6 +34,7 @@ import {
   PinIcon,
   PlayIcon,
   SearchIcon,
+  SparkleIcon,
   StopFilledIcon,
   TemporaryThreadIcon,
   TerminalIcon,
@@ -52,10 +57,10 @@ import {
   subscribeComposerSends,
 } from "~/lib/composerSendOwnership";
 import { autoAnimate } from "@formkit/auto-animate";
-import { IoIosGitCompare } from "react-icons/io";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   lazy,
   startTransition,
   useMemo,
@@ -99,7 +104,6 @@ import {
   PROVIDER_DISPLAY_NAMES,
   ProjectId,
   SpaceId,
-  type ProviderKind,
   ThreadId,
   type ResolvedKeybindingsConfig,
   WS_GITHUB_PROJECT_PROVISIONING_CAPABILITY,
@@ -146,7 +150,7 @@ import {
   newThreadId,
   randomUUID,
 } from "../lib/utils";
-import { isOrdinarySpaceProject } from "../lib/spaces";
+import { isOrdinarySpaceProject, moveProjectToSpace } from "../lib/spaces";
 import { expandProjectHomePath, joinProjectPath } from "../lib/projectPaths";
 import { reconcileDeletedThreadsFromClient } from "../lib/deletedThreadClientReconciliation";
 import { deleteProjectFromClient } from "../lib/projectDelete";
@@ -204,6 +208,8 @@ import {
   hasReconciledServerProviderStatuses,
   serverConfigQueryOptions,
   serverSettingsQueryOptions,
+  studioProjectOutputsQueryOptions,
+  studioThreadOutputsQueryOptions,
 } from "../lib/serverReactQuery";
 import {
   onNativeApiServerCapabilitiesChange,
@@ -230,7 +236,6 @@ import { useStableValue } from "~/hooks/useStableValue";
 import { DEFAULT_THREAD_TERMINAL_ID, type SidebarThreadSummary, type Thread } from "../types";
 import {
   applyAutomationEvent,
-  automationAttentionCount,
   automationQueryKey,
   formatCadence,
   groupAutomationsByContinuedThread,
@@ -290,7 +295,7 @@ import { SIDEBAR_PANEL_TITLE_CLASS_NAME, SidebarPanelTitle } from "./SidebarPane
 import { SidebarMetaChipStack } from "./SidebarMetaChip";
 import { SidebarRowHoverActions } from "./SidebarRowHoverActions";
 import { SidebarSectionToolbar } from "./SidebarSectionToolbar";
-import { SidebarGlyph, sidebarGlyphClass, SIDEBAR_TRAILING_ICON_CLASS } from "./sidebarGlyphs";
+import { SidebarGlyph, sidebarGlyphClass } from "./sidebarGlyphs";
 import { SidebarStatusTrailingGlyph } from "./SidebarStatusTrailingGlyph";
 import { ThreadArchiveActionButton } from "./ThreadArchiveActionButton";
 import { ThreadPinToggleButton } from "./ThreadPinToggleButton";
@@ -307,7 +312,6 @@ import {
 } from "./SidebarGroupsSurface.logic";
 
 import { useProjectAgentSummaries } from "./chat/project/useProjectAgentSummaries";
-import { RenameDialog } from "./RenameDialog";
 import { EditProjectDialog, type EditProjectValue } from "./EditProjectDialog";
 import { RelocateProjectDialog } from "./RelocateProjectDialog";
 import { RenameThreadDialog } from "./RenameThreadDialog";
@@ -365,6 +369,7 @@ import {
 import { ShortcutKbd } from "./ui/kbd";
 import {
   Menu,
+  MenuCheckboxItem,
   MenuGroup,
   MenuItem,
   MenuRadioGroup,
@@ -385,6 +390,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useOptionalSidebar,
 } from "./ui/sidebar";
 import { useThreadSelectionStore } from "../threadSelectionStore";
 import {
@@ -410,6 +416,7 @@ import {
   recoverExistingAddProjectTarget,
   runExclusiveProjectAddition,
   runProjectProvisionWithCancellationRecovery,
+  resolveAutomationCountBadge,
   resolvePullRequestReviewBadge,
   resolveSidebarThreadListPaging,
   DEBUG_FEATURE_FLAGS_MENU_STORAGE_KEY,
@@ -425,7 +432,6 @@ import {
   resolveThreadRowClassName,
   resolveThreadStatusPill,
   resolveThreadStatusTrailingIndicator,
-  type ThreadStatusPill,
   type SidebarDerivedProjectData,
   type SidebarActionBadge,
   type SidebarView,
@@ -456,8 +462,17 @@ import { isTerminalFocused } from "../lib/terminalFocus";
 import { beginThreadDrag, endThreadDrag } from "../lib/threadDrag";
 import { useDiffRouteSearch } from "../hooks/useDiffRouteSearch";
 import { normalizeSettingsSection, type SettingsSectionId } from "../settingsNavigation";
+import { stripDiffSearchParams } from "../diffRouteSearch";
+import { WorkspaceFilesSidebar } from "./chat/workspaceExplorer";
+import { StudioArtifactsSidebar } from "./chat/StudioArtifactsSidebar";
+import { resolveStudioOutputEntries, resolveStudioOutputScope } from "./chat/studioOutputScope";
+import { useEditorSurfaceStore } from "~/editorSurfaceStore";
+import type { StudioOutputEntry } from "@synara/contracts";
+import { collectParentDirectoryPaths } from "~/routes/-chatThreadRoute.logic";
 import {
   sidebarHoverRevealHideClassName,
+  SIDEBAR_HEADER_LEADING_ACTION_CLASS_NAME,
+  SIDEBAR_HEADER_LEADING_ACTION_REVEAL_CLASS_NAME,
   SIDEBAR_HEADER_ROW_CLASS_NAME,
   SIDEBAR_NESTED_LIST_GAP_CLASS_NAME,
   SIDEBAR_NESTED_LIST_OFFSET_CLASS_NAME,
@@ -471,6 +486,7 @@ import {
   SIDEBAR_SECTION_LABEL_CLASS_NAME,
 } from "../sidebarRowStyles";
 import { SettingsSidebarNav } from "./SettingsSidebarNav";
+import { ProjectMenuPicker, type ProjectMenuPickerOption } from "./ProjectMenuPicker";
 import {
   ComposerPickerMenuPopup,
   ComposerPickerMenuSubPopup,
@@ -478,12 +494,19 @@ import {
 import { selectSplitView, useSplitViewStore } from "../splitViewStore";
 import { useRightDockStore } from "../rightDockStore";
 import { useTemporaryThreadStore } from "../temporaryThreadStore";
-import { useThreadActivationController } from "../hooks/useThreadActivationController";
+import {
+  resolveThreadActivationView,
+  useThreadActivationController,
+} from "../hooks/useThreadActivationController";
 import {
   firstLocalServerUrl,
   useSidebarProjectRunController,
 } from "../hooks/useSidebarProjectRunController";
 import { useSidebarThreadActions } from "../hooks/useSidebarThreadActions";
+import {
+  useHeldSidebarThreadSortKeys,
+  useIsPointerWithin,
+} from "../hooks/useSidebarThreadOrderHold";
 import { useThreadActionShortcuts } from "../hooks/useThreadActionShortcuts";
 import { usePinnedProjectAgentsStore } from "../pinnedProjectAgentsStore";
 import { usePinnedProjectsStore } from "../pinnedProjectsStore";
@@ -502,9 +525,11 @@ import { useFocusedChatContext } from "../focusedChatContext";
 import { waitForRecoverableProjectInReadModel } from "../lib/projectCreateRecovery";
 import {
   createOrRecoverProjectFromPath,
+  resolveProjectCreationDestination,
   PROJECT_CREATE_EXISTING_SYNC_ERROR,
 } from "../lib/projectCreation";
 import { useSpacesUiStore } from "../spacesUiStore";
+import { useCourseWorkspaceStore } from "../courseWorkspaceStore";
 import {
   CreateProjectDialog,
   type CreateProjectSubmitOptions,
@@ -532,6 +557,7 @@ import {
 import {
   FEEDBACK_UNAVAILABLE_FEATURE,
   HELP_MENU_UNAVAILABLE_FEATURE,
+  PULL_REQUESTS_UNAVAILABLE_FEATURE,
   isFeatureAvailable,
 } from "@synara/shared/unavailableFeatures";
 import { isSidechatThread } from "@synara/shared/sidechatThread";
@@ -540,7 +566,6 @@ import { isSidechatThread } from "@synara/shared/sidechatThread";
 const ExpandAllIcon = createCentralIconComponent("expand-45");
 const CollapseAllIcon = createCentralIconComponent("minimize-45");
 const SortFilterIcon = createCentralIconComponent("filter-2");
-const BackArrowIcon = createCentralIconComponent("arrow-left");
 
 const EMPTY_KEYBINDINGS: ResolvedKeybindingsConfig = [];
 const subscribeGitHubProvisioningCapability = (listener: () => void) =>
@@ -868,14 +893,11 @@ type SortableProjectHandleProps = Pick<
 
 function ProjectSortMenu({
   projectSortOrder,
-  threadSortOrder,
   onProjectSortOrderChange,
-  onThreadSortOrderChange,
-}: {
+  ...threadSortMenuProps
+}: ThreadSortMenuProps & {
   projectSortOrder: SidebarProjectSortOrder;
-  threadSortOrder: SidebarThreadSortOrder;
   onProjectSortOrderChange: (sortOrder: SidebarProjectSortOrder) => void;
-  onThreadSortOrderChange: (sortOrder: SidebarThreadSortOrder) => void;
 }) {
   return (
     <Menu>
@@ -914,17 +936,14 @@ function ProjectSortMenu({
           <div className="px-2 pt-2 pb-1 sm:text-ui leading-snug font-medium text-muted-foreground">
             Sort threads
           </div>
-          <ThreadSortMenuItems
-            threadSortOrder={threadSortOrder}
-            onThreadSortOrderChange={onThreadSortOrderChange}
-          />
+          <ThreadSortMenuItems {...threadSortMenuProps} />
         </MenuGroup>
       </ComposerPickerMenuPopup>
     </Menu>
   );
 }
 
-const SYNARA_DOCS_URL = "https://trysynara.com/docs";
+const MIMIR_DOCS_URL = "https://mimir.himelz.studio/docs";
 
 // Latest curated releases surfaced directly in the help menu. Static data, so
 // computed once at module scope rather than per render.
@@ -956,7 +975,11 @@ function SidebarHelpMenu({
   }>({ open: false, version: null, openCount: 0 });
 
   const openReleaseHistory = (version: string | null) => {
-    setReleaseHistory((prev) => ({ open: true, version, openCount: prev.openCount + 1 }));
+    setReleaseHistory((prev) => ({
+      open: true,
+      version,
+      openCount: prev.openCount + 1,
+    }));
   };
 
   return (
@@ -971,7 +994,7 @@ function SidebarHelpMenu({
             ? {
                 tooltipSide: "right" as const,
                 iconClassName: APP_RAIL_GLYPH_CLASS_NAME,
-                className: appRailButtonClassName(false),
+                className: appRailButtonClassName(),
               }
             : {})}
         />
@@ -1029,7 +1052,7 @@ function SidebarHelpMenu({
             ) : null}
             <MenuItem
               className={SIDEBAR_CONTEXT_MENU_ITEM_CLASS_NAME}
-              onClick={() => openExternalLink(SYNARA_DOCS_URL)}
+              onClick={() => openExternalLink(MIMIR_DOCS_URL)}
             >
               <SidebarContextMenuIcon icon={BookIcon} />
               <span>Docs</span>
@@ -1049,38 +1072,52 @@ function SidebarHelpMenu({
   );
 }
 
+export type ThreadSortMenuProps = {
+  threadSortOrder: SidebarThreadSortOrder;
+  onThreadSortOrderChange: (sortOrder: SidebarThreadSortOrder) => void;
+  threadAttentionFirst: boolean;
+  onThreadAttentionFirstChange: (attentionFirst: boolean) => void;
+};
+
 function ThreadSortMenuItems({
   threadSortOrder,
   onThreadSortOrderChange,
-}: {
-  threadSortOrder: SidebarThreadSortOrder;
-  onThreadSortOrderChange: (sortOrder: SidebarThreadSortOrder) => void;
-}) {
+  threadAttentionFirst,
+  onThreadAttentionFirstChange,
+}: ThreadSortMenuProps) {
   return (
-    <MenuRadioGroup
-      value={threadSortOrder}
-      onValueChange={(value) => {
-        onThreadSortOrderChange(value as SidebarThreadSortOrder);
-      }}
-    >
-      {(Object.entries(SIDEBAR_THREAD_SORT_LABELS) as Array<[SidebarThreadSortOrder, string]>).map(
-        ([value, label]) => (
+    <>
+      <MenuRadioGroup
+        value={threadSortOrder}
+        onValueChange={(value) => {
+          onThreadSortOrderChange(value as SidebarThreadSortOrder);
+        }}
+      >
+        {(
+          Object.entries(SIDEBAR_THREAD_SORT_LABELS) as Array<[SidebarThreadSortOrder, string]>
+        ).map(([value, label]) => (
           <MenuRadioItem key={value} value={value} className="min-h-7 py-1 sm:text-ui leading-snug">
             {label}
           </MenuRadioItem>
-        ),
-      )}
-    </MenuRadioGroup>
+        ))}
+      </MenuRadioGroup>
+      {/* "Created at" is a plain creation-time list, so the toggle only applies to activity order. */}
+      <MenuCheckboxItem
+        variant="switch"
+        checked={threadAttentionFirst}
+        disabled={threadSortOrder === "created_at"}
+        onCheckedChange={(checked) => {
+          onThreadAttentionFirstChange(checked === true);
+        }}
+        className="min-h-7 py-1 sm:text-ui leading-snug"
+      >
+        Working and unread on top
+      </MenuCheckboxItem>
+    </>
   );
 }
 
-export function ChatSortMenu({
-  threadSortOrder,
-  onThreadSortOrderChange,
-}: {
-  threadSortOrder: SidebarThreadSortOrder;
-  onThreadSortOrderChange: (sortOrder: SidebarThreadSortOrder) => void;
-}) {
+export function ChatSortMenu(props: ThreadSortMenuProps) {
   return (
     <Menu>
       <SidebarIconButton
@@ -1095,10 +1132,7 @@ export function ChatSortMenu({
           <div className="px-2 py-1 sm:text-ui leading-snug font-medium text-muted-foreground">
             Sort chats
           </div>
-          <ThreadSortMenuItems
-            threadSortOrder={threadSortOrder}
-            onThreadSortOrderChange={onThreadSortOrderChange}
-          />
+          <ThreadSortMenuItems {...props} />
         </MenuGroup>
       </ComposerPickerMenuPopup>
     </Menu>
@@ -1219,15 +1253,26 @@ const SIDEBAR_SURFACE_PICKER_COPY: Record<SidebarView, { title: string; descript
 export function SidebarSurfacePicker({
   views,
   activeView,
+  titleOverride,
   onSelectView,
   onPrewarmView,
 }: {
   views: ReadonlyArray<SidebarView>;
   activeView: SidebarView;
+  titleOverride?: string;
   onSelectView: (view: SidebarView) => void;
   onPrewarmView?: (view: SidebarView) => void;
 }) {
   const activeCopy = SIDEBAR_SURFACE_PICKER_COPY[activeView];
+  const displayTitle = titleOverride ?? activeCopy.title;
+
+  if (views.length <= 1) {
+    return (
+      <div className="flex h-8 min-w-0 items-center px-2.5">
+        <span className={SIDEBAR_PANEL_TITLE_CLASS_NAME}>{displayTitle}</span>
+      </div>
+    );
+  }
 
   return (
     <Menu>
@@ -1244,7 +1289,7 @@ export function SidebarSurfacePicker({
           />
         }
       >
-        <span className={SIDEBAR_PANEL_TITLE_CLASS_NAME}>{activeCopy.title}</span>
+        <span className={SIDEBAR_PANEL_TITLE_CLASS_NAME}>{displayTitle}</span>
         <DisclosureChevron open className="text-muted-foreground/70" />
       </MenuTrigger>
       <ComposerPickerMenuPopup
@@ -1289,7 +1334,10 @@ export function SidebarSurfacePicker({
   );
 }
 
+export type CourseSidebarTab = "chats" | "files" | "studio";
+
 export default function Sidebar() {
+  const optionalSidebar = useOptionalSidebar();
   const githubProvisioningAvailable = useSyncExternalStore(
     subscribeGitHubProvisioningCapability,
     readGitHubProvisioningCapability,
@@ -1316,7 +1364,6 @@ export default function Sidebar() {
   const selectRailPanelItem = useRailShellStore((store) => store.selectPanelItem);
   const selectRailRouteItem = useRailShellStore((store) => store.selectRouteItem);
   const openRailSpacesProject = useRailShellStore((store) => store.openSpacesProject);
-  const closeRailSpacesProject = useRailShellStore((store) => store.closeSpacesProject);
   const reconcileRailShell = useRailShellStore((store) => store.reconcile);
   const sidebarThreadSummaryById = useStore((store) => store.sidebarThreadSummaryById);
   const syncServerShellSnapshot = useStore((store) => store.syncServerShellSnapshot);
@@ -1369,7 +1416,7 @@ export default function Sidebar() {
   const isOnAutomations = pathname.startsWith("/automations");
   const isOnPullRequests = pathname.startsWith("/pull-requests");
   const isOnInbox = pathname.startsWith("/inbox");
-  // Lightweight read of automations to drive the sidebar attention badge. Shares the
+  // Lightweight read of automations to drive the sidebar count badge. Shares the
   // ["automations"] query cache with the Automations route (and its live stream updates).
   const automationListQuery = useQuery({
     queryKey: automationQueryKey,
@@ -1383,17 +1430,10 @@ export default function Sidebar() {
       );
     });
   }, [queryClient]);
-  const automationAttentionBadge = useMemo(() => {
-    const data = automationListQuery.data;
-    if (!data) return null;
-    const count = automationAttentionCount(data.runs);
-    return count > 0
-      ? {
-          text: String(count),
-          accessibleLabel: `${count} ${pluralize(count, "automation needs", "automations need")} attention`,
-        }
-      : null;
-  }, [automationListQuery.data]);
+  const automationCountBadge = useMemo(
+    () => resolveAutomationCountBadge(automationListQuery.data?.definitions.length),
+    [automationListQuery.data],
+  );
   // Subscribe to Tasks unless the connected server has refused it.
   const tasksSurfaceEnabled = useTasksSurfaceEnabled();
   useTodoEventSubscription(tasksSurfaceEnabled);
@@ -1440,8 +1480,9 @@ export default function Sidebar() {
   // Projects is always available; Groups and the standalone Chats footer can be hidden
   // independently from Settings.
   const chatsSectionVisible = appSettings.showChatsSection;
-  const groupsSectionVisible = GROUPS_ON && appSettings.showGroupsSection;
-  const { handleNewThread } = useHandleNewThread();
+  // Hubs is hidden in Mimir.
+  const groupsSectionVisible = false;
+  const { handleNewThread, handleNewCourseStudyThread } = useHandleNewThread();
   const { handleNewChat } = useHandleNewChat();
   const { handleNewGroupChat } = useHandleNewGroupChat();
   const { continueThreadHandoff, createThreadHandoff } = useThreadHandoff();
@@ -1449,6 +1490,28 @@ export default function Sidebar() {
     strict: false,
     select: (params) => (params.threadId ? ThreadId.makeUnsafe(params.threadId) : null),
   });
+  const pendingThreadRowAnchorRef = useRef<{
+    threadId: ThreadId;
+    row: HTMLElement;
+    viewport: HTMLElement;
+    top: number;
+    scrollTop: number;
+  } | null>(null);
+  useLayoutEffect(() => {
+    const anchor = pendingThreadRowAnchorRef.current;
+    pendingThreadRowAnchorRef.current = null;
+    if (
+      !anchor ||
+      anchor.threadId !== routeThreadId ||
+      !anchor.row.isConnected ||
+      anchor.viewport.scrollTop !== anchor.scrollTop
+    ) {
+      return;
+    }
+    // Keep the activated row in place when navigation replaces the subagent subtree.
+    // Native anchoring can instead hold an earlier row; scroll bounds still apply.
+    anchor.viewport.scrollTop += anchor.row.getBoundingClientRect().top - anchor.top;
+  }, [routeThreadId]);
   const routeProjectId = useParams({
     strict: false,
     select: (params) =>
@@ -1461,6 +1524,53 @@ export default function Sidebar() {
     useMemo(() => selectSplitView(routeSearch.splitViewId ?? null), [routeSearch.splitViewId]),
   );
   const splitViewsById = useSplitViewStore((store) => store.splitViewsById);
+  const selectedEditorFilePath =
+    typeof settingsSectionSearch.editorFilePath === "string"
+      ? settingsSectionSearch.editorFilePath
+      : null;
+  const [spacesBrowseMode, setSpacesBrowseMode] = useState<"files" | "courses">("files");
+  const [userSelectedCourseTab, setUserSelectedCourseTab] = useState<CourseSidebarTab | null>(null);
+  const [workspaceExpandedDirs, setWorkspaceExpandedDirs] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const handleToggleWorkspaceDir = useCallback((dir: string) => {
+    setWorkspaceExpandedDirs((prev) => {
+      const next = new Set(prev);
+      if (next.has(dir)) next.delete(dir);
+      else next.add(dir);
+      return next;
+    });
+  }, []);
+
+  const handleSelectWorkspaceFile = useCallback(
+    (filePath: string) => {
+      void navigate({
+        search: ((prev: Record<string, unknown>) => ({
+          ...stripDiffSearchParams(prev),
+          view: "editor",
+          editorFilePath: filePath,
+        })) as never,
+      });
+    },
+    [navigate],
+  );
+
+  useEffect(() => {
+    if (!selectedEditorFilePath) return;
+    const parentPaths = collectParentDirectoryPaths(selectedEditorFilePath);
+    if (parentPaths.length === 0) return;
+    setWorkspaceExpandedDirs((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      for (const p of parentPaths) {
+        if (!next.has(p)) {
+          next.add(p);
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [selectedEditorFilePath]);
 
   useEffect(() => {
     const api = readNativeApi();
@@ -1591,7 +1701,6 @@ export default function Sidebar() {
   const projectAdditionLockRef = useRef(false);
   const [renameDialogThreadId, setRenameDialogThreadId] = useState<ThreadId | null>(null);
   const [snoozeDialogThreadId, setSnoozeDialogThreadId] = useState<ThreadId | null>(null);
-  const [renameProjectDialogId, setRenameProjectDialogId] = useState<ProjectId | null>(null);
   const [projectAgentDialogState, setProjectAgentDialogState] = useState<{
     projectId: ProjectId;
     mode: "onboarding" | "edit";
@@ -1718,6 +1827,10 @@ export default function Sidebar() {
   const removeFromSelection = useThreadSelectionStore((s) => s.removeFromSelection);
   const setSelectionAnchor = useThreadSelectionStore((s) => s.setAnchor);
 
+  // Row layout (the open thread's subagent rows, a collapsed folder's open row,
+  // the preview cap's forced reveal) follows the route, not the pointer-down
+  // optimistic id. Rebuilding the list between press and release moves the row
+  // out from under the pointer, so the click never fires and the thread never opens.
   const routeActiveSidebarThreadId = routeThreadId;
   const activeSidebarThreadId = optimisticActiveThreadId ?? routeActiveSidebarThreadId;
   const visualActiveSidebarThreadId = optimisticActiveThreadId ?? routeThreadId;
@@ -1746,8 +1859,13 @@ export default function Sidebar() {
   );
   const { nonGroupThreads: nonGroupSidebarTreeThreads, groupThreads: groupSidebarTreeThreads } =
     useMemo(
-      () => partitionSidebarThreadsByProjectIds(displaySidebarTreeThreads, groupProjectIdSet),
-      [displaySidebarTreeThreads, groupProjectIdSet],
+      () =>
+        partitionSidebarThreadsByProjectIds(
+          displaySidebarTreeThreads,
+          groupProjectIdSet,
+          summariesByProjectId,
+        ),
+      [displaySidebarTreeThreads, groupProjectIdSet, summariesByProjectId],
     );
   // Drives the unread dot on the header Activity bell.
   const hasUnreadActivity = useMemo(
@@ -1858,6 +1976,9 @@ export default function Sidebar() {
     }
 
     const timeout = window.setTimeout(() => {
+      if (pendingThreadRowAnchorRef.current?.threadId === optimisticActiveThreadId) {
+        pendingThreadRowAnchorRef.current = null;
+      }
       setOptimisticActiveThreadId((current) =>
         current === optimisticActiveThreadId ? null : current,
       );
@@ -1910,7 +2031,12 @@ export default function Sidebar() {
         threads,
         projectById,
         spaceId: activeSpaceId,
-        paths: { homeDir, chatWorkspaceRoot, studioWorkspaceRoot, groupsWorkspaceRoot },
+        paths: {
+          homeDir,
+          chatWorkspaceRoot,
+          studioWorkspaceRoot,
+          groupsWorkspaceRoot,
+        },
       }),
     [
       activeSpaceId,
@@ -1969,7 +2095,12 @@ export default function Sidebar() {
           threads: activityNonGroupSidebarThreads,
           projectById,
           spaceId: activeSpaceId,
-          paths: { homeDir, chatWorkspaceRoot, studioWorkspaceRoot, groupsWorkspaceRoot },
+          paths: {
+            homeDir,
+            chatWorkspaceRoot,
+            studioWorkspaceRoot,
+            groupsWorkspaceRoot,
+          },
         }),
         pinnedThreadIdSet,
       }).snoozed,
@@ -2055,7 +2186,12 @@ export default function Sidebar() {
         threads: nonGroupSidebarTreeThreads,
         projectById,
         spaceId: activeSpaceId,
-        paths: { homeDir, chatWorkspaceRoot, studioWorkspaceRoot, groupsWorkspaceRoot },
+        paths: {
+          homeDir,
+          chatWorkspaceRoot,
+          studioWorkspaceRoot,
+          groupsWorkspaceRoot,
+        },
       }),
     [
       activeSpaceId,
@@ -2254,6 +2390,7 @@ export default function Sidebar() {
             isSidebarThreadVisible(thread, { hideAutomationRunThreads }),
         ),
         appSettings.sidebarThreadSortOrder,
+        { attentionFirst: appSettings.sidebarThreadAttentionFirst },
       )[0];
       if (!latestThread) return;
 
@@ -2262,28 +2399,35 @@ export default function Sidebar() {
         params: { threadId: latestThread.id },
       });
     },
-    [appSettings.sidebarThreadSortOrder, displaySidebarThreads, hideAutomationRunThreads, navigate],
+    [
+      appSettings.sidebarThreadAttentionFirst,
+      appSettings.sidebarThreadSortOrder,
+      displaySidebarThreads,
+      hideAutomationRunThreads,
+      navigate,
+    ],
   );
 
   const openOrCreateProjectThreadFromSnapshot = useCallback(
     async (projectId: ProjectId, snapshot: OrchestrationShellSnapshot): Promise<boolean> => {
+      // The store may already contain events newer than this response. Rank
+      // each candidate from its coherent normalized summary, including visits.
+      const summaries = useStore.getState().sidebarThreadSummaryById;
       const latestThread = sortThreadsForSidebar(
         snapshot.threads
+          .flatMap((thread) => {
+            const summary = summaries[thread.id];
+            return summary ? [summary] : [];
+          })
           .filter(
             (thread) =>
               thread.projectId === projectId &&
               (thread.archivedAt ?? null) === null &&
               thread.snoozedUntil == null &&
               !isSidechatThread(thread),
-          )
-          .map((thread) => ({
-            id: thread.id,
-            createdAt: thread.createdAt,
-            updatedAt: thread.updatedAt,
-            latestUserMessageAt: thread.latestUserMessageAt,
-            snoozeReminderAt: thread.snoozeReminderAt,
-          })),
+          ),
         appSettings.sidebarThreadSortOrder,
+        { attentionFirst: appSettings.sidebarThreadAttentionFirst },
       )[0];
       if (latestThread) {
         await navigate({
@@ -2295,7 +2439,12 @@ export default function Sidebar() {
 
       return (await handleNewThread(projectId).catch(() => null)) !== null;
     },
-    [appSettings.sidebarThreadSortOrder, handleNewThread, navigate],
+    [
+      appSettings.sidebarThreadAttentionFirst,
+      appSettings.sidebarThreadSortOrder,
+      handleNewThread,
+      navigate,
+    ],
   );
 
   const openExistingProjectFromSnapshot = useCallback(
@@ -2306,22 +2455,23 @@ export default function Sidebar() {
         return false;
       }
 
+      // The store may already contain events newer than this response. Rank
+      // each candidate from its coherent normalized summary, including visits.
+      const summaries = useStore.getState().sidebarThreadSummaryById;
       const latestThread = sortThreadsForSidebar(
         snapshot.threads
+          .flatMap((thread) => {
+            const summary = summaries[thread.id];
+            return summary ? [summary] : [];
+          })
           .filter(
             (thread) =>
               thread.projectId === projectId &&
               (thread.archivedAt ?? null) === null &&
               thread.snoozedUntil == null,
-          )
-          .map((thread) => ({
-            id: thread.id,
-            createdAt: thread.createdAt,
-            updatedAt: thread.updatedAt,
-            latestUserMessageAt: thread.latestUserMessageAt,
-            snoozeReminderAt: thread.snoozeReminderAt,
-          })),
+          ),
         appSettings.sidebarThreadSortOrder,
+        { attentionFirst: appSettings.sidebarThreadAttentionFirst },
       )[0];
       if (latestThread) {
         await navigate({
@@ -2334,7 +2484,13 @@ export default function Sidebar() {
       setProjectExpanded(projectId, true);
       return (await handleNewThread(projectId).catch(() => null)) !== null;
     },
-    [appSettings.sidebarThreadSortOrder, handleNewThread, navigate, setProjectExpanded],
+    [
+      appSettings.sidebarThreadAttentionFirst,
+      appSettings.sidebarThreadSortOrder,
+      handleNewThread,
+      navigate,
+      setProjectExpanded,
+    ],
   );
 
   // Poll the server read model briefly after project.create so we only recover from fresh state.
@@ -2464,7 +2620,9 @@ export default function Sidebar() {
   const resolveBackTargetForThreads = useCallback(
     (threads: readonly SidebarThreadSummary[], extraAvailableThreadIds?: ReadonlySet<string>) => {
       const latestThread =
-        sortThreadsForSidebar(threads, appSettings.sidebarThreadSortOrder)[0] ?? null;
+        sortThreadsForSidebar(threads, appSettings.sidebarThreadSortOrder, {
+          attentionFirst: appSettings.sidebarThreadAttentionFirst,
+        })[0] ?? null;
       const availableThreadIds = new Set<string>(threads.map((thread) => thread.id));
       if (extraAvailableThreadIds) {
         for (const threadId of extraAvailableThreadIds) {
@@ -2480,7 +2638,12 @@ export default function Sidebar() {
         latestThreadId: latestThread?.id ?? null,
       });
     },
-    [appSettings.sidebarThreadSortOrder, lastThreadRoute, splitViewsById],
+    [
+      appSettings.sidebarThreadAttentionFirst,
+      appSettings.sidebarThreadSortOrder,
+      lastThreadRoute,
+      splitViewsById,
+    ],
   );
 
   // Fresh unsent chats have a route id but no persisted sidebar summary yet. Keep those draft
@@ -2823,7 +2986,9 @@ export default function Sidebar() {
 
   const handlePrimaryNewThread = useCallback(() => {
     if (primaryNewThreadTarget) {
-      prefetchModelsForProjectNewThread(primaryNewThreadTarget.projectId, { includeDroid: true });
+      prefetchModelsForProjectNewThread(primaryNewThreadTarget.projectId, {
+        includeDroid: true,
+      });
       void handleNewThread(primaryNewThreadTarget.projectId);
       return;
     }
@@ -3129,7 +3294,10 @@ export default function Sidebar() {
         )
         .then(async (nextThreadId) => {
           syncServerShellSnapshot(await api.orchestration.getShellSnapshot());
-          await navigate({ to: "/$threadId", params: { threadId: nextThreadId } });
+          await navigate({
+            to: "/$threadId",
+            params: { threadId: nextThreadId },
+          });
         })
         .catch((error: unknown) => {
           toastManager.add({
@@ -3188,9 +3356,9 @@ export default function Sidebar() {
   const continueThreadAsGroup = useCallback(async (thread: Thread) => {
     const api = readNativeApi();
     if (!api?.projectAgent) return;
-    const groupId = await createGroupProject({ title: thread.title ?? "New hub" }).catch(
-      () => null,
-    );
+    const groupId = await createGroupProject({
+      title: thread.title ?? "New hub",
+    }).catch(() => null);
     if (!groupId) {
       toastManager.add({
         type: "error",
@@ -3317,7 +3485,11 @@ export default function Sidebar() {
         continueHandoffTargets.map((target) => [`handoff-here:${target.instanceId}`, target]),
       );
       const handoffItems = contextMenuGroup(
-        { id: "handoff", label: "Handoff", icon: THREAD_CONTEXT_MENU_ICONS.handoff },
+        {
+          id: "handoff",
+          label: "Handoff",
+          icon: THREAD_CONTEXT_MENU_ICONS.handoff,
+        },
         [
           ...continueHandoffTargets.map((target) => ({
             id: `handoff-here:${target.instanceId}`,
@@ -3404,7 +3576,11 @@ export default function Sidebar() {
         : [];
       const clicked = await api.contextMenu.show(
         [
-          { id: "rename", label: "Rename thread", icon: THREAD_CONTEXT_MENU_ICONS.rename },
+          {
+            id: "rename",
+            label: "Rename thread",
+            icon: THREAD_CONTEXT_MENU_ICONS.rename,
+          },
           {
             id: "toggle-pin",
             label: pinActionLabel("thread", isPinned),
@@ -3419,7 +3595,11 @@ export default function Sidebar() {
                 },
               ]
             : []),
-          { id: "mark-unread", label: "Mark unread", icon: THREAD_CONTEXT_MENU_ICONS.markUnread },
+          {
+            id: "mark-unread",
+            label: "Mark unread",
+            icon: THREAD_CONTEXT_MENU_ICONS.markUnread,
+          },
           ...(canSnooze
             ? [
                 ...(threadSummary?.snoozedUntil != null
@@ -3722,7 +3902,11 @@ export default function Sidebar() {
             label: `Mark unread (${count})`,
             icon: THREAD_CONTEXT_MENU_ICONS.markUnread,
           },
-          { id: "archive", label: `Archive (${count})`, icon: THREAD_CONTEXT_MENU_ICONS.archive },
+          {
+            id: "archive",
+            label: `Archive (${count})`,
+            icon: THREAD_CONTEXT_MENU_ICONS.archive,
+          },
           {
             id: "delete",
             label: `Delete (${count})`,
@@ -3786,7 +3970,10 @@ export default function Sidebar() {
       const successfullyDeletedIds: ThreadId[] = [];
       const runDeletes = async (): Promise<void> => {
         for (const id of ids) {
-          await deleteThread(id, { deletedThreadIds: deletedIds, reconcileDeletedThread: false });
+          await deleteThread(id, {
+            deletedThreadIds: deletedIds,
+            reconcileDeletedThread: false,
+          });
           successfullyDeletedIds.push(id);
         }
       };
@@ -3825,6 +4012,15 @@ export default function Sidebar() {
         activityViewEnabled,
         activityScope,
       });
+      const summary = sidebarThreadSummaryById[nextLastThreadRoute.threadId];
+      if (summary?.projectId) {
+        useCourseWorkspaceStore
+          .getState()
+          .setCourseRecentThreadId(
+            summary.projectId,
+            ThreadId.makeUnsafe(nextLastThreadRoute.threadId),
+          );
+      }
     },
     [
       activityScope,
@@ -3832,9 +4028,20 @@ export default function Sidebar() {
       chatSectionExpanded,
       chatThreadListExtraPages,
       dismissedThreadStatusKeyByThreadId,
+      sidebarThreadSummaryById,
       threadListExtraPagesByProjectCwd,
     ],
   );
+  // Course work lands in the workspace; a home chat or an unfiled folder stays on chat.
+  const resolveActivationView = useCallback(
+    (threadId: ThreadId) =>
+      resolveThreadActivationView(
+        projects.find((project) => project.id === sidebarThreadSummaryById[threadId]?.projectId)
+          ?.spaceId,
+      ),
+    [projects, sidebarThreadSummaryById],
+  );
+
   const { activateThreadFromSidebarIntent } = useThreadActivationController({
     activeSplitView,
     clearSelection,
@@ -3848,6 +4055,7 @@ export default function Sidebar() {
     openTerminalThreadPage,
     prewarmThreadDetailForIntent,
     rememberLastThreadRouteNow,
+    resolveActivationView,
     routeSplitViewId: routeSearch.splitViewId,
     routeThreadId,
     selectedThreadCount: selectedThreadIds.size,
@@ -3858,6 +4066,21 @@ export default function Sidebar() {
     splitViewsById,
     terminalStateByThreadId,
   });
+  // Capture at activation, after selection modifiers and before the route changes layout.
+  const activateThreadRow = (threadId: ThreadId, row: HTMLElement) => {
+    const viewport = row.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
+    pendingThreadRowAnchorRef.current =
+      viewport && threadId !== routeThreadId
+        ? {
+            threadId,
+            row,
+            viewport,
+            top: row.getBoundingClientRect().top,
+            scrollTop: viewport.scrollTop,
+          }
+        : null;
+    activateThreadFromSidebarIntent(threadId);
+  };
   // PR chip on a thread row behaves like a link: a plain click opens the PR in the thread's
   // right dock, while cmd/ctrl/middle-click (or a non-GitHub URL) opens it on GitHub.
   const openThreadPullRequest = useCallback(
@@ -3916,6 +4139,7 @@ export default function Sidebar() {
     projectById,
     sidebarThreads: displaySidebarThreads,
     sidebarThreadSortOrder: appSettings.sidebarThreadSortOrder,
+    sidebarThreadAttentionFirst: appSettings.sidebarThreadAttentionFirst,
     routeThreadId,
     routeProjectId,
     isOnKanban,
@@ -3931,11 +4155,12 @@ export default function Sidebar() {
         value.source === "local"
           ? findWorkspaceRootMatch(projects, value.workspaceRoot, (project) => project.cwd)
           : null;
-      // Reopening an existing project must follow the Space where that project
-      // actually lives. New projects use the destination selected in the dialog.
-      const destinationSpaceId = existingProject
-        ? (existingProject.spaceId ?? null)
-        : value.spaceId;
+      // Reopening an existing project follows the Space where it already lives, unless a
+      // different course was chosen on purpose — see resolveProjectCreationDestination.
+      const { destinationSpaceId, refileExistingProjectId } = resolveProjectCreationDestination({
+        existingProject: existingProject ?? null,
+        requestedSpaceId: value.spaceId,
+      });
       const runCreateProject = async () => {
         if (value.source === "github") {
           const api = readNativeApi();
@@ -4010,6 +4235,17 @@ export default function Sidebar() {
             spaceId: value.spaceId,
             additionalFolders: value.additionalFolders,
           });
+          if (refileExistingProjectId) {
+            // `addProjectFromPath` returns nothing, but the linked project was already
+            // in hand, so the move needs no round trip to learn its id.
+            const api = readNativeApi();
+            if (!api) throw new Error("The app server is unavailable.");
+            await moveProjectToSpace({
+              api,
+              projectId: refileExistingProjectId,
+              spaceId: value.spaceId,
+            });
+          }
         }
       };
 
@@ -4044,7 +4280,9 @@ export default function Sidebar() {
     (tabIndex: number) => {
       const command = spaceJumpCommandForIndex(tabIndex);
       if (!command) return null;
-      return shortcutLabelForCommand(keybindings, command, { platform: navigator.platform });
+      return shortcutLabelForCommand(keybindings, command, {
+        platform: navigator.platform,
+      });
     },
     [keybindings],
   );
@@ -4323,7 +4561,9 @@ export default function Sidebar() {
         active: isOnTasks || isOnKanban,
         badge: tasksAttentionBadge,
         onClick: () => {
-          void navigate({ to: appSettings.tasksViewMode === "kanban" ? "/kanban" : "/tasks" });
+          void navigate({
+            to: appSettings.tasksViewMode === "kanban" ? "/kanban" : "/tasks",
+          });
         },
       },
       pullRequests: {
@@ -4340,14 +4580,14 @@ export default function Sidebar() {
         icon: ClockIcon,
         label: "Automations",
         active: isOnAutomations,
-        badge: automationAttentionBadge,
+        badge: automationCountBadge,
         onClick: () => {
           void navigate({ to: "/automations" });
         },
       },
     }),
     [
-      automationAttentionBadge,
+      automationCountBadge,
       handlePrimaryNewThread,
       inboxBadge,
       isOnAutomations,
@@ -4382,16 +4622,48 @@ export default function Sidebar() {
     () => groupSidebarThreadsByProjectId(displaySidebarTreeThreads),
     [displaySidebarTreeThreads],
   );
+  // Rows hold still while the pointer is over the list, so opening an unread
+  // chat or a chat starting work never moves the row the user is about to click.
+  const [sidebarContentElement, setSidebarContentElement] = useState<HTMLDivElement | null>(null);
+  const isPointerOverSidebarContent = useIsPointerWithin(sidebarContentElement);
+  const sidebarThreadAttentionFirst = appSettings.sidebarThreadAttentionFirst;
+  const heldSidebarThreadSortKeys = useHeldSidebarThreadSortKeys({
+    threads: displaySidebarTreeThreads,
+    sortOrder: appSettings.sidebarThreadSortOrder,
+    attentionFirst: sidebarThreadAttentionFirst,
+    hold: isPointerOverSidebarContent,
+  });
+  const threadSortMenuProps = useMemo<ThreadSortMenuProps>(
+    () => ({
+      threadSortOrder: appSettings.sidebarThreadSortOrder,
+      onThreadSortOrderChange: (sortOrder) => {
+        updateSettings({ sidebarThreadSortOrder: sortOrder });
+      },
+      threadAttentionFirst: sidebarThreadAttentionFirst,
+      onThreadAttentionFirstChange: (attentionFirst) => {
+        updateSettings({ sidebarThreadAttentionFirst: attentionFirst });
+      },
+    }),
+    [appSettings.sidebarThreadSortOrder, sidebarThreadAttentionFirst, updateSettings],
+  );
   const sortedSidebarThreadsByProjectId = useMemo(() => {
     const byProjectId = new Map<ProjectId, SidebarThreadSummary[]>();
     for (const [projectId, projectThreads] of sidebarThreadsByProjectId) {
       byProjectId.set(
         projectId,
-        sortThreadsForSidebar(projectThreads, appSettings.sidebarThreadSortOrder),
+        sortThreadsForSidebar(projectThreads, appSettings.sidebarThreadSortOrder, {
+          attentionFirst: sidebarThreadAttentionFirst,
+          heldKeys: heldSidebarThreadSortKeys,
+        }),
       );
     }
     return byProjectId;
-  }, [appSettings.sidebarThreadSortOrder, sidebarThreadsByProjectId]);
+  }, [
+    appSettings.sidebarThreadSortOrder,
+    heldSidebarThreadSortKeys,
+    sidebarThreadAttentionFirst,
+    sidebarThreadsByProjectId,
+  ]);
   const handleProjectTitlePointerDownCapture = useCallback(() => {
     suppressProjectClickAfterDragRef.current = false;
   }, []);
@@ -4441,14 +4713,17 @@ export default function Sidebar() {
       threads: sortThreadsForSidebar(
         chatProjects.flatMap((project) => sortedSidebarThreadsByProjectId.get(project.id) ?? []),
         appSettings.sidebarThreadSortOrder,
+        { attentionFirst: sidebarThreadAttentionFirst, heldKeys: heldSidebarThreadSortKeys },
       ),
-      forceVisibleThreadId: activeSidebarThreadId ?? undefined,
+      forceVisibleThreadId: routeActiveSidebarThreadId ?? undefined,
     });
   }, [
-    activeSidebarThreadId,
     appSettings.sidebarThreadSortOrder,
     chatSectionExpanded,
     chatProjects,
+    routeActiveSidebarThreadId,
+    heldSidebarThreadSortKeys,
+    sidebarThreadAttentionFirst,
     sortedSidebarThreadsByProjectId,
   ]);
   const visibleChatThreadIds = useMemo(
@@ -4465,9 +4740,10 @@ export default function Sidebar() {
     [visibleChatThreadRows],
   );
   const activeChatPreviewEntry =
-    activeSidebarThreadId === undefined
+    routeActiveSidebarThreadId === null
       ? null
-      : (visibleChatPreviewEntries.find((entry) => entry.rowId === activeSidebarThreadId) ?? null);
+      : (visibleChatPreviewEntries.find((entry) => entry.rowId === routeActiveSidebarThreadId) ??
+        null);
   const {
     canShowLessChatThreads,
     canShowMoreChatThreads,
@@ -4571,13 +4847,13 @@ export default function Sidebar() {
         pinnedThreadIds,
         threadListExtraPagesByProjectCwd,
         normalizeProjectCwd: normalizeSidebarProjectThreadListCwd,
-        activeSidebarThreadId: activeSidebarThreadId ?? undefined,
+        activeSidebarThreadId: routeActiveSidebarThreadId ?? undefined,
         previewLimit: THREAD_PREVIEW_LIMIT,
         previewPageSize: THREAD_PREVIEW_PAGE_SIZE,
         resolveThreadStatus: resolveThreadStatusForSidebar,
       }),
     [
-      activeSidebarThreadId,
+      routeActiveSidebarThreadId,
       threadListExtraPagesByProjectCwd,
       pinnedThreadIds,
       sortedSidebarThreadsByProjectId,
@@ -4618,12 +4894,18 @@ export default function Sidebar() {
       sortedSidebarThreadsByProjectId,
       threads: displaySidebarTreeThreads,
       memberThreadIdsByProjectId,
-      sortThreads: (threads) => sortThreadsForSidebar(threads, sidebarThreadSortOrder),
+      sortThreads: (threads) =>
+        sortThreadsForSidebar(threads, sidebarThreadSortOrder, {
+          attentionFirst: sidebarThreadAttentionFirst,
+          heldKeys: heldSidebarThreadSortKeys,
+        }),
     });
   }, [
     displaySidebarTreeThreads,
     groupProjects,
+    heldSidebarThreadSortKeys,
     isOnGroups,
+    sidebarThreadAttentionFirst,
     sidebarThreadSortOrder,
     sortedSidebarThreadsByProjectId,
     summariesByProjectId,
@@ -4643,13 +4925,13 @@ export default function Sidebar() {
       pinnedThreadIds,
       threadListExtraPagesByProjectCwd,
       normalizeProjectCwd: normalizeSidebarProjectThreadListCwd,
-      activeSidebarThreadId: activeSidebarThreadId ?? undefined,
+      activeSidebarThreadId: routeActiveSidebarThreadId ?? undefined,
       previewLimit: THREAD_PREVIEW_LIMIT,
       previewPageSize: THREAD_PREVIEW_PAGE_SIZE,
       resolveThreadStatus: resolveThreadStatusForSidebar,
     });
   }, [
-    activeSidebarThreadId,
+    routeActiveSidebarThreadId,
     isOnGroups,
     threadListExtraPagesByProjectCwd,
     pinnedThreadIds,
@@ -4691,32 +4973,112 @@ export default function Sidebar() {
   );
   const railSpacesProject =
     railSpacesProjectId !== null ? (projectById.get(railSpacesProjectId) ?? null) : null;
-  const railSpacesProjectSidebarData = useMemo(() => {
-    if (!railSpacesProject) {
-      return null;
-    }
-    return (
-      deriveSidebarProjectData({
-        projects: [{ id: railSpacesProject.id, cwd: railSpacesProject.cwd, expanded: true }],
-        sortedSidebarThreadsByProjectId,
-        pinnedThreadIds,
-        threadListExtraPagesByProjectCwd,
-        normalizeProjectCwd: normalizeSidebarProjectThreadListCwd,
-        activeSidebarThreadId: activeSidebarThreadId ?? undefined,
-        previewLimit: THREAD_PREVIEW_LIMIT,
-        previewPageSize: THREAD_PREVIEW_PAGE_SIZE,
-        resolveThreadStatus: resolveThreadStatusForSidebar,
-      }).get(railSpacesProject.id) ?? null
-    );
-  }, [
-    activeSidebarThreadId,
-    pinnedThreadIds,
-    railSpacesProject,
-    resolveThreadStatusForSidebar,
-    sortedSidebarThreadsByProjectId,
-    threadListExtraPagesByProjectCwd,
-  ]);
+  const activeCourseId = useCourseWorkspaceStore((state) => state.activeCourseId);
+  const activeCourseProject =
+    activeCourseId !== null ? (projectById.get(activeCourseId) ?? null) : null;
+  const courseProject =
+    activeCourseProject ||
+    railSpacesProject ||
+    activeRouteProject ||
+    (focusedProjectId ? (projectById.get(focusedProjectId) ?? null) : null) ||
+    (latestProjectId ? (projectById.get(latestProjectId) ?? null) : null) ||
+    (allStandardProjectsBase.length > 0 ? allStandardProjectsBase[0] : null);
+  const projectMenuOptions: ReadonlyArray<ProjectMenuPickerOption> = useMemo(
+    () =>
+      allStandardProjectsBase.map((project) => ({
+        id: project.id,
+        name: resolveSidebarProjectRowLabel(project),
+        spaceId: project.spaceId ?? null,
+        ...(project.spaceId
+          ? { spaceName: spaceDisplayName(project.spaceId, spaces, voidSpace) }
+          : {}),
+      })),
+    [allStandardProjectsBase, spaces, voidSpace],
+  );
   const railSpacesPagedProjectId = railSpacesProject?.id ?? null;
+
+  const editorSurface = useEditorSurfaceStore((state) => state.surface);
+  const selectedStudioOutputPath = useEditorSurfaceStore((state) => state.selectedStudioOutputPath);
+  const setSelectedStudioOutputPath = useEditorSurfaceStore(
+    (state) => state.setSelectedStudioOutputPath,
+  );
+
+  const activeCourseThreadId = useMemo(() => {
+    if (routeThreadId) return routeThreadId;
+    if (!courseProject) return null;
+    const projectThreads = Object.values(sidebarThreadSummaryById).filter(
+      (thread) => thread.projectId === courseProject.id,
+    );
+    if (projectThreads.length === 0) return null;
+    projectThreads.sort((a, b) => {
+      const aTime = a.updatedAt ?? a.createdAt;
+      const bTime = b.updatedAt ?? b.createdAt;
+      return bTime.localeCompare(aTime);
+    });
+    return projectThreads[0]?.id ?? null;
+  }, [routeThreadId, courseProject, sidebarThreadSummaryById]);
+
+  const studioOutputScope = resolveStudioOutputScope({
+    projectId: courseProject?.id ?? null,
+    threadId: activeCourseThreadId,
+  });
+  const editorStudioOutputs = useQuery(
+    studioThreadOutputsQueryOptions({
+      threadId: activeCourseThreadId,
+      enabled: studioOutputScope.kind === "thread",
+    }),
+  );
+  const editorStudioProjectOutputs = useQuery(
+    studioProjectOutputsQueryOptions({
+      projectId: studioOutputScope.kind === "project" ? studioOutputScope.projectId : null,
+      enabled: studioOutputScope.kind === "project",
+    }),
+  );
+  const resolvedStudioOutputs = resolveStudioOutputEntries({
+    scope: studioOutputScope,
+    projectEntries: editorStudioProjectOutputs.data?.entries,
+    projectIsPending: editorStudioProjectOutputs.isPending,
+    threadEntries: editorStudioOutputs.data?.entries,
+    threadIsPending: editorStudioOutputs.isPending,
+  });
+
+  const handleSelectStudioOutput = useCallback(
+    (entry: StudioOutputEntry) => {
+      setSelectedStudioOutputPath(entry.fullPath);
+      void navigate({
+        search: ((prev: Record<string, unknown>) => ({
+          ...stripDiffSearchParams(prev),
+          view: "editor",
+        })) as never,
+      });
+    },
+    [navigate, setSelectedStudioOutputPath],
+  );
+
+  const currentSearchView =
+    typeof settingsSectionSearch.view === "string" ? settingsSectionSearch.view : null;
+
+  const effectiveCourseTab: CourseSidebarTab = useMemo(() => {
+    if (userSelectedCourseTab !== null) return userSelectedCourseTab;
+    if (railActiveItem === "chats" || railPanelView === "chats") return "chats";
+    if (railActiveItem === "spaces") {
+      return editorSurface === "studio" ? "studio" : "files";
+    }
+    if (currentSearchView === "editor") {
+      return editorSurface === "studio" ? "studio" : "files";
+    }
+    return "chats";
+  }, [userSelectedCourseTab, railActiveItem, railPanelView, currentSearchView, editorSurface]);
+
+  const courseThreads = useMemo(() => {
+    if (!courseProject) return [];
+    const list = displaySidebarThreads.filter((thread) => thread.projectId === courseProject.id);
+    const pinned = list.filter((t) => pinnedThreadIdSet.has(t.id));
+    const unpinned = list.filter((t) => !pinnedThreadIdSet.has(t.id));
+    return [...pinned, ...unpinned];
+  }, [displaySidebarThreads, courseProject, pinnedThreadIdSet]);
+
+  const courseThreadIds = useMemo(() => courseThreads.map((thread) => thread.id), [courseThreads]);
 
   // Reset per-project preview paging when a folder closes so reopening starts at five rows again.
   // The Spaces drill-in shows its project as open whatever the tree says, so its paging stays.
@@ -4791,15 +5153,20 @@ export default function Sidebar() {
       return;
     }
 
+    // Records which surface the student was on, so a restart returns them to it rather than
+    // always to chat. Omitted when unset: the restore search is built against the route schema,
+    // where an absent key and a present-but-undefined one differ.
     const nextLastThreadRoute = {
       threadId: routeThreadId,
       ...(routeSearch.splitViewId ? { splitViewId: routeSearch.splitViewId } : {}),
+      ...(routeSearch.view ? { view: routeSearch.view } : {}),
     };
     const settle = window.setTimeout(() => {
       setLastThreadRoute((current) => {
         if (
           current?.threadId === nextLastThreadRoute.threadId &&
-          current?.splitViewId === nextLastThreadRoute.splitViewId
+          current?.splitViewId === nextLastThreadRoute.splitViewId &&
+          current?.view === nextLastThreadRoute.view
         ) {
           return current;
         }
@@ -4807,10 +5174,14 @@ export default function Sidebar() {
       });
     }, 0);
     return () => window.clearTimeout(settle);
-  }, [isOnSettings, routeSearch.splitViewId, routeThreadId]);
+  }, [isOnSettings, routeSearch.splitViewId, routeSearch.view, routeThreadId]);
 
   const handleThreadClick = useCallback(
-    (event: MouseEvent, threadId: ThreadId, orderedProjectThreadIds: readonly ThreadId[]) => {
+    (
+      event: MouseEvent<HTMLElement>,
+      threadId: ThreadId,
+      orderedProjectThreadIds: readonly ThreadId[],
+    ) => {
       const isMac = isMacNavigatorPlatform();
       const isModClick = isMac ? event.metaKey : event.ctrlKey;
       const isShiftClick = event.shiftKey;
@@ -4827,9 +5198,9 @@ export default function Sidebar() {
         return;
       }
 
-      activateThreadFromSidebarIntent(threadId);
+      activateThreadRow(threadId, event.currentTarget);
     },
-    [activateThreadFromSidebarIntent, rangeSelectTo, toggleThreadSelection],
+    [activateThreadRow, rangeSelectTo, toggleThreadSelection],
   );
 
   const classicVisibleSidebarThreadIds = useMemo(() => {
@@ -4949,7 +5320,7 @@ export default function Sidebar() {
   }, [activeSidebarThreadId, visibleSidebarThreadIds]);
 
   // Pinned rows share the thread-container label rule (project name, or
-  // "Synara" for project-less chats) with the hover cards and Activity rows.
+  // "Mimir" for project-less chats) with the hover cards and Activity rows.
   function resolvePinnedThreadProjectLabel(projectId: ProjectId): string {
     return resolveThreadProjectLabel(projectById.get(projectId));
   }
@@ -5276,7 +5647,7 @@ export default function Sidebar() {
                   ),
             )}
             onPointerDown={(event) => primeThreadActivation(event, thread.id)}
-            onClick={() => activateThreadFromSidebarIntent(thread.id)}
+            onClick={(event) => activateThreadRow(thread.id, event.currentTarget)}
             onDoubleClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -5286,7 +5657,7 @@ export default function Sidebar() {
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                activateThreadFromSidebarIntent(thread.id);
+                activateThreadRow(thread.id, event.currentTarget);
               }
             }}
             onContextMenu={(event) => {
@@ -5439,7 +5810,7 @@ export default function Sidebar() {
                 onKeyDown={(event) => {
                   if (event.key !== "Enter" && event.key !== " ") return;
                   event.preventDefault();
-                  activateThreadFromSidebarIntent(thread.id);
+                  activateThreadRow(thread.id, event.currentTarget);
                 }}
                 onContextMenu={(event) => {
                   event.preventDefault();
@@ -5527,19 +5898,24 @@ export default function Sidebar() {
   function renderProjectThreadActions(project: (typeof sortedProjects)[number]) {
     return (
       <>
-        <SidebarIconButton
-          icon={CodeReviewIcon}
-          label={`Open code review for ${project.name}`}
-          tooltip="Code review"
-          tooltipSide="top"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            // Opens the in-app inbox scoped to this project for this visit (the URL
-            // override leaves the saved project filter alone) instead of leaving for GitHub.
-            void navigate({ to: "/pull-requests", search: { projectId: project.id } });
-          }}
-        />
+        {isFeatureAvailable(PULL_REQUESTS_UNAVAILABLE_FEATURE) ? (
+          <SidebarIconButton
+            icon={CodeReviewIcon}
+            label={`Open code review for ${project.name}`}
+            tooltip="Code review"
+            tooltipSide="top"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              // Opens the in-app inbox scoped to this project for this visit (the URL
+              // override leaves the saved project filter alone) instead of leaving for GitHub.
+              void navigate({
+                to: "/pull-requests",
+                search: { projectId: project.id },
+              });
+            }}
+          />
+        ) : null}
         <SidebarIconButton
           icon={TerminalIcon}
           label={`Create new terminal thread in ${project.name}`}
@@ -5570,7 +5946,9 @@ export default function Sidebar() {
           onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
-            prefetchModelsForProjectNewThread(project.id, { includeDroid: true });
+            prefetchModelsForProjectNewThread(project.id, {
+              includeDroid: true,
+            });
             void handleNewThread(project.id);
           }}
         />
@@ -5671,7 +6049,7 @@ export default function Sidebar() {
     // in place instead of sliding left. Focus is read from the group because the
     // name container itself is not focusable — the row's button is.
     const projectToolbarReserveClassName =
-      "group-hover/project-header:pr-[4.75rem] group-has-[:focus-visible]/project-header:pr-[4.75rem]";
+      "group-hover/project-header:pr-[4.75rem] project-header-focus:pr-[4.75rem]";
     // Configured display name only — folder identity lives in the hover card (#1000).
     const projectRowLabel = resolveSidebarProjectRowLabel(project);
 
@@ -5770,11 +6148,11 @@ export default function Sidebar() {
               aria-pressed={isProjectPinned}
               title={pinActionLabel(project.name, isProjectPinned)}
               className={cn(
-                "sidebar-icon-button absolute left-2 top-1/2 z-20 inline-flex size-4 -translate-y-1/2 cursor-pointer items-center justify-center rounded-sm transition-opacity hover:text-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring",
+                SIDEBAR_HEADER_LEADING_ACTION_CLASS_NAME,
                 SIDEBAR_ROW_LABEL_TEXT_CLASS_NAME,
                 isProjectPinned
                   ? "pointer-events-auto opacity-100"
-                  : "pointer-events-none opacity-0 md:group-hover/project-header:pointer-events-auto md:group-hover/project-header:opacity-100 md:group-has-[:focus-visible]/project-header:pointer-events-auto md:group-has-[:focus-visible]/project-header:opacity-100 focus-visible:pointer-events-auto focus-visible:opacity-100",
+                  : SIDEBAR_HEADER_LEADING_ACTION_REVEAL_CLASS_NAME,
               )}
               onMouseDown={(event) => {
                 event.preventDefault();
@@ -5830,7 +6208,16 @@ export default function Sidebar() {
             SIDEBAR_ROW_IDLE_TEXT_CLASS_NAME,
             SIDEBAR_ROW_HOVER_CLASS_NAME,
           )}
-          onClick={() => openRailSpacesProject(project.id)}
+          onClick={() => {
+            openRailSpacesProject(project.id);
+            setSpacesBrowseMode("files");
+            void navigate({
+              search: ((prev: Record<string, unknown>) => ({
+                ...stripDiffSearchParams(prev),
+                view: "editor",
+              })) as never,
+            });
+          }}
           onContextMenu={(event) => {
             event.preventDefault();
             void handleProjectContextMenu(project.id, {
@@ -5855,81 +6242,125 @@ export default function Sidebar() {
     );
   }
 
-  // Rail layout Spaces panel: level 1 lists every Space with its projects; level 2 is one
-  // project's threads, opened from level 1 without leaving the current route.
+  // Rail layout Spaces panel: renders course workspace with Chats, Files, and Deliverables
   function renderRailSpacesPanel() {
-    if (railSpacesProject && railSpacesProjectSidebarData) {
+    if (!courseProject) {
       return (
-        <SidebarGroup className="px-1.5 py-1.5">
-          <div className="my-1 flex h-7 min-w-0 items-center gap-1.5 ps-1 pe-1.5">
-            <SidebarIconButton
-              icon={BackArrowIcon}
-              label="Back to spaces"
-              tooltip="Back to spaces"
-              tooltipSide="bottom"
-              onClick={closeRailSpacesProject}
-            />
-            <span className={SIDEBAR_PROJECT_NAME_CLASS_NAME}>
-              {resolveSidebarProjectRowLabel(railSpacesProject)}
-            </span>
-            <SidebarSectionToolbar>
-              {renderProjectThreadActions(railSpacesProject)}
-            </SidebarSectionToolbar>
+        <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center">
+          <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
+            <BookOpenIcon className="size-5" />
           </div>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuSub
-                className={cn(
-                  "mx-0 my-0 w-full translate-x-0 border-l-0 px-0 py-0",
-                  SIDEBAR_NESTED_LIST_GAP_CLASS_NAME,
-                )}
-              >
-                {renderProjectThreadList(railSpacesProject, railSpacesProjectSidebarData)}
-              </SidebarMenuSub>
-            </SidebarMenuItem>
-          </SidebarMenu>
-          {railSpacesProjectSidebarData.visibleEntries.length === 0 ? (
-            <div className="px-2 pt-4 text-center text-ui text-muted-foreground/58">
-              No threads yet
-            </div>
-          ) : null}
+          <p className="text-ui font-medium text-foreground">No course workspace</p>
+          <p className="mt-1 text-ui-xs text-muted-foreground">
+            Open or create a course folder to get started with your studies.
+          </p>
+          <Button
+            size="sm"
+            className="mt-4 gap-1.5"
+            onClick={() => setCreateProjectDialogOpen(true)}
+          >
+            <AddPlusIcon className="size-4" />
+            Open Course Folder
+          </Button>
         </SidebarGroup>
       );
     }
+
     return (
-      <SidebarGroup className="px-1.5 py-1.5">
-        {threadsHydrated
-          ? railSpacesSections.map((section) => (
-              <div key={section.key}>
-                {renderListSectionHeader(
-                  section.name,
-                  <SidebarIconButton
-                    icon={AddPlusIcon}
-                    label="Add project"
-                    onClick={() => {
-                      setCreateProjectSpaceId(section.spaceId);
-                      setCreateProjectDialogOpen(true);
-                    }}
-                    tooltip="Add project"
-                    tooltipSide="right"
-                  />,
-                )}
-                {section.items.length > 0 ? (
-                  <SidebarMenu className="gap-0.5">
-                    {section.items.map((project) => renderRailSpacesProjectRow(project))}
-                  </SidebarMenu>
-                ) : (
-                  <SpaceEmptyState
-                    space={spaces.find((space) => space.id === section.spaceId) ?? null}
-                    hasProjectsElsewhere={allStandardProjectsBase.length > 0}
-                    onMoveProjects={() => {
-                      if (section.spaceId !== null) openSpaceProjectPicker(section.spaceId);
-                    }}
-                  />
-                )}
+      <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1">
+        {/* Course Workspace Tabs: Files, Deliverables (Chats is in App Rail) */}
+        {effectiveCourseTab !== "chats" ? (
+          <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-1 shrink-0">
+            <button
+              type="button"
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+                effectiveCourseTab === "files"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+              )}
+              onClick={() => setUserSelectedCourseTab("files")}
+              title="Course Files"
+            >
+              <FolderIcon className="size-3.5 shrink-0" />
+              <span>Files</span>
+            </button>
+            <button
+              type="button"
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+                effectiveCourseTab === "studio"
+                  ? "bg-background text-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+              )}
+              onClick={() => setUserSelectedCourseTab("studio")}
+              title="Deliverables"
+            >
+              <SparkleIcon className="size-3.5 shrink-0" />
+              <span>Outbox</span>
+              {resolvedStudioOutputs.entries.length > 0 ? (
+                <span className="ml-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-ui-2xs font-semibold">
+                  {resolvedStudioOutputs.entries.length}
+                </span>
+              ) : null}
+            </button>
+          </div>
+        ) : null}
+
+        {/* Tab Content */}
+        {effectiveCourseTab === "chats" ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-0.5 py-1">
+            <div className="pb-1.5">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start gap-2 text-ui font-medium shadow-xs"
+                onClick={() => void handleNewCourseStudyThread()}
+              >
+                <AddPlusIcon className="size-4 text-primary shrink-0" />
+                <span className="truncate">New Study Session</span>
+              </Button>
+            </div>
+            {courseThreads.length === 0 ? (
+              <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
+                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
+                  <SparkleIcon className="size-5" />
+                </div>
+                <p className="text-ui font-medium text-foreground">No study sessions yet</p>
+                <p className="mt-1 text-ui-xs text-muted-foreground">
+                  Start a guided session to review lecture materials, ask questions, or practice
+                  quizzes.
+                </p>
               </div>
-            ))
-          : null}
+            ) : (
+              <SidebarMenu className="gap-0.5">
+                {courseThreads.map((thread) => renderThreadRow(thread, courseThreadIds, 0, true))}
+              </SidebarMenu>
+            )}
+          </div>
+        ) : effectiveCourseTab === "studio" ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <StudioArtifactsSidebar
+              entries={resolvedStudioOutputs.entries}
+              isLoading={resolvedStudioOutputs.isPending}
+              selectedOutputPath={selectedStudioOutputPath}
+              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
+              onSelectOutput={handleSelectStudioOutput}
+            />
+          </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <WorkspaceFilesSidebar
+              workspaceRoot={courseProject.cwd}
+              selectedFilePath={selectedEditorFilePath}
+              expandedDirectories={workspaceExpandedDirs}
+              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
+              onSelectFile={handleSelectWorkspaceFile}
+              onToggleDirectory={handleToggleWorkspaceDir}
+              onReferenceInChat={undefined}
+            />
+          </div>
+        )}
       </SidebarGroup>
     );
   }
@@ -6705,22 +7136,55 @@ export default function Sidebar() {
     ),
   );
   const railItemLabel = (id: RailOrderableItemId): string =>
-    id === "home" || id === "spaces"
+    id === "home" || id === "spaces" || id === "chats"
       ? RAIL_PANEL_ITEM_LABELS[id]
       : id === "studio"
         ? "Hubs"
         : sidebarNavDescriptors[id].label;
   const railItemFor = (id: RailOrderableItemId): AppRailItem => {
     const base = { id, glyphs: railItemGlyphs(id), label: railItemLabel(id) };
-    if (id === "home" || id === "spaces") {
+    if (id === "home" || id === "spaces" || id === "chats") {
       return {
         ...base,
         badge: null,
         active: railActiveItem === id && activeRailShortcutKey === null,
         onSelect: () => {
+          if (optionalSidebar) {
+            if (!optionalSidebar.open) {
+              optionalSidebar.setOpen(true);
+            } else if (railActiveItem === id && activeRailShortcutKey === null) {
+              optionalSidebar.setOpen(false);
+            }
+          }
           // Home is the threads panel, so it keeps the Activity view the user chose;
           // only the Spaces drill-in replaces it.
-          if (id === "spaces") setActivityViewEnabledSmoothly(false);
+          if (id === "spaces") {
+            setActivityViewEnabledSmoothly(false);
+            setSpacesBrowseMode("files");
+            setUserSelectedCourseTab("files");
+            void navigate({
+              search: ((prev: Record<string, unknown>) => ({
+                ...stripDiffSearchParams(prev),
+                view: "editor",
+              })) as never,
+            });
+          } else if (id === "chats") {
+            setActivityViewEnabledSmoothly(false);
+            setUserSelectedCourseTab("chats");
+          } else if (id === "home") {
+            setUserSelectedCourseTab("chats");
+            void navigate({
+              to: "/",
+              search: { home: true },
+            });
+          } else {
+            void navigate({
+              search: ((prev: Record<string, unknown>) => ({
+                ...stripDiffSearchParams(prev),
+                view: "chat",
+              })) as never,
+            });
+          }
           selectRailPanelItem(id);
           // Projects live next to the threads only: from another section, Home and
           // Spaces go back to the thread view instead of opening over that section.
@@ -6749,7 +7213,10 @@ export default function Sidebar() {
       onFocus: item.onFocus,
     };
   };
-  const railAvailability = { studioAvailable: openRailStudio !== null, inboxAvailable };
+  const railAvailability = {
+    studioAvailable: openRailStudio !== null,
+    inboxAvailable,
+  };
   const railVisibleItemIds = buildRailItemOrder({
     order: railItemOrder,
     hidden: hiddenRailItems,
@@ -6795,6 +7262,9 @@ export default function Sidebar() {
           badge: null,
           active: activeRailShortcutKey === shortcut.key,
           onSelect: () => {
+            if (optionalSidebar && !optionalSidebar.open) {
+              optionalSidebar.setOpen(true);
+            }
             setActivityViewEnabledSmoothly(false);
             selectRailPanelItem("home");
             // Switching Space already lands on its last thread; the same Space only needs
@@ -6887,7 +7357,9 @@ export default function Sidebar() {
   // Unchecking a shortcut removes it from the rail; the "…" menu adds it back.
   const handleRailShortcutVisibleChange = (key: string, visible: boolean) => {
     if (visible) return;
-    updateSettings({ railShortcuts: toggleRailShortcutKey(appSettings.railShortcuts, key) });
+    updateSettings({
+      railShortcuts: toggleRailShortcutKey(appSettings.railShortcuts, key),
+    });
   };
   const railBottomItems: AppRailItem[] = [
     {
@@ -6908,10 +7380,10 @@ export default function Sidebar() {
   // Automations owns its panel (its list), like Settings and Groups do.
   const showRailAutomationsPanel = isOnAutomations;
   const showRailSpacesPanel =
-    railPanelView === "spaces" && !isOnGroups && !isOnSettings && !activityViewEnabled;
+    Boolean(courseProject) && !isOnGroups && !isOnSettings && !activityViewEnabled;
   // Switching Home/Spaces or the Spaces level replays the surface enter animation.
   const sidebarSurfaceKey = showRailSpacesPanel
-    ? `spaces:${railSpacesProject?.id ?? ""}`
+    ? `course-workspace:${courseProject?.id ?? ""}`
     : isOnGroups
       ? "groups"
       : activityViewEnabled
@@ -7037,7 +7509,7 @@ export default function Sidebar() {
           </div>
         ) : null}
         <div className={isMobile ? "flex min-h-0 min-w-0 flex-1 flex-col" : "contents"}>
-          <SidebarContent className="gap-0 font-system-ui">
+          <SidebarContent ref={setSidebarContentElement} className="gap-0 font-system-ui">
             {showArm64IntelBuildWarning && arm64IntelBuildWarningDescription ? (
               <SidebarGroup className="px-2 pt-2 pb-0">
                 <Alert variant="warning" className="rounded-2xl border-warning/40 bg-warning/8">
@@ -7094,12 +7566,65 @@ export default function Sidebar() {
                   // edge as its first letter is from the side.
                   className="flex items-center gap-1 pt-1.5 pb-1 pr-2.5 pl-1.5"
                 >
-                  <SidebarSurfacePicker
-                    views={["threads", ...(groupsSectionVisible ? (["groups"] as const) : [])]}
-                    activeView={isOnGroups ? "groups" : "threads"}
-                    onSelectView={handleSidebarViewChange}
-                    onPrewarmView={prewarmSidebarViewTarget}
-                  />
+                  {showRailSpacesPanel && courseProject ? (
+                    <div className="flex min-w-0 flex-1 items-center gap-1">
+                      <ProjectMenuPicker
+                        projectOptions={projectMenuOptions}
+                        selectedProjectId={courseProject.id}
+                        onProjectIdChange={(projectId) => {
+                          useCourseWorkspaceStore.getState().setActiveCourseId(projectId);
+                          openRailSpacesProject(projectId);
+                          setSpacesBrowseMode("files");
+                          setUserSelectedCourseTab("chats");
+                          void navigate({
+                            to: "/",
+                            search: { home: true },
+                          });
+                        }}
+                        trigger={
+                          <button
+                            type="button"
+                            className="inline-flex h-8 max-w-[12rem] items-center gap-1 rounded-md px-1.5 text-ui font-semibold text-foreground hover:bg-secondary/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            title="Switch course"
+                          >
+                            <span className="truncate">
+                              {resolveSidebarProjectRowLabel(courseProject)}
+                            </span>
+                            <ChevronDownIcon className="size-3.5 shrink-0 opacity-70" />
+                          </button>
+                        }
+                      />
+                      <SidebarSectionToolbar>
+                        <SidebarIconButton
+                          icon={AddPlusIcon}
+                          label="New study session"
+                          tooltip="New study session"
+                          tooltipSide="bottom"
+                          onClick={() => void handleNewCourseStudyThread()}
+                        />
+                        <SidebarIconButton
+                          icon={BookOpenIcon}
+                          label="Course Overview"
+                          tooltip="Course Overview"
+                          tooltipSide="bottom"
+                          onClick={() => {
+                            void navigate({
+                              to: "/",
+                              search: { home: true },
+                            });
+                          }}
+                        />
+                      </SidebarSectionToolbar>
+                    </div>
+                  ) : (
+                    <SidebarSurfacePicker
+                      views={["threads", ...(groupsSectionVisible ? (["groups"] as const) : [])]}
+                      activeView={isOnGroups ? "groups" : "threads"}
+                      {...(showRailSpacesPanel ? { titleOverride: "Course Workspace" } : {})}
+                      onSelectView={handleSidebarViewChange}
+                      onPrewarmView={prewarmSidebarViewTarget}
+                    />
+                  )}
                   <div className="ml-auto flex items-center gap-1.5">
                     <SidebarIconButton
                       icon={SearchIcon}
@@ -7112,7 +7637,7 @@ export default function Sidebar() {
                         setSearchPaletteOpen(true);
                       }}
                     />
-                    {!isOnGroups ? (
+                    {!isOnGroups && !showRailSpacesPanel ? (
                       <SidebarActivityBellButton
                         active={activityViewEnabled}
                         showUnreadDot={hasUnreadActivity}
@@ -7127,7 +7652,7 @@ export default function Sidebar() {
                 stays mounted so its thumb can glide between Projects and Groups. */}
                 <div key={sidebarSurfaceKey} className="sidebar-surface-enter">
                   {/* Primary sidebar actions stay limited to features we currently ship. */}
-                  {!isOnGroups ? (
+                  {!isOnGroups && !showRailSpacesPanel ? (
                     <SidebarGroup
                       className="px-1.5 pt-1 pb-1.5"
                       onContextMenu={handleNavContextMenu}
@@ -7160,16 +7685,17 @@ export default function Sidebar() {
                       projectSidebarDataById={groupProjectSidebarDataById}
                       threadsHydrated={threadsHydrated}
                       visualActiveThreadId={visualActiveSidebarThreadId}
-                      threadSortOrder={appSettings.sidebarThreadSortOrder}
-                      onThreadSortOrderChange={(sortOrder) => {
-                        updateSettings({ sidebarThreadSortOrder: sortOrder });
-                      }}
+                      threadSortMenuProps={threadSortMenuProps}
                       renderThreadRow={renderThreadRow}
                       renderListSectionHeader={renderListSectionHeader}
                       renderPinnedThreadsSection={renderPinnedThreadsSection}
                       onOpenThread={activateThreadFromSidebarIntent}
                       onOpenGroupSettings={(projectId, mode, options) => {
-                        setProjectAgentDialogState({ projectId, mode, ...options });
+                        setProjectAgentDialogState({
+                          projectId,
+                          mode,
+                          ...options,
+                        });
                       }}
                       onProjectContextMenu={handleProjectContextMenu}
                     />
@@ -7215,130 +7741,22 @@ export default function Sidebar() {
                   ) : showRailSpacesPanel ? (
                     renderRailSpacesPanel()
                   ) : (
-                    <SidebarGroup className="px-1.5 py-1.5">
-                      <SpaceSwitcher
-                        spaces={spaces}
-                        activeSpaceId={activeSpaceId}
-                        activityBySpaceId={spaceActivityById}
-                        voidSpace={voidSpace}
-                        onSelect={handleSelectSpace}
-                        onCreate={() => openSpaceCreator()}
-                        onEdit={(space) => openSpaceEditor(space.id)}
-                        onDelete={(space) => void handleDeleteSpace(space.id)}
-                        onReorder={handleReorderSpaces}
-                        onRenameSpace={(space, name) => void handleRenameSpace(space, name)}
-                        onEditVoid={openVoidEditor}
-                        onRenameVoid={handleRenameVoid}
-                        onResetVoid={resetVoidSpace}
-                        onDropProject={(projectId, spaceId) =>
-                          void handleMoveProjectToSpace(projectId, spaceId)
-                        }
-                        jumpShortcutLabelForTab={jumpShortcutLabelForSpaceTab}
-                      />
-                      {renderPinnedThreadsSection()}
-                      {renderListSectionHeader(
-                        "Projects",
-                        <>
-                          {standardProjects.length > 0 ? (
-                            <SidebarIconButton
-                              icon={allProjectsExpanded ? CollapseAllIcon : ExpandAllIcon}
-                              label={
-                                allProjectsExpanded
-                                  ? focusedProjectId
-                                    ? "Collapse all projects except the active project"
-                                    : "Collapse all projects"
-                                  : "Expand all projects"
-                              }
-                              className="disabled:cursor-default disabled:opacity-45"
-                              onClick={handleToggleProjects}
-                              tooltip={
-                                allProjectsExpanded
-                                  ? focusedProjectId
-                                    ? "Collapse all projects except the active chat's project"
-                                    : "Collapse all projects"
-                                  : "Expand all projects"
-                              }
-                              tooltipSide="bottom"
-                            />
-                          ) : null}
-                          <ProjectSortMenu
-                            projectSortOrder={appSettings.sidebarProjectSortOrder}
-                            threadSortOrder={appSettings.sidebarThreadSortOrder}
-                            onProjectSortOrderChange={(sortOrder) => {
-                              updateSettings({ sidebarProjectSortOrder: sortOrder });
-                            }}
-                            onThreadSortOrderChange={(sortOrder) => {
-                              updateSettings({ sidebarThreadSortOrder: sortOrder });
-                            }}
-                          />
-                          <SidebarIconButton
-                            icon={AddPlusIcon}
-                            label="Add project"
-                            onClick={handleStartAddProject}
-                            tooltip="Add project"
-                            tooltipSide="right"
-                          />
-                        </>,
-                      )}
-
-                      {isManualProjectSorting ? (
-                        <DndContext
-                          sensors={projectDnDSensors}
-                          collisionDetection={projectCollisionDetection}
-                          modifiers={[restrictToVerticalAxis, restrictToFirstScrollableAncestor]}
-                          onDragStart={handleProjectDragStart}
-                          onDragEnd={handleProjectDragEnd}
-                          onDragCancel={handleProjectDragCancel}
-                        >
-                          <SidebarMenu className="gap-3">
-                            <SortableContext
-                              items={standardProjects.map((project) => project.id)}
-                              strategy={verticalListSortingStrategy}
-                            >
-                              {standardProjects.map((project) => (
-                                <SortableProjectItem key={project.id} projectId={project.id}>
-                                  {(dragHandleProps) => renderProjectItem(project, dragHandleProps)}
-                                </SortableProjectItem>
-                              ))}
-                            </SortableContext>
-                          </SidebarMenu>
-                        </DndContext>
-                      ) : (
-                        <SidebarMenu ref={attachProjectListAutoAnimateRef} className="gap-3">
-                          {standardProjects.map((project) => (
-                            <SidebarMenuItem key={project.id} className="rounded-md">
-                              {renderProjectItem(project, null)}
-                            </SidebarMenuItem>
-                          ))}
-                        </SidebarMenu>
-                      )}
-
-                      {projectEmptyState === "loading" && (
-                        <div
-                          className="space-y-2 px-2 pt-4"
-                          aria-live="polite"
-                          aria-label="Loading projects"
-                        >
-                          <div className="text-center text-ui text-muted-foreground/58">
-                            Loading projects...
-                          </div>
-                          <div className="mx-auto grid w-full max-w-42 gap-1.5 opacity-70">
-                            <div className="h-2 rounded-full bg-muted/55 animate-pulse" />
-                            <div className="mx-auto h-2 w-4/5 rounded-full bg-muted/40 animate-pulse" />
-                            <div className="mx-auto h-2 w-3/5 rounded-full bg-muted/30 animate-pulse" />
-                          </div>
-                        </div>
-                      )}
-
-                      {projectEmptyState === "empty" && (
-                        <SpaceEmptyState
-                          space={activeSpace}
-                          hasProjectsElsewhere={allStandardProjectsBase.length > 0}
-                          onMoveProjects={() => {
-                            if (activeSpace) openSpaceProjectPicker(activeSpace.id);
-                          }}
-                        />
-                      )}
+                    <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col items-center justify-center px-4 py-8 text-center">
+                      <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
+                        <BookOpenIcon className="size-5" />
+                      </div>
+                      <p className="text-ui font-medium text-foreground">No course workspace</p>
+                      <p className="mt-1 text-ui-xs text-muted-foreground">
+                        Open or create a course folder to get started with your studies.
+                      </p>
+                      <Button
+                        size="sm"
+                        className="mt-4 gap-1.5"
+                        onClick={() => setCreateProjectDialogOpen(true)}
+                      >
+                        <AddPlusIcon className="size-4" />
+                        Open Course Folder
+                      </Button>
                     </SidebarGroup>
                   )}
                 </div>
@@ -7396,12 +7814,7 @@ export default function Sidebar() {
                       </div>
                     </SidebarMenuButton>
                     <SidebarSectionToolbar placement="overlay" revealOnHover>
-                      <ChatSortMenu
-                        threadSortOrder={appSettings.sidebarThreadSortOrder}
-                        onThreadSortOrderChange={(sortOrder) => {
-                          updateSettings({ sidebarThreadSortOrder: sortOrder });
-                        }}
-                      />
+                      <ChatSortMenu {...threadSortMenuProps} />
                       <SidebarIconButton
                         icon={NewThreadIcon}
                         label="Open new chat home"
@@ -7997,11 +8410,16 @@ export default function Sidebar() {
                     setOptimisticActiveThreadId(coordinatorThreadId);
                     setSelectionAnchor(coordinatorThreadId);
                     openChatThreadPage(coordinatorThreadId);
-                    rememberLastThreadRouteNow({ threadId: coordinatorThreadId });
+                    rememberLastThreadRouteNow({
+                      threadId: coordinatorThreadId,
+                    });
                     void navigate({
                       to: "/$threadId",
                       params: { threadId: coordinatorThreadId },
-                      search: (previous) => ({ ...previous, splitViewId: undefined }),
+                      search: (previous) => ({
+                        ...previous,
+                        splitViewId: undefined,
+                      }),
                     });
                   },
                 }),

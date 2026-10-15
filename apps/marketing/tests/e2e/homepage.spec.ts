@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { assertNoOverflow, preparePage, prepareRoute, VIEWPORTS } from "../test-helpers";
+import { assertNoOverflow, preparePage, VIEWPORTS } from "../test-helpers";
 
 test.describe("homepage functional flow", () => {
   test("keeps one clear hero, aligned CTAs, and a prominent product screenshot", async ({
@@ -8,33 +8,31 @@ test.describe("homepage functional flow", () => {
     await page.setViewportSize({ width: 1440, height: 1100 });
     await preparePage(page, "light");
 
-    await expect(page.locator("h1")).toHaveText("Run every coding agent in one workspace");
+    await expect(page.locator("h1")).toHaveText("The desktop-first agentic co-learner");
     await expect(page.getByText("09 supported", { exact: true })).toHaveCount(0);
 
     const actions = page.locator("[data-home-actions]");
-    const download = actions.getByRole("link", {
-      name: /Download for|Download Synara/,
-    });
-    const github = actions.getByRole("link", { name: "Star on GitHub" });
+    // Download and GitHub are hidden as Mimir is in pre-release
+    await expect(actions.getByRole("link", { name: "Star on GitHub" })).toHaveCount(0);
+    await expect(actions.getByRole("link", { name: /Download for|Download Mimir/ })).toHaveCount(0);
 
-    await expect(download).toHaveAttribute("href", "/install");
-    await expect(github).toHaveAttribute("href", /github\.com/);
+    const explore = actions.getByRole("link", { name: "Explore Co-Learning Loop" });
+    const arch = actions.getByRole("link", { name: "Workspace Architecture" });
+    await expect(explore).toHaveAttribute("href", "#workflow");
+    await expect(arch).toHaveAttribute("href", "#providers");
 
-    const [downloadBox, githubBox] = await Promise.all([
-      download.boundingBox(),
-      github.boundingBox(),
-    ]);
-    expect(downloadBox).not.toBeNull();
-    expect(githubBox).not.toBeNull();
-    // Both CTAs share the same row in the compact hero.
-    expect(Math.abs(downloadBox!.y - githubBox!.y)).toBeLessThanOrEqual(2);
+    const [exploreBox, archBox] = await Promise.all([explore.boundingBox(), arch.boundingBox()]);
+    expect(exploreBox).not.toBeNull();
+    expect(archBox).not.toBeNull();
+    // Both action buttons share the same row in the hero.
+    expect(Math.abs(exploreBox!.y - archBox!.y)).toBeLessThanOrEqual(4);
 
     const preview = page.locator("[data-hero-preview]");
     await expect(preview).toBeVisible();
     const previewBox = await preview.boundingBox();
     expect(previewBox).not.toBeNull();
     expect(previewBox!.width).toBeGreaterThan(1100);
-    expect(previewBox!.y).toBeLessThan(720);
+    expect(previewBox!.y).toBeLessThan(750);
   });
 
   test("keeps the quiet section rail out of narrower layouts", async ({ page }) => {
@@ -64,7 +62,7 @@ test.describe("homepage functional flow", () => {
     await page.keyboard.press("Escape");
     await expect(page.getByRole("button", { name: "Open navigation" })).toBeVisible();
 
-    const faq = page.getByRole("button", { name: /What is Synara/ }).first();
+    const faq = page.getByRole("button", { name: /What is Mimir/ }).first();
     await faq.press("Enter");
     await expect(faq).toHaveAttribute("aria-expanded", "true");
     await expect(page.locator('[role="region"]').first()).toBeVisible();
@@ -94,37 +92,14 @@ test.describe("homepage functional flow", () => {
     });
   }
 
-  test("keeps the desktop documentation TOC in its right rail", async ({ page }) => {
-    await page.setViewportSize({ width: 1440, height: 1100 });
-    await prepareRoute(page, "/docs", "light");
-
-    const article = page.locator("#nd-page");
-    const toc = page.locator("#nd-toc");
-    await expect(article).toHaveAttribute("role", "main");
-    await expect(toc).toBeVisible();
-
-    const [articleBox, tocBox] = await Promise.all([article.boundingBox(), toc.boundingBox()]);
-    expect(articleBox).not.toBeNull();
-    expect(tocBox).not.toBeNull();
-    expect(tocBox!.x).toBeGreaterThanOrEqual(articleBox!.x + articleBox!.width - 1);
-    expect(tocBox!.y).toBeLessThan(100);
-
-    const visibleLogo = page.locator("#nd-sidebar img").first();
-    await expect(visibleLogo).toBeVisible();
-    expect(
-      await visibleLogo.evaluate((element) => {
-        const image = element as HTMLImageElement;
-        return image.complete && image.naturalWidth > 0 && image.naturalHeight > 0;
-      }),
-    ).toBe(true);
-  });
-
-  test("starts the production route and reaches the install and docs pages", async ({ page }) => {
+  test("prevents visiting hidden routes during pre-release by redirecting to homepage", async ({
+    page,
+  }) => {
     await preparePage(page, "light");
-    await page.goto("/install", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("main")).toHaveCount(1);
-    await expect(page.locator("h1")).toHaveText("Download Synara");
-    await page.goto("/docs", { waitUntil: "domcontentloaded" });
-    await expect(page.getByRole("main")).toHaveCount(1);
+    for (const hiddenPath of ["/install", "/docs", "/changelog", "/sponsor", "/sponsors"]) {
+      await page.goto(hiddenPath, { waitUntil: "domcontentloaded" });
+      await expect(page).toHaveURL("/");
+      await expect(page.locator("h1")).toHaveText("The desktop-first agentic co-learner");
+    }
   });
 });

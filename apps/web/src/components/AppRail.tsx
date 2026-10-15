@@ -19,22 +19,19 @@ import { TasksCoachmark } from "./OneTimeCoachmark";
 import type { RailItemId } from "~/appRail.logic";
 import { createCentralIconComponent } from "~/lib/central-icons";
 import {
+  BookIcon,
+  ChatBubbleIcon,
   ClockIcon,
   CodeReviewIcon,
   FoldersIcon,
   HomeIcon,
-  HubActiveIcon,
   HubIcon,
   InboxIcon,
+  SparkleIcon,
   TasksIcon,
 } from "~/lib/icons";
 import { projectAppearanceKey, type ProjectAppearance } from "~/lib/projectAppearance";
 import { cn } from "~/lib/utils";
-import {
-  SIDEBAR_ROW_ACTIVE_CLASS_NAME,
-  SIDEBAR_ROW_HOVER_CLASS_NAME,
-  SIDEBAR_SECTION_LABEL_TONE_CLASS_NAME,
-} from "~/sidebarRowStyles";
 import { ProjectSidebarIcon } from "./ProjectSidebarIcon";
 import type { SidebarActionBadge } from "./Sidebar.logic";
 import { SidebarIconButton } from "./SidebarIconButton";
@@ -85,9 +82,10 @@ export function railProjectGlyphs(
 /** A rail item whose glyph has no solid twin: the same icon at rest and while active. */
 const sameGlyphs = (glyph: RailGlyph): AppRailGlyphs => ({ idle: glyph, active: glyph });
 
-/** Hugeicons rail items. Only Hubs ship a solid active glyph; the rest match at rest and active. */
+/** Hugeicons rail items: the same stroke glyph at rest and active. */
 type HugeiconRailItemId =
   | "home"
+  | "chats"
   | "inbox"
   | "pullRequests"
   | "automations"
@@ -96,13 +94,14 @@ type HugeiconRailItemId =
   | "studio";
 const RAIL_HUGEICON_GLYPHS: Record<HugeiconRailItemId, AppRailGlyphs> = {
   home: sameGlyphs(HomeIcon),
+  chats: sameGlyphs(ChatBubbleIcon),
   inbox: sameGlyphs(InboxIcon),
   pullRequests: sameGlyphs(CodeReviewIcon),
   automations: sameGlyphs(ClockIcon),
   tasks: sameGlyphs(TasksIcon),
-  spaces: sameGlyphs(FoldersIcon),
-  // Hubs (stored id "studio"): Hugeicons circles, with their own solid active glyph.
-  studio: { idle: HubIcon, active: HubActiveIcon },
+  spaces: sameGlyphs(BookIcon),
+  // Studio: sparkles icon representing agent-crafted academic outputs.
+  studio: sameGlyphs(SparkleIcon),
 };
 
 /** Central glyphs matching the Codex rail for the remaining fixed rail items. */
@@ -148,46 +147,49 @@ type AppRailProps = {
   onContextMenu?: ((event: MouseEvent) => void) | undefined;
 };
 
-/** Rail glyph size, shared with controls rendered into the rail slot (the Help menu). */
+/** Rail glyph size (navigation glyph is 24px), shared with controls rendered into the rail
+ *  slot (the Help menu). */
 export const APP_RAIL_GLYPH_CLASS_NAME = "size-5";
 
-/** Rail button box and active/idle tone, shared with controls rendered into the rail slot.
- *  Idle glyphs rest on the section-label grey; hover and the active item are full ink. */
-export function appRailButtonClassName(active: boolean): string {
+/** Rail item box in ChatGPT dock style (36×36px squircle with continuous curvature). */
+export function appRailButtonClassName(): string {
   return cn(
-    "size-9 rounded-full transition-all duration-150 ease-out",
-    active
-      ? cn(SIDEBAR_ROW_ACTIVE_CLASS_NAME, "bg-primary/15 text-primary")
-      : cn(SIDEBAR_SECTION_LABEL_TONE_CLASS_NAME, SIDEBAR_ROW_HOVER_CLASS_NAME),
+    "app-rail-item size-9 rounded-[10px] p-0 flex items-center justify-center",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1",
   );
 }
 
 function AppRailButton({ item }: { item: AppRailItem }) {
   const label = item.badge ? `${item.label} · ${item.badge.accessibleLabel}` : item.label;
-  const glyphs = item.glyphs;
+  const Glyph = item.active ? item.glyphs.active : item.glyphs.idle;
   const button = (
     <SidebarIconButton
-      icon={item.active ? glyphs.active : glyphs.idle}
+      icon={Glyph}
       iconClassName={APP_RAIL_GLYPH_CLASS_NAME}
       label={label}
       size="lg"
       tooltip={item.id === "tasks" ? undefined : label}
       tooltipSide="right"
       aria-current={item.active ? "page" : undefined}
-      className={appRailButtonClassName(item.active)}
+      data-active={item.active ? "" : undefined}
+      className={appRailButtonClassName()}
       onClick={item.onSelect}
       {...(item.onMouseEnter ? { onMouseEnter: item.onMouseEnter } : {})}
       {...(item.onFocus ? { onFocus: item.onFocus } : {})}
-    />
+    >
+      <span className="app-rail-glyph">
+        <Glyph />
+      </span>
+    </SidebarIconButton>
   );
   return (
-    <div className="relative shrink-0">
+    <div className="app-rail-item-wrap relative shrink-0">
       {item.id === "tasks" ? <TasksCoachmark tooltip={label}>{button}</TasksCoachmark> : button}
-      {/* Same corner dot as the Activity bell's unread marker; the count is in the tooltip. */}
+      {/* Unread marker dot */}
       {item.badge ? (
         <span
           aria-hidden
-          className="pointer-events-none absolute top-1 right-1 size-1.5 rounded-full bg-[var(--color-text-accent)]"
+          className="app-rail-badge pointer-events-none absolute top-1 right-1 size-1.5 rounded-full"
         />
       ) : null}
     </div>
@@ -206,7 +208,7 @@ export function AppRail({
     <nav
       aria-label="Primary"
       onContextMenu={onContextMenu}
-      className="flex w-(--app-rail-width) shrink-0 flex-col items-center gap-1.5 pt-2.5 pb-2.5 font-system-ui"
+      className="flex w-(--app-rail-width) shrink-0 flex-col items-center gap-2 px-1.5 py-2.5 font-system-ui select-none"
     >
       <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-1.5 overflow-y-auto [scrollbar-width:none]">
         {items.map((item) => (
@@ -216,7 +218,7 @@ export function AppRail({
           <>
             <div
               aria-hidden
-              className="my-0.5 h-px w-5 shrink-0 bg-[var(--app-rail-inset-border)]"
+              className="my-1 h-px w-5 shrink-0 bg-[var(--app-rail-inset-border)] opacity-60"
             />
             {shortcuts.map((item) => (
               <AppRailButton key={item.id} item={item} />
@@ -225,7 +227,7 @@ export function AppRail({
         ) : null}
         {moreSlot}
       </div>
-      <div className="flex shrink-0 flex-col items-center gap-1.5">
+      <div className="flex shrink-0 flex-col items-center gap-2">
         {bottomSlot}
         {bottomItems.map((item) => (
           <AppRailButton key={item.id} item={item} />

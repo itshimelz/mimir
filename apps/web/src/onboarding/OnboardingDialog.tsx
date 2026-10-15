@@ -1,6 +1,7 @@
 // FILE: OnboardingDialog.tsx
-// Purpose: First-run welcome tour: intro → feature tour → agents → appearance → project → done.
-//          Owns step navigation and the per-run results the final summary reads.
+// Purpose: First-run welcome tour: intro → role → feature tour → agents → appearance →
+//          course folder → done. Owns step navigation and the per-run results the final
+//          summary reads.
 // Layer: Web UI overlay (mounted once from the root route)
 //
 // The popup is a fixed 800×540 frame for every step so the window never resizes as the
@@ -29,12 +30,15 @@ import { CODE_THEME_OPTIONS } from "~/theme/theme.logic";
 import { ONBOARDING_INSET_CLASS_NAME } from "./layout";
 import {
   classifyProviderSetup,
+  DEFAULT_LEARNER_ROLE_ID,
   describeOnboardingAgentSummary,
+  findLearnerRole,
   isOnboardingSetupStep,
   nextOnboardingStep,
   ONBOARDING_STEPS,
   previousOnboardingStep,
   summarizeProviderSetup,
+  type LearnerRoleId,
   type OnboardingStep,
 } from "./logic";
 import { useOnboardingDialogStore } from "./onboardingDialogStore";
@@ -43,25 +47,30 @@ import { DoneStep } from "./steps/DoneStep";
 import { FeatureTourStep } from "./steps/FeatureTourStep";
 import { ProjectStep, type OnboardingProjectResult } from "./steps/ProjectStep";
 import { ProvidersStep } from "./steps/ProvidersStep";
+import { RoleStep } from "./steps/RoleStep";
 import { ThemeStep } from "./steps/ThemeStep";
 import { WelcomeStep } from "./steps/WelcomeStep";
 import { useProviderDetection } from "./useProviderDetection";
 
 const STEP_TITLES: Record<OnboardingStep, string> = {
   welcome: `Welcome to ${APP_BASE_NAME}`,
+  role: "How will you use Mimir?",
   tour: `What ${APP_BASE_NAME} can do`,
-  providers: "Choose your agents",
+  providers: "Connect your agents",
   theme: "Pick an appearance",
-  project: "Add your first project",
+  project: "Open your course folder",
   done: "You're all set",
 };
 
 const STEP_DESCRIPTIONS: Record<Exclude<OnboardingStep, "done">, string> = {
-  welcome: "A local-first workspace for coding agents. Setup takes about a minute.",
+  welcome:
+    "An agentic learning co-worker that works with you, in your own files. Setup takes about a minute.",
+  role: "This names and dresses your space. You can change it later in Settings.",
   tour: "",
-  providers: `Detected on this machine. Uncheck any you don't want ${APP_BASE_NAME} to use.`,
+  providers: `These are the AI tools ${APP_BASE_NAME} can drive. Detected on this machine — turn off any you don't want it using.`,
   theme: "Applies live behind this window. Change it anytime in Settings → Appearance.",
-  project: `A project is a folder ${APP_BASE_NAME} works in. Git repositories unlock branches, worktrees, diffs and pull requests.`,
+  project:
+    "A course folder is just a folder on your computer. Point Mimir at the one you already use — nothing to copy, import, or move.",
 };
 
 /** Welcome and Done are hero steps: centered header, no step counter, centered body. */
@@ -79,11 +88,15 @@ function OnboardingFlow(props: {
   onProjectBusyChange: (busy: boolean) => void;
 }) {
   const [step, setStep] = useState<OnboardingStep>("welcome");
+  // Preview-only for now: the role is rendered (it names and dresses the space) but never
+  // persisted, sent, or used to derive a folder. See `Docs/mimir-course-space-plan.md` §6.
+  const [roleId, setRoleId] = useState<LearnerRoleId>(DEFAULT_LEARNER_ROLE_ID);
   const [projectResults, setProjectResults] = useState<ReadonlyArray<OnboardingProjectResult>>([]);
   const { settings } = useAppSettings();
   const statuses = useProviderStatusesForLocalConfig();
   const providerDetection = useProviderDetection();
   const { activeTheme } = useTheme();
+  const role = findLearnerRole(roleId);
 
   const goBack = () => setStep(previousOnboardingStep(step));
   const goNext = () => setStep(nextOnboardingStep(step));
@@ -112,8 +125,8 @@ function OnboardingFlow(props: {
     describeOnboardingAgentSummary(providerSummary),
     `${themeLabel} theme`,
     projectResults.length > 0
-      ? `${plural(projectResults.length, "project")} added`
-      : "No project yet",
+      ? `${plural(projectResults.length, "course folder")} added`
+      : "No course folder yet",
   ].join(" · ");
 
   const description = step === "done" ? doneSummary : STEP_DESCRIPTIONS[step];
@@ -124,6 +137,8 @@ function OnboardingFlow(props: {
     switch (step) {
       case "welcome":
         return { label: "Get started", onPrimary: goNext };
+      case "role":
+        return { label: "Continue", onPrimary: goNext };
       case "tour":
         return { label: "Set up", onPrimary: goNext };
       case "providers":
@@ -176,6 +191,7 @@ function OnboardingFlow(props: {
         )}
       >
         {step === "welcome" ? <WelcomeStep /> : null}
+        {step === "role" ? <RoleStep value={roleId} onValueChange={setRoleId} /> : null}
         {step === "tour" ? <FeatureTourStep /> : null}
         {step === "providers" ? <ProvidersStep detection={providerDetection} /> : null}
         {step === "theme" ? <ThemeStep /> : null}
@@ -192,7 +208,9 @@ function OnboardingFlow(props: {
             }
           />
         ) : null}
-        {step === "done" ? <DoneStep /> : null}
+        {step === "done" ? (
+          <DoneStep spaceLabel={role.spaceLabel} spaceIcon={role.spaceIcon} />
+        ) : null}
       </div>
       <OnboardingStepFooter
         step={step}

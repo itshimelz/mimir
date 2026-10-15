@@ -386,6 +386,8 @@ export function useTheme() {
   } as const;
 }
 
+export { setCodeThemeId };
+
 export type {
   ChromeTheme,
   ThemeFonts,

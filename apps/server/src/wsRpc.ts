@@ -54,6 +54,8 @@ import { RpcMiddleware, RpcSchema, RpcSerialization, RpcServer } from "effect/un
 import { AutomationService } from "./automation/Services/AutomationService";
 import { TodoService } from "./todo/Services/TodoService";
 import { isServerBetaFeatureEnabled } from "./betaFeatureGate";
+import { readInlineVisual } from "./inlineVisualStore";
+import { INLINE_VISUALS_BETA_FEATURE } from "@synara/shared/betaFeatures";
 import { ProjectAgentService } from "./projectAgent/Services/ProjectAgentService";
 import { isGroupCoordinatorHostProject } from "./projectAgent/groupCoordinatorHost";
 import {
@@ -94,7 +96,10 @@ import { CheckpointDiffQuery } from "./checkpointing/Services/CheckpointDiffQuer
 import { resolveThreadWorkspaceCwd } from "./checkpointing/Utils";
 import { ServerConfig, type ServerConfigShape } from "./config";
 import { realpathNearestExisting } from "./realpathNearestExisting";
-import { isGroupContainerKind } from "@synara/shared/projectContainers";
+import {
+  participatesInStudioOutputs,
+  studioWorkspaceLayoutFor,
+} from "@synara/shared/studioOutputs";
 import { PROJECT_FOLDERS_WORKTREE_ISSUE } from "@synara/shared/projectFolders";
 import { workspaceRootsEqual } from "@synara/shared/threadWorkspace";
 import { WORKSPACE_FILE_WRITE_CONFLICT_CODE } from "@synara/shared/workspaceFileWrite";
@@ -108,10 +113,23 @@ import {
   isThreadDetailEventFor,
   THREAD_DETAIL_EVENT_TYPES,
 } from "@synara/shared/threadDetailEvents";
-import { listStudioThreadOutputs } from "./studioOutputs";
 import {
+  listStudioThreadOutputs,
+  MAX_SPACE_OUTPUT_THREADS,
+  mergeStudioProjectOutputEntries,
+  mergeStudioThreadOutputEntries,
+} from "./studioOutputs";
+
+/** Threads resolved concurrently while aggregating a course's or space's artifacts. */
+const SPACE_OUTPUT_LOOKUP_CONCURRENCY = 8;
+import {
+  courseWorkspaceSubdirectories,
+  DEFAULT_LEARNER_ROLE,
+  ensureCourseWorkspaceInstructionsFiles,
   ensureStudioWorkspaceInstructionsFiles,
+  type LearnerRole,
   migrateLegacyWorkspaceLayout,
+  prepareCourseWorkspaceRoot as prepareCourseWorkspaceRootFromScaffold,
   STUDIO_WORKSPACE_SUBDIRECTORIES,
 } from "./studioWorkspaceScaffold";
 import { ensureGroupWorkspaceInstructionsFiles } from "./groupWorkspaceScaffold";
@@ -683,17 +701,11 @@ const makeWsRpcHandlersLayer = () =>
       // is actively running. Waiting here is safe because the cursor-safe
       // stream attaches its live tap before evaluating the snapshot effect, so
       // no event that commits during the wait is lost.
-      const loadThreadDetailSnapshotWithBootstrapWait = (
-        threadId: ThreadId,
-        messageWindow?: import("@synara/contracts").OrchestrationThreadMessageWindow,
-      ) =>
+      const loadThreadDetailSnapshotWithBootstrapWait = (threadId: ThreadId) =>
         Effect.gen(function* () {
           const deadline = Date.now() + THREAD_DETAIL_SNAPSHOT_BOOTSTRAP_TIMEOUT_MS;
           while (true) {
-            const detail = yield* projectionReadModelQuery.getThreadDetailSnapshotById(
-              threadId,
-              messageWindow,
-            );
+            const detail = yield* projectionReadModelQuery.getThreadDetailSnapshotById(threadId);
             if (Option.isSome(detail) || Date.now() >= deadline) {
               return detail;
             }
@@ -857,6 +869,15 @@ const makeWsRpcHandlersLayer = () =>
               Effect.provideService(Path.Path, path),
             ),
           ),
+        );
+      // Course/space layout for an ordinary project that belongs to a Space. This is the
+      // folder a student actually learns in, so it gets the role's Outbox categories rather
+      // than the legacy creator-economy set. mkdir -p and the write-if-missing instructions
+      // are both idempotent, so this also self-heals a workspace whose earlier attempt failed.
+      const prepareCourseWorkspaceRoot = (workspaceRoot: string, role: LearnerRole) =>
+        prepareCourseWorkspaceRootFromScaffold(workspaceRoot, role).pipe(
+          Effect.provideService(FileSystem.FileSystem, fileSystem),
+          Effect.provideService(Path.Path, path),
         );
       const prepareGroupWorkspaceRoot = (workspaceRoot: string) =>
         fileSystem.makeDirectory(workspaceRoot, { recursive: true }).pipe(
@@ -1225,6 +1246,9 @@ const makeWsRpcHandlersLayer = () =>
         });
       const whenTasksEnabled = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
         tasksEnabled ? effect : Effect.fail(tasksUnavailableError());
+      // Beta only, like the gateway tool that publishes them: a Stable server
+      // serves no visual documents even if one is somehow on disk.
+      const inlineVisualsEnabled = isServerBetaFeatureEnabled(INLINE_VISUALS_BETA_FEATURE);
 
       const toProjectProvisionRpcError = (cause: unknown) =>
         cause instanceof GitHubProjectProvisioningError
@@ -1361,7 +1385,7 @@ const makeWsRpcHandlersLayer = () =>
         [ORCHESTRATION_WS_METHODS.dispatchCommand]: (command) =>
           rpcEffect(
             Effect.gen(function* () {
-              // Groups is Beta-only: Stable refuses to create or re-kind a group.
+              // Refuse creating or re-kinding a Hub if the shared feature policy disables it.
               if (!isServerGroupsEnabled() && isGroupProjectCommand(command)) {
                 return yield* Effect.fail(new WsRpcError({ message: GROUPS_BETA_ONLY_MESSAGE }));
               }
@@ -1417,7 +1441,7 @@ const makeWsRpcHandlersLayer = () =>
         [ORCHESTRATION_WS_METHODS.getThreadDetailSnapshot]: (input) =>
           rpcEffect(
             projectionReadModelQuery
-              .getThreadDetailSnapshotById(input.threadId, input.messageWindow)
+              .getThreadDetailSnapshotById(input.threadId)
               .pipe(Effect.map(Option.getOrNull)),
             "Failed to load orchestration thread detail snapshot",
           ),
@@ -1432,6 +1456,37 @@ const makeWsRpcHandlersLayer = () =>
             checkpointDiffQuery.getFullThreadDiff(input),
             "Failed to load full thread diff",
           ),
+        [ORCHESTRATION_WS_METHODS.getInlineVisual]: (input) =>
+          inlineVisualsEnabled
+            ? rpcEffect(
+                Effect.tryPromise(() =>
+                  readInlineVisual({
+                    attachmentsDir: config.attachmentsDir,
+                    threadId: input.threadId,
+                    visualId: input.visualId,
+                  }),
+                ),
+                "Failed to load visual",
+              ).pipe(
+                Effect.flatMap((html) =>
+                  html === null
+                    ? Effect.fail(
+                        new WsRpcError({
+                          message: "This visual is no longer available.",
+                          code: "inline-visual-missing",
+                          retryable: false,
+                        }),
+                      )
+                    : Effect.succeed({ visualId: input.visualId, html }),
+                ),
+              )
+            : Effect.fail(
+                new WsRpcError({
+                  message: "Inline visuals are unavailable on this server.",
+                  code: "inline-visuals-unavailable",
+                  retryable: false,
+                }),
+              ),
         [ORCHESTRATION_WS_METHODS.replayEvents]: (input) => {
           const fromSequenceExclusive = clamp(input.fromSequenceExclusive, {
             maximum: Number.MAX_SAFE_INTEGER,
@@ -1601,10 +1656,7 @@ const makeWsRpcHandlersLayer = () =>
                 label: "orchestration.thread-detail",
                 onDroppedEvents: (report) => recordThreadStreamOverflow(input.threadId, report),
               },
-              snapshot: loadThreadDetailSnapshotWithBootstrapWait(
-                input.threadId,
-                input.messageWindow,
-              ).pipe(
+              snapshot: loadThreadDetailSnapshotWithBootstrapWait(input.threadId).pipe(
                 Effect.flatMap(
                   Option.match({
                     onNone: () =>
@@ -1652,7 +1704,6 @@ const makeWsRpcHandlersLayer = () =>
                   return Stream.succeed<OrchestrationThreadStreamItem>({
                     kind: "replay",
                     events: item.events,
-                    threadId: input.threadId,
                   });
                 }
                 // A silently empty snapshot would leave the client waiting forever
@@ -1897,22 +1948,21 @@ const makeWsRpcHandlersLayer = () =>
         [WS_METHODS.studioListThreadOutputs]: (input) =>
           rpcEffect(
             Effect.gen(function* () {
-              // Self-heal the container folder tree: an accepted create whose deferred scaffold
-              // failed (crash, transient FS error) must not leave the workspace without its Outbox
-              // forever. mkdir -p is idempotent and cheap, and this endpoint only fires while
-              // a group/studio chat's environment panel is actually open. Failures degrade to the
-              // empty-list behavior.
-              yield* prepareStudioWorkspaceRoot(config.studioWorkspaceRoot).pipe(
-                Effect.catch(() => Effect.void),
-              );
               // Checkpoints cover Git workspaces; file-change activities preserve the same
-              // attribution in the default non-Git container root. Unknown/non-container ids
-              // stay empty.
+              // attribution in the default non-Git container root. Unknown kinds stay empty.
               const context = yield* projectionReadModelQuery.getThreadCheckpointContext(
                 input.threadId,
                 { includeFileChangeActivityPayloads: true },
               );
-              if (Option.isNone(context) || !isGroupContainerKind(context.value.projectKind)) {
+              if (
+                Option.isNone(context) ||
+                !participatesInStudioOutputs(context.value.projectKind)
+              ) {
+                // Still self-heal the legacy container: an accepted create whose deferred
+                // scaffold failed must not leave the workspace without its Outbox forever.
+                yield* prepareStudioWorkspaceRoot(config.studioWorkspaceRoot).pipe(
+                  Effect.catch(() => Effect.void),
+                );
                 return { entries: [] };
               }
               const workspaceCwd = resolveThreadWorkspaceCwd({
@@ -1933,20 +1983,211 @@ const makeWsRpcHandlersLayer = () =>
               if (!workspaceCwd) {
                 return { entries: [] };
               }
+              // No write here. Listing artifacts is a read: it runs on prefetch, on every
+              // thread the surface touches, and in Study as well as Studio. It used to
+              // scaffold this workspace, which meant merely opening a chat created eleven
+              // directories and two instruction files in a folder the student had only
+              // pointed Mimir at. A course layout is now written by the reactor on the
+              // thread's first real turn (see `StudioOutputReactor`), so an untouched
+              // folder stays untouched. The legacy container's own root is still prepared
+              // above, because that path is Mimir's directory and not the user's.
               return yield* listStudioThreadOutputs({
                 workspaceRoot: workspaceCwd,
                 checkpoints: context.value.checkpoints,
                 ...(context.value.fileChangeActivityPayloads
                   ? { fileChangeActivityPayloads: context.value.fileChangeActivityPayloads }
                   : {}),
+                // The chat Environment panel asks for this conversation's own output; the
+                // default course-cumulative scan belongs to the project listing instead.
+                ...(input.includeWorkspaceScan === false
+                  ? { includeWorkspaceOutboxScan: false }
+                  : {}),
               });
             }),
             "Failed to list studio thread outputs",
           ),
+        // Aggregates every project and thread in one space, so a student's artifacts
+        // accumulate across conversations instead of vanishing with each new chat.
+        [WS_METHODS.studioListSpaceOutputs]: (input) =>
+          rpcEffect(
+            Effect.gen(function* () {
+              const projects = yield* projectionReadModelQuery.listProjectsBySpaceId(input.spaceId);
+              // An unknown or empty space is not an error: it simply has produced nothing.
+              if (projects.length === 0) {
+                return { entries: [] };
+              }
+              const projectById = new Map(projects.map((project) => [project.id, project]));
+              const threads = yield* projectionReadModelQuery.listRecentActiveThreadIdsByProjectIds(
+                projects.map((project) => project.id),
+                MAX_SPACE_OUTPUT_THREADS,
+              );
+
+              const listings = yield* Effect.forEach(
+                threads,
+                (thread) =>
+                  Effect.gen(function* () {
+                    const context = yield* projectionReadModelQuery.getThreadCheckpointContext(
+                      thread.threadId,
+                      { includeFileChangeActivityPayloads: true },
+                    );
+                    // Skip kinds that do not participate rather than returning an empty
+                    // listing for each; the shared gate is the same one capture and the
+                    // per-thread listing use.
+                    if (
+                      Option.isNone(context) ||
+                      !participatesInStudioOutputs(context.value.projectKind)
+                    ) {
+                      return null;
+                    }
+                    const workspaceCwd = resolveThreadWorkspaceCwd({
+                      thread: {
+                        projectId: context.value.projectId,
+                        envMode: context.value.envMode,
+                        worktreePath: context.value.worktreePath,
+                        workingDirectory: context.value.workingDirectory,
+                      },
+                      projects: [
+                        {
+                          id: context.value.projectId,
+                          kind: context.value.projectKind,
+                          workspaceRoot: context.value.workspaceRoot,
+                        },
+                      ],
+                    });
+                    if (!workspaceCwd) {
+                      return null;
+                    }
+                    // Read-only, same as the per-thread listing: a space aggregates many
+                    // threads, so writing here would touch every folder in the space from a
+                    // single prefetch.
+                    const { entries } = yield* listStudioThreadOutputs({
+                      workspaceRoot: workspaceCwd,
+                      checkpoints: context.value.checkpoints,
+                      ...(context.value.fileChangeActivityPayloads
+                        ? { fileChangeActivityPayloads: context.value.fileChangeActivityPayloads }
+                        : {}),
+                    });
+                    return {
+                      threadId: thread.threadId,
+                      projectId: context.value.projectId,
+                      projectName:
+                        projectById.get(context.value.projectId)?.title ??
+                        context.value.workspaceRoot,
+                      entries,
+                    };
+                  }),
+                { concurrency: SPACE_OUTPUT_LOOKUP_CONCURRENCY },
+              );
+
+              const present = listings.filter((listing) => listing !== null);
+              return { entries: mergeStudioThreadOutputEntries(present) };
+            }),
+            "Failed to list studio space outputs",
+          ),
+        // A course's artifacts, aggregated across every conversation in one project. A
+        // student works one course at a time, so the project — not the open chat and not a
+        // space holding several courses — is the unit their work accumulates in.
+        [WS_METHODS.studioListProjectOutputs]: (input) =>
+          rpcEffect(
+            Effect.gen(function* () {
+              const projectOption = yield* projectionReadModelQuery.getProjectShellById(
+                input.projectId,
+              );
+              // An unknown project has produced nothing; that is not an error.
+              if (Option.isNone(projectOption)) {
+                return { entries: [] };
+              }
+              const project = projectOption.value;
+              if (!participatesInStudioOutputs(project.kind)) {
+                return { entries: [] };
+              }
+              const threads = yield* projectionReadModelQuery.listRecentActiveThreadIdsByProjectIds(
+                [project.id],
+                MAX_SPACE_OUTPUT_THREADS,
+              );
+              if (threads.length === 0) {
+                return { entries: [] };
+              }
+
+              const listings = yield* Effect.forEach(
+                threads,
+                (thread) =>
+                  Effect.gen(function* () {
+                    const context = yield* projectionReadModelQuery.getThreadCheckpointContext(
+                      thread.threadId,
+                      { includeFileChangeActivityPayloads: true },
+                    );
+                    if (
+                      Option.isNone(context) ||
+                      !participatesInStudioOutputs(context.value.projectKind)
+                    ) {
+                      return null;
+                    }
+                    const workspaceCwd = resolveThreadWorkspaceCwd({
+                      thread: {
+                        projectId: context.value.projectId,
+                        envMode: context.value.envMode,
+                        worktreePath: context.value.worktreePath,
+                        workingDirectory: context.value.workingDirectory,
+                      },
+                      projects: [
+                        {
+                          id: context.value.projectId,
+                          kind: context.value.projectKind,
+                          workspaceRoot: context.value.workspaceRoot,
+                        },
+                      ],
+                    });
+                    if (!workspaceCwd) {
+                      return null;
+                    }
+                    // Read-only for the same reason the space listing is: a course aggregates
+                    // many chats, so scaffolding here would write into the student's folder
+                    // from a single prefetch.
+                    const { entries } = yield* listStudioThreadOutputs({
+                      workspaceRoot: workspaceCwd,
+                      checkpoints: context.value.checkpoints,
+                      ...(context.value.fileChangeActivityPayloads
+                        ? { fileChangeActivityPayloads: context.value.fileChangeActivityPayloads }
+                        : {}),
+                    });
+                    return { entries };
+                  }),
+                { concurrency: SPACE_OUTPUT_LOOKUP_CONCURRENCY },
+              );
+
+              // Chats that used "Use a folder" each contribute their own root, and every chat
+              // sharing the project root contributes the same one. The merge deduplicates by
+              // absolute path, so a repeated scan root costs work but cannot double a row.
+              const present = listings.filter((listing) => listing !== null);
+              return { entries: mergeStudioProjectOutputEntries(present) };
+            }),
+            "Failed to list studio project outputs",
+          ),
         [WS_METHODS.filesystemBrowse]: (input) =>
           rpcEffect(workspaceEntries.browse(input), "Failed to browse filesystem"),
+        [WS_METHODS.filesystemPickFolder]: (input) =>
+          rpcEffect(workspaceEntries.pickFolder(input), "Failed to pick folder"),
         [WS_METHODS.shellOpenInEditor]: (input) =>
           rpcEffect(open.openInEditor(input), "Failed to open editor"),
+        [WS_METHODS.coursePrepareWorkspace]: (input) =>
+          rpcEffect(
+            Effect.gen(function* () {
+              const projectOption = yield* projectionReadModelQuery.getProjectShellById(
+                input.projectId,
+              );
+              if (Option.isNone(projectOption)) {
+                return yield* new WsRpcError({
+                  message: `Project not found: ${input.projectId}`,
+                  code: "PROJECT_NOT_FOUND",
+                });
+              }
+              const project = projectOption.value;
+              const role = input.role ?? DEFAULT_LEARNER_ROLE;
+              return yield* prepareCourseWorkspaceRoot(project.workspaceRoot, role);
+            }),
+            "Failed to prepare course workspace",
+          ),
 
         [WS_METHODS.gitGithubRepository]: (input) =>
           rpcEffect(resolveGitHubRepository(git, input.cwd), "Failed to resolve GitHub repository"),

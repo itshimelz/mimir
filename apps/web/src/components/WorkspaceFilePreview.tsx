@@ -13,8 +13,10 @@ import {
 } from "@pierre/diffs/edit";
 import { EditProvider, File as PierreFile } from "@pierre/diffs/react";
 import {
+  isSupportedLocalCanvasPath,
   isSupportedLocalImagePath,
   isSupportedLocalPdfPath,
+  isSupportedLocalPptxPath,
   lowerCaseExtensionOf,
 } from "@synara/shared/localPreviewFiles";
 import {
@@ -55,6 +57,7 @@ import {
 } from "~/lib/diffRendering";
 import { extractEditorGutterChanges, type EditorGutterChangeRange } from "~/lib/editorGutterDiff";
 import { formatFileCommentRange, type FileCommentSelection } from "~/lib/fileComments";
+import type { PptxAnnotationDraft, PptxAnnotationSelection } from "~/lib/pptxAnnotations";
 import { showFileReferenceContextMenu } from "~/lib/fileReferenceContextMenu";
 import { gitWorkingTreeDiffQueryOptions } from "~/lib/gitReactQuery";
 import { PlusIcon } from "~/lib/icons";
@@ -82,14 +85,16 @@ import { resolveWorkspaceFileEditorReadOnlyReason } from "~/lib/workspaceFileEdi
 import { readNativeApi } from "~/nativeApi";
 import ChatMarkdown from "./ChatMarkdown";
 import { DiffTruncationWarning } from "./DiffTruncationWarning";
-import { FileLineCommentBox } from "./chat/FileLineCommentBox";
+import { LocalCommentBox } from "./chat/LocalCommentBox";
 import { PanelStateMessage } from "./chat/PanelStateMessage";
 import { useFileLineCommenting } from "./chat/useFileLineCommenting";
 import { WorkspaceFilePreviewHeader } from "./chat/WorkspaceFilePreviewHeader";
 import { TranscriptSelectionAction } from "./chat/TranscriptSelectionAction";
 import { useCodeSelectionAction } from "./chat/useCodeSelectionAction";
+import { CanvasFilePreview } from "./CanvasFilePreview";
 import { LocalImagePreview } from "./LocalImagePreview";
 import { PdfFilePreview } from "./PdfFilePreview";
+import { PptxFilePreview } from "./PptxFilePreview";
 import { Skeleton } from "./ui/skeleton";
 
 const MARKDOWN_PREVIEW_EXTENSIONS = new Set([".markdown", ".md", ".mdx"]);
@@ -554,6 +559,12 @@ export interface WorkspaceFilePreviewProps {
   onReferenceInChat?: ((reference: ChatFileReference) => void) | undefined;
   onAskWhyInChat?: ((reference: ChatFileReference) => void) | undefined;
   onCommentInChat?: ((comment: FileCommentSelection) => void) | undefined;
+  /**
+   * Shape comments already attached to this thread's composer draft, projected
+   * back onto the deck so the viewer can mark what it has been asked to change.
+   */
+  pptxAnnotations?: ReadonlyArray<PptxAnnotationDraft> | undefined;
+  onPptxCommentInChat?: ((annotation: PptxAnnotationSelection) => void) | undefined;
   onEditFile?: ((filePath: string) => void) | undefined;
 }
 
@@ -594,10 +605,15 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
   const markdownPreviewDefault = props.markdownPreviewDefault ?? false;
   const fileIsImage = filePath !== null && isSupportedLocalImagePath(filePath);
   const fileIsPdf = filePath !== null && isSupportedLocalPdfPath(filePath);
+  const fileIsPptx = filePath !== null && isSupportedLocalPptxPath(filePath);
+  const fileIsCanvas = filePath !== null && isSupportedLocalCanvasPath(filePath);
+  // Binary and rich document previews stream through the local-image HTTP route
+  // instead of the text read RPC, so every check that asks "is this binary?" wants all four.
+  const fileIsBinary = fileIsImage || fileIsPdf || fileIsPptx || fileIsCanvas;
   const fileIsLocalAbsolute = filePath !== null && isLocalAbsolutePath(filePath);
   const fileIsWorkspaceRelative = filePath !== null && isWorkspaceRelativePathSafe(filePath);
   const fileIsScratchBinaryPreview =
-    filePath !== null && (fileIsImage || fileIsPdf) && isScratchWorkspacePath(filePath);
+    filePath !== null && fileIsBinary && isScratchWorkspacePath(filePath);
   const fileNeedsLocalPreviewGrant =
     filePath !== null && fileIsLocalAbsolute && !fileIsScratchBinaryPreview;
   const fileIsMarkdown = filePath !== null && isMarkdownPreviewablePath(filePath);
@@ -630,13 +646,12 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
       cwd: props.workspaceRoot,
       relativePath: filePath,
       previewGrant: localPreviewGrant,
-      // Images and PDFs are binary: they stream through the local-image HTTP
-      // route instead of the text file-read RPC.
+      // Images, PDFs and decks are binary: they stream through the local-image
+      // HTTP route instead of the text file-read RPC.
       enabled:
         liveRevalidationEnabled &&
         filePath !== null &&
-        !fileIsImage &&
-        !fileIsPdf &&
+        !fileIsBinary &&
         (fileNeedsLocalPreviewGrant ? localPreviewGrant !== null : props.workspaceRoot !== null),
     }),
   );
@@ -646,7 +661,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
       : null;
   const watchedWorkspaceRelativePath =
     resolvedWorkspaceRelativePath ??
-    ((fileIsImage || fileIsPdf) &&
+    (fileIsBinary &&
     workspaceRoot &&
     requestedFilePath &&
     isWorkspaceRelativePathSafe(requestedFilePath)
@@ -665,7 +680,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
       // them stale until the window regains focus. Only active variants are
       // re-read, so an idle workspace costs nothing here.
       void refreshGitAfterFileWrite(queryClient, workspaceRoot);
-      if (fileIsImage || fileIsPdf) {
+      if (fileIsBinary) {
         setBinaryPreviewReloading(true);
         setBinaryPreviewRevision((current) => current + 1);
       }
@@ -677,8 +692,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
       }
     },
     [
-      fileIsImage,
-      fileIsPdf,
+      fileIsBinary,
       queryClient,
       relocationRequestKey,
       requestedFilePath,
@@ -794,7 +808,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
 
   const handleFileReload = useCallback(() => {
     if (!filePath) return;
-    if (fileIsImage || fileIsPdf) {
+    if (fileIsBinary) {
       setBinaryPreviewReloading(true);
       setBinaryPreviewRevision((current) => current + 1);
       return;
@@ -803,7 +817,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
       cwd: workspaceRoot,
       relativePath: filePath,
     });
-  }, [fileIsImage, fileIsPdf, filePath, queryClient, workspaceRoot]);
+  }, [fileIsBinary, filePath, queryClient, workspaceRoot]);
 
   const handleEditBufferReload = editor.reloadFromDisk;
   // Wait for the file read before asking for the working-tree diff: while the
@@ -813,8 +827,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
     props.workspaceRoot !== null &&
     resolvedWorkspaceRelativePath !== null &&
     fileQuery.data !== undefined &&
-    !fileIsImage &&
-    !fileIsPdf &&
+    !fileIsBinary &&
     !showMarkdownPreview &&
     editableDocument === null;
   const workingTreeDiffQuery = useQuery(
@@ -986,8 +999,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
   const editFile =
     onEditFile &&
     canToggleTasks &&
-    !fileIsImage &&
-    !fileIsPdf &&
+    !fileIsBinary &&
     filePath !== null &&
     fileQuery.data !== undefined &&
     resolveWorkspaceFileEditorReadOnlyReason(fileQuery.data) === null
@@ -1026,12 +1038,55 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
     return <FilePreviewLoadingState />;
   }
 
-  if (fileIsPdf && locatingOutOfRootFile) {
+  if (fileIsBinary && locatingOutOfRootFile) {
     return <FilePreviewLoadingState />;
   }
 
-  // PDFs own their full surface — toolbar (file name, page nav, zoom, Open) plus
-  // the rendered page stack — so they skip the shared breadcrumb header here.
+  // Binary previews own their full surface — toolbar (file name, type, page/slide
+  // nav or zoom, Open) plus the rendered content — so they skip the shared
+  // breadcrumb header here.
+  if (fileIsPptx) {
+    const openInTarget =
+      props.workspaceRoot && isWorkspaceRelativePathSafe(filePath)
+        ? joinWorkspaceRelativePath(props.workspaceRoot, filePath)
+        : filePath;
+    return (
+      <PptxFilePreview
+        key={binaryPreviewKey}
+        filePath={filePath}
+        cwd={props.workspaceRoot}
+        previewGrant={localPreviewGrant}
+        cacheKey={binaryPreviewRevision}
+        onReload={handleFileReload}
+        openInTarget={openInTarget}
+        annotations={props.pptxAnnotations}
+        onAddAnnotation={props.onPptxCommentInChat}
+        onPreviewReady={handleBinaryPreviewReady}
+        onPreviewError={handleBinaryPreviewError}
+      />
+    );
+  }
+
+  if (fileIsCanvas) {
+    const openInTarget =
+      props.workspaceRoot && isWorkspaceRelativePathSafe(filePath)
+        ? joinWorkspaceRelativePath(props.workspaceRoot, filePath)
+        : filePath;
+    return (
+      <CanvasFilePreview
+        key={binaryPreviewKey}
+        filePath={filePath}
+        cwd={props.workspaceRoot}
+        previewGrant={localPreviewGrant}
+        cacheKey={binaryPreviewRevision}
+        onReload={handleFileReload}
+        openInTarget={openInTarget}
+        onPreviewReady={handleBinaryPreviewReady}
+        onPreviewError={handleBinaryPreviewError}
+      />
+    );
+  }
+
   if (fileIsPdf) {
     const openInTarget =
       props.workspaceRoot && isWorkspaceRelativePathSafe(filePath)
@@ -1087,7 +1142,7 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
         }
         onSave={activeEditBuffer ? editor.save : undefined}
         readOnlyReason={readOnlyReason}
-        reloading={fileIsImage || fileIsPdf ? binaryPreviewReloading : fileQuery.isFetching}
+        reloading={fileIsBinary ? binaryPreviewReloading : fileQuery.isFetching}
         onReload={workspaceRoot && filePath ? handleFileReload : undefined}
       />
       {activeEditBuffer?.error ? (
@@ -1268,8 +1323,8 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
                     style={{ top: activeCommentLine.top, height: activeCommentLine.height }}
                     aria-hidden="true"
                   />
-                  <FileLineCommentBox
-                    lineLabel={formatFileCommentRange({
+                  <LocalCommentBox
+                    targetLabel={formatFileCommentRange({
                       startLine: activeCommentLine.lineNumber,
                       endLine: activeCommentLine.lineNumber,
                     })}

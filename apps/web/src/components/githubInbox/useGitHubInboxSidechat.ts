@@ -101,6 +101,7 @@ function enqueueItemQuestion(input: {
     browserAnnotations: [],
     terminalContexts: [],
     fileComments: [],
+    pptxAnnotations: [],
     pastedTexts: [],
     pullRequestContexts: [createGitHubItemContextDraft(input.target.source, { checkedOut: false })],
     skills: [],

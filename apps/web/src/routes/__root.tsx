@@ -1,4 +1,3 @@
-import { hydrateCachedThreadDetail, startThreadDetailCachePersistence } from "../threadDetailCache";
 import { ServerBusyIndicator } from "../components/ServerBusyIndicator";
 import { EditorDirtyRouteGuard } from "../components/EditorDirtyRouteGuard";
 import {
@@ -45,9 +44,7 @@ import { AppSnapCoordinator } from "../components/AppSnapCoordinator";
 import { AppSnapWelcomeDialog } from "../components/AppSnapWelcomeDialog";
 import { BetaWelcomeDialog } from "../components/BetaWelcomeDialog";
 import { useOnboarding } from "../onboarding/useOnboarding";
-import { ProjectImportAnnouncementDialog } from "../projectImport/ProjectImportAnnouncementDialog";
 import { useProjectImportDialogStore } from "../projectImport/projectImportDialogStore";
-import { FeatureTourDialog } from "../components/FeatureTourDialog";
 import { SafariAccessOnboarding } from "../components/SafariAccessOnboarding";
 import { QueuedComposerDrainCoordinator } from "../components/QueuedComposerDrainCoordinator";
 import { FeedbackDialog } from "../components/FeedbackDialog";
@@ -56,6 +53,8 @@ import ShortcutsDialog from "../components/ShortcutsDialog";
 import WhatsNewDialog from "../components/WhatsNewDialog";
 import { useWhatsNew } from "../whatsNew/useWhatsNew";
 import { WhatsNewPopoutCard } from "../whatsNew/WhatsNewPopoutCard";
+import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
+import { useReleaseHistoryDialogStore } from "../releaseHistoryDialogStore";
 import { shouldRenderTerminalWorkspace } from "../components/ChatView.logic";
 import { Button, dialogActionButtonClassName } from "../components/ui/button";
 import { AnchoredToastProvider, ToastProvider, toastManager } from "../components/ui/toast";
@@ -132,7 +131,6 @@ import {
   createPreSnapshotThreadEventBuffer,
   drainPreSnapshotThreadEvents,
   shouldApplyThreadStreamSnapshot,
-  isCompleteAppliedThreadReplay,
   type PreSnapshotThreadEventBuffer,
 } from "./-threadDetailSnapshotOrdering";
 import {
@@ -199,6 +197,7 @@ import {
   getProjectFileInvalidationThreadIdForEvent,
   getStudioOutputInvalidationThreadIdForEvent,
   resolveGitInvalidationCwdForThreadId,
+  resolveSpaceIdForThreadId,
   shouldInvalidateGitQueriesForEvent,
   shouldInvalidateProviderQueriesForEvent,
 } from "./-rootEventInvalidation";
@@ -366,17 +365,15 @@ function RootRouteView() {
           <BrowserVaultDialog />
           <GlobalFeedbackDialog />
           <GlobalWhatsNewSurface />
+          <GlobalReleaseHistoryDialog />
           <TaskCompletionNotifications />
           <QueuedComposerDrainCoordinator />
           {/* Beta welcome must resolve the first-run gate even while Safari is queued. */}
           <BetaWelcomeDialog />
           <SafariAccessOnboarding startup>
-            <AppSnapWelcomeDialog>
-              <FeatureTourDialog />
-            </AppSnapWelcomeDialog>
+            <AppSnapWelcomeDialog />
           </SafariAccessOnboarding>
           <GlobalOnboardingDialog />
-          <ProjectImportAnnouncementDialog />
           <GlobalProjectImportDialog />
           <AppSnapCoordinator />
           <DesktopProjectBootstrap />
@@ -982,6 +979,31 @@ function GlobalWhatsNewSurface() {
   );
 }
 
+const ReleaseHistoryDialog = lazy(() => import("../components/ReleaseHistoryDialog"));
+
+function GlobalReleaseHistoryDialog() {
+  const isOpen = useReleaseHistoryDialogStore((store) => store.isOpen);
+  const version = useReleaseHistoryDialogStore((store) => store.version);
+  const setOpen = useReleaseHistoryDialogStore((store) => store.setOpen);
+  const [hasOpened, setHasOpened] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) setHasOpened(true);
+  }, [isOpen]);
+
+  if (!isOpen && !hasOpened) return null;
+
+  return (
+    <Suspense fallback={null}>
+      <ReleaseHistoryDialog
+        open={isOpen}
+        onOpenChange={setOpen}
+        defaultExpandedVersion={version ?? APP_VERSION}
+      />
+    </Suspense>
+  );
+}
+
 function RootRouteErrorView({ error, reset }: ErrorComponentProps) {
   const message = errorMessage(error);
   const details = errorDetails(error);
@@ -1017,7 +1039,7 @@ function RootRouteErrorView({ error, reset }: ErrorComponentProps) {
             <span className="group-open:hidden">Show error details</span>
             <span className="hidden group-open:inline">Hide error details</span>
           </summary>
-          <pre className="max-h-56 overflow-auto border-t border-border/70 bg-background/80 px-3 py-2 text-xs text-foreground/85">
+          <pre className="max-h-56 overflow-auto border-t border-border/70 bg-background/80 px-3 py-2 text-ui-xs text-foreground/85">
             {details}
           </pre>
         </details>
@@ -1334,7 +1356,6 @@ function EventRouter() {
     const api = readNativeApi();
     if (!api) return;
     let disposed = false;
-    const stopThreadDetailCachePersistence = startThreadDetailCachePersistence();
     let needsProviderInvalidation = false;
     let needsBroadGitInvalidation = false;
     let pendingGitInvalidationThreadIds = new Set<ThreadId>();
@@ -1484,12 +1505,6 @@ function EventRouter() {
       return THREAD_DETAIL_PROJECTION_RECONCILE_INTERVAL_MS * 2 ** entry.reconcileNoopStreak;
     };
 
-    const cachedThreadVerificationTimers = new Map<ThreadId, number>();
-    const clearCachedVerificationTimer = (threadId: ThreadId) => {
-      const timer = cachedThreadVerificationTimers.get(threadId);
-      if (timer !== undefined) window.clearTimeout(timer);
-      cachedThreadVerificationTimers.delete(threadId);
-    };
     const beginThreadSubscription = (threadId: ThreadId) => {
       // Cursor resume delivers no snapshot: the stream replays only the gap on
       // top of the cached detail. Seed the live cursor so gap/live events apply
@@ -1514,26 +1529,6 @@ function EventRouter() {
       threadCatchupBackoffById.delete(threadId);
       nextThreadSubscriptionGeneration += 1;
       threadSubscriptionGenerationById.set(threadId, nextThreadSubscriptionGeneration);
-      clearCachedVerificationTimer(threadId);
-      if (useStore.getState().threadDetailSyncById?.[threadId] === "cached") {
-        const generation = nextThreadSubscriptionGeneration;
-        // Older servers suppress an empty batched replay. A scoped authoritative
-        // snapshot verifies restored controls even when no stream item arrives.
-        cachedThreadVerificationTimers.set(
-          threadId,
-          window.setTimeout(() => {
-            cachedThreadVerificationTimers.delete(threadId);
-            if (
-              !disposed &&
-              subscribedThreadIds.has(threadId) &&
-              threadSubscriptionGenerationById.get(threadId) === generation &&
-              useStore.getState().threadDetailSyncById?.[threadId] === "cached"
-            ) {
-              void reconcileThreadProjection(threadId).catch(() => undefined);
-            }
-          }, 2000),
-        );
-      }
       nextThreadProjectionReconcileAtById.set(
         threadId,
         Date.now() + THREAD_DETAIL_PROJECTION_RECONCILE_INTERVAL_MS,
@@ -1637,7 +1632,6 @@ function EventRouter() {
         threadProjectionReconcilePendingById.delete(threadId);
         clearThreadProjectionTerminalFence(threadId);
         threadSubscriptionGenerationById.delete(threadId);
-        clearCachedVerificationTimer(threadId);
         nextThreadProjectionReconcileAtById.delete(threadId);
         threadCatchupBackoffById.delete(threadId);
         subscribedThreadIds.delete(threadId);
@@ -1653,8 +1647,6 @@ function EventRouter() {
         ),
       );
 
-      await Promise.all(additions.map((threadId) => hydrateCachedThreadDetail(threadId)));
-      if (disposed) return;
       for (const threadId of additions) {
         beginThreadSubscription(threadId);
         subscribedThreadIds.add(threadId);
@@ -1729,9 +1721,7 @@ function EventRouter() {
         // never-synced detail), so a cursor resume would skip exactly the
         // snapshot being requested.
         clearThreadDetailResumeCursor(threadId);
-        await api.orchestration
-          .subscribeThread(buildThreadSubscribeInput(threadId))
-          .catch(() => undefined);
+        await api.orchestration.subscribeThread({ threadId }).catch(() => undefined);
       }).finally(() => {
         threadSnapshotRequestInFlight.delete(threadId);
         if (!threadSnapshotRefreshPending.delete(threadId)) {
@@ -1853,11 +1843,29 @@ function EventRouter() {
       }),
     );
 
+    // Counts successful socket opens so the first welcome can tell whether the
+    // mount-time bootstrap already subscribed on the connection that sent it.
+    // Requests issued while connecting land on the next open, hence `+ 1`.
+    let transportOpenCount = 0;
+    let transportOpen = false;
+    const unsubTransportOpenCount = addWsTransportStateListener(
+      (state) => {
+        if (state === "open" && !transportOpen) transportOpenCount += 1;
+        transportOpen = state === "open";
+      },
+      { replayCurrent: true },
+    );
+    const currentTransportConnection = () =>
+      transportOpen ? transportOpenCount : transportOpenCount + 1;
+    let scopedSubscriptionConnection: number | null = null;
+    let awaitingInitialWelcome = true;
+
     let scopedSubscriptionRefresh: Promise<void> | null = null;
     const ensureScopedSubscriptions = () => {
       if (scopedSubscriptionRefresh) {
         return scopedSubscriptionRefresh;
       }
+      scopedSubscriptionConnection = currentTransportConnection();
       shellSubscriptionGeneration += 1;
       const generation = shellSubscriptionGeneration;
       if (shellSnapshotFallbackTimer !== null) {
@@ -1873,8 +1881,6 @@ function EventRouter() {
           .catch(() => loadBootstrapShellSnapshotIfMissing(generation));
         await enqueueThreadSubscriptionOperation(async () => {
           threadSnapshotSequenceById.clear();
-          for (const threadId of cachedThreadVerificationTimers.keys())
-            clearCachedVerificationTimer(threadId);
           threadResumeSeedSequenceById.clear();
           pendingThreadEventsById.clear();
           threadSnapshotRequestInFlight.clear();
@@ -1966,11 +1972,24 @@ function EventRouter() {
         }
       }
       if (pendingStudioOutputInvalidationThreadIds.size > 0) {
-        // File-change activities cover non-Git Studio chats; finalized checkpoints cover Git.
+        // File-change activities cover non-Git workspaces; finalized checkpoints cover Git.
+        //
+        // Two keys are invalidated per thread. The thread-scoped list backs the chat
+        // Environment panel, and the space-scoped list backs the Studio surface, whose
+        // entries aggregate every thread in the space — so a capture in one conversation
+        // changes what another conversation's Studio column shows. Resolving the thread's
+        // project here (rather than only the active thread's space) is what keeps a course's
+        // artifact list live while the student is looking at a different conversation.
         for (const threadId of pendingStudioOutputInvalidationThreadIds) {
           void queryClient.invalidateQueries({
             queryKey: serverQueryKeys.studioThreadOutputs(threadId),
           });
+          const spaceId = resolveSpaceIdForThreadId(useStore.getState(), threadId);
+          if (spaceId) {
+            void queryClient.invalidateQueries({
+              queryKey: serverQueryKeys.studioSpaceOutputs(spaceId),
+            });
+          }
         }
         pendingStudioOutputInvalidationThreadIds = new Set();
       }
@@ -2117,10 +2136,7 @@ function EventRouter() {
       let projectionSatisfiesTerminalFence = false;
       let projectionAttemptFailed = false;
       try {
-        const snapshot = await api.orchestration.getThreadDetailSnapshot({
-          threadId,
-          messageWindow: { limit: 100 },
-        });
+        const snapshot = await api.orchestration.getThreadDetailSnapshot({ threadId });
         if (
           snapshot === null ||
           disposed ||
@@ -2173,7 +2189,11 @@ function EventRouter() {
         // authoritative and can repair a client that advanced its cursor while
         // dropping or failing to reduce one of the corresponding live events.
         const stateBeforeProjectionApply = useStore.getState();
-        syncServerThreadDetailHotPath(snapshot.thread, snapshot.snapshotSequence, snapshot.history);
+        syncServerThreadDetailHotPath(
+          snapshot.thread,
+          snapshot.snapshotSequence,
+          snapshot.historyRevisionSequence,
+        );
         threadResumeSeedSequenceById.delete(threadId);
         reconcilePromotedDraftFromThreadDetail(snapshot.thread);
         flushThreadBuffer(threadId, snapshot.snapshotSequence);
@@ -2403,7 +2423,7 @@ function EventRouter() {
         syncServerThreadDetailHotPath(
           item.snapshot.thread,
           item.snapshot.snapshotSequence,
-          item.snapshot.history,
+          item.snapshot.historyRevisionSequence,
         );
         // The projection can discard a tombstoned snapshot (deleted thread or
         // project) instead of applying it; committing the cursor or the stream
@@ -2417,7 +2437,6 @@ function EventRouter() {
           return;
         }
         threadSnapshotSequenceById.set(threadId, item.snapshot.snapshotSequence);
-        clearCachedVerificationTimer(threadId);
         threadResumeSeedSequenceById.delete(threadId);
         toastManager.close(threadOverflowToastId(threadId));
         threadSnapshotNotFoundRetryAttempted.delete(threadId);
@@ -2447,30 +2466,6 @@ function EventRouter() {
         }
         domainEventFlushThrottler.cancel();
         flushPendingDomainEvents();
-        const replayThreadId =
-          item.threadId ??
-          (item.events[0]?.aggregateKind === "thread"
-            ? (item.events[0].aggregateId as ThreadId)
-            : undefined);
-        if (
-          replayThreadId &&
-          subscribedThreadIds.has(replayThreadId) &&
-          threadResumeSeedSequenceById.has(replayThreadId) &&
-          item.events.every((event) => isThreadDetailEventFor(event, replayThreadId))
-        ) {
-          if (
-            isCompleteAppliedThreadReplay({
-              threadId: replayThreadId,
-              resumeSeedSequence: threadResumeSeedSequenceById.get(replayThreadId),
-              appliedSequence:
-                useStore.getState().threadDetailAppliedSequenceById?.[replayThreadId],
-              events: item.events,
-            })
-          ) {
-            useStore.getState().confirmThreadDetailReplay(replayThreadId);
-            clearCachedVerificationTimer(replayThreadId);
-          }
-        }
         return;
       }
       applyThreadStreamEvent(item.event);
@@ -2627,7 +2622,17 @@ function EventRouter() {
           studioWorkspaceRoot: payload.studioWorkspaceRoot,
           groupsWorkspaceRoot: payload.groupsWorkspaceRoot,
         });
-        await ensureScopedSubscriptions();
+        // The first welcome of the connection the mount-time bootstrap already
+        // subscribed on carries nothing new. Resubscribing would interrupt the open
+        // chat's snapshot and load it twice; later welcomes still resynchronize.
+        const coveredByBootstrap =
+          awaitingInitialWelcome && scopedSubscriptionConnection === currentTransportConnection();
+        awaitingInitialWelcome = false;
+        if (coveredByBootstrap) {
+          await scopedSubscriptionRefresh;
+        } else {
+          await ensureScopedSubscriptions();
+        }
         if (disposed) {
           return;
         }
@@ -2836,9 +2841,6 @@ function EventRouter() {
 
     return () => {
       flushPendingDomainEvents();
-      stopThreadDetailCachePersistence();
-      for (const threadId of cachedThreadVerificationTimers.keys())
-        clearCachedVerificationTimer(threadId);
       disposed = true;
       if (shellSnapshotFallbackTimer !== null) {
         window.clearTimeout(shellSnapshotFallbackTimer);
@@ -2884,6 +2886,7 @@ function EventRouter() {
       unsubServerConfigUpdated();
       unsubProviderStatusesUpdated();
       unsubWsTransportState();
+      unsubTransportOpenCount();
       unsubServerSettingsUpdated();
     };
   }, [

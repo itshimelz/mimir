@@ -12,7 +12,7 @@ Authorized Agent Gateway sessions can expose four complementary tools:
 | Tool                                | Source                                           | Best for                                                 |
 | ----------------------------------- | ------------------------------------------------ | -------------------------------------------------------- |
 | `synara_diagnose_thread`            | Bounded forensic snapshot across several sources | First-pass triage of a stuck or inconsistent task        |
-| `synara_read_thread_activity`       | Projected task activity                          | What Synara presented as user-facing task activity       |
+| `synara_read_thread_activity`       | Projected task activity                          | What Mimir presented as user-facing task activity        |
 | `synara_read_thread_events`         | Durable orchestration event journal              | Authoritative ordering of persisted orchestration events |
 | `synara_read_thread_runtime_events` | Retained provider-runtime events                 | What the provider adapter emitted before projection      |
 
@@ -123,7 +123,7 @@ Keep the smallest useful page and filter to a relevant turn or event type.
 
 ## Built-in redaction and bounds
 
-Synara’s diagnostic sanitizer:
+Mimir’s diagnostic sanitizer:
 
 - Redacts fields whose keys resemble authorization, cookies, credentials, passwords, secrets, tokens, or API keys
 - Redacts common secret assignments, authorization headers, credential-bearing URLs, and sensitive query parameters
@@ -179,7 +179,7 @@ Do not “reconcile” the evidence by inventing a missing event.
 
 For most task-runtime problems, collect:
 
-1. Synara version and build type
+1. Mimir version and build type
 2. Operating system
 3. Provider executable path and version
 4. Provider/model/options

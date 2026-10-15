@@ -45,8 +45,8 @@ import { Menu, MenuGroup, MenuGroupLabel, MenuItem, MenuSeparator, MenuTrigger }
 import { ComposerPickerMenuPopup } from "./ComposerPickerMenuPopup";
 import { OpenInPicker } from "./OpenInPicker";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
-import { SidebarHeaderNavigationControls } from "../SidebarHeaderNavigationControls";
 import { ApplicationMenuBar } from "../ApplicationMenuBar";
+import { SidebarHeaderNavigationControls } from "../SidebarHeaderNavigationControls";
 import { useOptionalSidebar } from "../ui/sidebar";
 import ProjectScriptsControl, { type NewProjectScriptInput } from "../ProjectScriptsControl";
 import { Toggle } from "../ui/toggle";
@@ -174,6 +174,7 @@ function EditorChatHistoryMenu(props: {
   const historyThreads = sortThreadsForSidebar(
     displayThreads.filter((thread) => thread.projectId === props.projectId),
     settings.sidebarThreadSortOrder,
+    { attentionFirst: settings.sidebarThreadAttentionFirst },
   ).slice(0, EDITOR_CHAT_HISTORY_LIMIT);
 
   return (
@@ -480,6 +481,8 @@ export function ChatHeader({
   const editorChatControls = editorChatControlsProp ?? null;
   const headerRef = useRef<HTMLDivElement>(null);
   const [compact, setCompact] = useState(false);
+  const sidebar = useOptionalSidebar();
+  const sidebarOpen = sidebar?.open ?? false;
   const { additions: diffAdditions, deletions: diffDeletions, hasChanges } = diffTotals;
 
   // Own the open-favorite editor shortcut here so it survives regardless of which editor UI
@@ -614,7 +617,6 @@ export function ChatHeader({
       >
         {hideSidebarControls ? null : (
           <>
-            {/* The extra end padding keeps the wider gap the collapsed header had (gap-4). */}
             <SidebarHeaderNavigationControls
               className="md:pe-1"
               collapsedGapClassName="-me-2 sm:-me-3"

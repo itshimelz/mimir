@@ -27,6 +27,7 @@ import { formatBrowserAnnotationLabel } from "../../lib/browserAnnotations";
 import { resolveFirstSendTarget } from "../../lib/chatFirstSend";
 import { type PastedTextDraft } from "../../lib/composerPastedText";
 import { formatFileCommentTitleSeed, type FileCommentDraft } from "../../lib/fileComments";
+import { formatPptxAnnotationLabel, type PptxAnnotationDraft } from "../../lib/pptxAnnotations";
 import {
   isDuplicateProjectCreateError,
   waitForRecoverableProjectForDuplicateCreate,
@@ -49,6 +50,7 @@ interface Input {
   composerBrowserAnnotationsForSend: BrowserAnnotationDraft[];
   sendableComposerTerminalContexts: TerminalContextDraft[];
   composerFileCommentsForSend: FileCommentDraft[];
+  composerPptxAnnotationsForSend: PptxAnnotationDraft[];
   sendableComposerPastedTexts: PastedTextDraft[];
   selectedModelSelectionForSend: ModelSelection;
   selectedModelForSend: string;
@@ -85,6 +87,7 @@ export async function prepareChatSendWorkspace({
   composerBrowserAnnotationsForSend,
   sendableComposerTerminalContexts,
   composerFileCommentsForSend,
+  composerPptxAnnotationsForSend,
   sendableComposerPastedTexts,
   selectedModelSelectionForSend,
   selectedModelForSend,
@@ -128,6 +131,8 @@ export async function prepareChatSendWorkspace({
       titleSeed = formatTerminalContextLabel(sendableComposerTerminalContexts[0]!);
     } else if (composerFileCommentsForSend.length > 0) {
       titleSeed = formatFileCommentTitleSeed(composerFileCommentsForSend.length);
+    } else if (composerPptxAnnotationsForSend.length > 0) {
+      titleSeed = formatPptxAnnotationLabel(composerPptxAnnotationsForSend[0]!);
     } else if (sendableComposerPastedTexts.length > 0) {
       titleSeed =
         formatPastedTextTitleSeed(sendableComposerPastedTexts) ?? GENERIC_CHAT_THREAD_TITLE;

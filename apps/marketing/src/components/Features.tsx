@@ -1,6 +1,6 @@
 // FILE: Features.tsx
-// Purpose: Renders homepage provider and product-system sections.
-// Layer: Marketing UI section
+// Purpose: Renders homepage provider portability and durable task ownership sections.
+// Layer: Marketing UI section (M3E cards, badges, icons, type scale)
 
 import type { ComponentType } from "react";
 import { SiOpenai } from "react-icons/si";
@@ -14,17 +14,16 @@ import {
   OpencodeIcon,
   PiIcon,
 } from "@/components/BrandIcons";
-import { SplitShowcase } from "@/components/SplitShowcase";
-import { WorktreeMock } from "@/components/WorktreeMock";
 import { MultiProjectShowcase } from "@/components/MultiProjectShowcase";
-import { OneClickPrMock } from "@/components/OneClickPrMock";
-import { PRODUCT_PILLARS } from "@/data/product";
+import { Badge } from "@/components/m3e/badge";
+import { Card } from "@/components/m3e/card";
+import { Icon } from "@/components/m3e/icon";
 
 type GenericIcon = ComponentType<{ className?: string }>;
 
 const heading =
-  "text-[1.65rem] font-medium leading-[1.12] tracking-[-0.035em] text-[var(--text-primary)] sm:text-[2rem]";
-const body = "mt-5 max-w-2xl text-[15px] leading-[1.7] text-[var(--text-secondary)] sm:text-[16px]";
+  "text-headline-medium text-on-surface sm:text-headline-large font-heading font-semibold tracking-tight text-balance";
+const body = "mt-4 max-w-2xl text-body-large text-on-surface-variant leading-relaxed text-pretty";
 const container = "mx-auto w-full max-w-6xl px-4 sm:px-6";
 
 type Harness = {
@@ -48,21 +47,21 @@ const activeHarnesses: Harness[] = [
     tagline:
       "Run Codex tasks with the authenticated CLI, repository, and review surfaces together.",
     Icon: SiOpenai,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "CLI + account",
   },
   {
     name: "OpenCode",
     tagline: "Bring OpenCode and its configured provider catalog into the same task system.",
     Icon: OpencodeIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "Configured models",
   },
   {
     name: "Cursor",
     tagline: "Use Cursor Agent beside other runtimes without moving the work to another workspace.",
     Icon: CursorIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "Agent CLI",
   },
   {
@@ -76,7 +75,7 @@ const activeHarnesses: Harness[] = [
     name: "Grok Build",
     tagline: "Use Grok Build through its local runtime and Agent Client Protocol integration.",
     Icon: GrokIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "grok CLI",
   },
   {
@@ -84,116 +83,351 @@ const activeHarnesses: Harness[] = [
     tagline:
       "Run Devin locally through ACP with its account, models, commands, plan mode, and compaction.",
     Icon: DevinIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "ACP + account",
   },
   {
     name: "Pi",
     tagline: "Run Pi with its provider registry, thinking levels, skills, and native steering.",
     Icon: PiIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "Model registry",
   },
   {
     name: "Factory Droid",
     tagline: "Use Droid through its authenticated runtime, model controls, and ACP session.",
     Icon: DroidIcon,
-    accent: "text-[var(--text-primary)]",
+    accent: "text-on-surface",
     status: "droid CLI",
   },
 ];
 
+const TASK_PILLARS = [
+  {
+    icon: "folder",
+    title: "Local workspace state",
+    description:
+      "Task notes, reasoning scratchpads, and active traces persist locally in .mimir/work/ rather than in an ephemeral cloud buffer.",
+  },
+  {
+    icon: "shield",
+    title: "Bounded task boundaries",
+    description:
+      "Each study goal runs in an isolated context. Questions on cellular genetics never contaminate your algorithms review.",
+  },
+  {
+    icon: "menu_book",
+    title: "Dual Study & Studio modes",
+    description:
+      "Switch effortlessly between deep PDF/slide reading in the Study editor and interactive review in the Studio canvas.",
+  },
+  {
+    icon: "hub",
+    title: "Permanent Studio outbox",
+    description:
+      "Generated interactive quizzes, visual concept diagrams, and flashcard decks remain accessible forever on your machine.",
+  },
+] as const;
+
 export default function Features() {
   return (
     <div>
-      <section className="border-t border-[var(--divide)] py-14 sm:py-20">
+      {/* =========================================================================
+       * PROVIDER PORTABILITY SECTION
+       * ========================================================================= */}
+      <section className="border-t border-outline-variant py-14 sm:py-20">
         <div className={container}>
-          <p className="font-mono text-[12px] leading-relaxed uppercase tracking-[0.12em] text-[var(--text-tertiary)]">
+          <Badge
+            variant="secondary"
+            className="rounded-full px-3.5 py-1 text-label-medium font-medium shadow-xs"
+          >
             Provider portability
-          </p>
-          <h2 className={`${heading} mt-3`}>Keep the runtimes you already trust.</h2>
+          </Badge>
+          <h2 className={`${heading} mt-4`}>Keep the runtimes you already trust.</h2>
           <p className={body}>
-            Synara sits around your coding agents rather than replacing them. Each provider keeps
-            its own authentication, models, tools, and permissions while Synara gives the work a
-            consistent task, environment, review, and delivery layer.
+            Mimir connects directly to your existing AI agent runtimes without lock-in. Each
+            provider maintains its authentication, models, and tools, while Mimir unifies your
+            course spaces, document study, and interactive learning outbox.
           </p>
 
-          <div className="mt-12 grid grid-cols-1 border-t border-[var(--divide)] sm:grid-cols-2">
+          <div className="mt-12 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {activeHarnesses.map(({ name, tagline, Icon, accent, status }) => (
               <div
                 key={name}
-                className="border-b border-[var(--divide)] p-6 transition-colors hover:bg-[var(--mock-row)] sm:p-7 sm:[&:nth-child(odd):not(:last-child)]:border-r sm:[&:nth-child(odd):not(:last-child)]:border-[var(--divide)]"
+                className="group flex flex-col justify-between rounded-2xl border border-outline-variant/30 bg-surface-container-low/50 p-5 transition-all hover:bg-surface-container-low hover:border-outline-variant/70"
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[var(--block-elevated)]">
-                      <Icon className={`size-[18px] ${accent}`} aria-hidden="true" />
-                    </span>
-                    <span className="truncate text-[15px] font-medium text-[var(--text-primary)]">
-                      {name}
-                    </span>
+                <div>
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-surface-container-high transition-transform group-hover:scale-105">
+                        <Icon className={`size-5 ${accent}`} aria-hidden="true" />
+                      </span>
+                      <span className="truncate text-title-medium font-medium text-on-surface">
+                        {name}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="shrink-0 font-mono text-label-small">
+                      {status}
+                    </Badge>
                   </div>
-                  <span className="shrink-0 text-[12px] font-medium tabular-nums text-[var(--text-secondary)]">
-                    {status}
-                  </span>
+                  <p className="mt-3 text-body-medium text-on-surface-variant leading-relaxed text-pretty">
+                    {tagline}
+                  </p>
                 </div>
-                <p className="mt-3 text-[13px] leading-relaxed text-[var(--text-secondary)] sm:text-[13.5px]">
-                  {tagline}
-                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="border-t border-[var(--divide)] py-14 sm:py-20">
+      {/* =========================================================================
+       * DURABLE TASK OWNERSHIP SECTION (M3E Redesign for Mimir)
+       * ========================================================================= */}
+      <section className="border-t border-outline-variant py-14 sm:py-20 bg-surface-container-lowest/50">
         <div className={container}>
-          <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[var(--text-tertiary)]">
-            Durable task ownership
-          </p>
-          <h2 className={`${heading} mt-3 max-w-2xl`}>
-            One workspace. Separate tasks. Shared control.
-          </h2>
-          <p className={body}>
-            A coding agent is only one part of the job. Synara keeps the objective, environment,
-            live processes, verification evidence, and delivery state attached to the work from
-            first prompt to pull request.
-          </p>
+          <div className="flex flex-col gap-2">
+            <Badge
+              variant="secondary"
+              className="w-fit rounded-full px-3.5 py-1 text-label-medium font-medium shadow-xs"
+            >
+              Durable task ownership
+            </Badge>
+            <h2 className={`${heading} mt-3 max-w-3xl text-balance`}>
+              One course space. Autonomous study tasks. Permanent traces.
+            </h2>
+            <p className={body}>
+              Learning shouldn&apos;t vanish into disposable, endless chat threads. Mimir keeps your
+              study objectives, lecture slides, active retrieval logs, and generated studio
+              artifacts permanently attached to the task.
+            </p>
+          </div>
 
-          <div className="mt-12 grid grid-cols-1 border-t border-[var(--divide)] sm:grid-cols-2">
-            {PRODUCT_PILLARS.map(({ title, description }) => (
+          {/* 4 Task Architecture Pillars */}
+          <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {TASK_PILLARS.map(({ icon, title, description }) => (
               <div
                 key={title}
-                className="border-b border-[var(--divide)] p-6 sm:p-7 sm:[&:nth-child(odd)]:border-r sm:[&:nth-child(odd)]:border-[var(--divide)]"
+                className="flex flex-col justify-between rounded-2xl p-4 transition-all hover:bg-surface-container-low"
               >
-                <h3 className="text-[15px] font-medium text-[var(--text-primary)]">{title}</h3>
-                <p className="mt-3 text-[13px] leading-relaxed text-[var(--text-secondary)] sm:text-[13.5px]">
-                  {description}
-                </p>
+                <div>
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-primary-container text-on-primary-container shadow-xs">
+                    <Icon name={icon} size={18} />
+                  </div>
+                  <h3 className="mt-4 text-title-small font-semibold text-on-surface text-balance">
+                    {title}
+                  </h3>
+                  <p className="mt-2 text-body-small text-on-surface-variant leading-relaxed text-pretty">
+                    {description}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
 
-          <SplitShowcase
-            kicker="01 / delivery"
-            title="Deliver from the same task"
-            description="Review the final diff, run the required checks, commit the intended changes, and open the pull request without reconstructing the work in another tool."
-            reverse={false}
-          >
-            <OneClickPrMock />
-          </SplitShowcase>
+          {/* Deep Showcase 1: Bounded Study Task Execution */}
+          <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center lg:gap-12">
+            <div>
+              <p className="text-label-medium font-mono font-medium text-primary uppercase tracking-wider tabular-nums">
+                01 / Task Execution
+              </p>
+              <h3 className="mt-2 text-headline-small font-heading font-semibold text-on-surface text-balance">
+                Autonomous tasks with verifiable learning checkpoints
+              </h3>
+              <p className="mt-3 text-body-large text-on-surface-variant leading-relaxed text-pretty">
+                Assign high-level objectives—like &ldquo;Synthesize Chapter 4 with Lecture 05
+                Slides&rdquo;—inside an isolated environment. The agent inspects referenced
+                documents, writes step-by-step reasoning in
+                <code className="mx-1 rounded-sm bg-surface-container-high px-1.5 py-0.5 font-mono text-label-small">
+                  .mimir/work
+                </code>
+                , and pauses for active retrieval checkpoints before declaring the task complete.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2 text-label-small">
+                <Badge variant="outline" className="rounded-full">
+                  Step-by-step hint reveals
+                </Badge>
+                <Badge variant="outline" className="rounded-full">
+                  Cited lecture slide timestamps
+                </Badge>
+                <Badge variant="outline" className="rounded-full">
+                  Zero hallucination guard
+                </Badge>
+              </div>
+            </div>
 
-          <SplitShowcase
-            kicker="02 / parallel work"
-            title="Isolate concurrent work"
-            description="Give parallel tasks separate Git worktrees so each agent has a clear branch, working directory, and ownership boundary."
-            reverse
-          >
-            <WorktreeMock />
-          </SplitShowcase>
+            {/* Interactive M3E Task Card Mockup */}
+            <Card
+              variant="elevated"
+              className="rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 shadow-elevation-1"
+            >
+              <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <Icon name="assignment" size={18} className="text-primary" />
+                  <span className="text-label-medium font-semibold text-on-surface">
+                    Task: Cellular respiration review
+                  </span>
+                </div>
+                <span className="rounded-full bg-primary-container px-2.5 py-0.5 text-label-small font-medium text-on-primary-container">
+                  Step 3 of 4
+                </span>
+              </div>
+
+              <div className="mt-4 space-y-3 text-body-small">
+                <div className="rounded-xl bg-surface-container p-3 border border-outline-variant/20">
+                  <p className="text-label-small font-medium text-on-surface-variant">
+                    Referenced documents:
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap gap-2">
+                    <span className="rounded-md bg-surface-container-high px-2 py-0.5 text-label-small text-on-surface">
+                      📄 lecture-05-glycolysis.pdf
+                    </span>
+                    <span className="rounded-md bg-surface-container-high px-2 py-0.5 text-label-small text-on-surface">
+                      📝 krebs-cycle-notes.md
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-surface-container p-3 border border-outline-variant/20">
+                  <div className="flex items-center gap-1.5 text-label-small font-medium text-tertiary">
+                    <Icon name="psychology" size={16} />
+                    <span>Agent reasoning trace:</span>
+                  </div>
+                  <p className="mt-1 text-on-surface italic text-body-small">
+                    &ldquo;Identified common student confusion between substrate-level
+                    phosphorylation and oxidative phosphorylation. Preparing targeted retrieval
+                    prompt...&rdquo;
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-secondary-container/30 p-3 border border-secondary/20">
+                  <div className="flex items-center justify-between">
+                    <span className="text-label-small font-semibold text-secondary">
+                      Active checkpoint (in progress)
+                    </span>
+                    <span className="text-label-small font-mono text-on-secondary-container">
+                      Checkpoint #2
+                    </span>
+                  </div>
+                  <p className="mt-1 text-on-surface text-label-medium">
+                    &ldquo;What is the net ATP yield from one glucose molecule through glycolysis
+                    alone?&rdquo;
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Deep Showcase 2: Studio Artifact Outbox */}
+          <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-center lg:gap-12">
+            <div className="lg:order-2">
+              <p className="text-label-medium font-mono font-medium text-secondary uppercase tracking-wider tabular-nums">
+                02 / Studio Artifacts
+              </p>
+              <h3 className="mt-2 text-headline-small font-heading font-semibold text-on-surface text-balance">
+                Artifacts that live beyond the conversation
+              </h3>
+              <p className="mt-3 text-body-large text-on-surface-variant leading-relaxed text-pretty">
+                Standard chat windows bury valuable conclusions in a linear scroll that disappears
+                when the session ends. Mimir deposits concrete, interactive learning
+                objects—practice quizzes with step-by-step hints, visual concept diagrams, and
+                high-yield flashcard decks—straight into your Course Outbox.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-2 text-label-small">
+                <Badge variant="outline" className="rounded-full">
+                  Export to Anki & Markdown
+                </Badge>
+                <Badge variant="outline" className="rounded-full">
+                  Instant offline practice
+                </Badge>
+                <Badge variant="outline" className="rounded-full">
+                  Permanent revision library
+                </Badge>
+              </div>
+            </div>
+
+            {/* Interactive M3E Outbox Card Mockup */}
+            <div className="lg:order-1">
+              <Card
+                variant="elevated"
+                className="rounded-3xl border border-outline-variant/40 bg-surface-container-low p-6 shadow-elevation-1"
+              >
+                <div className="flex items-center justify-between border-b border-outline-variant/20 pb-3">
+                  <div className="flex items-center gap-2">
+                    <Icon name="hub" size={18} className="text-secondary" />
+                    <span className="text-label-medium font-semibold text-on-surface">
+                      Outbox · Biology 101 knowledge assets
+                    </span>
+                  </div>
+                  <Badge variant="secondary" className="font-mono text-label-small tabular-nums">
+                    3 new artifacts
+                  </Badge>
+                </div>
+
+                <div className="mt-4 space-y-2.5">
+                  <div className="flex items-center justify-between rounded-xl bg-surface-container p-3 border border-outline-variant/20">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-8 items-center justify-center rounded-lg bg-secondary-container text-on-secondary-container">
+                        <Icon name="help" size={16} />
+                      </span>
+                      <div>
+                        <p className="text-label-medium font-medium text-on-surface">
+                          Glycolysis vs Krebs Quiz
+                        </p>
+                        <p className="text-label-small text-on-surface-variant tabular-nums">
+                          12 Questions · 92% Retrieval score
+                        </p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-surface-container-high px-2 py-0.5 text-label-small text-on-surface-variant">
+                      Studio ready
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl bg-surface-container p-3 border border-outline-variant/20">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-8 items-center justify-center rounded-lg bg-primary-container text-on-primary-container">
+                        <Icon name="account_tree" size={16} />
+                      </span>
+                      <div>
+                        <p className="text-label-medium font-medium text-on-surface">
+                          Metabolic Pathway Diagram
+                        </p>
+                        <p className="text-label-small text-on-surface-variant">
+                          18 Interlinked nodes · Canvas Map
+                        </p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-surface-container-high px-2 py-0.5 text-label-small text-on-surface-variant">
+                      Visual map
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between rounded-xl bg-surface-container p-3 border border-outline-variant/20">
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-8 items-center justify-center rounded-lg bg-tertiary-container text-on-tertiary-container">
+                        <Icon name="menu_book" size={16} />
+                      </span>
+                      <div>
+                        <p className="text-label-medium font-medium text-on-surface">
+                          High-Yield Exam Synthesis
+                        </p>
+                        <p className="text-label-small text-on-surface-variant">
+                          Summary notes with slide citations
+                        </p>
+                      </div>
+                    </div>
+                    <span className="rounded-full bg-surface-container-high px-2 py-0.5 text-label-small text-on-surface-variant">
+                      Study deck
+                    </span>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
         </div>
       </section>
 
+      {/* Course Spaces Persistence Showcase */}
       <MultiProjectShowcase />
     </div>
   );

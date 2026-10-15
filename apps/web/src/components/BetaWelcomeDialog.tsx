@@ -29,12 +29,12 @@ type BetaWelcomeStorage = typeof BetaWelcomeStorageSchema.Type;
 const INITIAL_STORAGE: BetaWelcomeStorage = { acknowledged: false };
 
 const WELCOME_POINTS = [
-  { icon: "shield-check", text: "Synara stays separate and untouched." },
+  { icon: "shield-check", text: "Mimir stays separate and untouched." },
   {
     icon: "heart",
     text: "Beta shares crash reports, app errors, and anonymous usage counts. Crash reports may include private information.",
   },
-  { icon: "arrow-left-circle", text: "Switch back to Synara any time in Settings." },
+  { icon: "arrow-left-circle", text: "Switch back to Mimir any time in Settings." },
 ] as const;
 
 export function BetaWelcomeDialog() {
@@ -101,7 +101,7 @@ export function BetaWelcomeDialog() {
     imported === true
       ? {
           icon: "circle-check",
-          text: "Your chats and settings came over from Synara.",
+          text: "Your chats and settings came over from Mimir.",
           className: "bg-[color-mix(in_srgb,var(--beta-accent)_12%,transparent)] text-foreground",
           iconClassName: "text-[var(--beta-accent)]",
         }
@@ -109,7 +109,7 @@ export function BetaWelcomeDialog() {
         ? importFailed
           ? {
               icon: "exclamation-circle",
-              text: "Your Synara data couldn't be copied, so you're starting fresh.",
+              text: "Your Mimir data couldn't be copied, so you're starting fresh.",
               className:
                 "bg-[color-mix(in_srgb,var(--destructive)_12%,transparent)] text-foreground",
               iconClassName: "text-destructive",
@@ -128,8 +128,8 @@ export function BetaWelcomeDialog() {
       open={open && !storage.acknowledged}
       waitForOnboarding={false}
       hero={<img src="/app-icons/beta.png" alt="" className="size-16 rounded-2xl" />}
-      title="Welcome to Synara Beta"
-      description="New features land here first, before they reach Synara."
+      title="Welcome to Mimir Beta"
+      description="New features land here first, before they reach Mimir."
       details={
         <div className="flex flex-col gap-4 pt-4">
           <ul className="m-0 flex list-none flex-col gap-2.5 p-0">

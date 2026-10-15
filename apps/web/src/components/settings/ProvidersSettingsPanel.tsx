@@ -154,7 +154,10 @@ type ProviderInstallTextKey =
   | "ompAgentDir";
 type ProviderInstallPasswordKey = "openCodeServerPassword";
 type ProviderInstallPasswordConfiguredKey = "openCodeServerPasswordConfigured";
-type ProviderInstallBooleanKey = "claudeEnableArtifacts" | "openCodeExperimentalWebSockets";
+type ProviderInstallBooleanKey =
+  | "claudeEnableArtifacts"
+  | "claudeConfirmColdCacheResume"
+  | "openCodeExperimentalWebSockets";
 
 type ProviderInstallTextField = {
   readonly kind: "text";
@@ -259,6 +262,13 @@ const PROVIDER_INSTALL_SETTINGS: readonly ProviderInstallSettings[] = [
             login on a Pro, Max, Team or Enterprise plan, and applies to new sessions.
           </>
         ),
+      },
+      {
+        kind: "boolean",
+        settingsKey: "claudeConfirmColdCacheResume",
+        label: "Ask before resuming a long idle session",
+        description:
+          "Off by default, like Claude Code. When on, after 70 minutes without a response in a session of 100k tokens or more, hold your message and offer to resume from a summary. Messages from agents and automations are never held.",
       },
     ],
   },
@@ -873,6 +883,7 @@ function providerInstanceConfigKey(field: ProviderInstallField): string | null {
     // Every Claude account's sessions read Artifacts from the Claude provider setting,
     // never from an account's config, so the switch lives on the default account only.
     case "claudeEnableArtifacts":
+    case "claudeConfirmColdCacheResume":
       return null;
     case "piAgentDir":
     case "ompAgentDir":
@@ -2183,7 +2194,7 @@ export function ProvidersSettingsPanel({
       <SettingsSection title="Provider activity">
         <SettingsRow
           title="Enabled providers"
-          description="Enable providers across Synara. Disabled providers are hidden from pickers and settings; their saved configuration and existing threads are kept, and running turns continue. Enabling does not install a CLI or sign it in."
+          description="Enable providers across Mimir. Disabled providers are hidden from pickers and settings; their saved configuration and existing threads are kept, and running turns continue. Enabling does not install a CLI or sign it in."
           control={
             <Button
               variant="outline"
@@ -2316,13 +2327,13 @@ export function ProvidersSettingsPanel({
 
       <SettingsSection title="Performance">
         <SettingsRow
-          title="Keep Synara responsive"
+          title="Keep Mimir responsive"
           description="Give agent processes and their commands a moderately lower CPU priority when the machine is busy."
           status="Applies to newly launched agent processes. Restart existing sessions to apply consistently."
           resetAction={
             settings.lowerProviderProcessPriority !== defaults.lowerProviderProcessPriority ? (
               <SettingResetButton
-                label="Keep Synara responsive"
+                label="Keep Mimir responsive"
                 onClick={() =>
                   updateSettings({
                     lowerProviderProcessPriority: defaults.lowerProviderProcessPriority,
@@ -2337,7 +2348,7 @@ export function ProvidersSettingsPanel({
               onCheckedChange={(checked) =>
                 updateSettings({ lowerProviderProcessPriority: Boolean(checked) })
               }
-              aria-label="Keep Synara responsive"
+              aria-label="Keep Mimir responsive"
             />
           }
         />

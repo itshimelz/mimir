@@ -3,7 +3,7 @@ import { createMDX } from "fumadocs-mdx/next";
 
 // The canonical production host. Must match SITE_URL in src/lib/seo.ts, which is
 // what every page's <link rel="canonical"> and metadataBase point at.
-const CANONICAL_HOST = "www.trysynara.com";
+const CANONICAL_HOST = "mimir.himelz.studio";
 
 // The stable Vercel production alias. Unlike per-deployment/preview URLs (which
 // Vercel serves with `x-robots-tag: noindex`), this alias is fully indexable and
@@ -39,6 +39,41 @@ const nextConfig: NextConfig = {
         source: "/export",
         destination: "/docs/reference/slash-commands",
         permanent: true,
+      },
+      {
+        source: "/install",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/sponsor",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/sponsors",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/changelog",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/changelog/:path*",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/docs",
+        destination: "/",
+        permanent: false,
+      },
+      {
+        source: "/docs/:path((?!.*\\.md$).*)",
+        destination: "/",
+        permanent: false,
       },
     ];
   },

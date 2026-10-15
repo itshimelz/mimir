@@ -49,7 +49,7 @@ export function RouteSurfaceHeader({
   divider?: boolean;
   /** Off for a left column whose right neighbor already clears the window controls. */
   windowControlsGutter?: boolean;
-  /** Show the app menu when the shell's leading chrome strip is collapsed. */
+  /** Show the topbar application menu bar (File, Edit, View, Help). */
   menuBar?: boolean;
   className?: string | undefined;
   rowClassName?: string | undefined;
@@ -57,7 +57,8 @@ export function RouteSurfaceHeader({
 }) {
   const trafficLightGutterClassName = useDesktopTopBarTrafficLightGutterClassName();
   const windowControlsGutterClassName = useDesktopTopBarWindowControlsGutterClassName();
-  const sidebarOpen = useOptionalSidebar()?.open ?? false;
+  const sidebar = useOptionalSidebar();
+  const sidebarOpen = sidebar?.open ?? false;
   return (
     <header
       className={cn(

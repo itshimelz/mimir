@@ -6,8 +6,10 @@ import type {
   ServerListProviderUsageInput,
   ServerProviderStatus,
   ServerStopLocalServerInput,
+  SpaceId,
   StatsGetRecapInput,
   ThreadId,
+  ProjectId,
 } from "@synara/contracts";
 import { mutationOptions, queryOptions, type QueryClient } from "@tanstack/react-query";
 import { ensureNativeApi } from "~/nativeApi";
@@ -36,6 +38,10 @@ export const serverQueryKeys = {
     ["server", "recap", input.from, input.to, input.slotBoundaries.join(",")] as const,
   studioThreadOutputs: (threadId: ThreadId | null) =>
     ["server", "studioThreadOutputs", threadId] as const,
+  studioProjectOutputs: (projectId: ProjectId | null) =>
+    ["server", "studioProjectOutputs", projectId] as const,
+  studioSpaceOutputs: (spaceId: SpaceId | null) =>
+    ["server", "studioSpaceOutputs", spaceId] as const,
   computerStatus: () => ["server", "computerStatus"] as const,
   computerAuditHistory: () => ["server", "computerAuditHistory"] as const,
 };
@@ -373,6 +379,12 @@ const STUDIO_THREAD_OUTPUTS_STALE_TIME_MS = 10_000;
 /**
  * Outbox files attributed server-side to one Studio chat. Domain events invalidate this
  * query after checkpoint and non-Git file-change updates.
+ *
+ * Per-conversation, and only ever used for that: the chat Environment panel's "Output"
+ * section, which answers "what did we just make together". `includeWorkspaceScan: false`
+ * drops the course-wide `Outbox/` scan so the panel reports this conversation's work rather
+ * than restating the whole course folder. Anything that wants the course's body of work uses
+ * the project-scoped query below.
  */
 export function studioThreadOutputsQueryOptions(input: {
   threadId: ThreadId | null;
@@ -386,9 +398,39 @@ export function studioThreadOutputsQueryOptions(input: {
       if (!threadId) {
         return { entries: [] };
       }
-      return api.studio.listThreadOutputs({ threadId });
+      return api.studio.listThreadOutputs({ threadId, includeWorkspaceScan: false });
     },
     enabled: (input.enabled ?? true) && threadId !== null,
+    staleTime: STUDIO_THREAD_OUTPUTS_STALE_TIME_MS,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    ...EXPENSIVE_READ_RETRY_OPTIONS,
+  });
+}
+
+/**
+ * Outbox files attributed server-side across every project and thread in one space, each
+ * entry naming the thread and project that produced it.
+ *
+ * A space aggregates, so `isPending` only reflects the first fetch of this space's list; once
+ * resolved, a refetch keeps the previous entries on screen rather than flashing the loading
+ * state. The sidebar distinguishes the two by using `isPending` rather than `isFetching`.
+ */
+export function studioProjectOutputsQueryOptions(input: {
+  projectId: ProjectId | null;
+  enabled?: boolean;
+}) {
+  const projectId = input.projectId;
+  return queryOptions({
+    queryKey: serverQueryKeys.studioProjectOutputs(projectId),
+    queryFn: async () => {
+      const api = ensureNativeApi();
+      if (!projectId) {
+        return { entries: [] };
+      }
+      return api.studio.listProjectOutputs({ projectId });
+    },
+    enabled: (input.enabled ?? true) && projectId !== null,
     staleTime: STUDIO_THREAD_OUTPUTS_STALE_TIME_MS,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,

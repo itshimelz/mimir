@@ -87,8 +87,8 @@ const REQUIRED_SECTIONS = [
   "Install",
   "Authenticate",
   "Verify",
-  "Connect to Synara",
-  "Capabilities in Synara",
+  "Connect to Mimir",
+  "Capabilities in Mimir",
   "Troubleshooting",
   "Official documentation",
 ];

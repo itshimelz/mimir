@@ -53,6 +53,9 @@ interface ChatQueuedTurnsInput {
   addComposerFileCommentToDraft: ReturnType<
     typeof useChatComposerDraft
   >["addComposerFileCommentToDraft"];
+  addComposerPptxAnnotationToDraft: ReturnType<
+    typeof useChatComposerDraft
+  >["addComposerPptxAnnotationToDraft"];
   addComposerTerminalContextsToDraft: ReturnType<
     typeof useChatComposerDraft
   >["addComposerTerminalContextsToDraft"];
@@ -120,6 +123,7 @@ export function useChatQueuedTurns({
   addComposerAssistantSelectionToDraft,
   addComposerDraftBrowserAnnotations,
   addComposerFileCommentToDraft,
+  addComposerPptxAnnotationToDraft,
   addComposerTerminalContextsToDraft,
   addComposerPastedTextsToDraft,
   addComposerPullRequestContextsToDraft,
@@ -222,6 +226,7 @@ export function useChatQueuedTurns({
       const restoredBrowserAnnotations =
         queuedTurn.kind === "chat" ? queuedTurn.browserAnnotations : [];
       const restoredFileComments = queuedTurn.kind === "chat" ? queuedTurn.fileComments : [];
+      const restoredPptxAnnotations = queuedTurn.kind === "chat" ? queuedTurn.pptxAnnotations : [];
       promptRef.current = nextPrompt;
       clearComposerDraftContent(activeThread.id);
       setComposerDraftPrompt(activeThread.id, nextPrompt);
@@ -246,6 +251,9 @@ export function useChatQueuedTurns({
         }
         for (const comment of restoredFileComments) {
           addComposerFileCommentToDraft(comment);
+        }
+        for (const annotation of restoredPptxAnnotations) {
+          addComposerPptxAnnotationToDraft(annotation);
         }
         if (queuedTurn.terminalContexts.length > 0) {
           addComposerTerminalContextsToDraft(queuedTurn.terminalContexts);
@@ -293,6 +301,7 @@ export function useChatQueuedTurns({
       addComposerAssistantSelectionToDraft,
       addComposerDraftBrowserAnnotations,
       addComposerFileCommentToDraft,
+      addComposerPptxAnnotationToDraft,
       addComposerFilesToDraft,
       addComposerImagesToDraft,
       addComposerTerminalContextsToDraft,

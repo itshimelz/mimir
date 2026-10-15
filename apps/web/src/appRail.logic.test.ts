@@ -25,8 +25,9 @@ describe("rail item order", () => {
     expect(normalizeRailItemOrder(["automations", "gone", "home", "automations"])).toEqual([
       "automations",
       "home",
-      "inbox",
       "spaces",
+      "chats",
+      "inbox",
       "kanban",
       "tasks",
       "pullRequests",
@@ -38,22 +39,26 @@ describe("rail item order", () => {
     expect(normalizeRailItemOrder(["kanban", "home", "spaces"])).toEqual([
       "kanban",
       "home",
-      "inbox",
       "spaces",
+      "chats",
+      "inbox",
       "tasks",
       "pullRequests",
       "automations",
       "studio",
     ]);
-    expect(normalizeRailItemOrder(["home", "spaces", "inbox"]).slice(0, 3)).toEqual([
-      "home",
+    expect(normalizeRailItemOrder(["spaces", "chats", "home", "inbox"]).slice(0, 4)).toEqual([
       "spaces",
+      "chats",
+      "home",
       "inbox",
     ]);
   });
 
-  it("never keeps Home hidden", () => {
-    expect(normalizeHiddenRailItems(["home", "kanban", "gone", "kanban"])).toEqual(["kanban"]);
+  it("never keeps Home or Chats hidden", () => {
+    expect(normalizeHiddenRailItems(["home", "chats", "kanban", "gone", "kanban"])).toEqual([
+      "kanban",
+    ]);
   });
 
   it("drops hidden items unless active, and Studio or Inbox unless available", () => {
@@ -66,7 +71,7 @@ describe("rail item order", () => {
         studioAvailable: false,
         inboxAvailable: false,
       }),
-    ).toEqual(["home", "kanban", "tasks", "pullRequests", "automations"]);
+    ).toEqual(["chats", "home", "automations"]);
     expect(
       buildRailItemOrder({
         order,
@@ -74,23 +79,24 @@ describe("rail item order", () => {
         activeItem: "home",
         studioAvailable: true,
         inboxAvailable: true,
+        pullRequestsAvailable: true,
+        kanbanAvailable: true,
+        tasksAvailable: true,
       }),
     ).toEqual(order);
   });
 
-  it("offers Inbox and Studio in Customize only where they exist", () => {
-    const stable = { studioAvailable: false, inboxAvailable: false };
-    expect(RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, stable))).toEqual([
-      "home",
-      "spaces",
-      "kanban",
-      "tasks",
-      "pullRequests",
-      "automations",
-    ]);
+  it("offers items in Customize only where they exist and hides developer surfaces", () => {
+    const academicDefaults = { studioAvailable: false, inboxAvailable: false };
+    expect(
+      RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, academicDefaults)),
+    ).toEqual(["spaces", "chats", "home", "automations"]);
     expect(isRailItemAvailable("inbox", { studioAvailable: false, inboxAvailable: true })).toBe(
       true,
     );
+    expect(isRailItemAvailable("pullRequests", academicDefaults)).toBe(false);
+    expect(isRailItemAvailable("kanban", academicDefaults)).toBe(false);
+    expect(isRailItemAvailable("tasks", academicDefaults)).toBe(false);
   });
 });
 

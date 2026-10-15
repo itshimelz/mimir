@@ -18,6 +18,7 @@ import {
 } from "../../composerDraftStore";
 import { type PastedTextDraft } from "../../lib/composerPastedText";
 import { type FileCommentDraft } from "../../lib/fileComments";
+import { type PptxAnnotationDraft } from "../../lib/pptxAnnotations";
 import { type PullRequestContextDraft } from "../../lib/pullRequestContext";
 import {
   removeInlineTerminalContextPlaceholder,
@@ -42,6 +43,7 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
   const composerAssistantSelections = composerDraft.assistantSelections;
   const composerBrowserAnnotations = composerDraft.browserAnnotations;
   const composerFileComments = composerDraft.fileComments;
+  const composerPptxAnnotations = composerDraft.pptxAnnotations;
   const composerTerminalContexts = composerDraft.terminalContexts;
   const composerPastedTexts = composerDraft.pastedTexts;
   const composerPullRequestContexts = composerDraft.pullRequestContexts;
@@ -58,6 +60,7 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
         assistantSelectionCount: composerAssistantSelections.length,
         browserAnnotationCount: composerBrowserAnnotations.length,
         fileCommentCount: composerFileComments.length,
+        pptxAnnotationCount: composerPptxAnnotations.length,
         terminalContexts: composerTerminalContexts,
         pastedTexts: composerPastedTexts,
         pullRequestContexts: composerPullRequestContexts,
@@ -71,6 +74,7 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
       composerTerminalContexts,
       composerPastedTexts,
       composerPullRequestContexts,
+      composerPptxAnnotations.length,
       prompt,
     ],
   );
@@ -120,6 +124,10 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
   );
   const addComposerDraftFileComment = useComposerDraftStore((store) => store.addFileComment);
   const clearComposerDraftFileComments = useComposerDraftStore((store) => store.clearFileComments);
+  const addComposerDraftPptxAnnotation = useComposerDraftStore((store) => store.addPptxAnnotation);
+  const removeComposerDraftPptxAnnotation = useComposerDraftStore(
+    (store) => store.removePptxAnnotation,
+  );
   const insertComposerDraftTerminalContext = useComposerDraftStore(
     (store) => store.insertTerminalContext,
   );
@@ -164,6 +172,7 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
   );
   const composerTerminalContextsRef = useRef<TerminalContextDraft[]>(composerTerminalContexts);
   const composerFileCommentsRef = useRef<FileCommentDraft[]>(composerFileComments);
+  const composerPptxAnnotationsRef = useRef<PptxAnnotationDraft[]>(composerPptxAnnotations);
   const composerPastedTextsRef = useRef<PastedTextDraft[]>(composerPastedTexts);
   const composerPullRequestContextsRef = useRef<PullRequestContextDraft[]>(
     composerPullRequestContexts,
@@ -285,6 +294,24 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
       addComposerDraftFileComment(threadId, comment);
     },
     [addComposerDraftFileComment, discardPromptHistoryNavigationForComposerMutation, threadId],
+  );
+  const addComposerPptxAnnotationToDraft = useCallback(
+    (annotation: PptxAnnotationDraft) => {
+      discardPromptHistoryNavigationForComposerMutation();
+      addComposerDraftPptxAnnotation(threadId, annotation);
+    },
+    [addComposerDraftPptxAnnotation, discardPromptHistoryNavigationForComposerMutation, threadId],
+  );
+  const removeComposerPptxAnnotationFromDraft = useCallback(
+    (annotationId: string) => {
+      discardPromptHistoryNavigationForComposerMutation();
+      removeComposerDraftPptxAnnotation(threadId, annotationId);
+    },
+    [
+      discardPromptHistoryNavigationForComposerMutation,
+      removeComposerDraftPptxAnnotation,
+      threadId,
+    ],
   );
   const removeComposerImageFromDraft = useCallback(
     (imageId: string) => {
@@ -434,6 +461,10 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
   }, [composerFileComments]);
 
   useEffect(() => {
+    composerPptxAnnotationsRef.current = composerPptxAnnotations;
+  }, [composerPptxAnnotations]);
+
+  useEffect(() => {
     composerPastedTextsRef.current = composerPastedTexts;
   }, [composerPastedTexts]);
 
@@ -471,6 +502,7 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
     composerAssistantSelections,
     composerBrowserAnnotations,
     composerFileComments,
+    composerPptxAnnotations,
     composerTerminalContexts,
     composerPastedTexts,
     composerPullRequestContexts,
@@ -508,6 +540,7 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
     composerBrowserAnnotationsRef,
     composerTerminalContextsRef,
     composerFileCommentsRef,
+    composerPptxAnnotationsRef,
     composerPastedTextsRef,
     composerPullRequestContextsRef,
     composerCursor,
@@ -531,6 +564,8 @@ export function useChatComposerDraft({ threadId }: ChatComposerDraftInput) {
     addComposerTerminalContextsToDraft,
     addComposerPastedTextsToDraft,
     addComposerFileCommentToDraft,
+    addComposerPptxAnnotationToDraft,
+    removeComposerPptxAnnotationFromDraft,
     removeComposerImageFromDraft,
     clearComposerAssistantSelectionsFromDraft,
     clearComposerFileCommentsFromDraft,

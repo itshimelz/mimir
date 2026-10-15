@@ -9,6 +9,7 @@ import { useComposerDraftStore } from "../composerDraftStore";
 import { requestComposerFocus } from "../composerFocusRequestStore";
 import { formatComposerMentionToken } from "./composerMentions";
 import { createFileCommentDraft, type FileCommentSelection } from "./fileComments";
+import { createPptxAnnotationDraft, type PptxAnnotationSelection } from "./pptxAnnotations";
 import { type PullRequestContextDraft } from "./pullRequestContext";
 
 export interface ChatFileReference {
@@ -134,6 +135,23 @@ export function addChatFileComment(threadId: ThreadId, comment: FileCommentSelec
     return false;
   }
   useComposerDraftStore.getState().addFileComment(threadId, draft);
+  requestComposerFocus(threadId);
+  return true;
+}
+
+// Attach a shape-anchored slide comment (deck path + slide + shape id + region)
+// to the thread's composer draft, so it surfaces as a chip and is serialized into
+// the prompt on send. Returns false when the selection is empty/invalid. Focus is
+// pulled to the composer so the resulting chip is visible.
+export function addChatPptxAnnotation(
+  threadId: ThreadId,
+  annotation: PptxAnnotationSelection,
+): boolean {
+  const draft = createPptxAnnotationDraft(annotation);
+  if (!draft) {
+    return false;
+  }
+  useComposerDraftStore.getState().addPptxAnnotation(threadId, draft);
   requestComposerFocus(threadId);
   return true;
 }

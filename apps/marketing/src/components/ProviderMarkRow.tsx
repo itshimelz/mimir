@@ -1,4 +1,6 @@
+// FILE: ProviderMarkRow.tsx — provider marks as M3E assist chips.
 import { SiOpenai } from "react-icons/si";
+import { Chip } from "@/components/m3e/chip";
 import {
   AntigravityIcon,
   ClaudeIcon,
@@ -11,50 +13,15 @@ import {
 } from "@/components/BrandIcons";
 
 const marks = [
-  {
-    name: "Claude Code",
-    Icon: ClaudeIcon,
-    className: "text-[#D97757]",
-    rotation: "-rotate-[6deg]",
-  },
-  {
-    name: "Codex",
-    Icon: SiOpenai,
-    className: "text-[var(--text-primary)]",
-    rotation: "rotate-[4deg]",
-  },
-  {
-    name: "OpenCode",
-    Icon: OpencodeIcon,
-    className: "text-[var(--text-primary)]",
-    rotation: "rotate-[5deg]",
-  },
-  {
-    name: "Cursor",
-    Icon: CursorIcon,
-    className: "text-[var(--text-primary)]",
-    rotation: "-rotate-[4deg]",
-  },
-  { name: "Antigravity", Icon: AntigravityIcon, className: "", rotation: "-rotate-[2deg]" },
-  {
-    name: "Grok Build",
-    Icon: GrokIcon,
-    className: "text-[var(--text-primary)]",
-    rotation: "rotate-[2deg]",
-  },
-  {
-    name: "Devin CLI",
-    Icon: DevinIcon,
-    className: "text-[var(--text-primary)]",
-    rotation: "rotate-[3deg]",
-  },
-  { name: "Pi", Icon: PiIcon, className: "text-[var(--text-primary)]", rotation: "-rotate-[5deg]" },
-  {
-    name: "Factory Droid",
-    Icon: DroidIcon,
-    className: "text-[var(--text-primary)]",
-    rotation: "rotate-[5deg]",
-  },
+  { name: "Claude Code", Icon: ClaudeIcon, className: "text-[#D97757]" },
+  { name: "Codex", Icon: SiOpenai, className: "text-on-surface" },
+  { name: "OpenCode", Icon: OpencodeIcon, className: "text-on-surface" },
+  { name: "Cursor", Icon: CursorIcon, className: "text-on-surface" },
+  { name: "Antigravity", Icon: AntigravityIcon, className: "" },
+  { name: "Grok Build", Icon: GrokIcon, className: "text-on-surface" },
+  { name: "Devin CLI", Icon: DevinIcon, className: "text-on-surface" },
+  { name: "Pi", Icon: PiIcon, className: "text-on-surface" },
+  { name: "Factory Droid", Icon: DroidIcon, className: "text-on-surface" },
 ] as const;
 
 export default function ProviderMarkRow({
@@ -67,25 +34,25 @@ export default function ProviderMarkRow({
   return (
     <div
       role="list"
-      className={`flex flex-wrap items-center gap-2 ${centered ? "justify-center" : ""}`}
       aria-label="Supported coding-agent runtimes"
+      className={`flex flex-wrap items-center gap-2 ${centered ? "justify-center" : ""}`}
     >
-      {marks.map(({ name, Icon, className, rotation }) => (
-        <div
+      {marks.map(({ name, Icon, className }) => (
+        <Chip
           key={name}
-          title={name}
+          render={<div />}
           role="listitem"
-          className={`inline-flex items-center justify-center rounded-xl border border-black/[0.08] bg-black/[0.03] dark:border-white/10 dark:bg-white/[0.04] ${showLabels ? "gap-2 px-2.5 py-2" : "size-[38px]"} ${rotation}`}
+          title={name}
+          variant="elevated"
+          className={
+            showLabels ? "gap-2" : "size-11 justify-center px-0 has-data-[slot=chip-leading]:pl-0"
+          }
+          icon={<Icon className={`size-5 ${className}`} aria-hidden="true" />}
         >
-          <Icon className={`size-[18px] ${className}`} aria-hidden="true" />
-          <span
-            className={
-              showLabels ? "text-[11px] font-medium text-[var(--text-secondary)]" : "sr-only"
-            }
-          >
+          <span className={showLabels ? "text-label-large text-on-surface" : "sr-only"}>
             {name}
           </span>
-        </div>
+        </Chip>
       ))}
     </div>
   );

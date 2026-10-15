@@ -14,7 +14,6 @@ import type {
   OrchestrationReadModel,
   OrchestrationShellSnapshot,
   OrchestrationThreadDetailSnapshot,
-  OrchestrationThreadMessageWindow,
   OrchestrationThread,
   OrchestrationThreadShell,
   CheckpointRef,
@@ -204,6 +203,30 @@ export interface ProjectionSnapshotQueryShape {
   ) => Effect.Effect<Option.Option<ThreadId>, ProjectionRepositoryError>;
 
   /**
+   * Active projects filed in one space. Threads have no `space_id` of their own
+   * (`projection_threads` carries only `project_id`), so a space-scoped read is a two-hop
+   * join through the project, which is why this exists rather than a direct thread query.
+   */
+  readonly listProjectsBySpaceId: (
+    spaceId: SpaceId,
+  ) => Effect.Effect<
+    ReadonlyArray<Pick<OrchestrationProject, "id" | "kind" | "title" | "workspaceRoot">>,
+    ProjectionRepositoryError
+  >;
+
+  /**
+   * Active threads for the given projects, newest first, for attributing artifacts across a
+   * space. Capped so a space holding one very chatty project cannot make a listing unbounded.
+   */
+  readonly listRecentActiveThreadIdsByProjectIds: (
+    projectIds: ReadonlyArray<ProjectId>,
+    limit: number,
+  ) => Effect.Effect<
+    ReadonlyArray<Pick<ProjectionThreadCheckpointContext, "threadId" | "projectId">>,
+    ProjectionRepositoryError
+  >;
+
+  /**
    * Read the checkpoint context needed to resolve a single thread diff.
    */
   readonly getThreadCheckpointContext: (
@@ -234,17 +257,22 @@ export interface ProjectionSnapshotQueryShape {
 
   /**
    * Read a single active thread shell row by id.
+   * Runtime reconciliation can opt into the latest projected message timestamp
+   * as its activity clock without changing the persisted sidebar shell.
    */
   readonly getThreadShellById: (
     threadId: ThreadId,
+    options?: { readonly includeLatestMessageActivity?: boolean },
   ) => Effect.Effect<Option.Option<OrchestrationThreadShell>, ProjectionRepositoryError>;
 
   /**
    * Read several active thread shells in one round of queries. Ids without an
    * active thread are simply absent from the result.
+   * Reconciliation can include the in-flight message activity in the same batch.
    */
   readonly getThreadShellsByIds: (
     threadIds: ReadonlyArray<ThreadId>,
+    options?: { readonly includeLatestMessageActivity?: boolean },
   ) => Effect.Effect<ReadonlyArray<OrchestrationThreadShell>, ProjectionRepositoryError>;
 
   /**
@@ -299,7 +327,6 @@ export interface ProjectionSnapshotQueryShape {
    */
   readonly getThreadDetailSnapshotById: (
     threadId: ThreadId,
-    messageWindow?: OrchestrationThreadMessageWindow,
   ) => Effect.Effect<Option.Option<OrchestrationThreadDetailSnapshot>, ProjectionRepositoryError>;
 }
 

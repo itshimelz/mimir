@@ -2,6 +2,18 @@ export type EditorCenterMode = "file" | "diff" | "fileEdit" | "diffEdit";
 
 export type EditorCenterModeFamily = "file" | "diff";
 
+/**
+ * The two product surfaces of the editor workspace.
+ *
+ * `study` is the course surface: the student explores, reads, and writes the course's own files.
+ * `studio` is the agent surface: artifacts, lessons, and study material the agent produced.
+ *
+ * They share one workspace (the header project switcher) and one chat rail; only the left column
+ * and the center swap. Chat is a persistent rail across both rather than a surface of its own, so
+ * the conversation that produced an artifact stays reachable while reviewing it.
+ */
+export type EditorSurface = "study" | "studio";
+
 export type EditorActivityBarItem = "file" | "diff" | "search";
 
 export function editorCenterModeFamily(mode: EditorCenterMode): EditorCenterModeFamily {

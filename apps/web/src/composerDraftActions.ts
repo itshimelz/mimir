@@ -54,6 +54,7 @@ import {
   normalizeDraftThreadEntryPoint,
   normalizeFileComment,
   normalizeFileComments,
+  normalizePptxAnnotations,
   normalizePastedTexts,
   normalizeTerminalContextForThread,
   normalizeTerminalContextsForThread,
@@ -636,6 +637,7 @@ export const createComposerDraftStoreState =
                 browserAnnotations: [],
                 terminalContexts: [],
                 fileComments: [],
+                pptxAnnotations: [],
                 pastedTexts: [],
                 pullRequestContexts: [],
                 skills: [],
@@ -683,6 +685,7 @@ export const createComposerDraftStoreState =
             savedDraft.terminalContexts,
           ),
           fileComments: normalizeFileComments(savedDraft.fileComments),
+          pptxAnnotations: normalizePptxAnnotations(savedDraft.pptxAnnotations),
           pastedTexts: normalizePastedTexts(savedDraft.pastedTexts),
           pullRequestContexts: normalizePullRequestContexts(savedDraft.pullRequestContexts),
           skills: [...savedDraft.skills],
@@ -1861,6 +1864,59 @@ export const createComposerDraftStoreState =
         return { draftsByThreadId: nextDraftsByThreadId };
       });
     },
+    addPptxAnnotation: (threadId, annotation) => {
+      if (threadId.length === 0) {
+        return false;
+      }
+      let inserted = false;
+      set((state) => {
+        const existing = state.draftsByThreadId[threadId] ?? createEmptyThreadDraft();
+        // Re-normalizing the whole list applies the one-comment-per-shape rule to
+        // the new entry in one pass.
+        const normalizedAnnotations = normalizePptxAnnotations([
+          ...existing.pptxAnnotations,
+          annotation,
+        ]);
+        if (normalizedAnnotations.length === existing.pptxAnnotations.length) {
+          return state;
+        }
+        inserted = true;
+        return {
+          draftsByThreadId: {
+            ...state.draftsByThreadId,
+            [threadId]: {
+              ...existing,
+              pptxAnnotations: normalizedAnnotations,
+            },
+          },
+        };
+      });
+      return inserted;
+    },
+    removePptxAnnotation: (threadId, annotationId) => {
+      if (threadId.length === 0 || annotationId.length === 0) {
+        return;
+      }
+      set((state) => {
+        const current = state.draftsByThreadId[threadId];
+        if (!current) {
+          return state;
+        }
+        const nextDraft: ComposerThreadDraftState = {
+          ...current,
+          pptxAnnotations: current.pptxAnnotations.filter(
+            (annotation) => annotation.id !== annotationId,
+          ),
+        };
+        const nextDraftsByThreadId = { ...state.draftsByThreadId };
+        if (shouldRemoveDraft(nextDraft)) {
+          delete nextDraftsByThreadId[threadId];
+        } else {
+          nextDraftsByThreadId[threadId] = nextDraft;
+        }
+        return { draftsByThreadId: nextDraftsByThreadId };
+      });
+    },
     addPastedTexts: (threadId, pastedTexts) => {
       if (threadId.length === 0 || pastedTexts.length === 0) {
         return;
@@ -2230,6 +2286,7 @@ export const createComposerDraftStoreState =
           browserAnnotations: [],
           terminalContexts: [],
           fileComments: [],
+          pptxAnnotations: [],
           pastedTexts: [],
           pullRequestContexts: [],
           skills: [],

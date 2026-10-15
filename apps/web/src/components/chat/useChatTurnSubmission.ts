@@ -28,6 +28,7 @@ import {
   stageUploadComposerAttachments,
 } from "../../lib/composerSend";
 import { appendFileCommentsToPrompt } from "../../lib/fileComments";
+import { appendPptxAnnotationsToPrompt } from "../../lib/pptxAnnotations";
 import { appendPullRequestContextsToPrompt } from "../../lib/pullRequestContext";
 import { prepareQueuedComposerResumeAfterSend } from "../../lib/queuedComposerDrain";
 import {
@@ -61,7 +62,6 @@ import { resolveChatPromptCaptures } from "./resolveChatPromptCaptures";
 import { useChatTurnExecution } from "./useChatTurnExecution";
 import { useStore } from "../../store";
 import { getThreadFromState } from "../../threadDerivation";
-import { isThreadDetailAwaitingVerification } from "../../threadDetailAuthority";
 
 // One toast per chat: pressing Send again refreshes it instead of stacking copies.
 function notifyBlockedComposerSend(threadId: ThreadId, reason: BlockedComposerSendReason): void {
@@ -143,6 +143,7 @@ export function useChatTurnSubmission({
   composerAssistantSelections,
   composerBrowserAnnotations,
   composerFileComments,
+  composerPptxAnnotations,
   composerTerminalContexts,
   composerPastedTexts,
   composerPullRequestContexts,
@@ -164,6 +165,7 @@ export function useChatTurnSubmission({
   composerAssistantSelectionsRef,
   composerBrowserAnnotationsRef,
   composerFileCommentsRef,
+  composerPptxAnnotationsRef,
   composerTerminalContextsRef,
   composerPastedTextsRef,
   composerPullRequestContextsRef,
@@ -173,6 +175,7 @@ export function useChatTurnSubmission({
   addComposerAssistantSelectionToDraft,
   addComposerDraftBrowserAnnotations,
   addComposerFileCommentToDraft,
+  addComposerPptxAnnotationToDraft,
   addComposerTerminalContextsToDraft,
   addComposerPastedTextsToDraft,
   addComposerPullRequestContextsToDraft,
@@ -244,6 +247,7 @@ export function useChatTurnSubmission({
     addComposerAssistantSelectionToDraft,
     addComposerDraftBrowserAnnotations,
     addComposerFileCommentToDraft,
+    addComposerPptxAnnotationToDraft,
     addComposerTerminalContextsToDraft,
     addComposerPastedTextsToDraft,
     addComposerPullRequestContextsToDraft,
@@ -287,11 +291,10 @@ export function useChatTurnSubmission({
         isSendBusy ||
         sendPreflightInFlightRef.current ||
         sendInFlightRef.current;
-      const awaitingVerification = isThreadDetailAwaitingVerification(activeThread.id);
-      if (sendInFlight || isConnecting || awaitingVerification) {
+      if (sendInFlight || isConnecting) {
         const blockedReason = resolveBlockedComposerSendReason({
           sendInFlight,
-          sessionStarting: isConnecting || awaitingVerification,
+          sessionStarting: isConnecting,
           hasComposerContent:
             (composerEditorRef.current?.readSnapshot().value ?? promptRef.current).trim().length >
               0 ||
@@ -305,8 +308,7 @@ export function useChatTurnSubmission({
         return false;
       }
       const hasPendingCacheReview = () =>
-        getThreadFromState(useStore.getState(), activeThread.id)?.claudeCacheReview != null ||
-        isThreadDetailAwaitingVerification(activeThread.id);
+        getThreadFromState(useStore.getState(), activeThread.id)?.claudeCacheReview != null;
       if (hasPendingCacheReview()) return false;
       const resumeQueueAfterSend =
         !queuedTurn || dispatchMode === "steer"
@@ -424,6 +426,8 @@ export function useChatTurnSubmission({
       const composerBrowserAnnotationsForSend =
         queuedChatTurn?.browserAnnotations ?? composerBrowserAnnotations;
       const composerFileCommentsForSend = queuedChatTurn?.fileComments ?? composerFileComments;
+      const composerPptxAnnotationsForSend =
+        queuedChatTurn?.pptxAnnotations ?? composerPptxAnnotations;
       const composerTerminalContextsForSend =
         queuedChatTurn?.terminalContexts ?? composerTerminalContexts;
       const composerPastedTextsForSend = queuedChatTurn?.pastedTexts ?? composerPastedTexts;
@@ -456,6 +460,7 @@ export function useChatTurnSubmission({
         assistantSelectionCount: composerAssistantSelectionsForSend.length,
         browserAnnotationCount: composerBrowserAnnotationsForSend.length,
         fileCommentCount: composerFileCommentsForSend.length,
+        pptxAnnotationCount: composerPptxAnnotationsForSend.length,
         terminalContexts: composerTerminalContextsForSend,
         pastedTexts: composerPastedTextsForSend,
         pullRequestContexts: composerPullRequestContextsForSend,
@@ -481,6 +486,7 @@ export function useChatTurnSubmission({
         composerAssistantSelectionsForSend.length > 0 ||
         composerBrowserAnnotationsForSend.length > 0 ||
         composerFileCommentsForSend.length > 0 ||
+        composerPptxAnnotationsForSend.length > 0 ||
         sendableComposerTerminalContexts.length > 0 ||
         sendableComposerPastedTexts.length > 0;
       // Queued chat turns already captured their intended mode. Live plan follow-ups
@@ -528,6 +534,7 @@ export function useChatTurnSubmission({
         composerAssistantSelectionsForSend.length === 0 &&
         composerBrowserAnnotationsForSend.length === 0 &&
         composerFileCommentsForSend.length === 0 &&
+        composerPptxAnnotationsForSend.length === 0 &&
         sendableComposerTerminalContexts.length === 0 &&
         sendableComposerPastedTexts.length === 0 &&
         // Provider mentions are structured turn metadata, and automation definitions persist text only.
@@ -704,6 +711,7 @@ export function useChatTurnSubmission({
             browserAnnotations: composerBrowserAnnotationsForSend,
             terminalContexts: sendableComposerTerminalContexts,
             fileComments: composerFileCommentsForSend,
+            pptxAnnotations: composerPptxAnnotationsForSend,
             pastedTexts: sendableComposerPastedTexts,
             pullRequestContexts: sendableComposerPullRequestContexts,
           }),
@@ -713,6 +721,7 @@ export function useChatTurnSubmission({
           assistantSelections: composerAssistantSelectionsForSend,
           browserAnnotations: composerBrowserAnnotationsForSend,
           fileComments: composerFileCommentsForSend,
+          pptxAnnotations: composerPptxAnnotationsForSend,
           terminalContexts: sendableComposerTerminalContexts,
           pastedTexts: sendableComposerPastedTexts,
           pullRequestContexts: sendableComposerPullRequestContexts,
@@ -737,6 +746,7 @@ export function useChatTurnSubmission({
         composerBrowserAnnotationsForSend,
         sendableComposerTerminalContexts,
         composerFileCommentsForSend,
+        composerPptxAnnotationsForSend,
         sendableComposerPastedTexts,
         selectedModelSelectionForSend,
         selectedModelForSend,
@@ -811,25 +821,32 @@ export function useChatTurnSubmission({
         (annotation) => ({ ...annotation, source: { ...annotation.source } }),
       );
       const composerFileCommentsSnapshot = [...composerFileCommentsForSend];
+      const composerPptxAnnotationsSnapshot = composerPptxAnnotationsForSend.map((annotation) => ({
+        ...annotation,
+        region: { ...annotation.region },
+      }));
       const composerTerminalContextsSnapshot = [...sendableComposerTerminalContexts];
       const composerPastedTextsSnapshot = [...sendableComposerPastedTexts];
       const composerPullRequestContextsSnapshot = [...sendableComposerPullRequestContexts];
       const composerSkillsSnapshot = [...selectedComposerSkillsForSend];
       const composerMentionsSnapshot = [...selectedComposerMentionsForSend];
       // Trailing blocks are appended innermost-to-outermost: assistant selections,
-      // terminal contexts, file comments, pasted text, pull request contexts, then
-      // browser annotations (outermost). The display extractors unwrap them in the
-      // reverse order.
+      // terminal contexts, deck annotations, file comments, pasted text, pull
+      // request contexts, then browser annotations (outermost). The display
+      // extractors unwrap them in the reverse order.
       const messageTextForSend = appendBrowserAnnotationsToPrompt(
         appendPullRequestContextsToPrompt(
           appendPastedTextsToPrompt(
             appendFileCommentsToPrompt(
-              appendTerminalContextsToPrompt(
-                appendAssistantSelectionsToPrompt(
-                  promptForSend,
-                  composerAssistantSelectionsSnapshot,
+              appendPptxAnnotationsToPrompt(
+                appendTerminalContextsToPrompt(
+                  appendAssistantSelectionsToPrompt(
+                    promptForSend,
+                    composerAssistantSelectionsSnapshot,
+                  ),
+                  composerTerminalContextsSnapshot,
                 ),
-                composerTerminalContextsSnapshot,
+                composerPptxAnnotationsSnapshot,
               ),
               composerFileCommentsSnapshot,
             ),
@@ -999,6 +1016,7 @@ export function useChatTurnSubmission({
         composerAssistantSelectionsSnapshot,
         composerBrowserAnnotationsSnapshot,
         composerFileCommentsSnapshot,
+        composerPptxAnnotationsSnapshot,
         composerTerminalContextsSnapshot,
         composerPastedTextsSnapshot,
         composerPullRequestContextsSnapshot,
@@ -1068,6 +1086,7 @@ export function useChatTurnSubmission({
       composerAssistantSelections,
       composerBrowserAnnotations,
       composerFileComments,
+      composerPptxAnnotations,
       composerTerminalContexts,
       composerPastedTexts,
       composerPullRequestContexts,

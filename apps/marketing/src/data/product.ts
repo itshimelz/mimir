@@ -3,20 +3,21 @@
 //          structured data, FAQs, and AI-readable discovery surfaces.
 // Layer: static content (server/client importable).
 
-export const PRODUCT_NAME = "Synara";
+export const PRODUCT_NAME = "Mimir";
 
-export const PRODUCT_CATEGORY = "The local-first workspace and control plane for coding agents.";
+export const PRODUCT_CATEGORY =
+  "The desktop-first agentic learning workspace for university students.";
 
-export const PRODUCT_HERO_TITLE = "Run every coding agent in one workspace";
+export const PRODUCT_HERO_TITLE = "The desktop-first agentic co-learner";
 
 export const PRODUCT_HERO_DESCRIPTION =
-  "Synara is the local-first command center for serious agentic work—run every coding agent in parallel and ship without losing context.";
+  "Mimir transforms university coursework into an active, adaptive learning environment. Organize courses into Spaces, inspect slides and PDFs in the Study view, and collaborate with AI agents that craft interactive lessons, practice quizzes, and visual knowledge maps in the Studio.";
 
 export const PRODUCT_META_DESCRIPTION =
-  "Synara is a free, open-source, local-first workspace for coding agents with separate tasks, Git worktrees, terminals, browser verification, diffs, handoffs, and pull-request delivery.";
+  "Mimir is the desktop-first agentic co-learner for university students. Study coursework, practice with AI tutors, and generate interactive learning artifacts.";
 
 export const PRODUCT_DESCRIPTION =
-  "Synara is a free, open-source, local-first workspace and control plane for coding agents. Run Claude Code, Codex, OpenCode, Cursor, Antigravity, Grok Build, Devin CLI, Pi, and Factory Droid across separate tasks with terminals, browser verification, diffs, Git worktrees, handoffs, and pull-request delivery in one desktop app.";
+  "Mimir is a free, local-first agentic co-learner and study workspace designed for university students. Organize courses into Spaces, inspect PDFs and lecture slides in the Study view, generate interactive lessons, quizzes, and visual concept maps in the Studio view, and learn with an agentic tutor in an expressive Material 3 environment.";
 
 export const SUPPORTED_PROVIDERS = [
   "Claude Code",
@@ -32,23 +33,23 @@ export const SUPPORTED_PROVIDERS = [
 
 export const PRODUCT_PILLARS = [
   {
-    title: "One task owns one line of work",
+    title: "One course, one dedicated Space",
     description:
-      "Keep the objective, provider session, working directory, terminal, browser, diff, and delivery state attached to the same task.",
+      "Keep lecture slides, textbook readings, syllabi, notes, and generated study artifacts together in an isolated, local course space.",
   },
   {
-    title: "Providers stay portable",
+    title: "Dual Study & Studio views",
     description:
-      "Use the coding-agent runtimes and accounts already configured on your machine instead of moving every workflow into one vendor account.",
+      "Switch seamlessly between the Study editor for reading and writing, and the Studio for reviewing agent-crafted visual lessons and quizzes.",
   },
   {
-    title: "Parallel work stays isolated",
+    title: "Active retrieval, not passive reading",
     description:
-      "Give concurrent tasks separate Git worktrees and visible ownership so agents can build, test, and review without overwriting one another.",
+      "The Mimir tutor prompts questions and scaffolds thinking with step-by-step hints before explaining, maximizing long-term retention.",
   },
   {
-    title: "Results stay reviewable",
+    title: "Durable learning traces",
     description:
-      "Inspect commands, browser evidence, file changes, diffs, checks, commits, and pull requests before accepting the result.",
+      "Capture insights, reflections, questions, and practice performance directly into your permanent course knowledge base.",
   },
 ] as const;

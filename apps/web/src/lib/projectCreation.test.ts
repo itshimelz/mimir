@@ -6,7 +6,7 @@
 import {
   type NativeApi,
   type OrchestrationShellSnapshot,
-  type ProjectId,
+  ProjectId,
   SpaceId,
 } from "@synara/contracts";
 import { getDefaultModel } from "@synara/shared/model";
@@ -16,6 +16,7 @@ import { useSpacesUiStore } from "../spacesUiStore";
 import {
   createOrRecoverProjectFromPath,
   PROJECT_CREATE_MULTI_FOLDER_DUPLICATE_ERROR,
+  resolveProjectCreationDestination,
 } from "./projectCreation";
 
 const NOW_ISO = "2026-06-26T20:00:00.000Z";
@@ -232,5 +233,77 @@ describe("createOrRecoverProjectFromPath", () => {
         spaceId: activeSpaceId,
       }),
     );
+  });
+});
+
+// The bug this covers: choosing a course for a folder that is already a project
+// used to be silently ignored, because `project.create` never runs for a folder
+// that is already linked. The student picked a course and the folder stayed in
+// Void, which is what "the feature did not work" looked like.
+describe("resolveProjectCreationDestination", () => {
+  const projectId = ProjectId.makeUnsafe("project-existing");
+  const courseId = SpaceId.makeUnsafe("space-biology");
+  const otherCourseId = SpaceId.makeUnsafe("space-calculus");
+
+  it("moves an unfiled folder into the chosen course", () => {
+    expect(
+      resolveProjectCreationDestination({
+        existingProject: { id: projectId, spaceId: null },
+        requestedSpaceId: courseId,
+      }),
+    ).toEqual({ destinationSpaceId: courseId, refileExistingProjectId: projectId });
+  });
+
+  it("treats a missing spaceId the same as an unfiled folder", () => {
+    expect(
+      resolveProjectCreationDestination({
+        existingProject: { id: projectId },
+        requestedSpaceId: courseId,
+      }),
+    ).toEqual({ destinationSpaceId: courseId, refileExistingProjectId: projectId });
+  });
+
+  it("moves a folder between two courses", () => {
+    expect(
+      resolveProjectCreationDestination({
+        existingProject: { id: projectId, spaceId: courseId },
+        requestedSpaceId: otherCourseId,
+      }),
+    ).toEqual({ destinationSpaceId: otherCourseId, refileExistingProjectId: projectId });
+  });
+
+  it("does not move a folder that is already in the chosen course", () => {
+    expect(
+      resolveProjectCreationDestination({
+        existingProject: { id: projectId, spaceId: courseId },
+        requestedSpaceId: courseId,
+      }),
+    ).toEqual({ destinationSpaceId: courseId, refileExistingProjectId: null });
+  });
+
+  it("never un-files a folder because the destination was left on Void", () => {
+    // Picking Void while the folder lives in a course is the dialog's default showing,
+    // not a request to un-file. Doing it silently would drop the course assignment.
+    expect(
+      resolveProjectCreationDestination({
+        existingProject: { id: projectId, spaceId: courseId },
+        requestedSpaceId: null,
+      }),
+    ).toEqual({ destinationSpaceId: courseId, refileExistingProjectId: null });
+  });
+
+  it("uses the chosen course for a folder that is not linked yet", () => {
+    expect(
+      resolveProjectCreationDestination({
+        existingProject: null,
+        requestedSpaceId: courseId,
+      }),
+    ).toEqual({ destinationSpaceId: courseId, refileExistingProjectId: null });
+  });
+
+  it("files a new folder in Void when no course is chosen", () => {
+    expect(
+      resolveProjectCreationDestination({ existingProject: null, requestedSpaceId: null }),
+    ).toEqual({ destinationSpaceId: null, refileExistingProjectId: null });
   });
 });

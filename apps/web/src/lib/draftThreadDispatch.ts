@@ -53,6 +53,7 @@ import {
   resolvePromptEffortFromModelSelection,
 } from "./composerSend";
 import { appendFileCommentsToPrompt, formatFileCommentTitleSeed } from "./fileComments";
+import { appendPptxAnnotationsToPrompt, formatPptxAnnotationLabel } from "./pptxAnnotations";
 import {
   filterPromptProviderMentionReferences,
   filterPromptSkillReferences,
@@ -307,6 +308,7 @@ async function dispatchDraftThreadOnce(
   const composerAssistantSelections = draftComposerState?.assistantSelections ?? [];
   const composerBrowserAnnotations = draftComposerState?.browserAnnotations ?? [];
   const composerFileComments = draftComposerState?.fileComments ?? [];
+  const composerPptxAnnotations = draftComposerState?.pptxAnnotations ?? [];
   const sendablePastedTexts = filterPastedTextsWithText(draftComposerState?.pastedTexts ?? []);
   const sendableTerminalContexts = filterTerminalContextsWithText(
     draftComposerState?.terminalContexts ?? [],
@@ -324,6 +326,7 @@ async function dispatchDraftThreadOnce(
     (composerFileComments.length > 0
       ? formatFileCommentTitleSeed(composerFileComments.length)
       : "") ||
+    (composerPptxAnnotations[0] ? formatPptxAnnotationLabel(composerPptxAnnotations[0]) : "") ||
     "New task";
   const fallbackTitle = buildPromptThreadTitleFallback(titleSeed);
   const messageId = newMessageId();
@@ -332,9 +335,12 @@ async function dispatchDraftThreadOnce(
   const messageText = appendBrowserAnnotationsToPrompt(
     appendPastedTextsToPrompt(
       appendFileCommentsToPrompt(
-        appendTerminalContextsToPrompt(
-          appendAssistantSelectionsToPrompt(draftPrompt, composerAssistantSelections),
-          sendableTerminalContexts,
+        appendPptxAnnotationsToPrompt(
+          appendTerminalContextsToPrompt(
+            appendAssistantSelectionsToPrompt(draftPrompt, composerAssistantSelections),
+            sendableTerminalContexts,
+          ),
+          composerPptxAnnotations,
         ),
         composerFileComments,
       ),

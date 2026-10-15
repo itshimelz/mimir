@@ -53,6 +53,7 @@ function makeComposerDraftState(
     browserAnnotations: [],
     terminalContexts: [],
     fileComments: [],
+    pptxAnnotations: [],
     pastedTexts: [],
     pullRequestContexts: [],
     skills: [],

@@ -1,3 +1,9 @@
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+
+import * as NodeServices from "@effect/platform-node/NodeServices";
+import { ProjectId, ThreadId, type StudioOutputEntry } from "@synara/contracts";
 import { Effect, FileSystem, Layer, Path } from "effect";
 import { describe, expect, it } from "vitest";
 
@@ -7,7 +13,9 @@ import {
   diffStudioWorkspaceScans,
   listStudioThreadOutputs,
   MAX_SCAN_ENTRIES,
+  MAX_SCAN_FILES,
   MAX_THREAD_OUTPUT_FILES,
+  mergeStudioThreadOutputEntries,
   scanStudioWorkspaceFiles,
   STAT_CONCURRENCY,
 } from "./studioOutputs";
@@ -78,6 +86,29 @@ describe("collectThreadOutputRelativePaths", () => {
     ]);
 
     expect(relativePaths).toEqual(["Outbox/Content/kept.md"]);
+  });
+
+  it("skips generated and environment directories a course folder accumulates", () => {
+    // A course folder is usually a repository, so the scan now runs over one. Build output
+    // is regenerated rather than authored, and attributing it would fill Studio with
+    // bundles instead of the lesson the student asked for. Dot-directories (.git, .venv)
+    // are already covered by the hidden-segment rule above.
+    const relativePaths = collectThreadOutputRelativePaths([
+      checkpoint([
+        "dist/bundle.js",
+        "build/app.js",
+        "target/debug/app",
+        "out/cli.js",
+        "coverage/lcov.info",
+        "venv/lib/site.py",
+        "__pycache__/module.pyc",
+        "src/__pycache__/module.pyc",
+        "site/.venv/lib/site.py",
+        "Outbox/Lessons/cell-division.md",
+      ]),
+    ]);
+
+    expect(relativePaths).toEqual(["Outbox/Lessons/cell-division.md"]);
   });
 
   it("caps the collected paths, dropping the oldest turns' files first", () => {
@@ -177,6 +208,89 @@ function fakeFileInfo(type: "Directory" | "File"): FileSystem.File.Info {
 }
 
 describe("scanStudioWorkspaceFiles", () => {
+  it("still reaches Outbox when the rest of the workspace is enormous", async () => {
+    // The walk is breadth-first, so before the frontier was seeded with Outbox a single flat
+    // directory of course files exhausted the file cap before the walk ever reached the
+    // artifacts. A course folder with a few thousand files is not unusual, and the result was
+    // a permanently empty Studio with no error anywhere.
+    const workspaceRoot = await mkdtemp(path.join(os.tmpdir(), "synara-studio-scan-"));
+    try {
+      await mkdir(path.join(workspaceRoot, "slides"), { recursive: true });
+      for (let index = 0; index < MAX_SCAN_FILES + 500; index += 1) {
+        await writeFile(path.join(workspaceRoot, "slides", `slide-${index}.md`), "x");
+      }
+      await mkdir(path.join(workspaceRoot, "Outbox", "Lessons"), { recursive: true });
+      await writeFile(path.join(workspaceRoot, "Outbox", "Lessons", "cell-division.md"), "# x");
+
+      const result = await Effect.runPromise(
+        scanStudioWorkspaceFiles({ workspaceRoot }).pipe(Effect.provide(NodeServices.layer)),
+      );
+
+      expect([...result.keys()]).toContain("Outbox/Lessons/cell-division.md");
+    } finally {
+      await rm(workspaceRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("walks a Git-rooted course folder and reports only authored files", async () => {
+    // The scan now runs over repositories. This asserts the whole shape in one place: the
+    // lesson is seen, and the repository's own machinery is not.
+    const workspaceRoot = "/course";
+    const layout: Record<
+      string,
+      ReadonlyArray<{ readonly name: string; readonly type: "File" | "Directory" }>
+    > = {
+      [workspaceRoot]: [
+        { name: ".git", type: "Directory" },
+        { name: ".venv", type: "Directory" },
+        { name: "node_modules", type: "Directory" },
+        { name: "dist", type: "Directory" },
+        { name: "__pycache__", type: "Directory" },
+        { name: "README.md", type: "File" },
+        { name: "Outbox", type: "Directory" },
+      ],
+      [`${workspaceRoot}/.git`]: [{ name: "objects", type: "Directory" }],
+      [`${workspaceRoot}/.git/objects`]: [{ name: "ab12", type: "File" }],
+      [`${workspaceRoot}/.venv`]: [{ name: "lib", type: "Directory" }],
+      [`${workspaceRoot}/.venv/lib`]: [{ name: "site.py", type: "File" }],
+      [`${workspaceRoot}/node_modules`]: [{ name: "pkg", type: "Directory" }],
+      [`${workspaceRoot}/node_modules/pkg`]: [{ name: "index.js", type: "File" }],
+      [`${workspaceRoot}/dist`]: [{ name: "bundle.js", type: "File" }],
+      [`${workspaceRoot}/__pycache__`]: [{ name: "module.pyc", type: "File" }],
+      [`${workspaceRoot}/Outbox`]: [{ name: "Lessons", type: "Directory" }],
+      [`${workspaceRoot}/Outbox/Lessons`]: [{ name: "cell-division.md", type: "File" }],
+    };
+    const fileSystemLayer = FileSystem.layerNoop({
+      readDirectory: (directoryPath: string) =>
+        Effect.succeed(
+          (layout[directoryPath] ?? []).map((entry) =>
+            entry.type === "Directory" ? entry.name : entry.name,
+          ),
+        ),
+      readLink: () => Effect.fail(new Error("EINVAL") as never),
+      stat: (entryPath: string) =>
+        Effect.succeed(
+          fakeFileInfo(
+            Object.values(layout).some((entries) =>
+              entries.some(
+                (entry) => entryPath.endsWith(`/${entry.name}`) && entry.type === "Directory",
+              ),
+            ) && !entryPath.includes(".")
+              ? "Directory"
+              : "File",
+          ),
+        ),
+    });
+
+    const result = await Effect.runPromise(
+      scanStudioWorkspaceFiles({ workspaceRoot }).pipe(
+        Effect.provide(Layer.merge(fileSystemLayer, Path.layer)),
+      ),
+    );
+
+    expect([...result.keys()].toSorted()).toEqual(["Outbox/Lessons/cell-division.md", "README.md"]);
+  });
+
   it("bounds traversal by total directory entries, not only discovered files", async () => {
     const workspaceRoot = "/studio";
     const rootEntries = Array.from(
@@ -271,6 +385,37 @@ function makeFakeStudioRootLayer(input: {
         blksize: undefined,
         blocks: undefined,
       } satisfies FileSystem.File.Info);
+    },
+    exists: (fullPath: string) => {
+      const relativePath = fullPath.slice(input.workspaceRoot.length + 1);
+      return Effect.succeed(
+        input.mtimesByRelativePath.has(relativePath) ||
+          input.directoryPaths?.has(relativePath) === true,
+      );
+    },
+    readDirectory: (fullPath: string) => {
+      const prefix =
+        fullPath.length > input.workspaceRoot.length
+          ? fullPath.slice(input.workspaceRoot.length + 1) + "/"
+          : "";
+      const children = new Set<string>();
+      for (const key of input.mtimesByRelativePath.keys()) {
+        if (key.startsWith(prefix)) {
+          const rest = key.slice(prefix.length);
+          const first = rest.split("/")[0];
+          if (first) children.add(first);
+        }
+      }
+      if (input.directoryPaths) {
+        for (const dir of input.directoryPaths) {
+          if (dir.startsWith(prefix)) {
+            const rest = dir.slice(prefix.length);
+            const first = rest.split("/")[0];
+            if (first) children.add(first);
+          }
+        }
+      }
+      return Effect.succeed([...children]);
     },
   });
   return Layer.merge(fileSystemLayer, Path.layer);
@@ -368,5 +513,166 @@ describe("listStudioThreadOutputs", () => {
       "output/pdf/absolute.pdf",
       "Outbox/Content/relative.md",
     ]);
+  });
+
+  it("discovers existing files in Outbox on disk even with no checkpoints or activities", async () => {
+    const workspaceRoot = "/studio";
+    const layer = makeFakeStudioRootLayer({
+      workspaceRoot,
+      directoryPaths: new Set(["Outbox", "Outbox/Rubrics", "Outbox/Quizzes"]),
+      mtimesByRelativePath: new Map([
+        ["Outbox/Rubrics/rubric.md", 5_000],
+        ["Outbox/Quizzes/quiz.md", 4_000],
+      ]),
+    });
+
+    const result = await Effect.runPromise(
+      listStudioThreadOutputs({
+        workspaceRoot,
+        checkpoints: [],
+      }).pipe(Effect.provide(layer)),
+    );
+
+    expect(result.entries.map((entry) => entry.relativePath)).toEqual([
+      "Outbox/Rubrics/rubric.md",
+      "Outbox/Quizzes/quiz.md",
+    ]);
+  });
+});
+
+describe("mergeStudioThreadOutputEntries", () => {
+  const entry = (overrides: Partial<StudioOutputEntry> & { readonly fullPath: string }) => ({
+    name: overrides.fullPath.split("/").at(-1)!,
+    relativePath: overrides.fullPath,
+    modifiedAt: "2026-07-08T00:00:00.000Z",
+    ...overrides,
+  });
+
+  it("merges every thread's outputs into one list, newest first", () => {
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("t1"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Cell Biology",
+        entries: [
+          entry({
+            fullPath: "/course/Outbox/Lessons/a.md",
+            modifiedAt: "2026-07-08T01:00:00.000Z",
+          }),
+        ],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("t2"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Cell Biology",
+        entries: [
+          entry({
+            fullPath: "/course/Outbox/Quizzes/b.md",
+            modifiedAt: "2026-07-08T03:00:00.000Z",
+          }),
+        ],
+      },
+    ]);
+
+    expect(merged.map((item) => item.fullPath)).toEqual([
+      "/course/Outbox/Quizzes/b.md",
+      "/course/Outbox/Lessons/a.md",
+    ]);
+  });
+
+  it("attributes each artifact to the project and thread that produced it", () => {
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("bio"),
+        projectId: ProjectId.makeUnsafe("cell"),
+        projectName: "Cell Biology",
+        entries: [entry({ fullPath: "/bio/Outbox/Lessons/mitosis.md" })],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("stats"),
+        projectId: ProjectId.makeUnsafe("stats"),
+        projectName: "Statistics",
+        entries: [entry({ fullPath: "/stats/Outbox/Lessons/mean.md" })],
+      },
+    ]);
+
+    const bio = merged.find((item) => item.fullPath.startsWith("/bio"));
+    expect(bio).toMatchObject({
+      threadId: "bio",
+      projectId: "cell",
+      projectName: "Cell Biology",
+    });
+    const stats = merged.find((item) => item.fullPath.startsWith("/stats"));
+    expect(stats).toMatchObject({
+      threadId: "stats",
+      projectId: "stats",
+      projectName: "Statistics",
+    });
+  });
+
+  it("keeps identically named files from two projects separate", () => {
+    // The whole reason a space aggregates: two courses can each have Outbox/Lessons/week1.md.
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("t1"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Biology",
+        entries: [entry({ fullPath: "/bio/Outbox/Lessons/week1.md" })],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("t2"),
+        projectId: ProjectId.makeUnsafe("p2"),
+        projectName: "Physics",
+        entries: [entry({ fullPath: "/phys/Outbox/Lessons/week1.md" })],
+      },
+    ]);
+
+    expect(merged).toHaveLength(2);
+  });
+
+  it("deduplicates one file claimed by several threads, keeping the first seen", () => {
+    // Concurrent turns over a shared root can both claim a file. Attribution is generous
+    // rather than lossy (the reactor's own tradeoff), so the newest wins and the rest are
+    // dropped rather than shown twice.
+    const shared = { fullPath: "/course/Outbox/Lessons/shared.md" };
+    const merged = mergeStudioThreadOutputEntries([
+      {
+        threadId: ThreadId.makeUnsafe("newest"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Course",
+        entries: [entry(shared)],
+      },
+      {
+        threadId: ThreadId.makeUnsafe("older"),
+        projectId: ProjectId.makeUnsafe("p1"),
+        projectName: "Course",
+        entries: [entry(shared)],
+      },
+    ]);
+
+    expect(merged).toHaveLength(1);
+    expect(merged[0]?.threadId).toBe("newest");
+  });
+
+  it("caps the merged list so one chatty project cannot make the response unbounded", () => {
+    const merged = mergeStudioThreadOutputEntries(
+      [
+        {
+          threadId: ThreadId.makeUnsafe("t1"),
+          projectId: ProjectId.makeUnsafe("p1"),
+          projectName: "Course",
+          entries: Array.from({ length: 30 }, (_unused, index) =>
+            entry({ fullPath: `/course/Outbox/Lessons/f${index}.md` }),
+          ),
+        },
+      ],
+      10,
+    );
+
+    expect(merged).toHaveLength(10);
+  });
+
+  it("returns nothing for a space that has produced nothing", () => {
+    expect(mergeStudioThreadOutputEntries([])).toEqual([]);
   });
 });

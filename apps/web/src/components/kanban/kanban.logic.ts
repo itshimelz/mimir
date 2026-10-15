@@ -62,6 +62,7 @@ type KanbanComposerDraftSource = Pick<
   | "terminalContexts"
   | "assistantSelections"
   | "fileComments"
+  | "pptxAnnotations"
   | "pastedTexts"
   | "activeProvider"
   | "modelSelectionByProvider"

@@ -750,6 +750,7 @@ const makeDraftSource = (
   terminalContexts: [],
   assistantSelections: [],
   fileComments: [],
+  pptxAnnotations: [],
   pastedTexts: [],
   activeProvider: null,
   modelSelectionByProvider: {},

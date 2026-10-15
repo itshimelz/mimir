@@ -13,7 +13,12 @@ import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } f
 
 import { isElectron } from "../env";
 import { useWindowFolderDrop } from "../hooks/useWindowFolderDrop";
-import { VOID_SPACE_KEY, spaceKey, toSpaceIconName } from "../lib/spaceGrouping";
+import {
+  DEFAULT_SPACE_ICON,
+  VOID_SPACE_KEY,
+  spaceKey,
+  toSpaceIconName,
+} from "../lib/spaceGrouping";
 import { createSpace } from "../lib/spaces";
 import { readNativeApi } from "../nativeApi";
 import { randomUUID } from "../lib/utils";
@@ -284,7 +289,7 @@ export function CreateProjectDialog(props: {
   // While the dialog is open it is the only interactive surface, so a folder dropped
   // anywhere in the window counts (see useWindowFolderDrop).
   const isDropTarget = useWindowFolderDrop({
-    enabled: props.open && isElectron && source === "local",
+    enabled: props.open && source === "local",
     // With a primary folder in place, another dropped folder joins the project.
     onFolder: (dropped) => {
       if (trimmedPath) addAdditionalFolder(dropped);
@@ -416,6 +421,11 @@ export function CreateProjectDialog(props: {
     pickedPath !== null && trimmedPath === pickedPath
       ? (pickedPath.split(/[/\\]/).filter(Boolean).at(-1) ?? pickedPath)
       : null;
+  // The course name is the folder name almost every time, so seed the Space editor from
+  // whatever the box currently holds — including a typed path, which is how a student
+  // usually opens a course folder. Safe to recompute on every keystroke because
+  // SpaceEditorDialog reads `initialValue` only on its closed -> open transition.
+  const folderNameSeed = trimmedPath.split(/[/\\]/).filter(Boolean).at(-1) ?? null;
   const finalClonePath = joinProjectPath(trimmedDestinationParent, trimmedDirectoryName);
   // Electron keeps the drop/browse box until a primary folder is picked; a typed primary
   // switches to the list once another folder joins it. Browser builds list folders as soon
@@ -450,27 +460,41 @@ export function CreateProjectDialog(props: {
 
           {source === "local" ? (
             <>
-              <InputGroup className={PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME}>
-                <InputGroupAddon className="w-10 self-stretch border-e border-foreground/12 ps-0">
-                  <FolderIcon className="size-4 text-muted-foreground/70" aria-hidden="true" />
-                </InputGroupAddon>
-                <InputGroupInput
-                  id={pathInputId}
-                  value={path}
-                  aria-label="Project folder path"
-                  aria-invalid={formError ? true : undefined}
-                  {...(formError ? { "aria-describedby": errorId } : {})}
-                  placeholder="/path/to/project"
-                  spellCheck={false}
-                  autoCorrect="off"
-                  autoCapitalize="off"
-                  onChange={(event) => {
-                    setPath(event.target.value);
-                    setFormError(null);
-                  }}
-                  onKeyDown={submitOnEnter}
-                />
-              </InputGroup>
+              <div className="flex items-center gap-2">
+                <InputGroup
+                  className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "min-w-0 flex-1")}
+                >
+                  <InputGroupAddon className="w-10 self-stretch border-e border-border ps-0">
+                    <FolderIcon className="size-4 text-muted-foreground" aria-hidden="true" />
+                  </InputGroupAddon>
+                  <InputGroupInput
+                    id={pathInputId}
+                    value={path}
+                    aria-label="Project folder path"
+                    aria-invalid={formError ? true : undefined}
+                    {...(formError ? { "aria-describedby": errorId } : {})}
+                    placeholder="/path/to/project"
+                    autoComplete="off"
+                    spellCheck={false}
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    onChange={(event) => {
+                      setPath(event.target.value);
+                      setFormError(null);
+                    }}
+                    onKeyDown={submitOnEnter}
+                  />
+                </InputGroup>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(PROJECT_DIALOG_FIELD_CONTROL_CLASS_NAME, "shrink-0 px-3")}
+                  disabled={isPickingFolder || submitting}
+                  onClick={() => void handleBrowse()}
+                >
+                  Browse…
+                </Button>
+              </div>
 
               {showFolderList ? (
                 <div className="space-y-2">
@@ -550,35 +574,34 @@ export function CreateProjectDialog(props: {
                 </div>
               ) : isElectron ? (
                 <div className="space-y-2">
-                  <span
-                    id={sourceFolderLabelId}
-                    className={cn("block", dialogFieldLabelClassName, "text-ui text-foreground")}
-                  >
+                  <span id={sourceFolderLabelId} className={cn("block", dialogFieldLabelClassName)}>
                     Source folder
                   </span>
                   <button
                     type="button"
                     aria-labelledby={sourceFolderLabelId}
                     disabled={isPickingFolder || submitting}
+                    // M3 outlined button used as a drop target: the outline is
+                    // `outline-variant`, the label is `on-surface`, and the drop-active
+                    // state moves the outline to `primary` with a faint `primary` wash
                     className={cn(
-                      "flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-xl border border-foreground/12 px-3.5 text-start text-ui text-[var(--color-text-foreground)] transition-colors outline-none hover:bg-foreground/4 focus-visible:border-foreground/30 disabled:opacity-50",
-                      isDropTarget &&
-                        "border-[color:var(--color-border-focus)] bg-foreground/6 text-[var(--color-text-foreground)]",
+                      "flex min-h-12 w-full cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-transparent px-3.5 text-start text-foreground text-ui outline-none transition-colors duration-150 ease-out focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset hover:bg-secondary/60 disabled:pointer-events-none disabled:cursor-default disabled:text-muted-foreground",
+                      isDropTarget && "border-primary bg-primary/8",
                     )}
                     onClick={() => void handleBrowse()}
                   >
-                    <FolderAddIcon className="size-4.5" aria-hidden="true" />
+                    <FolderAddIcon aria-hidden="true" />
                     {isPickingFolder ? (
                       "Opening the folder picker…"
                     ) : pickedFolderName ? (
                       <span className="flex min-w-0 flex-col">
                         <span className="truncate">{pickedFolderName}</span>
-                        <span className="truncate text-ui-xs text-muted-foreground/70">
+                        <span className="truncate text-ui-xs text-muted-foreground">
                           {pickedPath}
                         </span>
                       </span>
                     ) : (
-                      "Drop a folder here, or browse"
+                      "Select a folder from PC, or drop here"
                     )}
                   </button>
                 </div>
@@ -622,10 +645,7 @@ export function CreateProjectDialog(props: {
           )}
 
           <div className="space-y-2">
-            <span
-              id={spaceLabelId}
-              className={cn("block", dialogFieldLabelClassName, "text-ui text-foreground")}
-            >
+            <span id={spaceLabelId} className={cn("block", dialogFieldLabelClassName)}>
               Space
             </span>
             <div className="flex items-center gap-2">
@@ -681,9 +701,9 @@ export function CreateProjectDialog(props: {
 
           {formError ? (
             <div id={errorId} role="alert" className="space-y-1">
-              <p className="text-ui-xs text-destructive">{formError}</p>
+              <p className="text-destructive text-ui-xs">{formError}</p>
               {formErrorMeaning ? (
-                <p className="text-ui-xs text-muted-foreground/70">{formErrorMeaning}</p>
+                <p className="text-muted-foreground text-ui-xs">{formErrorMeaning}</p>
               ) : null}
             </div>
           ) : null}
@@ -717,6 +737,11 @@ export function CreateProjectDialog(props: {
         <SpaceEditorDialog
           open={spaceEditorOpen}
           mode="create"
+          // The folder name is the course name nine times out of ten, and asking for it
+          // again is the step that turns "open a folder" into two dialogs.
+          initialValue={
+            folderNameSeed === null ? undefined : { name: folderNameSeed, icon: DEFAULT_SPACE_ICON }
+          }
           existingNames={[...spaces.map((space) => space.name), voidSpace.name]}
           onOpenChange={setSpaceEditorOpen}
           onSubmit={handleCreateSpace}

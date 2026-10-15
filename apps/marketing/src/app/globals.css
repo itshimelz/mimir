@@ -1,157 +1,37 @@
 @import "tailwindcss";
-@import "fumadocs-ui/css/neutral.css";
-@import "fumadocs-ui/css/preset.css";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/m3e.css";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "@fontsource-variable/roboto-flex/index.css";
+@import "@fontsource-variable/jetbrains-mono/index.css";
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  --page-bg: #f5f4f2;
-  --text-primary: #141413;
-  --text-secondary: #5b5955;
-  --text-tertiary: #66635e;
-  --sidebar-section-color: #3a3834;
-  --block-elevated: #e8e6e2;
-  --mock-surface: #ddd9d3;
-  --mock-row: color-mix(in oklab, var(--text-primary) 6%, transparent);
-  --mock-row-strong: color-mix(in oklab, var(--text-primary) 10%, transparent);
-  --divide: color-mix(in oklab, var(--text-primary) 12%, transparent);
-  --border-strong: color-mix(in oklab, var(--text-primary) 28%, transparent);
-  --accent-link: #a43a0a;
-  --accent-link-hover: #7d2b05;
-  --glow-a: color-mix(in oklab, #0ea5e9 22%, transparent);
-  --glow-b: color-mix(in oklab, #8b5cf6 16%, transparent);
-  --btn-primary-bg: #1c1917;
-  --btn-primary-fg: #fafaf9;
-  --btn-primary-hover: #292524;
-  --surface-border: var(--divide);
-  --surface-muted: var(--text-secondary);
-  /* Cursor-style chat mock (split showcase) — warm-toned to match page palette */
-  --chat-feed-bg: #f2efe7;
-  --chat-user-bubble: #e6e2d8;
-  --chat-input-surface: #ebe7dd;
-  --chat-file-card-bg: #f8f5ec;
-  /* shadcn tokens, remapped onto the site's warm palette so shadcn
-     components read as part of the same surface system. */
-  --background: var(--page-bg);
-  --foreground: var(--text-primary);
-  --card: #fbfaf8;
-  --card-foreground: var(--text-primary);
-  --popover: #fbfaf8;
-  --popover-foreground: var(--text-primary);
-  --primary: var(--text-primary);
-  --primary-foreground: var(--page-bg);
-  --secondary: var(--mock-row);
-  --secondary-foreground: var(--text-primary);
-  --muted: var(--mock-row);
-  --muted-foreground: var(--text-secondary);
-  --accent: var(--mock-row);
-  --accent-foreground: var(--text-primary);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: var(--divide);
-  --input: var(--divide);
-  --ring: var(--border-strong);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --page-bg: #121110;
-  --text-primary: #f5f4f2;
-  --text-secondary: #aaa8a3;
-  --text-tertiary: #97948e;
-  --sidebar-section-color: #c9c5bd;
-  --block-elevated: #1c1b19;
-  --mock-surface: #161514;
-  --mock-row: color-mix(in oklab, var(--text-primary) 8%, transparent);
-  --mock-row-strong: color-mix(in oklab, var(--text-primary) 12%, transparent);
-  --divide: color-mix(in oklab, var(--text-primary) 12%, transparent);
-  --border-strong: color-mix(in oklab, var(--text-primary) 28%, transparent);
-  --accent-link: #ffb27f;
-  --accent-link-hover: #ffd0b5;
-  --glow-a: color-mix(in oklab, #38bdf8 18%, transparent);
-  --glow-b: color-mix(in oklab, #a78bfa 12%, transparent);
-  --btn-primary-bg: #fafaf9;
-  --btn-primary-fg: #121110;
-  --btn-primary-hover: #e7e5e4;
-  --background: var(--page-bg);
-  --foreground: var(--text-primary);
-  --surface-border: var(--divide);
-  --surface-muted: var(--text-secondary);
-  --chat-feed-bg: #141312;
-  --chat-user-bubble: color-mix(in oklab, var(--text-primary) 10%, transparent);
-  --chat-input-surface: #1a1918;
-  --chat-file-card-bg: #1e1d1c;
-  --card: #1a1918;
-  --card-foreground: var(--text-primary);
-  --popover: #1a1918;
-  --popover-foreground: var(--text-primary);
-  --primary: var(--text-primary);
-  --primary-foreground: var(--page-bg);
-  --secondary: var(--mock-row);
-  --secondary-foreground: var(--text-primary);
-  --muted: var(--mock-row);
-  --muted-foreground: var(--text-secondary);
-  --accent: var(--mock-row);
-  --accent-foreground: var(--text-primary);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: var(--divide);
-  --input: var(--divide);
-  --ring: var(--border-strong);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
 /* ============================================================
- * Fumadocs → Synara theme override.
- * One warm surface, hairline dividers, orange accent, no shadows —
- * the docs must read as pages of the same site, not a second app.
- * Rules here are unlayered on purpose so they win over the Tailwind
- * utility classes fumadocs-ui ships on its components.
+ * Fumadocs → M3E theme bridge.
+ * Every fumadocs surface reads from the M3 color roles, so docs
+ * pages share the site's one M3 palette in light and dark.
  * ============================================================ */
 :root {
-  --color-fd-background: var(--page-bg);
-  --color-fd-foreground: var(--text-primary);
-  --color-fd-muted: var(--mock-row);
-  --color-fd-muted-foreground: var(--text-secondary);
-  --color-fd-popover: var(--popover);
-  --color-fd-popover-foreground: var(--text-primary);
-  --color-fd-card: var(--card);
-  --color-fd-card-foreground: var(--text-primary);
-  --color-fd-border: var(--divide);
-  /* Monochrome like shadcn/ui docs: active states are ink, not accent. */
-  --color-fd-primary: var(--text-primary);
-  --color-fd-primary-foreground: var(--page-bg);
-  --color-fd-secondary: var(--mock-row);
-  --color-fd-secondary-foreground: var(--text-primary);
-  --color-fd-accent: var(--mock-row);
-  --color-fd-accent-foreground: var(--text-primary);
-  --color-fd-ring: var(--border-strong);
-  --color-fd-overlay: color-mix(in oklab, #141413 45%, transparent);
+  --color-fd-background: var(--md-sys-color-surface);
+  --color-fd-foreground: var(--md-sys-color-on-surface);
+  --color-fd-muted: var(--md-sys-color-surface-container);
+  --color-fd-muted-foreground: var(--md-sys-color-on-surface-variant);
+  --color-fd-popover: var(--md-sys-color-surface-container-low);
+  --color-fd-popover-foreground: var(--md-sys-color-on-surface);
+  --color-fd-card: var(--md-sys-color-surface-container-low);
+  --color-fd-card-foreground: var(--md-sys-color-on-surface);
+  --color-fd-border: var(--md-sys-color-outline-variant);
+  --color-fd-primary: var(--md-sys-color-primary);
+  --color-fd-primary-foreground: var(--md-sys-color-on-primary);
+  --color-fd-secondary: var(--md-sys-color-secondary-container);
+  --color-fd-secondary-foreground: var(--md-sys-color-on-secondary-container);
+  --color-fd-accent: var(--md-sys-color-secondary-container);
+  --color-fd-accent-foreground: var(--md-sys-color-on-secondary-container);
+  --color-fd-ring: var(--md-sys-color-secondary);
+  --color-fd-overlay: color-mix(in oklab, var(--md-sys-color-surface-tint) 42%, transparent);
   --fd-layout-width: 90rem;
   --fd-nav-height: 3.25rem;
 }
@@ -172,16 +52,16 @@
   }
 }
 
-/* neutral.css re-tints the dark sidebar gray; keep the warm palette instead. */
+/* neutral.css re-tints the dark sidebar gray; keep the M3 roles instead. */
 .dark #nd-sidebar {
-  --color-fd-muted: var(--mock-row);
-  --color-fd-secondary: var(--mock-row);
-  --color-fd-muted-foreground: var(--text-secondary);
+  --color-fd-muted: var(--md-sys-color-surface-container);
+  --color-fd-secondary: var(--md-sys-color-secondary-container);
+  --color-fd-muted-foreground: var(--md-sys-color-on-surface-variant);
 }
 
 /* ---- Chrome: sidebar and TOC sit on the page surface itself. ---- */
 #nd-docs-layout {
-  background: var(--page-bg);
+  background: var(--md-sys-color-surface);
 }
 
 #nd-sidebar,
@@ -191,7 +71,7 @@
 
 /* The mobile drawer overlays content, so it needs an opaque surface. */
 #nd-sidebar-mobile {
-  background: var(--page-bg);
+  background: var(--md-sys-color-surface);
 }
 
 /* ---- Sidebar: flat shadcn-style list — no chevrons, no rails,
@@ -235,7 +115,7 @@
   margin-bottom: 0.25rem;
   font-size: 0.75rem;
   font-weight: 500;
-  color: var(--sidebar-section-color);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 :is(#nd-sidebar, #nd-sidebar-mobile) p:first-child {
@@ -325,7 +205,7 @@
 }
 
 #nd-docs-layout .prose li::marker {
-  color: var(--text-tertiary);
+  color: var(--md-sys-color-outline);
 }
 
 /* Exclusions: [data-card] covers heading anchors (fumadocs wraps heading
@@ -333,7 +213,7 @@
 #nd-docs-layout .prose a:not([data-card], .not-prose a) {
   font-weight: 500;
   text-decoration-line: underline;
-  text-decoration-color: color-mix(in oklab, var(--text-primary) 30%, transparent);
+  text-decoration-color: color-mix(in oklab, var(--md-sys-color-primary) 30%, transparent);
   text-underline-offset: 3px;
   transition: text-decoration-color 150ms ease;
 }
@@ -342,20 +222,20 @@
   text-decoration-color: currentColor;
 }
 
-/* Inline code: quiet gray pill, no border. */
+/* Inline code: quiet surface pill, no border. */
 #nd-docs-layout .prose :not(pre) > code {
-  background: var(--mock-row-strong);
+  background: var(--md-sys-color-surface-container-high);
   border: none;
   border-radius: 0.375rem;
   padding: 0.125rem 0.375rem;
 }
 
-/* ---- Blocks: flatten fumadocs' code-block shadows into a bordered warm
-   surface. Cards, callouts, and steps are shadcn components (components/docs)
-   and style themselves. ---- */
+/* ---- Blocks: flatten fumadocs' code-block shadows into a bordered
+   M3 surface. Cards, callouts, and steps are M3E components
+   (components/docs) and style themselves. ---- */
 #nd-docs-layout figure.shiki {
   border-radius: 0.75rem;
-  border-color: var(--divide);
+  border-color: var(--md-sys-color-outline-variant);
   box-shadow: none;
 }
 
@@ -384,57 +264,13 @@
 #nd-docs-layout .docs-meta p {
   margin: 0;
   font-size: 0.8125rem;
-  color: var(--text-secondary);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-geist-sans);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
-  --color-ring: var(--ring);
-  --color-input: var(--input);
-  --color-border: var(--border);
-  --color-destructive: var(--destructive);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-accent: var(--accent);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-muted: var(--muted);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-secondary: var(--secondary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-primary: var(--primary);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-popover: var(--popover);
-  --color-card-foreground: var(--card-foreground);
-  --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 html,
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
@@ -472,7 +308,7 @@ body {
 }
 
 ::selection {
-  background: color-mix(in oklab, var(--accent-link) 28%, transparent);
+  background: color-mix(in oklab, var(--md-sys-color-primary) 28%, transparent);
   color: inherit;
 }
 
@@ -501,7 +337,7 @@ body {
 /*
  * Showcase card backdrop. The hero painting sits behind each screenshot card.
  * Light mode shows the painting as-is (no wash, so it stays visible). Dark mode
- * keeps a light tint toward --block-elevated so the painting doesn't overpower
+ * keeps a light tint toward the surface so the painting doesn't overpower
  * the framed screenshot.
  */
 .shot-card-bg {
@@ -512,8 +348,8 @@ body {
 .dark .shot-card-bg {
   background-image:
     linear-gradient(
-      color-mix(in oklab, var(--block-elevated) 40%, transparent),
-      color-mix(in oklab, var(--block-elevated) 40%, transparent)
+      color-mix(in oklab, var(--md-sys-color-surface-container-high) 40%, transparent),
+      color-mix(in oklab, var(--md-sys-color-surface-container-high) 40%, transparent)
     ),
     url("/hero-bg.jpg");
   background-size: cover;

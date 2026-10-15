@@ -9,7 +9,7 @@ import { unstable_cache } from "next/cache";
 
 import storedInstallerDownloads from "@/data/installer-downloads.json";
 
-const RELEASES_API_URL = "https://api.github.com/repos/Emanuele-web04/synara/releases?per_page=100";
+const RELEASES_API_URL = "https://api.github.com/repos/itshimelz/mimir/releases?per_page=100";
 
 const INSTALLER_FILE_PATTERN = /\.(dmg|exe|AppImage)$/i;
 
@@ -27,8 +27,16 @@ type GitHubRelease = {
 // daily-refreshed snapshot JSON or every refresh would invalidate them.
 const VISUAL_TEST_INSTALLER_COUNT = 11_990;
 
+// The committed snapshot records the upstream project's totals. Presenting them
+// as Mimir's download count would be a false claim, so it is only used when it
+// was scraped from this repository. Until Mimir has published releases the
+// counter stays hidden rather than showing someone else's numbers.
+const STORED_SOURCE = (storedInstallerDownloads as { source?: string }).source;
+const STORED_TARGETS_THIS_REPO = STORED_SOURCE?.includes("/repos/itshimelz/mimir/") ?? false;
+
 export function getStoredInstallerCount(): number | null {
   if (process.env.VISUAL_TEST === "1") return VISUAL_TEST_INSTALLER_COUNT;
+  if (!STORED_TARGETS_THIS_REPO) return null;
   return storedInstallerDownloads.count > 0 ? storedInstallerDownloads.count : null;
 }
 
@@ -93,7 +101,7 @@ async function fetchLiveInstallerCount(): Promise<number> {
 // an outage retries on the next request instead of pinning the fallback.
 const fetchCachedInstallerCount = unstable_cache(
   fetchLiveInstallerCount,
-  ["synara-installer-count"],
+  ["mimir-installer-count"],
   {
     revalidate: INSTALLER_COUNT_CACHE_TTL_SECONDS,
   },

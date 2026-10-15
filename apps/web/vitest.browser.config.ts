@@ -10,7 +10,9 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     // Prebundle direct hook dependencies so restored caches cannot reload tests mid-run.
-    optimizeDeps: { include: ["react-dom/client", "zustand/vanilla/shallow"] },
+    optimizeDeps: {
+      include: ["react-dom/client", "zustand/vanilla/shallow", "@base-ui/react/menubar"],
+    },
     resolve: {
       alias: {
         "~": srcPath,

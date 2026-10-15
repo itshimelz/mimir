@@ -88,7 +88,7 @@ export function FeatureTourStep() {
         aria-labelledby={`onboarding-tour-tab-${selectedCard.id}`}
         className="flex min-w-0 flex-col gap-3.5 pt-1.5"
       >
-        <h3 className="text-base font-medium tracking-[-0.005em] text-foreground">
+        <h3 className="text-ui-lg font-medium tracking-[-0.005em] text-foreground">
           {selectedCard.title}
         </h3>
         <p className="text-ui-lg leading-relaxed text-muted-foreground">
@@ -109,15 +109,18 @@ export function FeatureTourStep() {
             ))}
           </ul>
         )}
-        <a
-          href={selectedCard.docsHref}
-          target="_blank"
-          rel="noreferrer"
-          className="mt-2 inline-flex items-center gap-1.5 self-start text-ui text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
-        >
-          Read the guide
-          <ExternalLinkIcon className="size-3" aria-hidden />
-        </a>
+        {/* Only rendered where a guide page actually covers what this card claims. */}
+        {selectedCard.docsHref ? (
+          <a
+            href={selectedCard.docsHref}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 inline-flex items-center gap-1.5 self-start text-ui text-muted-foreground transition-colors hover:text-foreground motion-reduce:transition-none"
+          >
+            Read the guide
+            <ExternalLinkIcon className="size-3" aria-hidden />
+          </a>
+        ) : null}
       </div>
     </div>
   );

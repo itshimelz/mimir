@@ -3,12 +3,14 @@
 // Layer: Web domain helper (no React, no I/O)
 // Exports: ONBOARDING_STEPS, nextOnboardingStep, previousOnboardingStep, resolveOnboardingGate,
 //          resolveOnboardingCompletionToReconcile, resolveLocalOnboardingCompletion,
-//          classifyProviderSetup, summarizeProviderSetup, toggleSelection
+//          classifyProviderSetup, summarizeProviderSetup, toggleSelection,
+//          LEARNER_ROLES, findLearnerRole, DEFAULT_LEARNER_ROLE_ID
 
-import type { ProviderKind, ServerProviderStatus } from "@synara/contracts";
+import type { ProviderKind, ServerProviderStatus, SpaceIconName } from "@synara/contracts";
 
 export const ONBOARDING_STEPS = [
   "welcome",
+  "role",
   "tour",
   "providers",
   "theme",
@@ -27,9 +29,61 @@ export function previousOnboardingStep(step: OnboardingStep): OnboardingStep {
   return ONBOARDING_STEPS[Math.max(index - 1, 0)] ?? "welcome";
 }
 
-/** Steps where the user has started making setup choices; the tour must not auto-close past here. */
+/** Steps where the user has started making setup choices; the tour must not auto-close past here.
+ *
+ *  `role` is deliberately excluded alongside the two content steps: it commits nothing yet, so an
+ *  auto-close there loses no setup work. (It becomes a real choice when the role is actually
+ *  persisted — see `Docs/mimir-course-space-plan.md` §6.) */
 export function isOnboardingSetupStep(step: OnboardingStep): boolean {
-  return step !== "welcome" && step !== "tour";
+  return step !== "welcome" && step !== "role" && step !== "tour";
+}
+
+/**
+ * How someone is using Mimir. A role only ever *previews* the label and icon its space would
+ * take — it is not written anywhere yet, so it carries no permission, folder, or scaffold meaning.
+ * The `spaceIcon` values are real `SpaceIconName`s so the preview renders through the same
+ * `SpaceIcon` component a saved space uses, rather than an approximation.
+ */
+export type LearnerRoleId = "student" | "teacher" | "researcher";
+
+export interface LearnerRole {
+  readonly id: LearnerRoleId;
+  readonly label: string;
+  /** One line on what this role means, for the picker card. */
+  readonly description: string;
+  /** The label this role gives its spaces. */
+  readonly spaceLabel: string;
+  readonly spaceIcon: SpaceIconName;
+}
+
+export const LEARNER_ROLES: ReadonlyArray<LearnerRole> = [
+  {
+    id: "student",
+    label: "Student",
+    description: "Working through course material with the agent.",
+    spaceLabel: "Courses",
+    spaceIcon: "backpack",
+  },
+  {
+    id: "teacher",
+    label: "Teacher",
+    description: "Preparing lessons and materials for a class.",
+    spaceLabel: "Classes",
+    spaceIcon: "school",
+  },
+  {
+    id: "researcher",
+    label: "Researcher",
+    description: "Working on one research topic over time.",
+    spaceLabel: "Research",
+    spaceIcon: "lab",
+  },
+] as const;
+
+export const DEFAULT_LEARNER_ROLE_ID: LearnerRoleId = "student";
+
+export function findLearnerRole(id: LearnerRoleId): LearnerRole {
+  return LEARNER_ROLES.find((role) => role.id === id) ?? LEARNER_ROLES[0]!;
 }
 
 export interface LocalOnboardingCompletion {

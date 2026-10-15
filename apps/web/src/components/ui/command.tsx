@@ -31,7 +31,10 @@ function CommandDialogTrigger(props: CommandDialogPrimitive.Trigger.Props) {
 function CommandDialogBackdrop({ className, ...props }: CommandDialogPrimitive.Backdrop.Props) {
   return (
     <CommandDialogPrimitive.Backdrop
-      className={cn("fixed inset-0 z-50 bg-black/60 transition-opacity duration-150 ease-out", className)}
+      className={cn(
+        "fixed inset-0 z-50 bg-black/60 transition-opacity duration-150 ease-out",
+        className,
+      )}
       data-slot="command-dialog-backdrop"
       {...props}
     />

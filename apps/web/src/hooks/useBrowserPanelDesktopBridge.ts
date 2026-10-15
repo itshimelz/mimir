@@ -14,11 +14,27 @@ export function useBrowserPanelDesktopBridge(input: {
 
   useEffect(() => {
     if (!toggleEnabled) return;
-    return subscribeDesktopMenuAction((action) => {
+    const unsubLocal = subscribeDesktopMenuAction((action) => {
       if (action === "toggle-browser") {
         handleToggle();
       }
     });
+
+    const onMenuAction = window.desktopBridge?.onMenuAction;
+    if (typeof onMenuAction !== "function") {
+      return unsubLocal;
+    }
+
+    const unsubBridge = onMenuAction((action) => {
+      if (action === "toggle-browser") {
+        handleToggle();
+      }
+    });
+
+    return () => {
+      unsubLocal();
+      unsubBridge?.();
+    };
   }, [toggleEnabled]);
 
   useEffect(() => {

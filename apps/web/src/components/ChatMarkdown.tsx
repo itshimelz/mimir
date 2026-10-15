@@ -4,6 +4,7 @@
 // Exports: ChatMarkdown
 
 import {
+  ArrowUpRightIcon,
   CheckIcon,
   CopyIcon,
   InfoIcon,
@@ -13,11 +14,30 @@ import {
   TriangleAlertIcon,
   type LucideIcon,
 } from "~/lib/icons";
-import { ThreadId, type ProviderMentionReference } from "@synara/contracts";
+import { cn } from "~/lib/utils";
+import {
+  INLINE_VISUAL_EMBED_FENCE,
+  ThreadId,
+  type ProviderMentionReference,
+} from "@synara/contracts";
 import { isLocalAbsolutePath } from "@synara/shared/path";
 import "katex/dist/katex.min.css";
 import { matchWikiLinkAt, remarkWikiLinks } from "../lib/remarkWikiLinks";
 import { remarkGithubAlerts, type GithubAlertKind } from "../lib/remarkGithubAlerts";
+import {
+  AGENT_FILE_CITATION_DESCRIPTION_ATTRIBUTE,
+  AGENT_FILE_CITATION_LABEL_ATTRIBUTE,
+  AGENT_FILE_CITATION_PATH_ATTRIBUTE,
+  AGENT_FILE_CITATION_PURPOSE_ATTRIBUTE,
+  AGENT_FILE_CITATION_TAG_NAME,
+  AGENT_FOLLOWUP_ID_ATTRIBUTE,
+  AGENT_FOLLOWUP_LABEL_ATTRIBUTE,
+  AGENT_FOLLOWUP_LIST_CLASS_NAME,
+  AGENT_FOLLOWUP_LIST_ITEM_CLASS_NAME,
+  AGENT_FOLLOWUP_PROMPT_ATTRIBUTE,
+  AGENT_FOLLOWUP_TAG_NAME,
+  remarkAgentDirectives,
+} from "../lib/remarkAgentDirectives";
 import { remarkHtmlBreaks } from "../lib/remarkHtmlBreaks";
 import React, {
   Children,
@@ -83,6 +103,8 @@ import {
 } from "./composerInlineChip";
 import { LinkChipIcon } from "./LinkChipIcon";
 import { InlineAgentChip } from "./chat/InlineAgentChip";
+import { readInlineVisualEmbedId } from "@synara/shared/inlineVisual";
+import { InlineVisualEmbedContext } from "./chat/inlineVisualEmbedContext";
 import { InlineLinkChip } from "./InlineLinkChip";
 import { InlineMentionChip } from "./chat/InlineMentionChip";
 import { InlineSkillChip } from "./chat/InlineSkillChip";
@@ -187,6 +209,8 @@ interface ChatMarkdownProps {
    * inline-code chip uses one of these when the match is unique.
    */
   knownAbsoluteFilePaths?: ReadonlyArray<string> | undefined;
+  /** Fired when an agent follow-up suggestion pill is clicked. */
+  onFollowUpClick?: ((prompt: string) => void) | undefined;
 }
 
 // Source line of the enclosing task-list item, provided by the `li` override.
@@ -1172,6 +1196,7 @@ interface MarkdownRenderContextValue {
   onImageExpand: ChatMarkdownProps["onImageExpand"];
   onOpenThread: ChatMarkdownProps["onOpenThread"];
   onTaskToggle: ChatMarkdownProps["onTaskToggle"];
+  onFollowUpClick: ChatMarkdownProps["onFollowUpClick"];
   resolvedTheme: ReturnType<typeof useTheme>["resolvedTheme"];
   terminalContexts: ChatMarkdownProps["terminalContexts"];
   sourceText: string;
@@ -1328,14 +1353,26 @@ const MARKDOWN_COMPONENTS: Components = {
     );
   },
   pre: function MarkdownPre({ node, children, ...props }) {
-    const { sourceText, diffThemeName, isStreaming, usesAutomaticBlockDirection } =
+    const { sourceText, diffThemeName, isStreaming, isUserVariant, usesAutomaticBlockDirection } =
       useContext(MarkdownRenderContext)!;
+    const renderInlineVisual = useContext(InlineVisualEmbedContext);
     const codeBlock = extractCodeBlock(children);
     if (!codeBlock) {
       return <pre {...props}>{children}</pre>;
     }
 
-    const fence = parseCodeFenceInfo(extractRawFenceInfo(codeBlock.className));
+    const rawFenceInfo = extractRawFenceInfo(codeBlock.className);
+    // An agent places a visual in its reply with a fence naming the visual id.
+    // Only this transcript's own visuals render; anything else stays code.
+    if (rawFenceInfo === INLINE_VISUAL_EMBED_FENCE && renderInlineVisual && !isUserVariant) {
+      const visualId = readInlineVisualEmbedId(codeBlock.code);
+      const visual = visualId === null ? null : renderInlineVisual(visualId);
+      if (visual !== null) return <div className="my-4 first:mt-0 last:mb-0">{visual}</div>;
+      // The fence streams in before its id is complete.
+      if (isStreaming && visualId === null) return null;
+    }
+
+    const fence = parseCodeFenceInfo(rawFenceInfo);
     const code = dedentCode(codeBlock.code);
     const blockStart = node?.position?.start?.offset ?? 0;
     const codeOffsetInSource = sourceText.indexOf(code, blockStart);
@@ -1461,16 +1498,46 @@ const MARKDOWN_COMPONENTS: Components = {
       />
     );
   },
-  li: function MarkdownListItem({ node, children, ...props }) {
-    // Task items carry their source line down to the checkbox via context.
-    const isTaskItem =
-      typeof props.className === "string" && props.className.includes("task-list-item");
-    const sourceLine = node?.position?.start.line ?? null;
-    if (!isTaskItem || sourceLine === null) {
-      return <li {...props}>{children}</li>;
+  ul: function MarkdownUnorderedList({ node: _node, className, children, ...props }) {
+    if (typeof className === "string" && className.includes(AGENT_FOLLOWUP_LIST_CLASS_NAME)) {
+      return (
+        <ul
+          {...props}
+          className={cn(
+            "not-prose my-2.5 flex flex-wrap gap-2 list-none p-0 [&>li]:m-0 [&>li]:p-0 [&>li>p]:m-0",
+            className,
+          )}
+        >
+          {children}
+        </ul>
+      );
     }
     return (
-      <li {...props}>
+      <ul className={className} {...props}>
+        {children}
+      </ul>
+    );
+  },
+  li: function MarkdownListItem({ node, children, className, ...props }) {
+    if (typeof className === "string" && className.includes(AGENT_FOLLOWUP_LIST_ITEM_CLASS_NAME)) {
+      return (
+        <li {...props} className={cn("list-none p-0 m-0", className)}>
+          {children}
+        </li>
+      );
+    }
+    // Task items carry their source line down to the checkbox via context.
+    const isTaskItem = typeof className === "string" && className.includes("task-list-item");
+    const sourceLine = node?.position?.start.line ?? null;
+    if (!isTaskItem || sourceLine === null) {
+      return (
+        <li {...props} className={className}>
+          {children}
+        </li>
+      );
+    }
+    return (
+      <li {...props} className={className}>
         <TaskItemSourceLineContext.Provider value={sourceLine}>
           {children}
         </TaskItemSourceLineContext.Provider>
@@ -1536,6 +1603,96 @@ const MARKDOWN_COMPONENTS: Components = {
       }
       return <FindAwareMarkdownText text={text} sourceOffset={sourceOffset} />;
     },
+    [AGENT_FILE_CITATION_TAG_NAME]: function MarkdownAgentFileCitation(props: {
+      className?: string | undefined;
+      [AGENT_FILE_CITATION_PATH_ATTRIBUTE]?: string | undefined;
+      [AGENT_FILE_CITATION_LABEL_ATTRIBUTE]?: string | undefined;
+      [AGENT_FILE_CITATION_PURPOSE_ATTRIBUTE]?: string | undefined;
+      [AGENT_FILE_CITATION_DESCRIPTION_ATTRIBUTE]?: string | undefined;
+    }) {
+      const { resolvedTheme, cwd, knownAbsoluteFilePaths } = useContext(MarkdownRenderContext)!;
+      const rawPath = props[AGENT_FILE_CITATION_PATH_ATTRIBUTE];
+      if (!rawPath) return null;
+      const path = restoreLiteralDollarPlaceholders(rawPath);
+      const rawLabel = props[AGENT_FILE_CITATION_LABEL_ATTRIBUTE];
+      const label = rawLabel ? restoreLiteralDollarPlaceholders(rawLabel) : undefined;
+
+      const knownTarget = resolveChatFileChipTarget(path, undefined, knownAbsoluteFilePaths);
+      const targetPath =
+        knownTarget ??
+        (resolveMarkdownFileLinkTarget(path, cwd) && cwd
+          ? isLocalAbsolutePath(path)
+            ? path
+            : `${cwd}/${path}`
+          : path);
+
+      return (
+        <span
+          data-agent-file-citation="true"
+          data-file-path={path}
+          className="inline-flex items-center gap-1.5 align-baseline my-0.5"
+        >
+          <OpenableFileChip
+            targetPath={targetPath}
+            theme={resolvedTheme}
+            {...(label !== undefined ? { label } : {})}
+          />
+        </span>
+      );
+    },
+    [AGENT_FOLLOWUP_TAG_NAME]: function MarkdownAgentFollowup(props: {
+      className?: string | undefined;
+      [AGENT_FOLLOWUP_PROMPT_ATTRIBUTE]?: string | undefined;
+      [AGENT_FOLLOWUP_LABEL_ATTRIBUTE]?: string | undefined;
+      [AGENT_FOLLOWUP_ID_ATTRIBUTE]?: string | undefined;
+    }) {
+      const { onFollowUpClick, isStreaming } = useContext(MarkdownRenderContext)!;
+      const rawPrompt = props[AGENT_FOLLOWUP_PROMPT_ATTRIBUTE];
+      const rawLabel = props[AGENT_FOLLOWUP_LABEL_ATTRIBUTE];
+      const prompt = restoreLiteralDollarPlaceholders(rawPrompt ?? rawLabel ?? "");
+      const label = restoreLiteralDollarPlaceholders(rawLabel ?? rawPrompt ?? "");
+
+      if (!prompt && !label) return null;
+
+      const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (isStreaming) return;
+        if (onFollowUpClick) {
+          onFollowUpClick(prompt);
+        } else {
+          window.dispatchEvent(
+            new CustomEvent("synara:apply-followup-prompt", {
+              detail: { prompt },
+              bubbles: true,
+            }),
+          );
+        }
+      };
+
+      const tooltipText = prompt !== label ? prompt : `Ask: "${label}"`;
+
+      return (
+        <button
+          type="button"
+          data-agent-followup="true"
+          data-prompt={prompt}
+          disabled={isStreaming}
+          aria-label={`Ask follow-up: ${label}`}
+          title={tooltipText}
+          onClick={handleClick}
+          className={cn(
+            "group inline-flex items-center gap-1.5 rounded-full border border-[color:var(--color-border-light)] bg-[var(--color-background-elevated-primary)] px-3 py-1 text-ui text-foreground transition-all duration-150 select-none",
+            isStreaming
+              ? "opacity-60 cursor-not-allowed"
+              : "cursor-pointer hover:bg-[var(--color-background-button-secondary-hover)] hover:border-foreground/20 active:scale-[0.98]",
+          )}
+        >
+          <span className="truncate max-w-[420px]">{label}</span>
+          <ArrowUpRightIcon className="size-3 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+        </button>
+      );
+    },
   } as unknown as Components),
 };
 
@@ -1556,6 +1713,7 @@ function ChatMarkdown({
   mentionReferences,
   terminalContexts,
   onOpenThread,
+  onFollowUpClick,
   parseHtml: parseHtmlProp,
 }: ChatMarkdownProps) {
   // Defaults applied with ?? in the body, not in the destructuring: default
@@ -1622,11 +1780,17 @@ function ChatMarkdown({
   );
   const remarkPlugins = useMemo<MarkdownRemarkPlugins>(() => {
     if (composerChipsRemarkPlugin) {
-      return [...USER_MARKDOWN_REMARK_PLUGINS, composerChipsRemarkPlugin, remarkFindableText];
+      return [
+        ...USER_MARKDOWN_REMARK_PLUGINS,
+        composerChipsRemarkPlugin,
+        remarkAgentDirectives,
+        remarkFindableText,
+      ];
     }
     return [
       ...MARKDOWN_REMARK_PLUGINS,
       [remarkWikiLinks, { root: wikiLinkRoot ?? cwd }],
+      remarkAgentDirectives,
       remarkFindableText,
     ];
   }, [composerChipsRemarkPlugin, wikiLinkRoot, cwd]);
@@ -1658,6 +1822,7 @@ function ChatMarkdown({
       onImageExpand,
       onOpenThread,
       onTaskToggle,
+      onFollowUpClick,
       resolvedTheme,
       terminalContexts,
       sourceText,
@@ -1673,6 +1838,7 @@ function ChatMarkdown({
       onImageExpand,
       onOpenThread,
       onTaskToggle,
+      onFollowUpClick,
       resolvedTheme,
       terminalContexts,
       sourceText,

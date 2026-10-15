@@ -69,7 +69,7 @@ const WORKFLOWS = [
       "Fork the complete thread",
       "Fork from one turn",
       "Choose the environment",
-      "What Synara preserves",
+      "What Mimir preserves",
       "Native and reconstructed forks",
       "When forking is unavailable",
       "Verify a fork",
@@ -83,7 +83,7 @@ const WORKFLOWS = [
     requiredSections: [
       "Handoff or new task",
       "Before handing off",
-      "What Synara preserves",
+      "What Mimir preserves",
       "What does not transfer",
       "Write the handoff instruction",
       "Verification after handoff",
@@ -144,7 +144,7 @@ const WORKFLOWS = [
       "Completion checklist",
     ],
     markers: [
-      "synara-server-<version>.tar.gz",
+      "mimir-server-<version>.tar.gz",
       "npm install --omit=dev",
       "server status",
       "loopback-only",

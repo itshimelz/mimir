@@ -25,7 +25,7 @@ interface HugeiconPath {
 function createHugeicon(
   displayName: string,
   paths: readonly HugeiconPath[],
-  options: { strokeWidth?: number; solid?: boolean; rotate?: number; mirror?: boolean } = {},
+  options: { strokeWidth?: number; rotate?: number; mirror?: boolean } = {},
 ): LucideIcon {
   const drawnPaths = paths.map((path) => (
     <path
@@ -50,7 +50,7 @@ function createHugeicon(
         width={24}
         height={24}
         viewBox="0 0 24 24"
-        fill={options.solid ? "currentColor" : "none"}
+        fill="none"
         stroke="currentColor"
         strokeWidth={options.strokeWidth ?? 1.5}
         role={labelled ? "img" : undefined}
@@ -195,7 +195,8 @@ export const CheckmarkSquare02Icon = createHugeicon("CheckmarkSquare02Icon", [
   { d: "M8 12.5L10.5 15L16 9", round: true },
 ]);
 
-const DASHBOARD_CIRCLE_PATHS: readonly HugeiconPath[] = [
+/** Hub (`dashboard-circle`, four circles together): related work gathered in one place. */
+export const DashboardCircleIcon = createHugeicon("DashboardCircleIcon", [
   {
     d: "M21 6.75C21 4.67893 19.3211 3 17.25 3C15.1789 3 13.5 4.67893 13.5 6.75C13.5 8.82107 15.1789 10.5 17.25 10.5C19.3211 10.5 21 8.82107 21 6.75Z",
   },
@@ -208,20 +209,7 @@ const DASHBOARD_CIRCLE_PATHS: readonly HugeiconPath[] = [
   {
     d: "M10.5 17.25C10.5 15.1789 8.82107 13.5 6.75 13.5C4.67893 13.5 3 15.1789 3 17.25C3 19.3211 4.67893 21 6.75 21C8.82107 21 10.5 19.3211 10.5 17.25Z",
   },
-];
-
-/** Hub (`dashboard-circle`, four circles together): related work gathered in one place. */
-export const DashboardCircleIcon = createHugeicon("DashboardCircleIcon", DASHBOARD_CIRCLE_PATHS);
-
-/**
- * The hub circles painted solid: the rail's active state. The free Hugeicons set is
- * stroke-only, so this fills the outline glyph's own paths.
- */
-export const DashboardCircleSolidIcon = createHugeicon(
-  "DashboardCircleSolidIcon",
-  DASHBOARD_CIRCLE_PATHS,
-  { solid: true },
-);
+]);
 
 /** The one closed folder: projects, paths, and file-tree rows (`folder-closed`). */
 export const FolderClosedIcon = createHugeicon("FolderClosedIcon", [
@@ -605,6 +593,15 @@ export const MoreHorizontalIcon = createHugeicon("MoreHorizontalIcon", [
 export const CornerDownRightIcon = createHugeicon("CornerDownRightIcon", [
   { d: "M19 15H12C8.22876 15 6.34315 15 5.17157 13.8284C4 12.6569 4 10.7712 4 7V4", round: true },
   { d: "M15 20C15 20 20 16.3176 20 15C20 13.6824 15 10 15 10", round: true },
+]);
+
+/** Sparkle: the Studio surface mark (`sparkling` four-point star). */
+export const SparklingIcon = createHugeicon("SparklingIcon", [
+  {
+    d: "M12 3C12.38 8.4 14.6 10.62 20 11C14.6 11.38 12.38 13.6 12 19C11.62 13.6 9.4 11.38 4 11C9.4 10.62 11.62 8.4 12 3Z",
+    round: true,
+    roundJoin: true,
+  },
 ]);
 
 /** Transcript thinking indicator (`ai-brain-01`). */

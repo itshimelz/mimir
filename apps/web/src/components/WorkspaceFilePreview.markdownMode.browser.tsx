@@ -16,9 +16,11 @@ import { WorkspaceFilePreview } from "./WorkspaceFilePreview";
 const WORKSPACE_ROOT = "/Users/tester/project";
 const FILE_A = "docs/alpha.md";
 const FILE_B = "docs/beta.md";
+const FILE_PAIRED = "docs/paired.md";
 const FILE_CONTENTS: Record<string, string> = {
   [FILE_A]: "# Alpha\n\nFirst file body\n",
   [FILE_B]: "# Beta\n\nSecond file body\n",
+  [FILE_PAIRED]: "# Paired\n\n## Section\n\nBody under the section.\n",
 };
 
 function installNativeApi(api: NativeApi): () => void {
@@ -111,6 +113,38 @@ it("remembers each file's markdown view mode when switching between files", asyn
     );
     await expect.element(page.getByRole("heading", { name: "Beta" })).toBeVisible();
     await expect.element(previewRadio()).toHaveAttribute("aria-checked", "true");
+  } finally {
+    restoreNativeApi();
+  }
+});
+
+it("opens a document flush to its first heading and keeps heading pairs coupled", async () => {
+  // Both of these used to be silently out-specified by the preview's own typography
+  // overrides, which left every document with ~37px of dead space above its title
+  // and pushed a section heading a full block away from the heading above it.
+  const readFile = vi.fn(async (input: { relativePath: string }) =>
+    loadedMarkdown(input.relativePath),
+  );
+  const restoreNativeApi = installNativeApi({ projects: { readFile } } as unknown as NativeApi);
+  const queryClient = makeQueryClient();
+
+  try {
+    await render(
+      <QueryClientProvider client={queryClient}>
+        <WorkspaceFilePreview workspaceRoot={WORKSPACE_ROOT} filePath={FILE_PAIRED} />
+      </QueryClientProvider>,
+    );
+    await page.getByRole("radio", { name: "Preview" }).click();
+    const title = page.getByRole("heading", { name: "Paired", exact: true }).element();
+    const section = page.getByRole("heading", { name: "Section", exact: true }).element();
+    await expect.element(page.getByRole("heading", { name: "Section", exact: true })).toBeVisible();
+
+    expect(parseFloat(getComputedStyle(title).marginTop)).toBe(0);
+
+    // Adjacent headings collapse to the tight value, so the gap is a fraction of the
+    // heading's own line box rather than a whole block.
+    const gap = section.getBoundingClientRect().top - title.getBoundingClientRect().bottom;
+    expect(gap).toBeLessThan(title.getBoundingClientRect().height);
   } finally {
     restoreNativeApi();
   }

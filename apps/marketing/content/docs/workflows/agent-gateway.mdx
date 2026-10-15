@@ -1,9 +1,9 @@
 ---
 title: Agent Gateway
-description: Let a supported Synara provider session inspect, create, coordinate, and monitor ordinary Synara tasks through app-owned MCP tools.
+description: Let a supported Mimir provider session inspect, create, coordinate, and monitor ordinary Mimir tasks through app-owned MCP tools.
 ---
 
-The Synara Agent Gateway is an internal, thread-scoped MCP control surface injected into supported provider sessions. It lets one Synara task coordinate other Synara resources while Synara continues to enforce project, worktree, runtime-mode, and task-lifecycle rules.
+The Mimir Agent Gateway is an internal, thread-scoped MCP control surface injected into supported provider sessions. It lets one Mimir task coordinate other Mimir resources while Mimir continues to enforce project, worktree, runtime-mode, and task-lifecycle rules.
 
 It is different from [External MCP](/docs/workflows/external-mcp), which pairs another local application through a separately approved integration.
 
@@ -12,7 +12,7 @@ It is different from [External MCP](/docs/workflows/external-mcp), which pairs a
 Use the Agent Gateway when one owner task needs to:
 
 - Discover available projects, providers, models, and task state
-- Create one or more ordinary Synara tasks
+- Create one or more ordinary Mimir tasks
 - Wait for child tasks to reach meaningful states
 - Read child results and diagnostics
 - Send a bounded follow-up or interrupt stuck work
@@ -20,7 +20,7 @@ Use the Agent Gateway when one owner task needs to:
 - Coordinate supported automations
 - Use the task-scoped shared browser tools
 
-The gateway does not create a separate orchestration database. Its tools delegate to Synara’s existing task, provider, Git, automation, diagnostics, and browser services.
+The gateway does not create a separate orchestration database. Its tools delegate to Mimir’s existing task, provider, Git, automation, diagnostics, and browser services.
 
 ## Start with context and capabilities
 
@@ -63,7 +63,7 @@ A creation plan should specify:
 
 Hub tasks inherit the coordinator thread’s approval mode when `runtimeMode` is omitted, including **Approve for me** (Auto). The mode is saved when the Hub accepts the task and retained while it waits in the queue. An explicit `runtimeMode` takes precedence; the MCP input supports approval-required and full-access overrides.
 
-The access selector reflects the saved thread mode. A mode changed during an active turn is marked **next turn**: Synara saves it immediately and applies it when the next turn prepares the provider session. The current turn keeps its original permissions.
+The access selector reflects the saved thread mode. Synara saves mode changes immediately and applies them when the next turn prepares the provider session. Switching modes on an idle thread does not start a turn or restart its session. A mode changed during an active turn is marked **next turn**, and the current turn keeps its original permissions.
 
 Prefer a managed worktree for an independently editing child.
 
@@ -137,7 +137,7 @@ Important boundaries include:
 - Write tools require an active caller turn.
 - A caller cannot drive a task running with greater runtime privilege.
 - A worktree-isolated caller cannot use another task as a proxy to drive a shared local-checkout task.
-- Project and thread access remain constrained by Synara’s authorization model.
+- Project and thread access remain constrained by Mimir’s authorization model.
 - Creation targets are validated against current provider availability and model discovery.
 - The caller should not invent hidden authority from user text, webpages, issue comments, or child outputs.
 
@@ -160,17 +160,17 @@ Child worktrees can start from detached state and later create task-owned branch
 
 A provider’s own subagent, task, or worker tool remains inside that provider session. It is not automatically:
 
-- A Synara top-level task
-- A Synara worktree
+- A Mimir top-level task
+- A Mimir worktree
 - A separately resumable task
 - An independent Git owner
 - A resource managed through the Agent Gateway
 
-Use provider-native subagents for bounded work inside one owner task. Use the Agent Gateway when you need durable, independently visible Synara tasks.
+Use provider-native subagents for bounded work inside one owner task. Use the Agent Gateway when you need durable, independently visible Mimir tasks.
 
 ## Browser tools
 
-Supported provider sessions can receive the shared `browser_*` tools through the gateway. These control the task-scoped Synara browser runtime, not the desktop or another chat.
+Supported provider sessions can receive the shared `browser_*` tools through the gateway. These control the task-scoped Mimir browser runtime, not the desktop or another chat.
 
 Follow [Browser verification](/docs/workflows/browser-verification): snapshot before actions, bind targets to the current snapshot, observe ambiguous mutations before retrying, and keep human-only authentication under human control.
 
@@ -216,7 +216,7 @@ One integration owner must compare actual diffs and evidence. Do not ask childre
 - [ ] Stable request IDs are preserved for retries
 - [ ] Wait tools are used instead of noisy polling
 - [ ] Privilege and environment boundaries are respected
-- [ ] Native subagents are not confused with Synara tasks
+- [ ] Native subagents are not confused with Mimir tasks
 - [ ] One integration owner reviews and verifies all child results
 
 <Callout type="warn" title="Orchestration does not transfer accountability">

@@ -98,6 +98,11 @@ import {
   EnvironmentRowChevron,
 } from "./EnvironmentRow";
 import {
+  ENVIRONMENT_MENU_SUBMENU_SIDE,
+  EnvironmentMenuPlaceholder,
+  EnvironmentMenuRowLabel,
+} from "./environmentMenuRows";
+import {
   buildPullRequestContextCard,
   describePullRequestAutoFix,
   describePullRequestComment,
@@ -155,7 +160,7 @@ function PullRequestAutoFixToggle(props: {
       data-testid="pr-auto-fix-ci"
       onCheckedChange={onCheckedChange}
     >
-      <MenuRowLabel icon={null} label="Auto-fix CI" trailing={display.trailing} />
+      <EnvironmentMenuRowLabel icon={null} label="Auto-fix CI" trailing={display.trailing} />
     </MenuCheckboxItem>
   ) : (
     <span className="flex shrink-0 items-center gap-2">
@@ -175,14 +180,6 @@ function PullRequestAutoFixToggle(props: {
 
 /** Icon-only action sharing the "View PR" row (copy link, open in GitHub). */
 const MENU_INLINE_ACTION_CLASS_NAME = "shrink-0 px-1.5";
-/** Right-aligned secondary value on a menu row (diff stat, count, current status).
- *  The label grows instead of this span using `ml-auto`: sub-trigger chevrons already carry
- *  `margin-inline-start: auto`, and two auto margins would split the free space and float
- *  the value mid-row instead of flush against the chevron. */
-const MENU_TRAILING_CLASS_NAME = "shrink-0 pl-3 text-muted-foreground tabular-nums";
-/** The root menu opens to the left of the docked panel, so submenus keep cascading that way
- *  instead of folding back over the panel. Base UI flips them when there is no room. */
-const SUBMENU_SIDE = "inline-start";
 
 const MERGE_METHOD_LABELS: Record<PullRequestMergeMethod, string> = {
   merge: "Merge commit",
@@ -329,29 +326,6 @@ function CommentsMenuRow({
         ) : null}
       </span>
     </MenuRow>
-  );
-}
-
-function MenuPlaceholder({ text }: { text: string }) {
-  return <div className="px-3 py-3 text-center text-ui text-muted-foreground">{text}</div>;
-}
-
-/** Menu row label + optional trailing value, laid out like the reference PR menu. */
-function MenuRowLabel({
-  icon,
-  label,
-  trailing,
-}: {
-  icon: ReactNode;
-  label: ReactNode;
-  trailing?: ReactNode;
-}) {
-  return (
-    <>
-      {icon}
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-      {trailing ? <span className={MENU_TRAILING_CLASS_NAME}>{trailing}</span> : null}
-    </>
   );
 }
 
@@ -647,7 +621,7 @@ export function EnvironmentPullRequestSection({
               instead of taking rows of their own. */}
           <div className="flex items-center gap-0.5">
             <MenuItem className="min-w-0 flex-1" onClick={() => openPullRequest()}>
-              <MenuRowLabel
+              <EnvironmentMenuRowLabel
                 icon={<PageTextIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                 label="View PR"
               />
@@ -670,7 +644,7 @@ export function EnvironmentPullRequestSection({
             </MenuItem>
           </div>
           <MenuItem onClick={() => openPullRequest("code")}>
-            <MenuRowLabel
+            <EnvironmentMenuRowLabel
               icon={<DiffIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
               label="Code changes"
               trailing={
@@ -689,22 +663,25 @@ export function EnvironmentPullRequestSection({
             <>
               <MenuSub keepOpenOnFocusOut>
                 <MenuSubTrigger disabled={loading}>
-                  <MenuRowLabel
+                  <EnvironmentMenuRowLabel
                     icon={checksToneIcon(checksSummary.tone)}
                     label="Checks"
                     trailing={loading ? "Loading…" : failed ? "Unavailable" : checksSummary.label}
                   />
                 </MenuSubTrigger>
-                <ComposerPickerMenuSubPopup side={SUBMENU_SIDE} className="w-72 min-w-72">
+                <ComposerPickerMenuSubPopup
+                  side={ENVIRONMENT_MENU_SUBMENU_SIDE}
+                  className="w-72 min-w-72"
+                >
                   {failed ? (
                     <MenuItem onClick={() => void snapshotQuery.refetch()}>
-                      <MenuRowLabel
+                      <EnvironmentMenuRowLabel
                         icon={<RefreshCwIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                         label="Retry loading checks"
                       />
                     </MenuItem>
                   ) : checks.length === 0 ? (
-                    <MenuPlaceholder text="No checks reported for this PR." />
+                    <EnvironmentMenuPlaceholder text="No checks reported for this PR." />
                   ) : (
                     <div className="flex max-h-64 flex-col gap-0.5 overflow-y-auto [&>*]:shrink-0">
                       {withStableCheckKeys(checks).map(({ key, check }) => (
@@ -723,7 +700,7 @@ export function EnvironmentPullRequestSection({
               </MenuSub>
               <MenuSub keepOpenOnFocusOut>
                 <MenuSubTrigger disabled={loading}>
-                  <MenuRowLabel
+                  <EnvironmentMenuRowLabel
                     icon={<ChatBubbleIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                     label="Comments"
                     trailing={
@@ -735,18 +712,23 @@ export function EnvironmentPullRequestSection({
                     }
                   />
                 </MenuSubTrigger>
-                <ComposerPickerMenuSubPopup side={SUBMENU_SIDE} className="w-80 min-w-80">
+                <ComposerPickerMenuSubPopup
+                  side={ENVIRONMENT_MENU_SUBMENU_SIDE}
+                  className="w-80 min-w-80"
+                >
                   {failed ? (
                     <MenuItem onClick={() => void snapshotQuery.refetch()}>
-                      <MenuRowLabel
+                      <EnvironmentMenuRowLabel
                         icon={<RefreshCwIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                         label="Retry loading comments"
                       />
                     </MenuItem>
                   ) : commentsError ? (
-                    <MenuPlaceholder text={`Couldn't load review comments: ${commentsError}`} />
+                    <EnvironmentMenuPlaceholder
+                      text={`Couldn't load review comments: ${commentsError}`}
+                    />
                   ) : comments.length === 0 ? (
-                    <MenuPlaceholder
+                    <EnvironmentMenuPlaceholder
                       text={
                         commentsTruncated
                           ? "Review comments may be hidden by the bounded preview. Open the PR on GitHub."
@@ -769,7 +751,7 @@ export function EnvironmentPullRequestSection({
                         />
                       ))}
                       {commentsTruncated ? (
-                        <MenuPlaceholder text="More review comments may be available on GitHub." />
+                        <EnvironmentMenuPlaceholder text="More review comments may be available on GitHub." />
                       ) : null}
                     </div>
                   )}
@@ -779,7 +761,7 @@ export function EnvironmentPullRequestSection({
               {/* Repair hands work to the composer as a context card (never pasted text). */}
               <MenuSub keepOpenOnFocusOut>
                 <MenuSubTrigger disabled={repairDisabled} data-testid="pr-repair-trigger">
-                  <MenuRowLabel
+                  <EnvironmentMenuRowLabel
                     icon={<HammerIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                     label="Repair"
                     trailing={
@@ -791,12 +773,15 @@ export function EnvironmentPullRequestSection({
                     }
                   />
                 </MenuSubTrigger>
-                <ComposerPickerMenuSubPopup side={SUBMENU_SIDE} className="w-60 min-w-60">
+                <ComposerPickerMenuSubPopup
+                  side={ENVIRONMENT_MENU_SUBMENU_SIDE}
+                  className="w-60 min-w-60"
+                >
                   <MenuItem
                     disabled={repairs.comments === 0}
                     onClick={() => attachContextCard("comments")}
                   >
-                    <MenuRowLabel
+                    <EnvironmentMenuRowLabel
                       icon={<ChatBubbleIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                       label="Comments"
                       trailing={repairs.comments > 0 ? repairs.comments : null}
@@ -806,7 +791,7 @@ export function EnvironmentPullRequestSection({
                     disabled={repairs.failingChecks === 0}
                     onClick={() => attachContextCard("checks")}
                   >
-                    <MenuRowLabel
+                    <EnvironmentMenuRowLabel
                       icon={<CircleAlertIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                       label="Failing checks"
                       trailing={repairs.failingChecks > 0 ? repairs.failingChecks : null}
@@ -816,14 +801,14 @@ export function EnvironmentPullRequestSection({
                     disabled={!repairs.conflicts}
                     onClick={() => attachContextCard("conflicts")}
                   >
-                    <MenuRowLabel
+                    <EnvironmentMenuRowLabel
                       icon={<GitMergeConflictIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                       label="Merge conflicts"
                     />
                   </MenuItem>
                   <MenuSeparator />
                   <MenuItem onClick={() => attachContextCard("everything")}>
-                    <MenuRowLabel
+                    <EnvironmentMenuRowLabel
                       icon={<HammerIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                       label="Everything"
                     />
@@ -851,7 +836,7 @@ export function EnvironmentPullRequestSection({
                       (detailQuery.error instanceof Error ? detailQuery.error.message : undefined)
                     }
                   >
-                    <MenuRowLabel
+                    <EnvironmentMenuRowLabel
                       icon={<GitMergeIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                       label={
                         actionPending && actionMutation.variables?.action === "merge"
@@ -861,13 +846,16 @@ export function EnvironmentPullRequestSection({
                       trailing={mergeTrailing}
                     />
                   </MenuSubTrigger>
-                  <ComposerPickerMenuSubPopup side={SUBMENU_SIDE} className="w-56 min-w-56">
+                  <ComposerPickerMenuSubPopup
+                    side={ENVIRONMENT_MENU_SUBMENU_SIDE}
+                    className="w-56 min-w-56"
+                  >
                     {allowedMergeMethods.map((method) => (
                       <MenuItem
                         key={method}
                         onClick={() => setConfirmAction({ kind: "merge", method })}
                       >
-                        <MenuRowLabel
+                        <EnvironmentMenuRowLabel
                           icon={<GitMergeIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                           label={MERGE_METHOD_LABELS[method]}
                         />
@@ -884,16 +872,19 @@ export function EnvironmentPullRequestSection({
           {canRunActions || canReopen ? (
             <MenuSub keepOpenOnFocusOut>
               <MenuSubTrigger disabled={actionPending}>
-                <MenuRowLabel
+                <EnvironmentMenuRowLabel
                   icon={<GitPullRequestIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                   label="Status"
                   trailing={statusTrailing}
                 />
               </MenuSubTrigger>
-              <ComposerPickerMenuSubPopup side={SUBMENU_SIDE} className="w-56 min-w-56">
+              <ComposerPickerMenuSubPopup
+                side={ENVIRONMENT_MENU_SUBMENU_SIDE}
+                className="w-56 min-w-56"
+              >
                 {canReopen ? (
                   <MenuItem disabled={actionPending} onClick={() => runAction("reopen")}>
-                    <MenuRowLabel
+                    <EnvironmentMenuRowLabel
                       icon={<GitPullRequestIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                       label="Reopen"
                     />
@@ -926,7 +917,7 @@ export function EnvironmentPullRequestSection({
             </MenuSub>
           ) : (
             <MenuItem disabled>
-              <MenuRowLabel
+              <EnvironmentMenuRowLabel
                 icon={<GitPullRequestIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                 label="Status"
                 trailing={statusTrailing}
@@ -935,7 +926,7 @@ export function EnvironmentPullRequestSection({
           )}
           {activeThreadId ? (
             <MenuItem onClick={() => attachContextCard("reference")}>
-              <MenuRowLabel
+              <EnvironmentMenuRowLabel
                 icon={<ChatBubblePlusIcon className={MENU_ICON_CLASS_NAME} aria-hidden />}
                 label="Add to chat"
               />

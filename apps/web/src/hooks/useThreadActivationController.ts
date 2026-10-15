@@ -4,7 +4,7 @@
 
 import type { useNavigate } from "@tanstack/react-router";
 import type { ThreadId } from "@synara/contracts";
-import type { LastThreadRoute } from "../chatRouteRestore";
+import type { EditorView, LastThreadRoute } from "../chatRouteRestore";
 import {
   resolveSplitViewThreadIds,
   type PaneId,
@@ -26,6 +26,22 @@ type SidebarThreadActivationSummary = Pick<
   "id" | "projectId" | "sidechatSourceThreadId" | "sidechatContext"
 >;
 
+/**
+ * Which surface a sidebar click should open, given the Space its folder is filed in.
+ *
+ * A thread whose folder is in a Space is course work, and course work belongs in the workspace:
+ * Study for the material, Studio for what the agent produced. Everything else — a home chat, a
+ * folder still in Void — stays on the chat transcript, which is what those surfaces are for.
+ *
+ * Read from the project's `spaceId` rather than the remembered preference, so the destination
+ * does not depend on where the student happened to be last.
+ */
+export function resolveThreadActivationView(
+  spaceId: string | null | undefined,
+): EditorView | undefined {
+  return spaceId ? "editor" : undefined;
+}
+
 export type ThreadActivationControllerInput = {
   activeSplitView: SplitView | null;
   clearSelection: () => void;
@@ -34,6 +50,8 @@ export type ThreadActivationControllerInput = {
   openSidechatDock: (input: { sidechatThreadId: ThreadId; sourceThreadId: ThreadId }) => void;
   openTerminalThreadPage: (threadId: ThreadId) => void;
   prewarmThreadDetailForIntent: (threadId: ThreadId) => void;
+  /** Whether a thread's folder is filed in a Space; decides chat vs workspace on activation. */
+  resolveActivationView: (threadId: ThreadId) => EditorView | undefined;
   rememberLastThreadRouteNow: (nextLastThreadRoute: LastThreadRoute) => void;
   routeSplitViewId: string | null | undefined;
   routeThreadId: ThreadId | null | undefined;
@@ -57,6 +75,7 @@ export function activateThreadFromSidebarIntent(
     navigate,
     prewarmThreadDetailForIntent,
     rememberLastThreadRouteNow,
+    resolveActivationView,
     routeSplitViewId,
     routeThreadId,
     selectedThreadCount,
@@ -182,8 +201,10 @@ function activateSidechatDock(
     sourceThreadId: activation.sourceThreadId,
     sidechatThreadId: activation.threadId,
   });
+  const sourceView = input.resolveActivationView(activation.sourceThreadId);
   input.rememberLastThreadRouteNow({
     threadId: activation.sourceThreadId,
+    ...(sourceView ? { view: sourceView } : {}),
   });
   void input.navigate({
     to: "/$threadId",
@@ -191,6 +212,7 @@ function activateSidechatDock(
     search: (previous) => ({
       ...previous,
       splitViewId: undefined,
+      ...(sourceView ? { view: sourceView } : {}),
     }),
   });
 }
@@ -216,12 +238,16 @@ function activateThreadSingle(input: ThreadActivationControllerInput, threadId: 
     input.openChatThreadPage(threadId);
   }
 
+  // A terminal-first thread is about a running process, not course material, so it stays on
+  // chat regardless of which Space its folder is in.
+  const view = threadEntryPoint === "terminal" ? undefined : input.resolveActivationView(threadId);
   void input.navigate({
     to: "/$threadId",
     params: { threadId },
     search: (previous) => ({
       ...previous,
       splitViewId: undefined,
+      ...(view ? { view } : {}),
     }),
   });
 }
@@ -238,6 +264,7 @@ export function useThreadActivationController(input: ThreadActivationControllerI
     openTerminalThreadPage,
     prewarmThreadDetailForIntent,
     rememberLastThreadRouteNow,
+    resolveActivationView,
     routeSplitViewId,
     routeThreadId,
     selectedThreadCount,
@@ -260,6 +287,7 @@ export function useThreadActivationController(input: ThreadActivationControllerI
         openTerminalThreadPage,
         prewarmThreadDetailForIntent,
         rememberLastThreadRouteNow,
+        resolveActivationView,
         routeSplitViewId,
         routeThreadId,
         selectedThreadCount,

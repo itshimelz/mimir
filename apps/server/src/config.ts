@@ -48,20 +48,20 @@ export function remoteAccessPolicyError(
 ): string | null {
   const isRemoteBind = !isLoopbackHost(config.host);
   if (config.publicUrl && !normalizeHttpsPublicOrigin(config.publicUrl)) {
-    return "SYNARA_PUBLIC_URL/--public-url must be an HTTPS root origin without credentials, path, query, or fragment (for example https://synara.example.com).";
+    return "MIMIR_PUBLIC_URL/--public-url must be an HTTPS root origin without credentials, path, query, or fragment (for example https://mimir.example.com).";
   }
   const isPubliclyExposed = isRemoteBind || Boolean(config.publicUrl);
   if (!isPubliclyExposed) return null;
   if (!config.authToken?.trim()) {
     return config.publicUrl
-      ? "Refusing to publish Mimir through SYNARA_PUBLIC_URL/--public-url without SYNARA_AUTH_TOKEN/--auth-token."
-      : `Refusing to bind Mimir to non-loopback host ${config.host ?? "<unspecified>"} without SYNARA_AUTH_TOKEN/--auth-token.`;
+      ? "Refusing to publish Mimir through MIMIR_PUBLIC_URL/--public-url without MIMIR_AUTH_TOKEN/--auth-token."
+      : `Refusing to bind Mimir to non-loopback host ${config.host ?? "<unspecified>"} without MIMIR_AUTH_TOKEN/--auth-token.`;
   }
   if (config.devUrl) {
     return "Remote server binds cannot be combined with VITE_DEV_SERVER_URL/--dev-url yet; use a loopback host for development or run the built web UI for remote access.";
   }
   if (isRemoteBind && !config.publicUrl && !config.allowInsecureRemote) {
-    return "Refusing plaintext remote access. Configure an HTTPS reverse-proxy origin with SYNARA_PUBLIC_URL/--public-url, or explicitly accept unencrypted LAN traffic with SYNARA_ALLOW_INSECURE_REMOTE/--allow-insecure-remote.";
+    return "Refusing plaintext remote access. Configure an HTTPS reverse-proxy origin with MIMIR_PUBLIC_URL/--public-url, or explicitly accept unencrypted LAN traffic with MIMIR_ALLOW_INSECURE_REMOTE/--allow-insecure-remote.";
   }
   return null;
 }

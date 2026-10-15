@@ -790,7 +790,7 @@ export type ThreadDetailHydration = "ready" | "loading" | "failed";
 export function resolveThreadDetailHydration(input: {
   readonly isServerThread: boolean;
   readonly hasTimelineEntries: boolean;
-  readonly detailSyncState: "synced" | "failed" | "cached" | null;
+  readonly detailSyncState: "synced" | "failed" | null;
 }): ThreadDetailHydration {
   if (!input.isServerThread || input.hasTimelineEntries || input.detailSyncState === "synced") {
     return "ready";
@@ -1692,6 +1692,7 @@ export function deriveComposerSendState(options: {
   assistantSelectionCount: number;
   browserAnnotationCount: number;
   fileCommentCount: number;
+  pptxAnnotationCount: number;
   terminalContexts: ReadonlyArray<TerminalContextDraft>;
   pastedTexts: ReadonlyArray<PastedTextDraft>;
   pullRequestContexts: ReadonlyArray<PullRequestContextDraft>;
@@ -1722,6 +1723,7 @@ export function deriveComposerSendState(options: {
       options.assistantSelectionCount > 0 ||
       options.browserAnnotationCount > 0 ||
       options.fileCommentCount > 0 ||
+      options.pptxAnnotationCount > 0 ||
       sendableTerminalContexts.length > 0 ||
       sendablePastedTexts.length > 0 ||
       sendablePullRequestContexts.length > 0,

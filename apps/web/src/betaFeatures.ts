@@ -7,6 +7,7 @@ import {
   desktopFlavorFromProtocol,
   GROUPS_BETA_FEATURE,
   INBOX_BETA_FEATURE,
+  INLINE_VISUALS_BETA_FEATURE,
   isBetaFeatureEnabled,
   PULL_REQUEST_AUTO_FIX_BETA_FEATURE,
 } from "@synara/shared/betaFeatures";
@@ -26,21 +27,38 @@ export const isBetaFeatureOn = (feature: string): boolean =>
   isBetaFeatureEnabled(feature, DESKTOP_FLAVOR);
 
 /**
- * Groups is Beta-only. Off, group folders read as ordinary projects (so no
- * chat is hidden), and every Groups entry point is gone. The server refuses
- * the group APIs regardless; this only keeps Stable from offering them.
+ * Hubs is available in Stable and Beta. The shared feature policy also controls
+ * server APIs, background work, and whether saved hub folders act as containers.
  */
 export const GROUPS_ON = isBetaFeatureOn(GROUPS_BETA_FEATURE);
 
 /**
  * Inbox is available in Stable and Beta. Tasks within it retain their separate gate.
+ *
+ * Currently forced off in *every* flavor, not just Stable: the Inbox is hidden
+ * from the UI while it is reworked, the same way Computer Use is hidden. The
+ * Beta gate alone is not enough because a dev host and the Beta build both
+ * resolve to a flavor that keeps Beta-only features on, so the rail entry
+ * stayed visible there. Every consumer already respects this flag — the app
+ * rail, sidebar ordering, the badge poller, the route guard and the view
+ * itself — so one flip hides all of it and no entry point is left dangling.
+ *
+ * Delete this override to fall back to the plain Beta gate.
  */
-export const INBOX_ON = isBetaFeatureOn(INBOX_BETA_FEATURE);
+const INBOX_HIDDEN_PENDING_REWORK = true;
+
+export const INBOX_ON = !INBOX_HIDDEN_PENDING_REWORK && isBetaFeatureOn(INBOX_BETA_FEATURE);
 
 /**
  * Auto-fix CI is available in Stable and Beta; watching a PR remains opt-in.
  */
 export const PULL_REQUEST_AUTO_FIX_ON = isBetaFeatureOn(PULL_REQUEST_AUTO_FIX_BETA_FEATURE);
+
+/**
+ * Inline visuals are Beta-only. On Stable the transcript ignores `visual.shown`
+ * activities entirely (no row, no fetch); the server also refuses the tool and read.
+ */
+export const INLINE_VISUALS_ON = isBetaFeatureOn(INLINE_VISUALS_BETA_FEATURE);
 
 /**
  * Provider descriptors with Beta-only providers removed on Stable. A

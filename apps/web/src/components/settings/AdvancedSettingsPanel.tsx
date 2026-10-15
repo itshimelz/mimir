@@ -8,6 +8,10 @@ import { useCallback, useMemo, useState } from "react";
 
 import { logoutCurrentBrowserSession } from "~/authLogout";
 import { useFeatureTourStore } from "~/featureTour/store";
+import {
+  FEATURE_TOUR_UNAVAILABLE_FEATURE,
+  isFeatureAvailable,
+} from "@synara/shared/unavailableFeatures";
 import { APP_VERSION } from "~/branding";
 import { resolveAndPersistPreferredEditor } from "~/editorPreferences";
 import { DisclosureChevron } from "~/components/ui/DisclosureChevron";
@@ -247,19 +251,21 @@ export function AdvancedSettingsPanel(props: {
             </code>
           }
         />
-        <SettingsRow
-          title="What’s new since 0.9.2"
-          description="Explore the redesigned workspace, provider accounts, and Code review."
-          control={
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => useFeatureTourStore.getState().open()}
-            >
-              Replay feature tour
-            </Button>
-          }
-        />
+        {isFeatureAvailable(FEATURE_TOUR_UNAVAILABLE_FEATURE) ? (
+          <SettingsRow
+            title="What’s new since 0.9.2"
+            description="Explore the redesigned workspace, provider accounts, and Code review."
+            control={
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => useFeatureTourStore.getState().open()}
+              >
+                Replay feature tour
+              </Button>
+            }
+          />
+        ) : null}
         <SettingsRow
           title="Release history"
           description="A running log of every update, newest first. Same notes the post-update dialog shows, kept here so you can revisit them any time."

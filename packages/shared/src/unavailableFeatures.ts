@@ -69,6 +69,13 @@ export const TASKS_UNAVAILABLE_FEATURE = "tasks";
  */
 export const BETA_CHANNEL_UNAVAILABLE_FEATURE = "beta-channel";
 
+/**
+ * The Settings → Advanced "What's new since ..." row with its Replay feature tour
+ * button. Withheld in Mimir; the fork ships its own onboarding and versioning.
+ * Delete the entry to restore the row.
+ */
+export const FEATURE_TOUR_UNAVAILABLE_FEATURE = "feature-tour";
+
 export const UNAVAILABLE_FEATURES: readonly string[] = [
   FEEDBACK_UNAVAILABLE_FEATURE,
   SHARE_CARD_UNAVAILABLE_FEATURE,
@@ -81,6 +88,7 @@ export const UNAVAILABLE_FEATURES: readonly string[] = [
   KANBAN_UNAVAILABLE_FEATURE,
   TASKS_UNAVAILABLE_FEATURE,
   BETA_CHANNEL_UNAVAILABLE_FEATURE,
+  FEATURE_TOUR_UNAVAILABLE_FEATURE,
 ];
 
 /**

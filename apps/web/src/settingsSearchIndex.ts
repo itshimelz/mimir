@@ -1,4 +1,7 @@
-import { isFeatureAvailable } from "@synara/shared/unavailableFeatures";
+import {
+  FEATURE_TOUR_UNAVAILABLE_FEATURE,
+  isFeatureAvailable,
+} from "@synara/shared/unavailableFeatures";
 // FILE: settingsSearchIndex.ts
 // Purpose: Declarative, searchable index of settings rows/sections so the sidebar can
 //          surface matches by title/description the same way the editor file search does.
@@ -601,6 +604,7 @@ export const SETTINGS_SEARCH_ENTRIES: readonly SettingsSearchEntry[] = (
       title: "What’s new since 0.9.2",
       keywords:
         "Replay feature tour redesigned workspace provider accounts Code review slider updates",
+      applies: () => isFeatureAvailable(FEATURE_TOUR_UNAVAILABLE_FEATURE),
     },
     {
       id: "advanced:release-history",

@@ -82,7 +82,7 @@ export function ThemeStep() {
                 role="radio"
                 aria-checked={selected}
                 className={cn(
-                  "flex h-9 min-w-0 cursor-pointer items-center gap-2.5 rounded-[10px] border bg-popover px-2.5 text-start outline-none transition-colors motion-reduce:transition-none",
+                  "flex h-9 min-w-0 cursor-pointer items-center gap-2.5 rounded-md border bg-popover px-2.5 text-start outline-none transition-colors motion-reduce:transition-none",
                   "focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-inset",
                   selected
                     ? "border-foreground ring-1 ring-foreground ring-inset"

@@ -24,7 +24,7 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 
-const ACTION_BUTTON_CLASS_NAME = "rounded-[10px] text-ui-lg sm:text-ui-lg";
+const ACTION_BUTTON_CLASS_NAME = "rounded-md text-ui-lg sm:text-ui-lg";
 
 export function AnnouncementSheet(props: {
   open: boolean;
@@ -75,7 +75,7 @@ export function AnnouncementSheet(props: {
         initialFocus={sheetRef}
         onKeyDown={props.onKeyDown}
         data-feature-tour={props.presentation === "tour" ? "" : undefined}
-        className="max-w-[420px] rounded-[20px]"
+        className="max-w-[420px] rounded-md"
       >
         {/* Take initial focus here rather than on the first button: the sheet opens
             unprompted at startup, and a ring on the dismiss button points at the wrong

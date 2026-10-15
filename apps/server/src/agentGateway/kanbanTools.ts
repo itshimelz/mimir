@@ -474,7 +474,7 @@ export function makeAgentGatewayKanbanTools(input: KanbanToolsInput): ReadonlyAr
         additionalProperties: false,
       },
       annotations: {
-        title: "Read the Synara kanban board",
+        title: "Read the Mimir kanban board",
         ...READ_ONLY_TOOL_ANNOTATIONS,
       },
     },
@@ -589,7 +589,7 @@ export function makeAgentGatewayKanbanTools(input: KanbanToolsInput): ReadonlyAr
         additionalProperties: false,
       },
       annotations: {
-        title: "Read a Synara kanban card",
+        title: "Read a Mimir kanban card",
         ...READ_ONLY_TOOL_ANNOTATIONS,
       },
     },

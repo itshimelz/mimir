@@ -704,7 +704,7 @@ export function resolveAgentGatewayTarget(input: {
         return yield* Effect.fail(
           new AgentGatewayTargetError(
             "provider_unavailable",
-            `Provider instance "${requestedInstanceId}" is disabled in Synara settings.`,
+            `Provider instance "${requestedInstanceId}" is disabled in Mimir settings.`,
             { provider: input.target.provider, instanceId: requestedInstanceId },
           ),
         );

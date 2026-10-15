@@ -43,11 +43,12 @@ export function AppRailMoreMenu({
   /** Studio has no rail button of its own, so "…" stands for it while it is open. */
   readonly active: boolean;
 }) {
+  const MoreGlyph = active ? RAIL_MORE_GLYPHS.active : RAIL_MORE_GLYPHS.idle;
   return (
     <Menu>
       <SidebarIconButton
         render={<MenuTrigger />}
-        icon={active ? RAIL_MORE_GLYPHS.active : RAIL_MORE_GLYPHS.idle}
+        icon={MoreGlyph}
         iconClassName={APP_RAIL_GLYPH_CLASS_NAME}
         label="More"
         tooltip="More"
@@ -57,7 +58,11 @@ export function AppRailMoreMenu({
         // test for presence, and React renders a boolean data attribute as "true".
         data-active={active ? "" : undefined}
         className={appRailButtonClassName()}
-      />
+      >
+        <span className="app-rail-glyph">
+          <MoreGlyph className={APP_RAIL_GLYPH_CLASS_NAME} />
+        </span>
+      </SidebarIconButton>
       <ComposerPickerMenuPopup
         align="start"
         side="right"

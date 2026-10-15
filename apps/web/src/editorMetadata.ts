@@ -74,6 +74,7 @@ const EDITOR_ICONS: Partial<Record<EditorId, Icon>> = {
 };
 
 const NATIVE_EDITOR_ICON_COMPONENTS = new Map<EditorId, Icon>();
+const FAILED_NATIVE_EDITOR_ICONS = new Set<EditorId>(["file-manager", "system-default"]);
 
 export function resolveEditorNativeIconUrl(editorId: EditorId): string {
   const params = new URLSearchParams({ id: editorId });
@@ -81,13 +82,17 @@ export function resolveEditorNativeIconUrl(editorId: EditorId): string {
 }
 
 function resolveNativeEditorIcon(editorId: EditorId): Icon {
+  const FallbackIcon = resolveEditorIcon(editorId);
+  if (editorId === "file-manager" || editorId === "system-default") {
+    return FallbackIcon;
+  }
+
   const cached = NATIVE_EDITOR_ICON_COMPONENTS.get(editorId);
   if (cached) return cached;
 
-  const FallbackIcon = resolveEditorIcon(editorId);
   const EditorNativeIcon: Icon = ({ className, style, ...props }) => {
-    const [failed, setFailed] = useState(false);
-    if (failed) {
+    const [failed, setFailed] = useState(() => FAILED_NATIVE_EDITOR_ICONS.has(editorId));
+    if (failed || FAILED_NATIVE_EDITOR_ICONS.has(editorId)) {
       return createElement(FallbackIcon, { className, style, ...props });
     }
 
@@ -106,7 +111,10 @@ function resolveNativeEditorIcon(editorId: EditorId): Icon {
         href: resolveEditorNativeIconUrl(editorId),
         preserveAspectRatio: "xMidYMid meet",
         width: 1,
-        onError: () => setFailed(true),
+        onError: () => {
+          FAILED_NATIVE_EDITOR_ICONS.add(editorId);
+          setFailed(true);
+        },
       }),
     );
   };

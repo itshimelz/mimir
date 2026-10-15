@@ -17,7 +17,7 @@ const SIZE_CLASSES: Record<
 > = {
   md: {
     tile: "size-10",
-    radius: "rounded-[12px]",
+    radius: "rounded-md",
     icon: "size-5",
     overlap: "-ml-2.5",
     dot: "size-[3px]",
@@ -25,7 +25,7 @@ const SIZE_CLASSES: Record<
   },
   lg: {
     tile: "size-14",
-    radius: "rounded-[16px]",
+    radius: "rounded-md",
     icon: "size-7",
     overlap: "-ml-3.5",
     dot: "size-1",

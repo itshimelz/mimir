@@ -160,7 +160,7 @@ it.each(["light", "dark"] as const)(
       }
       expect(
         getComputedStyle(page.getByText("README.md", { exact: true }).first().element()).fontSize,
-      ).toBe(`${scale.uiXsPx}px`);
+      ).toBe(`${scale.uiPx}px`);
       await source().click();
       await screen.rerender(view("diff"));
       await expect.element(source()).not.toBeInTheDocument();
@@ -531,7 +531,7 @@ it("renders M3E segmented tab in Mimir theme and switches surfaces", async () =>
   }
 });
 
-it("renders document breadcrumb and hides full workspace path and workspace name in topbar", async () => {
+it("hides document breadcrumb, full workspace path, and workspace name from topbar", async () => {
   setCodeThemeId("dark", "synara");
   setCodeThemeId("light", "synara");
   try {
@@ -564,14 +564,14 @@ it("renders document breadcrumb and hides full workspace path and workspace name
       </QueryClientProvider>,
     );
 
-    // Full path and project name are hidden from topbar
+    // Full path, project name, and document breadcrumbs are hidden from topbar
     const topBar = page
       .getByRole("tablist", { name: "Surface" })
       .element()
       .closest<HTMLElement>(".app-top-bar")!;
     expect(topBar.textContent).not.toContain(WORKSPACE_ROOT);
     expect(topBar.textContent).not.toContain("project");
-    expect(topBar.textContent).toContain("README.md");
+    expect(topBar.textContent).not.toContain("README.md");
 
     // Right-side actions use Button
     const chatBtn = page.getByRole("button", { name: "Hide study chat" });

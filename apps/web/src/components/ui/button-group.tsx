@@ -20,7 +20,7 @@ export const BUTTON_GROUP_ACTIVE_CLASS_NAME =
 /** The capsule's own surface: a soft fill and hairline border on a full pill. Shared by the group
  *  and by any lone pill (a picker trigger) that has to read as the same element beside it. */
 export const BUTTON_GROUP_SURFACE_CLASS_NAME =
-  "rounded-full border border-[color:var(--color-border)] bg-[var(--color-background-button-secondary)]";
+  "rounded-md border border-[color:var(--color-border)] bg-[var(--color-background-button-secondary)]";
 
 /** Resting tone of a group's icon segments: a muted glyph that comes up to full foreground on
  *  hover. */
@@ -37,7 +37,7 @@ export function ButtonGroup({
       aria-label={label}
       data-slot="button-group"
       className={cn(
-        "inline-flex shrink-0 items-center gap-px p-px [-webkit-app-region:no-drag] [&_button]:!size-7 [&_button]:rounded-full",
+        "inline-flex shrink-0 items-center gap-px p-px [-webkit-app-region:no-drag] [&_button]:!size-7 [&_button]:rounded-md",
         BUTTON_GROUP_SURFACE_CLASS_NAME,
         className,
       )}

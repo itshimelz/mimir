@@ -826,7 +826,7 @@ export class CuaComputerBackend implements ComputerBackend {
             ...(bundleId ? { bundleId } : {}),
             message: hostIsDarwin
               ? computerPermissionSetupMessage(this.permissions, signature, bundleId || undefined)
-              : `Synara's driver host reports missing ${listComputerPermissions(
+              : `Mimir's driver host reports missing ${listComputerPermissions(
                   this.permissions,
                 )} access. Grant it at the OS level the platform uses — display-server access on Linux, integrity/UIAccess on Windows — then try again.`,
           }

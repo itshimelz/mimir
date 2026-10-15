@@ -94,7 +94,7 @@ type HugeiconRailItemId =
   | "studio";
 const RAIL_HUGEICON_GLYPHS: Record<HugeiconRailItemId, AppRailGlyphs> = {
   home: sameGlyphs(HomeIcon),
-  chats: sameGlyphs(ChatBubbleIcon),
+  chats: railCentralGlyphs("bubble-text"),
   inbox: sameGlyphs(InboxIcon),
   pullRequests: sameGlyphs(CodeReviewIcon),
   automations: sameGlyphs(ClockIcon),
@@ -154,7 +154,7 @@ export const APP_RAIL_GLYPH_CLASS_NAME = "size-5";
 /** Rail item box in ChatGPT dock style (36×36px squircle with continuous curvature). */
 export function appRailButtonClassName(): string {
   return cn(
-    "app-rail-item size-9 rounded-[10px] p-0 flex items-center justify-center",
+    "app-rail-item size-9 rounded-md p-0 flex items-center justify-center",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-1",
   );
 }
@@ -178,7 +178,7 @@ function AppRailButton({ item }: { item: AppRailItem }) {
       {...(item.onFocus ? { onFocus: item.onFocus } : {})}
     >
       <span className="app-rail-glyph">
-        <Glyph />
+        <Glyph className={APP_RAIL_GLYPH_CLASS_NAME} />
       </span>
     </SidebarIconButton>
   );

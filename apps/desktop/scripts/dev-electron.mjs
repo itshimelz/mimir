@@ -34,7 +34,7 @@ if (process.platform === "darwin") {
 }
 
 await waitOn({
-  resources: [`tcp:${port}`, ...requiredFiles.map((filePath) => `file:${filePath}`)],
+  resources: [`tcp:127.0.0.1:${port}`, ...requiredFiles.map((filePath) => `file:${filePath}`)],
 });
 
 const childEnv = createSourceDesktopEnvironment();

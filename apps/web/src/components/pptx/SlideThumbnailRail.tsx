@@ -7,7 +7,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "~/lib/utils";
-import { PanelLeftIcon } from "~/lib/icons";
+import { LayoutAlignLeftIcon, LayoutLeftIcon } from "~/lib/icons";
 import type { PptxSlideShapeIndex } from "~/lib/pptx/pptxShapes";
 
 interface SlideThumbnailRailProps {
@@ -52,7 +52,7 @@ export function SlideThumbnailRail(props: SlideThumbnailRailProps) {
           title="Show slide thumbnails"
           aria-label="Show slide thumbnails"
         >
-          <PanelLeftIcon className="size-4" />
+          <LayoutAlignLeftIcon className="size-4" />
         </button>
       </div>
     );
@@ -83,7 +83,7 @@ export function SlideThumbnailRail(props: SlideThumbnailRailProps) {
           title="Collapse slide thumbnails"
           aria-label="Collapse slide thumbnails"
         >
-          <PanelLeftIcon className="size-4" />
+          <LayoutLeftIcon className="size-4" />
         </button>
       </div>
 

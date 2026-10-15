@@ -2010,7 +2010,7 @@ export function BrowserPanel({
                 className={cn(
                   "absolute overflow-hidden",
                   isFloatingMode ? "bg-transparent" : "bg-[#0d0d0d]",
-                  isFloatingMode && "rounded-[10px] [clip-path:inset(0_round_10px)]",
+                  isFloatingMode && "rounded-md [clip-path:inset(0_round_var(--radius-md))]",
                   "inset-0",
                 )}
               />

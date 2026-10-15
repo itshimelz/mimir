@@ -132,7 +132,6 @@ import { isProviderKind, sameProviderOrder } from "../providerOrdering";
 import {
   normalizeSettingsSection,
   SETTINGS_NAV_ITEMS,
-  SETTINGS_TARGETS,
   settingRowAnchorId,
 } from "../settingsNavigation";
 import { SETTINGS_PAGE_BACKGROUND_CLASS_NAME } from "../settingsPanelStyles";
@@ -913,99 +912,6 @@ function SettingsRouteView() {
           ariaLabel: "Show automation run threads in the sidebar",
         })}
       </SettingsSection>
-
-      <div id={SETTINGS_TARGETS.environmentPanel} className="space-y-6">
-        <SettingsSection title="Environment panel">
-          {renderBooleanSettingRow({
-            settingKey: "environmentPanelDefaultOpen",
-            title: "Open by default",
-            description:
-              "Open the chat Environment panel automatically on normal threads. When off, the panel stays closed until you open it. Your last open/close also updates this preference.",
-            resetLabel: "environment panel default open",
-            ariaLabel: "Open the Environment panel by default on normal threads",
-          })}
-        </SettingsSection>
-
-        <SettingsSection title="Code and status">
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentSubagents",
-            title: "Subagents",
-            description:
-              "Show a compact summary of the chat's subagents in the Environment panel. Click it to open the full list, running and done, in the right dock.",
-            resetLabel: "subagents section",
-            ariaLabel: "Show the Subagents section in the Environment panel",
-          })}
-
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentUsage",
-            title: "Usage",
-            description: "Show the provider usage row in the chat Environment panel.",
-            resetLabel: "usage section",
-            ariaLabel: "Show the Usage section in the Environment panel",
-          })}
-
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentRepository",
-            title: "Repository",
-            description:
-              "Show the GitHub repository link in the chat Environment panel. The git block (Changes, Worktree, branch, Commit and Push) always stays visible.",
-            resetLabel: "repository section",
-            ariaLabel: "Show the Repository section in the Environment panel",
-          })}
-
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentPullRequest",
-            title: "Pull request",
-            description:
-              "Show the open pull request (CI checks and review comments) for the current branch in the chat Environment panel.",
-            resetLabel: "pull request section",
-            ariaLabel: "Show the Pull request section in the Environment panel",
-          })}
-
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentEditor",
-            title: "Editor",
-            description:
-              "Show the Editor section (in-app editor view and Open in editor picker) in the chat Environment panel.",
-            resetLabel: "editor section",
-            ariaLabel: "Show the Editor section in the Environment panel",
-          })}
-        </SettingsSection>
-
-        <SettingsSection title="Context and notes">
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentRecap",
-            title: "Recap",
-            description: "Show the auto-generated chat recap in the Environment panel.",
-            resetLabel: "recap section",
-            ariaLabel: "Show the Recap section in the Environment panel",
-          })}
-
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentPinned",
-            title: "Pinned messages",
-            description: "Show the pinned-messages checklist in the Environment panel.",
-            resetLabel: "pinned messages section",
-            ariaLabel: "Show the Pinned messages section in the Environment panel",
-          })}
-
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentInstructions",
-            title: "Project instructions",
-            description: "Show project-level instructions in the Environment panel.",
-            resetLabel: "project instructions section",
-            ariaLabel: "Show the Project instructions section in the Environment panel",
-          })}
-
-          {renderBooleanSettingRow({
-            settingKey: "showEnvironmentNotepad",
-            title: "Notepad",
-            description: "Show the per-thread notepad in the Environment panel.",
-            resetLabel: "notepad section",
-            ariaLabel: "Show the Notepad section in the Environment panel",
-          })}
-        </SettingsSection>
-      </div>
     </div>
   );
 

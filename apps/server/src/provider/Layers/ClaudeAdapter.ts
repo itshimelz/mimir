@@ -8271,7 +8271,7 @@ function makeClaudeAdapter(options?: ClaudeAdapterLiveOptions) {
               provider: PROVIDER,
               operation: "forkThread",
               issue:
-                "The source Claude session has no native boundary for the chosen turn; Synara will rebuild the fork from its retained transcript.",
+                "The source Claude session has no native boundary for the chosen turn; Mimir will rebuild the fork from its retained transcript.",
             });
           }
           upToMessageId = boundary.assistantUuid;
@@ -8303,7 +8303,7 @@ function makeClaudeAdapter(options?: ClaudeAdapterLiveOptions) {
               provider: PROVIDER,
               operation: "forkThread",
               issue:
-                "The chosen Claude turn is no longer in the native transcript; Synara will rebuild the fork from its retained transcript.",
+                "The chosen Claude turn is no longer in the native transcript; Mimir will rebuild the fork from its retained transcript.",
             });
           }
           const completedMessages = messages.slice(0, cutoffIndex + 1);

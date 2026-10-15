@@ -72,7 +72,7 @@ export const SETTINGS_NAV_ITEMS: readonly SettingsNavItem[] = (
       id: "general",
       group: "personal",
       label: "General",
-      description: "Choose defaults for new chats, navigation, and the Environment panel.",
+      description: "Choose defaults for new chats and navigation.",
       icon: "settings-gear-4",
       eyebrow: "Workflow defaults",
     },

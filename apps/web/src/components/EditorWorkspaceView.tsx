@@ -19,7 +19,7 @@ import {
   useState,
 } from "react";
 
-import { BookOpenIcon, ChatBubbleIcon, PageTextIcon, SparkleIcon } from "~/lib/icons";
+import { BookOpenIcon, ChatBubbleIcon, SparkleIcon } from "~/lib/icons";
 import {
   useDesktopTopBarTrafficLightGutterClassName,
   useDesktopTopBarWindowControlsGutterClassName,
@@ -49,7 +49,6 @@ import {
 } from "./EditorWorkspaceView.logic";
 import { StudioEmptyState } from "./chat/StudioEmptyState";
 import { Button } from "./ui/button";
-import { Badge } from "./ui/badge";
 import { SidebarHeaderNavigationControls } from "./SidebarHeaderNavigationControls";
 import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import type { ProjectMenuPickerOption } from "./ProjectMenuPicker";
@@ -233,14 +232,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   );
   const selectedStudioOutput =
     props.studioOutputs?.find((entry) => entry.fullPath === selectedStudioOutputPath) ?? null;
-  const activeFilename =
-    surface === "studio"
-      ? selectedStudioOutput?.relativePath
-        ? selectedStudioOutput.relativePath.split("/").pop()
-        : null
-      : props.selectedFilePath
-        ? props.selectedFilePath.split("/").pop()
-        : null;
   // The file preview unmounts in Diff/Edit mode. Keep explicit Markdown choices
   // in the editor shell, scoped to the workspace and file for this session.
   const [markdownPreviewModes, setMarkdownPreviewModes] = useState<ReadonlyMap<string, boolean>>(
@@ -318,19 +309,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   const sidebar = useOptionalSidebar();
   const sidebarOpen = sidebar?.open ?? false;
 
-  const selectedDirectoryPath = useMemo(() => {
-    if (!props.selectedFilePath) return null;
-    const parts = props.selectedFilePath.split("/");
-    parts.pop();
-    return parts.length > 0 ? parts.join("/") : null;
-  }, [props.selectedFilePath]);
-
-  const studioCategory = useMemo(() => {
-    if (!selectedStudioOutput?.relativePath) return null;
-    const parts = selectedStudioOutput.relativePath.split("/");
-    return parts.length > 1 ? parts[0] : null;
-  }, [selectedStudioOutput]);
-
   return (
     <div
       data-editor-workspace
@@ -338,13 +316,13 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     >
       <div
         className={cn(
-          "relative flex shrink-0 items-center justify-between px-2 sm:px-3",
+          "app-top-bar relative flex shrink-0 items-center justify-between px-2 sm:px-3",
           CHAT_SURFACE_HEADER_HEIGHT_CLASS,
           CHAT_SURFACE_HEADER_DIVIDER_CLASS_NAME,
           desktopTopBarWindowControlsGutterClassName,
         )}
       >
-        {/* Left Column: Navigation controls when sidebar collapsed + contextual document breadcrumb */}
+        {/* Left Column: Navigation controls when sidebar collapsed */}
         <div
           className={cn(
             "relative z-10 flex min-w-0 max-w-[calc(50%-110px)] items-center gap-2",
@@ -355,40 +333,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             <SidebarHeaderNavigationControls collapsedGapClassName="-me-2 sm:-me-3" />
           ) : null}
           {!sidebarOpen ? <ApplicationMenuBar className="ms-1 shrink-0" /> : null}
-
-          {surface === "study" ? (
-            props.selectedFilePath ? (
-              <div className="flex min-w-0 items-center gap-1.5 overflow-hidden text-ui-xs">
-                <PageTextIcon className="size-4 shrink-0 text-primary" />
-                <div className="flex min-w-0 items-center gap-1 truncate font-system-ui">
-                  {selectedDirectoryPath ? (
-                    <span className="text-muted-foreground/75 truncate max-w-[8rem] sm:max-w-[12rem]">
-                      {selectedDirectoryPath} /
-                    </span>
-                  ) : null}
-                  <span className="font-semibold text-foreground truncate max-w-[10rem] sm:max-w-[16rem]">
-                    {activeFilename}
-                  </span>
-                </div>
-              </div>
-            ) : null
-          ) : selectedStudioOutput ? (
-            <div className="flex min-w-0 items-center gap-1.5 overflow-hidden text-ui-xs">
-              <SparkleIcon className="size-4 shrink-0 text-primary" />
-              <span className="font-semibold text-foreground truncate max-w-[12rem] sm:max-w-[18rem]">
-                {activeFilename}
-              </span>
-              {studioCategory ? (
-                <Badge variant="secondary" className="text-ui-2xs py-0 px-1.5 font-normal shrink-0">
-                  {studioCategory}
-                </Badge>
-              ) : (
-                <Badge variant="secondary" className="text-ui-2xs py-0 px-1.5 font-normal shrink-0">
-                  Deliverable
-                </Badge>
-              )}
-            </div>
-          ) : null}
         </div>
 
         {/* Center: Segmented Surface Picker (Study vs Studio), placed exactly in the middle of the topbar */}
@@ -574,7 +518,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               collapsible="offcanvas"
               data-sidebar-block-inset=""
               className={cn("text-foreground !h-full", SIDEBAR_OFFCANVAS_MOTION_CLASS)}
-              innerClassName={cn(CHAT_BACKGROUND_CLASS_NAME, "app-study-chat-rail")}
+              innerClassName={CHAT_BACKGROUND_CLASS_NAME}
               gapClassName={SIDEBAR_OFFCANVAS_MOTION_CLASS}
               transparentSurface
               rail={<EditorWorkspaceSeamRail />}

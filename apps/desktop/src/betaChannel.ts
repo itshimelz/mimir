@@ -403,7 +403,7 @@ export async function launchBetaInstall(
   env?: NodeJS.ProcessEnv,
 ): Promise<void> {
   if (!detection.installed || !detection.executablePath) {
-    throw new Error("Synara Beta is not installed");
+    throw new Error("Mimir Beta is not installed");
   }
   const executable =
     platform === "darwin"
@@ -451,16 +451,16 @@ export class DesktopBetaChannel {
   }
 
   /**
-   * Beta side of "Switch back to Synara": opens stable with its own data home.
+   * Beta side of "Switch back to Mimir": opens stable with its own data home.
    * Beta data is never copied back; the caller quits beta once this succeeds.
    */
   async leave(): Promise<DesktopBetaActionResult> {
     if (this.deps.flavor !== "beta") {
-      return action(false, "not-supported", "Switching back is only available from Synara Beta.");
+      return action(false, "not-supported", "Switching back is only available from Mimir Beta.");
     }
     const executable = this.detectStable();
     if (!executable) {
-      return action(false, "not-installed", "Synara isn't installed on this computer.");
+      return action(false, "not-installed", "Mimir isn't installed on this computer.");
     }
     try {
       await spawnDetached(executable, stableLaunchEnvironment(this.deps.env ?? process.env));
@@ -495,11 +495,11 @@ export class DesktopBetaChannel {
   /** Launch beta as-is; refuses only when the install is missing. */
   async launch(): Promise<DesktopBetaActionResult> {
     if (this.deps.flavor !== "production") {
-      return action(false, "not-supported", "Beta handoff is only available from stable Synara.");
+      return action(false, "not-supported", "Beta handoff is only available from stable Mimir.");
     }
     const detection = this.detect();
     if (!detection.installed || !detection.executablePath) {
-      return action(false, "not-installed", "Synara Beta is not installed yet.");
+      return action(false, "not-installed", "Mimir Beta is not installed yet.");
     }
     try {
       await launchBetaInstall(detection, this.deps.platform, this.launchEnv());
@@ -516,7 +516,7 @@ export class DesktopBetaChannel {
   private async ensureInstalled(): Promise<DesktopBetaActionResult> {
     if (this.detect().installed) return action(true);
     if (!this.canInstall) {
-      return action(false, "not-installed", "Synara Beta is not installed yet.");
+      return action(false, "not-installed", "Mimir Beta is not installed yet.");
     }
     this.installInFlight ??= (async () => {
       const install =
@@ -561,7 +561,7 @@ export class DesktopBetaChannel {
    */
   async install(): Promise<DesktopBetaActionResult> {
     if (this.deps.flavor !== "production") {
-      return action(false, "not-supported", "Beta handoff is only available from stable Synara.");
+      return action(false, "not-supported", "Beta handoff is only available from stable Mimir.");
     }
     const installed = await this.ensureInstalled();
     if (!installed.ok) return installed;
@@ -576,19 +576,19 @@ export class DesktopBetaChannel {
    */
   async importAndLaunch(sourceHomeDir: string): Promise<DesktopBetaActionResult> {
     if (this.deps.flavor !== "production") {
-      return action(false, "not-supported", "Beta handoff is only available from stable Synara.");
+      return action(false, "not-supported", "Beta handoff is only available from stable Mimir.");
     }
     const installed = await this.ensureInstalled();
     if (!installed.ok) return installed;
     const detection = this.detect();
     if (!detection.installed || !detection.executablePath) {
-      return action(false, "not-installed", "Synara Beta is not installed yet.");
+      return action(false, "not-installed", "Mimir Beta is not installed yet.");
     }
     if (isBetaServerRunning(this.deps.betaHomeDir)) {
       return action(
         false,
         "beta-running",
-        "Quit Synara Beta first so it can pick up the import on its next launch.",
+        "Quit Mimir Beta first so it can pick up the import on its next launch.",
       );
     }
     try {

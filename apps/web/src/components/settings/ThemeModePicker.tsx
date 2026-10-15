@@ -195,7 +195,7 @@ export function ThemeModePicker({
           >
             <div
               className={cn(
-                "w-full rounded-[14px] border-2 p-[3px] transition-colors motion-reduce:transition-none",
+                "w-full rounded-md border-2 p-[3px] transition-colors motion-reduce:transition-none",
                 "group-focus-visible:ring-2 group-focus-visible:ring-ring/50",
                 isActive
                   ? "border-foreground"

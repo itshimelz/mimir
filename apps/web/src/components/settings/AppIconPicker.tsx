@@ -72,7 +72,7 @@ export function AppIconPicker({
             className={cn(
               // Same selection language as ThemeModePicker: the artwork is the whole
               // control, so no filled tile — just a stroke that appears when selected.
-              "relative grid place-items-center rounded-[14px] border-2 p-[3px] transition-colors motion-reduce:transition-none",
+              "relative grid place-items-center rounded-md border-2 p-[3px] transition-colors motion-reduce:transition-none",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
               "disabled:pointer-events-none",
               selected || applying

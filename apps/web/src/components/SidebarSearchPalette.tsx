@@ -93,7 +93,7 @@ const PALETTE_INPUT_CLASS =
 const PALETTE_GROUP_LABEL_CLASS =
   "flex items-center justify-between px-2.5 pt-2 pb-1 font-normal text-ui-xs text-muted-foreground/70";
 const PALETTE_ITEM_CLASS =
-  "palette-row squircle min-h-[30px] cursor-pointer items-center gap-3 rounded-[20px] px-2.5 py-0 text-foreground data-highlighted:bg-zinc-500/8 data-highlighted:text-foreground sm:min-h-[30px] dark:data-highlighted:bg-zinc-400/10";
+  "palette-row squircle min-h-[30px] cursor-pointer items-center gap-3 rounded-md px-2.5 py-0 text-foreground data-highlighted:bg-zinc-500/8 data-highlighted:text-foreground sm:min-h-[30px] dark:data-highlighted:bg-zinc-400/10";
 const PALETTE_ICON_CLASS = "size-3.5 shrink-0 text-muted-foreground";
 const PALETTE_TEXT_CLASS = "min-w-0 flex-1 truncate text-ui";
 const PALETTE_META_CLASS = "max-w-[45%] shrink-0 truncate text-ui-meta text-muted-foreground/70";
@@ -726,7 +726,7 @@ export function SidebarSearchPalette(props: SidebarSearchPaletteProps) {
 
   return (
     <CommandDialog open={props.open} onOpenChange={props.onOpenChange}>
-      <CommandDialogPopup className="max-w-lg rounded-3xl border-transparent before:rounded-[calc(var(--radius-3xl)-1px)] before:shadow-none dark:before:shadow-none">
+      <CommandDialogPopup className="max-w-lg rounded-md border-transparent before:rounded-[calc(var(--radius-md)-1px)] before:shadow-none dark:before:shadow-none">
         {props.mode === "import" ? (
           <div className="flex flex-col overflow-hidden">
             <div className="border-b border-border/70 px-4 py-3">

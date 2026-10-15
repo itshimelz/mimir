@@ -382,6 +382,8 @@ async function findDesktopFile(
 }
 
 function parseDesktopIconName(content: string): string | null {
+  const xIconMatch = /^X-Icon-Path=(.+)$/m.exec(content);
+  if (xIconMatch?.[1]?.trim()) return xIconMatch[1].trim();
   const match = /^Icon=(.+)$/m.exec(content);
   return match?.[1]?.trim() || null;
 }
@@ -394,10 +396,11 @@ function linuxIconSearchDirs(env: NodeJS.ProcessEnv): string[] {
       ? env.XDG_DATA_DIRS.split(":").filter(Boolean)
       : ["/usr/local/share", "/usr/share"];
   return [
+    "/usr/share/pixmaps",
+    path.join(dataHome, "pixmaps"),
     path.join(dataHome, "icons"),
     path.join(home, ".icons"),
     ...dataDirs.map((dir) => path.join(dir, "icons")),
-    "/usr/share/pixmaps",
   ];
 }
 
@@ -408,9 +411,14 @@ async function findIconByName(iconName: string, env: NodeJS.ProcessEnv): Promise
   let scanned = 0;
   for (const dir of linuxIconSearchDirs(env)) {
     if (!(await directoryExists(dir))) continue;
+    for (const extension of extensions) {
+      const direct = path.join(dir, `${iconName}${extension}`);
+      if (await fileExists(direct)) return direct;
+    }
+
     const pendingDirs = [dir];
     while (pendingDirs.length > 0) {
-      const currentDir = pendingDirs.pop();
+      const currentDir = pendingDirs.shift();
       if (!currentDir) continue;
       const entries = await fs.readdir(currentDir, { withFileTypes: true }).catch(() => []);
       for (const entry of entries) {

@@ -115,7 +115,7 @@ export function RecentViewSwitcher(props: {
                 role="option"
                 aria-selected={selected}
                 className={cn(
-                  "palette-row squircle flex min-h-[30px] items-center gap-3 rounded-[20px] px-2.5 transition-colors",
+                  "palette-row squircle flex min-h-[30px] items-center gap-3 rounded-md px-2.5 transition-colors",
                   selected
                     ? "bg-zinc-500/8 text-foreground dark:bg-zinc-400/10"
                     : "text-foreground",
@@ -131,7 +131,7 @@ export function RecentViewSwitcher(props: {
                   </span>
                 ) : null}
                 {entry.isCurrent ? (
-                  <span className="shrink-0 rounded-full bg-muted px-1.5 text-ui-2xs leading-4 text-muted-foreground">
+                  <span className="shrink-0 rounded-md bg-muted px-1.5 text-ui-2xs leading-4 text-muted-foreground">
                     Current
                   </span>
                 ) : null}

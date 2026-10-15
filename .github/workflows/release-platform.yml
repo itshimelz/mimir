@@ -135,7 +135,7 @@ jobs:
         if: steps.restore_checkpoint.outcome != 'success'
         # Preflight validates the entire workspace. Native artifacts retain all
         # runtime/build dependencies but do not install the unrelated marketing site.
-        run: bun install --frozen-lockfile --ignore-scripts --filter '!@synara/marketing'
+        run: bun install --frozen-lockfile --ignore-scripts --filter '!@mimir/marketing'
 
       - name: Download macOS icon catalog
         if: inputs.platform == 'mac' && steps.restore_checkpoint.outcome != 'success'

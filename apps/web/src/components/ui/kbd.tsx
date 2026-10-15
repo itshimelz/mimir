@@ -51,7 +51,7 @@ function ShortcutKbd({
       aria-label={shortcutLabel}
       {...props}
       className={cn(
-        "h-5 gap-0.5 rounded-full bg-foreground/5 px-2 text-foreground/80 dark:bg-foreground/12",
+        "h-5 gap-0.5 rounded-md bg-foreground/5 px-2 text-foreground/80 dark:bg-foreground/12",
         groupClassName,
         className,
       )}

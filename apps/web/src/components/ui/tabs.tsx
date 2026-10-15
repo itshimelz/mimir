@@ -31,7 +31,7 @@ export const tabsListVariants = cva(
         secondary:
           "h-12 w-full border-b border-border group-data-vertical/tabs:border-b-0 group-data-vertical/tabs:border-r group-data-[orientation=vertical]/tabs:border-b-0 group-data-[orientation=vertical]/tabs:border-r",
         line: "h-12 w-full border-b border-border group-data-vertical/tabs:border-b-0 group-data-vertical/tabs:border-r group-data-[orientation=vertical]/tabs:border-b-0 group-data-[orientation=vertical]/tabs:border-r",
-        segmented: "h-10 w-fit gap-0.5 rounded-lg bg-muted p-1 group-data-vertical/tabs:h-fit",
+        segmented: "h-10 w-fit gap-0.5 rounded-md bg-muted p-1 group-data-vertical/tabs:h-fit",
       },
     },
     defaultVariants: { variant: "default" },

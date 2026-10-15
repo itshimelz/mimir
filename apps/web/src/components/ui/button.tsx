@@ -30,7 +30,7 @@ const buttonVariants = cva(
     },
     variants: {
       shape: {
-        capsule: "rounded-full font-normal",
+        capsule: "rounded-md font-normal",
         round: "rounded-full",
         square: "rounded-md",
         default: "",
@@ -85,7 +85,7 @@ const buttonVariants = cva(
         "primary-outline":
           "border-[color:var(--color-border)] bg-[var(--color-background-elevated-primary-opaque)] text-primary [:hover,[data-pressed]]:border-primary/32 [:hover,[data-pressed]]:bg-primary/4",
         prominent:
-          "rounded-full border-transparent bg-[var(--color-text-foreground)] text-[var(--color-background-surface)] transition-[transform,opacity] duration-150 hover:scale-105 disabled:opacity-20 disabled:hover:scale-100",
+          "rounded-md border-transparent bg-[var(--color-text-foreground)] text-[var(--color-background-surface)] transition-[transform,opacity] duration-150 hover:scale-105 disabled:opacity-20 disabled:hover:scale-100",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [:active,[data-pressed]]:bg-secondary/80 [:hover,[data-pressed]]:bg-secondary/90",
         "secondary-outline":
@@ -107,7 +107,7 @@ const buttonVariants = cva(
         variant: "chrome-outline",
       },
       // Last, so a size's own radius (xs, icon-xs) never squares a capsule off.
-      { class: "rounded-full", shape: "capsule" },
+      { class: "rounded-md", shape: "capsule" },
     ],
   },
 );

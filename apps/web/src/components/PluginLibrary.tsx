@@ -176,7 +176,7 @@ function PluginGlyph({ plugin }: { plugin: ProviderPluginDescriptor }) {
   if (logo && !logoFailed) {
     return (
       <span
-        className="inline-flex size-11 shrink-0 items-center justify-center rounded-[14px] border border-border/60 bg-background"
+        className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background"
         style={accent ? { boxShadow: `0 0 0 0.5px ${accent}25` } : undefined}
       >
         <img
@@ -194,7 +194,7 @@ function PluginGlyph({ plugin }: { plugin: ProviderPluginDescriptor }) {
     const BrandIcon = brand.icon;
     return (
       <span
-        className="inline-flex size-11 shrink-0 items-center justify-center rounded-[14px] border border-border/60 bg-background"
+        className="inline-flex size-11 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background"
         style={accent ? { boxShadow: `0 0 0 0.5px ${accent}25` } : undefined}
       >
         <BrandIcon className="size-5" style={{ color: brand.color }} />
@@ -204,7 +204,7 @@ function PluginGlyph({ plugin }: { plugin: ProviderPluginDescriptor }) {
 
   return (
     <span
-      className="inline-flex size-11 shrink-0 items-center justify-center rounded-[14px]"
+      className="inline-flex size-11 shrink-0 items-center justify-center rounded-md"
       style={style}
     >
       <PluginIcon className="size-5 text-white/80" />
@@ -216,7 +216,7 @@ function SkillGlyph({ skill }: { skill: ProviderSkillDescriptor }) {
   const hue = nameToHue(skill.interface?.displayName ?? skill.name);
   return (
     <span
-      className="inline-flex size-11 shrink-0 items-center justify-center rounded-[14px]"
+      className="inline-flex size-11 shrink-0 items-center justify-center rounded-md"
       style={{
         background: `linear-gradient(145deg, hsl(${hue} 55% 30%), hsl(${hue} 45% 18%))`,
         boxShadow: `0 0 0 0.5px hsl(${hue} 40% 30% / 0.35)`,
@@ -273,7 +273,7 @@ function ProviderToggleButton({
     <button
       type="button"
       className={cn(
-        "inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-ui font-medium transition-colors",
+        "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-ui font-medium transition-colors",
         active
           ? "bg-[var(--color-text-foreground)] text-[var(--color-background-surface)] shadow-xs"
           : "text-muted-foreground hover:bg-[var(--sidebar-accent)] hover:text-foreground",
@@ -574,7 +574,7 @@ export function PluginLibrary(props?: {
         />
       </div>
       <div className="flex-1" />
-      <div className="inline-flex rounded-full border border-border/60 bg-background/60 p-0.5">
+      <div className="inline-flex rounded-md border border-border/60 bg-background/60 p-0.5">
         {enabledProviderOrder.map((provider) => {
           const capabilities = providerCapabilities[provider];
           const label = PROVIDER_DISPLAY_NAMES[provider];

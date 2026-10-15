@@ -84,10 +84,9 @@ describe("EditorWorkspaceView surfaces", () => {
     expect(markup).toContain("syllabus.md");
   });
 
-  it("renders document breadcrumbs and study actions in topbar", () => {
+  it("renders study actions in topbar without topbar document breadcrumbs", () => {
     const markup = renderView({ selectedFilePath: "Inbox/Week1/lecture.pdf" });
-    expect(markup).toContain("Inbox/Week1");
-    expect(markup).toContain("lecture.pdf");
+    expect(markup).not.toContain("Inbox/Week1");
     expect(markup).toContain("Study Chat");
   });
 

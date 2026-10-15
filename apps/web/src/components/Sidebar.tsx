@@ -995,6 +995,11 @@ function SidebarHelpMenu({
                 tooltipSide: "right" as const,
                 iconClassName: APP_RAIL_GLYPH_CLASS_NAME,
                 className: appRailButtonClassName(),
+                children: (
+                  <span className="app-rail-glyph">
+                    <CircleQuestionIcon className={APP_RAIL_GLYPH_CLASS_NAME} />
+                  </span>
+                ),
               }
             : {})}
         />
@@ -1315,7 +1320,7 @@ export function SidebarSurfacePicker({
                 // Base UI radio items keep the menu open by default; this picker is a
                 // one-shot surface switch, so selecting an entry should dismiss it.
                 closeOnClick
-                className="items-center rounded-[10px] data-checked:bg-[var(--color-background-button-secondary-hover)]"
+                className="items-center rounded-md data-checked:bg-[var(--color-background-button-secondary-hover)]"
               >
                 <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <span className="text-ui-lg font-medium leading-none text-foreground">

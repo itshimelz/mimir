@@ -1063,7 +1063,7 @@ export function disableCodexConfigSections(
       : undefined;
     if (enabledValueIndex !== undefined) {
       if (!/^(?:true|false)[\t ]*(?:#.*)?$/.test(line.slice(enabledValueIndex))) {
-        throw new Error("Codex plugin enabled must be a boolean before Synara can disable it.");
+        throw new Error("Codex plugin enabled must be a boolean before Mimir can disable it.");
       }
       output.push("enabled = false");
       targetSectionHasEnabled = true;

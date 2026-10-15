@@ -190,7 +190,7 @@ function FeatureTourSlides({
             variant="ghost"
             size="icon"
             aria-label="Back"
-            className="rounded-[10px]"
+            className="rounded-md"
             onClick={() => setIndex(index - 1)}
           >
             <ChevronLeftIcon />

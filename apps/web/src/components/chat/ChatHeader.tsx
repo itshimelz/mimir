@@ -43,7 +43,6 @@ import { DiffStat } from "../ui/diff-stat";
 import { IconButton } from "../ui/icon-button";
 import { Menu, MenuGroup, MenuGroupLabel, MenuItem, MenuSeparator, MenuTrigger } from "../ui/menu";
 import { ComposerPickerMenuPopup } from "./ComposerPickerMenuPopup";
-import { OpenInPicker } from "./OpenInPicker";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
 import { ApplicationMenuBar } from "../ApplicationMenuBar";
 import { SidebarHeaderNavigationControls } from "../SidebarHeaderNavigationControls";
@@ -68,7 +67,7 @@ import { useOpenFavoriteEditorShortcut } from "~/hooks/useOpenFavoriteEditorShor
 import type { RepoDiffTotals } from "~/hooks/useRepoDiffTotals";
 import { ProviderIcon } from "../ProviderIcon";
 import { ProviderUsageMenuControl } from "../ProviderUsageMenuControl";
-import { EnvironmentToggle, type EnvironmentToggleState } from "./environment/EnvironmentToggle";
+import type { EnvironmentToggleState } from "./environment/EnvironmentToggle";
 import { SurfacePanelToggle, type SurfacePanelToggleState } from "./chatHeaderControls";
 import type { ThreadHandoffTarget } from "~/lib/threadHandoff";
 
@@ -805,57 +804,25 @@ export function ChatHeader({
           />
         ) : null}
 
-        {/* Environment: one button consolidating Open-in-editor and most git actions into
-            the Environment panel. Pull still appears in this action cluster when the
-            branch is behind. The right-side panel control stays beside it, acting as the
-            multi-pane dock toggle on single chats and the legacy diff toggle in split hosts.
-            Falls back to the legacy controls when no environment is resolved. */}
-        {environment ? (
-          <>
-            {/* Actions on the left, panel toggles on the right. */}
-            {hasActionControls ? <ChatHeaderGroupDivider /> : null}
-            <EnvironmentToggle environment={environment} />
-            {projectPanel ? (
-              <SurfacePanelToggle
-                state={projectPanel}
-                icon={WorkflowIcon}
-                ariaLabel="Toggle hub panel"
-                tooltip="Hub"
-              />
-            ) : null}
-            {libraryPanel ? (
-              <SurfacePanelToggle
-                state={libraryPanel}
-                icon={FoldersIcon}
-                ariaLabel="Toggle library panel"
-                tooltip="Library"
-              />
-            ) : null}
-            {rightPanelToggleControl}
-          </>
-        ) : (
-          <>
-            {/* Open in editor: dedicated split-button with an editor switcher; the project
-                action control sits beside it as its own project command surface. */}
-            {!minimalChrome && activeProjectName ? (
-              <OpenInPicker
-                keybindings={keybindings}
-                availableEditors={availableEditors}
-                openInTarget={openInTarget}
-              />
-            ) : null}
-
-            {!minimalChrome && activeProjectName && showGitActions ? (
-              <GitActionsControl
-                gitCwd={gitCwd}
-                activeThreadId={activeThreadId}
-                hideQuickActionLabel={compact}
-                onRegisterCommitAndPushTrigger={onRegisterCommitAndPushTrigger}
-              />
-            ) : null}
-            {rightPanelToggleControl}
-          </>
-        )}
+        {/* Actions on the left, panel toggles on the right. */}
+        {hasActionControls ? <ChatHeaderGroupDivider /> : null}
+        {projectPanel ? (
+          <SurfacePanelToggle
+            state={projectPanel}
+            icon={WorkflowIcon}
+            ariaLabel="Toggle hub panel"
+            tooltip="Hub"
+          />
+        ) : null}
+        {libraryPanel ? (
+          <SurfacePanelToggle
+            state={libraryPanel}
+            icon={FoldersIcon}
+            ariaLabel="Toggle library panel"
+            tooltip="Library"
+          />
+        ) : null}
+        {rightPanelToggleControl}
         {isSplitPane && onCloseThreadPane ? (
           <Tooltip>
             <TooltipTrigger

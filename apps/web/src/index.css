@@ -85,11 +85,11 @@
   --radius-xs: calc(var(--radius) * 0.4);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-lg: calc(var(--radius) * 0.8);
+  --radius-xl: calc(var(--radius) * 0.8);
+  --radius-2xl: calc(var(--radius) * 0.8);
+  --radius-3xl: calc(var(--radius) * 0.8);
+  --radius-4xl: calc(var(--radius) * 0.8);
 
   @keyframes skeleton {
     to {
@@ -133,22 +133,10 @@
        transparent --app-surface-divider used by the internal hairlines/splits) because a
        route's outer edge against the sidebar should read as solid. Do not re-unify these. */
     --seam-line: --alpha(var(--color-black) / 5%);
-
-    /* Ambient shade the editor's study-chat rail carries on its leading edge — the
-       shadow a panel standing on the workspace would cast, turned inward (see
-       "Study-chat rail" below). A gradient rather than an inset shadow: an inset edge
-       shadow's alpha at the very edge is a side effect of its blur/spread arithmetic,
-       and on a near-black surface there is not enough range left for that to register.
-       Ink, so it reads as shade in both themes; light reaches further because it has
-       the room to. */
-    --app-study-chat-rail-shade: --alpha(var(--color-black) / 9%);
-    --app-study-chat-rail-shade-reach: 2rem;
   }
 
   .dark {
     --seam-line: --alpha(var(--color-white) / 5%);
-    --app-study-chat-rail-shade: --alpha(var(--color-black) / 55%);
-    --app-study-chat-rail-shade-reach: 1.75rem;
   }
 }
 
@@ -258,7 +246,7 @@
     --app-rail-inset-border-width: 0.5px;
     --app-rail-inset-border: color-mix(in srgb, black 10%, transparent);
     --app-rail-inset-border-hover: color-mix(in srgb, black 20%, transparent);
-    --app-rail-inset-radius: calc(var(--radius) * 1.3);
+    --app-rail-inset-radius: var(--radius-md, 8px);
     --app-rail-inset-gap: 3px;
   }
 
@@ -316,8 +304,18 @@
   .app-rail-glyph {
     position: relative;
     z-index: 1;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  .app-rail-glyph > svg,
+  .app-rail-glyph > [data-slot="central-icon"],
+  .app-rail-glyph > * {
+    width: 1.25rem !important;
+    height: 1.25rem !important;
   }
 
   /* The unread marker dot at the top-right */
@@ -587,7 +585,7 @@
   /* Depth of the fade where scrolling content meets an edge (transcript, sidebar
      panel, ScrollArea `scrollFade`). */
   --scroll-edge-fade-size: 1.5rem;
-  --radius-user-message: 1rem;
+  --radius-user-message: var(--radius-md, 8px);
   --font-ui-family: var(
     --theme-font-ui-family,
     -apple-system,
@@ -1236,7 +1234,7 @@ label:has(> select#reasoning-effort) select {
 .chat-markdown pre {
   max-width: 100%;
   overflow-x: auto;
-  border-radius: 1rem;
+  border-radius: var(--radius-md, 8px);
   background: var(--app-chat-code-surface);
   padding: 0.5rem 0.6rem;
   font-family: var(--font-chat-code-family);
@@ -1254,7 +1252,7 @@ label:has(> select#reasoning-effort) select {
 .chat-markdown .chat-markdown-codeblock {
   margin: 0.65rem 0;
   overflow: hidden;
-  border-radius: 0.65rem;
+  border-radius: var(--radius-md, 8px);
   background: var(--app-chat-code-surface);
 }
 
@@ -1614,7 +1612,7 @@ label:has(> select#reasoning-effort) select {
   gap: 0.5rem;
   padding: 0.75rem 0.875rem;
   border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
-  border-radius: 0.875rem;
+  border-radius: var(--radius-md, 8px);
   background: var(--color-background-elevated-primary-opaque);
   /* The box lives inside the file viewer, which sets the monospace code font on
      its content; reset to the normal UI font so the comment chrome reads as app
@@ -1868,7 +1866,7 @@ label:has(> select#reasoning-effort) select {
   min-height: 0;
   gap: 0.6rem;
   padding: 0.6rem 0.75rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md, 8px);
   border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
   background: color-mix(in srgb, var(--muted) 35%, transparent);
 }
@@ -2056,7 +2054,7 @@ label:has(> select#reasoning-effort) select {
   margin: 0;
   border: 0;
   padding: 0;
-  border-radius: 0.85rem;
+  border-radius: var(--radius-md, 8px);
   overflow: hidden;
   background: color-mix(in srgb, var(--muted) 55%, transparent);
   cursor: zoom-in;
@@ -3022,7 +3020,7 @@ diffs-container {
 /* Composer shell/surface corner geometry — single source of truth so radius
    tweaks are not split across Tailwind utilities (and HMR cannot leave stale rules). */
 :root {
-  --composer-radius: 1.2rem;
+  --composer-radius: var(--radius-md, 8px);
 }
 
 .chat-composer-shell,
@@ -3281,32 +3279,15 @@ diffs-container {
 }
 
 /* ─── Study-chat rail (editor view) ───────────────────────────────────────────────────
-   The rail is a panel standing on the course workspace, not another column of it, and the
-   two were sharing one flat sheet. Three cues give the panel its depth:
-
+   The rail is a panel standing on the course workspace, not another column of it.
    1. The seam itself — a `--seam-line` stroke on the panel's leading edge, painted by
       EditorWorkspaceSeamRail at the same weight the sidebar↔route content seam uses, so
       the window's two outer edges agree, and so hover and drag can widen it in place.
-   2. The shadow that panel would cast on the workspace, turned inward. The panel's surface
-      is the shared content material with no room for an outward `box-shadow` (everything
-      outside its leading edge is the workspace's, not the panel's), so the falloff runs
-      into the panel's own edge instead: ambient shade is what the eye reads as one plane
-      standing above another.
-   3. A chrome band across the rail's top (below), so the rail's upper edge reads as a bar
+   2. A chrome band across the rail's top (below), so the rail's upper edge reads as a bar
       rather than as the transcript starting at the window's edge.
 
    The rail keeps the shared content surface — its composer, code blocks, and panels are all
-   tuned against that one material — so depth comes from the edges, never from a fill that
-   would invert the stack of surfaces inside it. */
-[data-sidebar-layout="rail"]
-  [data-slot="sidebar"][data-side="right"]
-  [data-slot="sidebar-inner"].app-study-chat-rail {
-  background-image: linear-gradient(
-    to right,
-    var(--app-study-chat-rail-shade),
-    transparent var(--app-study-chat-rail-shade-reach)
-  );
-}
+   tuned against that one material. */
 
 /* The rail's chat header is NOT on the shell band the way a route header is — it sits a
    row below the window's top bar, inside the block — so it keeps a band of its own in the

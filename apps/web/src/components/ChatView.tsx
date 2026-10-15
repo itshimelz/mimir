@@ -285,7 +285,6 @@ import { RenameThreadDialog } from "./RenameThreadDialog";
 import { hasUnseenSnoozeReturn } from "./Sidebar.logic";
 import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import { SidebarHeaderNavigationControls } from "./SidebarHeaderNavigationControls";
-import { useOptionalSidebar } from "./ui/sidebar";
 import { SynaraLogo } from "./SynaraLogo";
 import { SponsorLandingBanner } from "./SponsorLandingBanner";
 import {
@@ -3174,10 +3173,8 @@ export default function ChatView({
   // or hides the side panel only when this thread already has a pane to show.
   const rightDockOpen = useRightDockStore((store) => selectRightDockState(threadId)(store).open);
   const isMobileViewport = useIsMobile();
-  // Temporary threads are visually identical to regular chats — they use the same
-  // Environment panel + header controls. "Temporary" is purely a sidebar badge +
-  // auto-delete-on-leave concern, never a stripped-down chat UI.
-  const environmentEnabled = !isEditorRail && !hideHeader;
+  // Environment panel is completely hidden from the UI per user request.
+  const environmentEnabled = false;
   const environmentUsesFloatingOverlay =
     isTerminalEnvironmentContext || isMobileViewport || rightDockOpen || surfaceMode === "split";
   const environmentDefaultOpen = resolveDefaultEnvironmentPanelOpen({
@@ -3222,8 +3219,9 @@ export default function ChatView({
     environmentEnabled,
     environmentPanelOpen,
   });
+  const panelsEnabled = !isEditorRail && !hideHeader;
   const projectPanelEnabled = resolveProjectPanelEnabled({
-    environmentEnabled,
+    environmentEnabled: panelsEnabled,
     isGroupContainer,
   });
   // Group chats default to the Groups panel — a newly created group's
@@ -5697,7 +5695,7 @@ export default function ChatView({
       ? { onCheckoutPullRequestRequest: openPullRequestDialog }
       : {}),
   };
-  const showTrailingBranchToolbar = !activeThreadIsSidechat && isGitRepo && !environmentEnabled;
+  const showTrailingBranchToolbar = false;
   const showEmptyLandingBranchToolbar =
     isCenteredEmptyLanding && activeProject?.kind === "project" && !isHomeChatContainer;
   // Temporary is chosen while starting a chat. Draft metadata covers local reloads;

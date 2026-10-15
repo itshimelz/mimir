@@ -844,14 +844,13 @@ describe("wsNativeApi", () => {
 
     expect(api.browser.vault).toBeUndefined();
 
-    expect(showContextMenu).toHaveBeenCalledWith(
+    expect(showContextMenuFallbackMock).toHaveBeenCalledWith(
       [
         { id: "rename", label: "Rename thread" },
         { id: "delete", label: "Delete", separatorBefore: true, destructive: true },
       ],
       { x: 200, y: 300 },
     );
-    expect(withNativeMenuIconsMock).not.toHaveBeenCalled();
   });
 
   it("rasterizes context menu icons for the macOS desktop bridge", async () => {
@@ -875,14 +874,9 @@ describe("wsNativeApi", () => {
       { x: 200, y: 300 },
     );
 
-    expect(showContextMenu).toHaveBeenCalledWith(
+    expect(showContextMenuFallbackMock).toHaveBeenCalledWith(
       [
-        {
-          id: "rename",
-          label: "Rename thread",
-          icon: "pencil",
-          iconDataUrl: "data:image/png;base64,pencil",
-        },
+        { id: "rename", label: "Rename thread", icon: "pencil" },
         { id: "copy-thread-id", label: "Copy Thread ID" },
       ],
       { x: 200, y: 300 },

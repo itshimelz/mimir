@@ -65,8 +65,7 @@ import { showConfirmDialogFallback } from "./confirmDialogFallback";
 import { TASKS_OFFERED_BY_BUILD } from "./tasksSurface";
 import { showContextMenuFallback } from "./contextMenuFallback";
 import { requireHttpExternalUrl } from "./lib/externalUrl";
-import { withNativeMenuIcons } from "./lib/nativeMenuIcons";
-import { isMacNavigatorPlatform } from "./lib/utils";
+
 import { WsTransport, type WsThreadStreamFailure, type WsShellStreamFailure } from "./wsTransport";
 import { emitWsCompatibilityIssue, emitWsTransportState } from "./wsTransportEvents";
 import { resolveWsHttpUrl } from "./lib/wsHttpUrl";
@@ -728,11 +727,8 @@ export function createWsNativeApi(): NativeApi {
         items: readonly ContextMenuItem<T>[],
         position?: { x: number; y: number },
       ): Promise<T | null> => {
-        if (window.desktopBridge) {
-          // Native icons are macOS-only; other platforms keep the plain menu.
-          const desktopItems = isMacNavigatorPlatform() ? await withNativeMenuIcons(items) : items;
-          return window.desktopBridge.showContextMenu(desktopItems, position);
-        }
+        // Use the in-app context menu component on every platform, including the
+        // desktop app, instead of the native OS context menu.
         return showContextMenuFallback(items, position);
       },
     },

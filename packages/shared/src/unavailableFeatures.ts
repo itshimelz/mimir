@@ -60,6 +60,15 @@ export const PULL_REQUESTS_UNAVAILABLE_FEATURE = "pull-requests";
 export const KANBAN_UNAVAILABLE_FEATURE = "kanban";
 export const TASKS_UNAVAILABLE_FEATURE = "tasks";
 
+/**
+ * The Stable app's "Mimir Beta" card in Settings → General
+ * (apps/web/src/components/settings/DesktopSettingsPanels.tsx). Withheld because
+ * Mimir does not offer the Beta channel; the card only points at a second app.
+ * The Beta flavor keeps its own status card and its action to return to Mimir.
+ * Delete the entry to restore the card.
+ */
+export const BETA_CHANNEL_UNAVAILABLE_FEATURE = "beta-channel";
+
 export const UNAVAILABLE_FEATURES: readonly string[] = [
   FEEDBACK_UNAVAILABLE_FEATURE,
   SHARE_CARD_UNAVAILABLE_FEATURE,
@@ -71,6 +80,7 @@ export const UNAVAILABLE_FEATURES: readonly string[] = [
   PULL_REQUESTS_UNAVAILABLE_FEATURE,
   KANBAN_UNAVAILABLE_FEATURE,
   TASKS_UNAVAILABLE_FEATURE,
+  BETA_CHANNEL_UNAVAILABLE_FEATURE,
 ];
 
 /**

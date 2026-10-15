@@ -11,6 +11,10 @@ import {
   type ResolvedKeybindingsConfig,
 } from "@synara/contracts";
 import { appSnapShortcutLabels } from "@synara/shared/appSnapShortcut";
+import {
+  BETA_CHANNEL_UNAVAILABLE_FEATURE,
+  isFeatureAvailable,
+} from "@synara/shared/unavailableFeatures";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -728,6 +732,10 @@ export function BetaChannelSettingsPanel({ active }: { readonly active: boolean 
   }
 
   if (state.flavor !== "production") return null;
+
+  // Mimir withholds the Beta handoff card (see unavailableFeatures.ts); the
+  // Beta flavor's own status card above is unaffected.
+  if (!isFeatureAvailable(BETA_CHANNEL_UNAVAILABLE_FEATURE)) return null;
 
   return (
     <SettingsCard divided={false} className="px-4 py-3.5">

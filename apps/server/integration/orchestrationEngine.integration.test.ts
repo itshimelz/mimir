@@ -28,6 +28,10 @@ import type {
   CheckpointDiffFinalizedReceipt,
   TurnProcessingQuiescedReceipt,
 } from "../src/orchestration/Services/RuntimeReceiptBus.ts";
+import {
+  courseWorkspaceInstructionText,
+  DEFAULT_LEARNER_ROLE,
+} from "../src/studioWorkspaceScaffold.ts";
 import * as NodeServices from "@effect/platform-node/NodeServices";
 
 const asMessageId = (value: string): MessageId => MessageId.makeUnsafe(value);
@@ -257,7 +261,18 @@ it.live("runs a single turn end-to-end and persists checkpoint state in sqlite +
       assert.equal(checkpointRows.length, 1);
       assert.equal(checkpointRows[0]?.checkpointTurnCount, 1);
       assert.equal(checkpointRows[0]?.status, "ready");
-      assert.deepEqual(checkpointRows[0]?.files, []);
+      // Mimir prepares the course workspace layout on a thread's first real turn, so
+      // the two agent-instruction files it writes are already on disk when the
+      // checkpoint commits. They are the app's files rather than the agent's, but a
+      // checkpoint records whatever changed in the working tree, so they are listed
+      // here as this turn's additions.
+      assert.deepEqual(
+        checkpointRows[0]?.files.map((file) => ({ path: file.path, kind: file.kind })),
+        [
+          { path: "AGENTS.md", kind: "added" },
+          { path: "CLAUDE.md", kind: "added" },
+        ],
+      );
 
       const ref0 = checkpointRefForThreadTurn(THREAD_ID, 0);
       const ref1 = checkpointRefForThreadTurn(THREAD_ID, 1);
@@ -265,6 +280,11 @@ it.live("runs a single turn end-to-end and persists checkpoint state in sqlite +
       assert.equal(gitRefExists(harness.workspaceDir, ref1), true);
       assert.equal(gitShowFileAtRef(harness.workspaceDir, ref0, "README.md"), "v1\n");
       assert.equal(gitShowFileAtRef(harness.workspaceDir, ref1, "README.md"), "v1\n");
+      // The checkpoint carries Mimir's scaffold text verbatim; the agent never wrote
+      // these files, which is why their contents are not turn output.
+      const scaffoldText = courseWorkspaceInstructionText(DEFAULT_LEARNER_ROLE);
+      assert.equal(gitShowFileAtRef(harness.workspaceDir, ref1, "AGENTS.md"), scaffoldText);
+      assert.equal(gitShowFileAtRef(harness.workspaceDir, ref1, "CLAUDE.md"), scaffoldText);
     }),
   ),
 );

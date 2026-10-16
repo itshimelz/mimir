@@ -194,6 +194,7 @@ describe("TerminalManager", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllEnvs();
     for (const dir of tempDirs.splice(0, tempDirs.length)) {
       fs.rmSync(dir, { recursive: true, force: true });
     }
@@ -1531,6 +1532,11 @@ describe("TerminalManager", () => {
   });
 
   it("retries with fallback shells when preferred shell spawn fails", async () => {
+    // Pin $SHELL so the fallback chain does not depend on the developer's login
+    // shell: the second candidate *is* the ambient shell, and a machine whose
+    // $SHELL is not one of the names asserted below would fail this test even
+    // though the retry worked.
+    vi.stubEnv("SHELL", "/bin/bash");
     const { manager, ptyAdapter } = makeManager(5, {
       shellResolver: () => "/definitely/missing-shell -l",
     });

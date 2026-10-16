@@ -7703,6 +7703,16 @@ describe("ProviderCommandReactor", () => {
         expect(
           harness.sendTurn.mock.calls.filter(([request]) => request.threadId === threadId),
         ).toHaveLength(0);
+        // The skip activity and the session error are separate engine writes, and the
+        // activity lands first. Poll for the session error rather than reading it the
+        // instant the activity appears, which raced on an unloaded machine.
+        await waitFor(async () =>
+          ((await readHarnessThread(harness))?.session?.lastError ?? "").includes(
+            PROVIDER_DELIVERY_BLOCK_SUMMARY,
+          ),
+        ).catch((error) => {
+          throw new Error("quarantined session error missing", { cause: error });
+        });
         expect((await readHarnessThread(harness))?.session?.lastError).toContain(
           PROVIDER_DELIVERY_BLOCK_SUMMARY,
         );

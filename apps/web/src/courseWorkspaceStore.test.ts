@@ -23,6 +23,7 @@ describe("courseWorkspaceStore", () => {
     useCourseWorkspaceStore.setState({
       activeCourseId: null,
       recentThreadIdByCourse: {},
+      coursePickerRequested: false,
     });
   });
 
@@ -128,6 +129,24 @@ describe("courseWorkspaceStore", () => {
 
       useCourseWorkspaceStore.getState().clearActiveCourse();
       expect(useCourseWorkspaceStore.getState().activeCourseId).toBeNull();
+    });
+
+    it("stands the picker request down once a course is chosen", () => {
+      const courseId = ProjectId.makeUnsafe("course-chemistry");
+      useCourseWorkspaceStore.getState().setActiveCourseId(courseId);
+      useCourseWorkspaceStore.getState().clearActiveCourse();
+      // Switch Course asks for the picker, so the "/" landing must not reopen a course.
+      expect(useCourseWorkspaceStore.getState().coursePickerRequested).toBe(true);
+
+      useCourseWorkspaceStore.getState().setActiveCourseId(courseId);
+      expect(useCourseWorkspaceStore.getState().activeCourseId).toBe(courseId);
+      expect(useCourseWorkspaceStore.getState().coursePickerRequested).toBe(false);
+    });
+
+    it("keeps the picker request out of persisted state", () => {
+      useCourseWorkspaceStore.getState().clearActiveCourse();
+      const persisted = JSON.parse(localStorageEntries.get(COURSE_WORKSPACE_STORAGE_KEY)!);
+      expect(persisted).not.toHaveProperty("coursePickerRequested");
     });
 
     it("reconciles removed courses and dead threads", () => {

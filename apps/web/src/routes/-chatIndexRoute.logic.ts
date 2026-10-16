@@ -1,8 +1,8 @@
 // FILE: chatIndexRoute.logic.ts
-// Purpose: The "/" landing's restore policy — which remembered thread route the home-chat
-//          surface may reopen, and under which Space.
+// Purpose: The "/" landing's policy — which course a launch opens, and which remembered
+//          thread route the home-chat surface may reopen, and under which Space.
 // Layer: Route UI logic helpers
-// Exports: home-chat restore-route resolution.
+// Exports: launch-course resolution, home-chat restore-route resolution.
 
 import type {
   ProjectAgentSummary,
@@ -157,4 +157,26 @@ export function resolveChatIndexRestoreRoute(input: {
   }
 
   return restorableRoute;
+}
+
+/**
+ * The course the "/" landing opens when none is bound yet (a first launch, or a course
+ * removed underneath the app). Most recently updated wins, then most recently created, then
+ * whatever order the snapshot lists; a launch that opens this course lands on its Today
+ * view instead of the picker. Null means the workspace has no courses to open.
+ */
+export function resolveChatIndexLaunchCourseId(
+  courses: ReadonlyArray<Pick<Project, "id" | "createdAt" | "updatedAt">>,
+): ProjectId | null {
+  let launchCourse: Pick<Project, "id" | "createdAt" | "updatedAt"> | null = null;
+  let launchCourseRecency = "";
+  for (const course of courses) {
+    const recency = course.updatedAt ?? course.createdAt ?? "";
+    // Strict: courses with the same recency keep the snapshot's order.
+    if (launchCourse === null || recency > launchCourseRecency) {
+      launchCourse = course;
+      launchCourseRecency = recency;
+    }
+  }
+  return launchCourse?.id ?? null;
 }

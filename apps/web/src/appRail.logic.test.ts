@@ -71,7 +71,7 @@ describe("rail item order", () => {
         studioAvailable: false,
         inboxAvailable: false,
       }),
-    ).toEqual(["chats", "home", "automations"]);
+    ).toEqual(["home", "chats", "automations"]);
     expect(
       buildRailItemOrder({
         order,
@@ -90,7 +90,7 @@ describe("rail item order", () => {
     const academicDefaults = { studioAvailable: false, inboxAvailable: false };
     expect(
       RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, academicDefaults)),
-    ).toEqual(["spaces", "chats", "home", "automations"]);
+    ).toEqual(["home", "spaces", "chats", "automations"]);
     expect(isRailItemAvailable("inbox", { studioAvailable: false, inboxAvailable: true })).toBe(
       true,
     );

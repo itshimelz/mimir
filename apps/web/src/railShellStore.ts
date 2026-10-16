@@ -22,9 +22,14 @@ interface PersistedRailShellState {
   spacesProjectId: ProjectId | null;
 }
 
+/**
+ * The rail opens on Today: it is the panel a student checks first, and the view a launch
+ * binds to a course (see _chat.index.tsx). Courses and Chats keep their stored positions
+ * for anyone who already ordered the rail.
+ */
 const DEFAULT_RAIL_SHELL_STATE: PersistedRailShellState = {
-  activeItem: "spaces",
-  panelView: "spaces",
+  activeItem: "home",
+  panelView: "home",
   spacesProjectId: null,
 };
 
@@ -40,7 +45,9 @@ function readPersisted(): PersistedRailShellState {
     const parsed = JSON.parse(
       window.sessionStorage.getItem(STORAGE_KEY) ?? "null",
     ) as Partial<PersistedRailShellState> | null;
-    const panelView = isRailPanelItemId(parsed?.panelView) ? parsed.panelView : "spaces";
+    const panelView = isRailPanelItemId(parsed?.panelView)
+      ? parsed.panelView
+      : DEFAULT_RAIL_SHELL_STATE.panelView;
     return {
       // The active item is re-derived from the route on mount (reconcile), so only a
       // valid panel item is worth restoring here.

@@ -42,12 +42,13 @@ export type RailItemId = RailPanelItemId | RailRouteItemId;
 
 /**
  * Rail items the user orders and hides from Customize. Settings stays pinned at the bottom;
- * developer-only surfaces start hidden in the learning workspace.
+ * developer-only surfaces start hidden in the learning workspace. Today leads: it is the
+ * view a launch opens on (see railShellStore), and Courses follows it.
  */
 export const RAIL_ORDERABLE_ITEM_IDS = [
+  "home",
   "spaces",
   "chats",
-  "home",
   "inbox",
   "kanban",
   "tasks",

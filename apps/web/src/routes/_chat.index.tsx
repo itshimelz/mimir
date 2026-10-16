@@ -1,11 +1,13 @@
 // FILE: _chat.index.tsx
 // Purpose: Single-course workspace entry and restoration landing for Mimir.
-//          Binds "/" to the active course, restores the course-scoped recent thread,
-//          or presents the CourseWorkspaceHome / CoursePickerLanding.
+//          Opens the most recent course on its Today view when no course is bound, binds "/"
+//          to the active course, restores the course-scoped recent thread, or presents the
+//          CourseWorkspaceHome / CoursePickerLanding.
 // Layer: Routing
 
 import { SpaceId, type ProjectId } from "@synara/contracts";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 
 import { CoursePickerLanding } from "../components/CoursePickerLanding";
 import { CourseWorkspaceHome } from "../components/CourseWorkspaceHome";
@@ -24,7 +26,11 @@ import { VOID_SPACE_KEY } from "../lib/spaceGrouping";
 import { resolveSplitViewThreadIds, useSplitViewStore } from "../splitViewStore";
 import { EMPTY_THREAD_IDS, useStore } from "../store";
 import { useWorkspacePathsStore } from "../workspacePathsStore";
-import { resolveChatIndexRestoreRoute, type ChatIndexLandingSpace } from "./-chatIndexRoute.logic";
+import {
+  resolveChatIndexLaunchCourseId,
+  resolveChatIndexRestoreRoute,
+  type ChatIndexLandingSpace,
+} from "./-chatIndexRoute.logic";
 
 export interface ChatIndexSearch {
   readonly space?: string | undefined;
@@ -56,19 +62,43 @@ function ChatIndexRouteView() {
   const recentThreadIdByCourse = useCourseWorkspaceStore((state) => state.recentThreadIdByCourse);
   const clearActiveCourse = useCourseWorkspaceStore((state) => state.clearActiveCourse);
   const setActiveCourseId = useCourseWorkspaceStore((state) => state.setActiveCourseId);
+  const coursePickerRequested = useCourseWorkspaceStore((state) => state.coursePickerRequested);
 
-  // 1. If hydration has not completed yet, show the splash screen
-  if (!threadsHydrated) {
-    return <SplashScreen />;
-  }
-
-  // 2. Resolve active course from projects
+  // 1. The bound course is only usable while the snapshot still lists it: a course that was
+  //    deleted, or a binding restored from an older profile, leaves nothing to show.
   const activeCourse = activeCourseId
     ? (projects.find((p) => p.id === activeCourseId) ?? null)
     : null;
 
-  // 3. If there is no valid active course selected, show the course picker landing
-  if (!activeCourse) {
+  // 2. A launch with no course to show opens the most recent one, on its Today view, instead
+  //    of the picker. A workspace with no courses at all — or a course the user just switched
+  //    away from — still lands on the picker.
+  const autoCourseId =
+    activeCourse === null && !coursePickerRequested
+      ? resolveChatIndexLaunchCourseId(projects)
+      : null;
+  // Latched for as long as this mount lives: binding the course must not hand the landing to
+  // the restored-thread policy below on the next render. Coming back to "/" is a new mount, so
+  // a later visit restores the remembered thread again.
+  const [autoOpenedCourseHome, setAutoOpenedCourseHome] = useState(false);
+
+  useEffect(() => {
+    if (autoCourseId === null) return;
+    setActiveCourseId(autoCourseId);
+    setAutoOpenedCourseHome(true);
+  }, [autoCourseId, setActiveCourseId]);
+
+  // 3. If hydration has not completed yet, show the splash screen
+  if (!threadsHydrated) {
+    return <SplashScreen />;
+  }
+
+  // 4. The course this landing shows: the bound one, or the one this launch opened.
+  const landingCourse =
+    activeCourse ?? (autoCourseId ? (projects.find((p) => p.id === autoCourseId) ?? null) : null);
+
+  // 5. If there is no course to open, show the course picker landing
+  if (!landingCourse) {
     return (
       <CoursePickerLanding
         onCourseSelected={(courseId) => {
@@ -89,11 +119,11 @@ function ChatIndexRouteView() {
     });
   };
 
-  // 4. If user explicitly navigated to Course Home (?home=true), show CourseWorkspaceHome
-  if (searchHome) {
+  // 6. Today: asked for explicitly (?home=true), or the view this launch opened the course on.
+  if (searchHome === true || autoOpenedCourseHome) {
     return (
       <CourseWorkspaceHome
-        course={activeCourse}
+        course={landingCourse}
         onStartStudySession={handleStartStudySession}
         onSwitchCourse={clearActiveCourse}
         onOpenEditor={handleOpenEditor}
@@ -101,7 +131,7 @@ function ChatIndexRouteView() {
     );
   }
 
-  // 5. Normal route landing: attempt to restore the course-scoped recent thread.
+  // 7. Normal route landing: attempt to restore the course-scoped recent thread.
   //    If no thread exists in this course, fallback to CourseWorkspaceHome.
   const workspacePaths = { homeDir, chatWorkspaceRoot, studioWorkspaceRoot, groupsWorkspaceRoot };
   const groupProjectIds = collectGroupProjectIds(projects, workspacePaths);
@@ -122,7 +152,7 @@ function ChatIndexRouteView() {
           workspacePaths,
         };
 
-  const courseRecentThreadId = recentThreadIdByCourse[activeCourse.id];
+  const courseRecentThreadId = recentThreadIdByCourse[landingCourse.id];
   const courseRecentThreadRoute = courseRecentThreadId ? { threadId: courseRecentThreadId } : null;
 
   const resolveRestoreRoute: RestoreRouteResolver = ({ availableSplitViewIds }) => {
@@ -134,7 +164,7 @@ function ChatIndexRouteView() {
     const resolved = resolveChatIndexRestoreRoute({
       lastThreadRoute,
       courseRecentThreadRoute,
-      selectedCourseId: activeCourse.id,
+      selectedCourseId: landingCourse.id,
       availableSplitViewIds,
       threadIds,
       sidebarThreadSummaryById,
@@ -161,7 +191,7 @@ function ChatIndexRouteView() {
       resolveRestoreRoute={resolveRestoreRoute}
       fallbackContent={
         <CourseWorkspaceHome
-          course={activeCourse}
+          course={landingCourse}
           onStartStudySession={handleStartStudySession}
           onSwitchCourse={clearActiveCourse}
           onOpenEditor={handleOpenEditor}

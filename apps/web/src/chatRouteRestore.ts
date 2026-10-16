@@ -77,7 +77,9 @@ export function lastThreadRouteSearch(route: LastThreadRoute): {
 } {
   return {
     ...(route.splitViewId ? { splitViewId: route.splitViewId } : {}),
-    view: route.view ?? "editor",
+    // Absent means the student was last on chat; forcing `editor` here would send a
+    // chat-heavy restart into the workspace.
+    ...(route.view ? { view: route.view } : {}),
   };
 }
 

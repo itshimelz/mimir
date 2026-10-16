@@ -29,8 +29,8 @@ describe("parseStoredThemeState", () => {
   it.each([null, undefined, ""])("uses Synara for an absent stored theme (%j)", (raw) => {
     const state = parseStoredThemeState(raw);
     expect(state.codeThemeIds).toEqual({ dark: "synara", light: "synara" });
-    expect(state.chromeThemes.dark.accent).toBe("#f2612d");
-    expect(state.chromeThemes.light.accent).toBe("#c74614");
+    expect(state.chromeThemes.dark.accent).toBe("#cbbeff");
+    expect(state.chromeThemes.light.accent).toBe("#6341d9");
     expect(state.mode).toBe("system");
   });
 
@@ -78,7 +78,7 @@ describe("parseStoredThemeState", () => {
     const saved = parseStoredThemeState("dark");
     const reset = resetThemeVariant(saved, "dark");
     expect(reset.codeThemeIds).toEqual({ dark: "synara", light: "codex" });
-    expect(reset.chromeThemes.dark.accent).toBe("#f2612d");
+    expect(reset.chromeThemes.dark.accent).toBe("#cbbeff");
     expect(reset.chromeThemes.light).toEqual(saved.chromeThemes.light);
     expect(reset.mode).toBe("dark");
   });
@@ -311,6 +311,9 @@ describe("code theme seeds", () => {
       theme: {
         ...DEFAULT_THEME_STATE.chromeThemes.dark,
         accent: getCodeThemeSeed("lobster", "dark").accent,
+        // Only Mimir's seed pins the chrome plane, so selecting another pack
+        // drops the previous pack's pin and returns to the derived plane.
+        chromeSurface: null,
         contrast: 22,
         fonts: {
           code: '"JetBrains Mono"',
@@ -366,8 +369,10 @@ describe("chromeSurface override", () => {
 
   it("leaves every other pack on the derived chrome plane", () => {
     // Only Mimir pins it; the rest of the catalog must render exactly as before.
+    // The fixture needs both variants: a pack with only a dark seed would leave
+    // the light state on Mimir's plane and prove nothing.
     for (const variant of ["light", "dark"] as const) {
-      const tokens = buildResolvedThemeTokens(packWith("nord", variant), variant);
+      const tokens = buildResolvedThemeTokens(packWith("notion", variant), variant);
       expect(tokens.computed.surfaceUnder).not.toBe(variant === "light" ? "#f5f2fc" : "#13131a");
     }
   });

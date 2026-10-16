@@ -6,6 +6,7 @@ import { Command } from "effect/unstable/cli";
 import {
   getBooleanFlagValue,
   optionalBooleanEnvironmentConfig,
+  optionalBooleanEnvironmentConfigWithFallback,
   optionalBooleanFlag,
   resolveBooleanConfig,
 } from "./cli";
@@ -47,6 +48,29 @@ it.effect("keeps missing boolean environment values optional but rejects malform
     assert.equal(yield* config.parse(ConfigProvider.fromEnv({ env: { FEATURE: "0" } })), false);
     const invalid = yield* Effect.exit(
       config.parse(ConfigProvider.fromEnv({ env: { FEATURE: "sometimes" } })),
+    );
+    assert.equal(invalid._tag, "Failure");
+  }),
+);
+
+it.effect("reads a boolean from the current name before the legacy name", () =>
+  Effect.gen(function* () {
+    const config = optionalBooleanEnvironmentConfigWithFallback("FEATURE", "LEGACY_FEATURE");
+    assert.equal(yield* config.parse(ConfigProvider.fromEnv({ env: {} })), undefined);
+    assert.equal(
+      yield* config.parse(ConfigProvider.fromEnv({ env: { LEGACY_FEATURE: "true" } })),
+      true,
+    );
+    // The current name wins when both are set, so a stale legacy value cannot
+    // override the documented variable.
+    assert.equal(
+      yield* config.parse(
+        ConfigProvider.fromEnv({ env: { FEATURE: "false", LEGACY_FEATURE: "true" } }),
+      ),
+      false,
+    );
+    const invalid = yield* Effect.exit(
+      config.parse(ConfigProvider.fromEnv({ env: { LEGACY_FEATURE: "sometimes" } })),
     );
     assert.equal(invalid._tag, "Failure");
   }),

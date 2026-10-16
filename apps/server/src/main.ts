@@ -27,7 +27,7 @@ import {
   MIGRATION_RUNTIME_SOURCE_DIGEST_ENV,
 } from "@synara/shared/migrationRecovery";
 import {
-  optionalBooleanEnvironmentConfig,
+  optionalBooleanEnvironmentConfigWithFallback,
   optionalBooleanFlag,
   resolveBooleanConfig,
   type BooleanFlagInput,
@@ -197,12 +197,11 @@ const CliEnvConfig = Config.all({
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  allowInsecureRemote: optionalBooleanEnvironmentConfig("MIMIR_ALLOW_INSECURE_REMOTE").pipe(
-    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_ALLOW_INSECURE_REMOTE")),
+  allowInsecureRemote: optionalBooleanEnvironmentConfigWithFallback(
+    "MIMIR_ALLOW_INSECURE_REMOTE",
+    "SYNARA_ALLOW_INSECURE_REMOTE",
   ),
-  noBrowser: optionalBooleanEnvironmentConfig("MIMIR_NO_BROWSER").pipe(
-    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_NO_BROWSER")),
-  ),
+  noBrowser: optionalBooleanEnvironmentConfigWithFallback("MIMIR_NO_BROWSER", "SYNARA_NO_BROWSER"),
   authToken: Config.string("MIMIR_AUTH_TOKEN").pipe(
     Config.orElse(() => Config.string("SYNARA_AUTH_TOKEN")),
     Config.option,
@@ -221,21 +220,22 @@ const CliEnvConfig = Config.all({
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  autoBootstrapProjectFromCwd: optionalBooleanEnvironmentConfig(
+  autoBootstrapProjectFromCwd: optionalBooleanEnvironmentConfigWithFallback(
     "MIMIR_AUTO_BOOTSTRAP_PROJECT_FROM_CWD",
-  ).pipe(
-    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_AUTO_BOOTSTRAP_PROJECT_FROM_CWD")),
+    "SYNARA_AUTO_BOOTSTRAP_PROJECT_FROM_CWD",
   ),
   trashDir: Config.string("MIMIR_TRASH_DIR").pipe(
     Config.orElse(() => Config.string("SYNARA_TRASH_DIR")),
     Config.option,
     Config.map(Option.getOrUndefined),
   ),
-  logProviderEvents: optionalBooleanEnvironmentConfig("MIMIR_LOG_PROVIDER_EVENTS").pipe(
-    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_LOG_PROVIDER_EVENTS")),
+  logProviderEvents: optionalBooleanEnvironmentConfigWithFallback(
+    "MIMIR_LOG_PROVIDER_EVENTS",
+    "SYNARA_LOG_PROVIDER_EVENTS",
   ),
-  logWebSocketEvents: optionalBooleanEnvironmentConfig("MIMIR_LOG_WS_EVENTS").pipe(
-    Config.orElse(() => optionalBooleanEnvironmentConfig("SYNARA_LOG_WS_EVENTS")),
+  logWebSocketEvents: optionalBooleanEnvironmentConfigWithFallback(
+    "MIMIR_LOG_WS_EVENTS",
+    "SYNARA_LOG_WS_EVENTS",
   ),
 });
 

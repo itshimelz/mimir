@@ -3,7 +3,7 @@
 
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const characters = (...codes: number[]): string => String.fromCharCode(...codes);
@@ -478,11 +478,13 @@ export function readTrackedFiles(cwd = process.cwd()): BrandIdentityBinaryFile[]
     .split("\0")
     .filter(Boolean);
   // Gitlinks name another repository, not a file owned by this checkout. They may
-  // exist as directories or be absent when submodules have not been initialized.
+  // exist as directories or be absent when submodules have not been initialized,
+  // so they are skipped by mode. An owned path missing from the working tree is a
+  // broken checkout: readFileSync must fail loudly rather than silently shrinking
+  // the scanned set, which would weaken every check below it.
   const paths = entries
     .filter((entry) => !entry.startsWith("160000 "))
-    .map((entry) => entry.slice(entry.indexOf("\t") + 1))
-    .filter((path) => existsSync(resolve(cwd, path)));
+    .map((entry) => entry.slice(entry.indexOf("\t") + 1));
   return paths.map((path) => ({ path, contents: readFileSync(resolve(cwd, path)) }));
 }
 

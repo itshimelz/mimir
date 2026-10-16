@@ -18,6 +18,24 @@ export const optionalBooleanEnvironmentConfig = (
   name: string,
 ): Config.Config<boolean | undefined> => Config.schema(Schema.optional(Config.Boolean), name);
 
+/**
+ * Reads an optional boolean from a current name, then a retired legacy name.
+ *
+ * `Config.orElse` cannot express this fallback: `optionalBooleanEnvironmentConfig`
+ * succeeds with `undefined` when the variable is unset, so the second branch would
+ * never run and every legacy value would be silently ignored. Both names are read
+ * and the current one wins when present. A malformed value under either name still
+ * fails the whole config instead of being treated as absent.
+ */
+export const optionalBooleanEnvironmentConfigWithFallback = (
+  name: string,
+  legacyName: string,
+): Config.Config<boolean | undefined> =>
+  Config.all({
+    fallback: optionalBooleanEnvironmentConfig(legacyName),
+    primary: optionalBooleanEnvironmentConfig(name),
+  }).pipe(Config.map((values) => values.primary ?? values.fallback));
+
 const requiredBooleanFlag = (
   name: string,
   options: Pick<OptionalBooleanFlagOptions, "description" | "aliases">,

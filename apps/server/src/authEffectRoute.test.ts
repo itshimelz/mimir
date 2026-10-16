@@ -387,8 +387,8 @@ describe("authEffectRouteLayer", () => {
 
 describe("binaryUploadEffectRouteLayer", () => {
   it.each([
-    { origin: "synara-beta://app", authorized: true, status: 500 },
-    { origin: "synara-beta://app", authorized: false, status: 401 },
+    { origin: "mimir-beta://app", authorized: true, status: 500 },
+    { origin: "mimir-beta://app", authorized: false, status: 401 },
     { origin: "https://untrusted.example.test", authorized: true, status: 403 },
   ])(
     "preserves trusted CORS on failed uploads: $origin / $status",

@@ -25,6 +25,9 @@ export default defineConfig({
   entry: ["src/index.ts", "src/restoreMigrationBackup.ts", "src/runtimeDependencySmoke.ts"],
   format: ["esm"],
   outDir: "dist",
+  // tsdown >=0.21 emits declarations by default; the server CLI is consumed as
+  // built JS and its types come from source, so keep the output set unchanged.
+  dts: false,
   // Bun builtins only resolve at runtime under Bun; MigrationBackup.ts guards
   // the import behind a `process.versions.bun` check.
   external: [/^bun:/u],
@@ -34,7 +37,9 @@ export default defineConfig({
   },
   clean: true,
   noExternal: (id) => id.startsWith("@synara/"),
-  inlineOnly: false,
+  // tsdown 0.21 moved the old `inlineOnly` option under `deps`; `false` keeps
+  // the intentional-bundling hint off for this CLI, which inlines some deps.
+  deps: { onlyBundle: false },
   banner: {
     js: "#!/usr/bin/env node\n",
   },

@@ -27,6 +27,10 @@ const shared = {
   outDir: "dist-electron",
   sourcemap: buildSourcemap,
   outExtensions: () => ({ js: ".js" }),
+  // tsdown >=0.21 emits declarations by default; these bundles are loaded by
+  // Electron at runtime and their types come from source, so keep the output
+  // set unchanged (no stray .d.ts beside main.js/preload.js).
+  dts: false,
 };
 
 export default defineConfig([

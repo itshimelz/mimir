@@ -25,8 +25,11 @@ import { normalizeIdOrder, normalizeKnownIds } from "./lib/orderedIds";
 import type { SidebarNavItemId } from "./sidebarNavOrdering";
 import type { Space } from "./types";
 
-/** Rail items that switch the panel content instead of navigating. */
-export const RAIL_PANEL_ITEM_IDS = ["spaces", "chats", "home"] as const;
+/**
+ * Rail items that switch the panel content instead of navigating. A membership set: the rail's
+ * real order comes from RAIL_ORDERABLE_ITEM_IDS.
+ */
+export const RAIL_PANEL_ITEM_IDS = ["home", "spaces", "chats"] as const;
 export type RailPanelItemId = (typeof RAIL_PANEL_ITEM_IDS)[number];
 export const RAIL_PANEL_ITEM_LABELS: Record<RailPanelItemId, string> = {
   spaces: "Courses",
@@ -74,7 +77,7 @@ export function isRailOrderableItemId(value: string): value is RailOrderableItem
 
 /** Courses, Chats, and Today are the primary panels: they can move but never be hidden. */
 export function railItemCanHide(id: RailOrderableItemId): boolean {
-  return id !== "spaces" && id !== "home" && id !== "chats";
+  return !(RAIL_PANEL_ITEM_IDS as ReadonlyArray<string>).includes(id);
 }
 
 export function normalizeRailItemOrder(order: readonly string[]): RailOrderableItemId[] {

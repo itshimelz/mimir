@@ -15,13 +15,6 @@ export interface PersistedCourseWorkspaceState {
 }
 
 export interface CourseWorkspaceState extends PersistedCourseWorkspaceState {
-  /**
-   * True once the user cleared the bound course on purpose (Course Overview's "Switch
-   * Course"): the "/" landing then shows the picker instead of opening the most recent
-   * course again. Window-session state, so it is deliberately not persisted and the next
-   * launch opens a course again.
-   */
-  readonly coursePickerRequested: boolean;
   readonly setActiveCourseId: (courseId: ProjectId | null) => void;
   readonly setCourseRecentThreadId: (courseId: ProjectId, threadId: ThreadId) => void;
   readonly clearActiveCourse: () => void;
@@ -96,10 +89,9 @@ export function persistCourseWorkspaceState(
 
 export const useCourseWorkspaceStore = create<CourseWorkspaceState>((set, get) => ({
   ...readPersistedCourseWorkspaceState(),
-  coursePickerRequested: false,
   setActiveCourseId: (courseId) => {
-    if (get().activeCourseId === courseId && !get().coursePickerRequested) return;
-    set({ activeCourseId: courseId, coursePickerRequested: false });
+    if (get().activeCourseId === courseId) return;
+    set({ activeCourseId: courseId });
     persistCourseWorkspaceState(get());
   },
   setCourseRecentThreadId: (courseId, threadId) => {
@@ -114,8 +106,8 @@ export const useCourseWorkspaceStore = create<CourseWorkspaceState>((set, get) =
     persistCourseWorkspaceState(get());
   },
   clearActiveCourse: () => {
-    if (get().activeCourseId === null && get().coursePickerRequested) return;
-    set({ activeCourseId: null, coursePickerRequested: true });
+    if (get().activeCourseId === null) return;
+    set({ activeCourseId: null });
     persistCourseWorkspaceState(get());
   },
   reconcile: ({ availableCourseIds, availableThreadIdsByCourse }) => {

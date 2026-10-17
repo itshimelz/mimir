@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ProjectId, ThreadId } from "@synara/contracts";
 
-import {
-  resolveChatIndexLaunchCourseId,
-  resolveChatIndexRestoreRoute,
-} from "./-chatIndexRoute.logic";
+import { resolveChatIndexRestoreRoute } from "./-chatIndexRoute.logic";
 
 describe("resolveChatIndexRestoreRoute", () => {
   const courseA = ProjectId.makeUnsafe("project-course-a");
@@ -131,59 +128,5 @@ describe("resolveChatIndexRestoreRoute", () => {
       });
       expect(result).toBeNull();
     });
-  });
-});
-
-describe("resolveChatIndexLaunchCourseId", () => {
-  const courseA = ProjectId.makeUnsafe("project-course-a");
-  const courseB = ProjectId.makeUnsafe("project-course-b");
-  const courseC = ProjectId.makeUnsafe("project-course-c");
-
-  it("opens the most recently updated course", () => {
-    expect(
-      resolveChatIndexLaunchCourseId([
-        {
-          id: courseA,
-          createdAt: "2026-10-01T09:00:00.000Z",
-          updatedAt: "2026-10-02T09:00:00.000Z",
-        },
-        {
-          id: courseB,
-          createdAt: "2026-10-03T09:00:00.000Z",
-          updatedAt: "2026-10-04T09:00:00.000Z",
-        },
-      ]),
-    ).toBe(courseB);
-  });
-
-  it("falls back to creation time for a course the snapshot never updated", () => {
-    expect(
-      resolveChatIndexLaunchCourseId([
-        { id: courseA, createdAt: "2026-10-05T09:00:00.000Z", updatedAt: undefined },
-        {
-          id: courseB,
-          createdAt: "2026-10-01T09:00:00.000Z",
-          updatedAt: "2026-10-02T09:00:00.000Z",
-        },
-      ]),
-    ).toBe(courseA);
-  });
-
-  it("keeps the snapshot's order when no course carries a timestamp", () => {
-    expect(resolveChatIndexLaunchCourseId([{ id: courseC }, { id: courseA }])).toBe(courseC);
-  });
-
-  it("keeps the snapshot's order between courses of the same recency", () => {
-    const updatedAt = "2026-10-04T09:00:00.000Z";
-    expect(
-      resolveChatIndexLaunchCourseId([
-        { id: courseB, updatedAt },
-        { id: courseA, updatedAt },
-      ]),
-    ).toBe(courseB);
-  });
-
-  it("has nothing to open without a course", () => {
-    expect(resolveChatIndexLaunchCourseId([])).toBeNull();
   });
 });

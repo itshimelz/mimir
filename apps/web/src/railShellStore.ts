@@ -23,9 +23,8 @@ interface PersistedRailShellState {
 }
 
 /**
- * The rail opens on Today: it is the panel a student checks first, and the view a launch
- * binds to a course (see _chat.index.tsx). Courses and Chats keep their stored positions
- * for anyone who already ordered the rail.
+ * The rail opens on Today: the panel a student checks first, and the landing a launch that
+ * opens a course records in the URL (see _chat.index.tsx).
  */
 const DEFAULT_RAIL_SHELL_STATE: PersistedRailShellState = {
   activeItem: "home",

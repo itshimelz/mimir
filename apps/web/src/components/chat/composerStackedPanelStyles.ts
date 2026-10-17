@@ -5,7 +5,6 @@
 // Exports: stacked panel row/header tokens and divider class name
 
 import { COMPACT_CHAT_MARKDOWN_TIGHT_CLASS_NAME } from "~/components/chatMarkdownSpacing";
-import { COMPOSER_STACKED_SURFACE_BORDER_CLASS_NAME } from "./composerPickerStyles";
 
 /** Frame, border, radius, and surface chrome for a stacked composer panel.
  *  Uses `chat-composer-stacked-top` (not `chat-composer-surface`) so the rail
@@ -14,12 +13,11 @@ import { COMPOSER_STACKED_SURFACE_BORDER_CLASS_NAME } from "./composerPickerStyl
  *  z-index: the input shell paints later and keeps its top border visible across
  *  the seam. */
 export const COMPOSER_STACKED_PANEL_CHROME_CLASS_NAME = [
-  "chat-composer-stacked-top squircle relative overflow-hidden border border-b-0",
-  COMPOSER_STACKED_SURFACE_BORDER_CLASS_NAME,
+  "chat-composer-stacked-top squircle relative overflow-hidden app-elevated-soft border-b-0",
 ].join(" ");
 
 /** Divider between rows inside the same stacked panel. */
-export const COMPOSER_STACKED_PANEL_DIVIDER_CLASS_NAME = `border-t ${COMPOSER_STACKED_SURFACE_BORDER_CLASS_NAME}`;
+export const COMPOSER_STACKED_PANEL_DIVIDER_CLASS_NAME = "border-t";
 
 /** Shared spacing and typography for contextual composer notices. */
 export const COMPOSER_NOTICE_CONTENT_CLASS_NAME = "px-5 py-3 text-ui-sm leading-snug sm:px-6";

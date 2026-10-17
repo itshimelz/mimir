@@ -54,9 +54,9 @@ function PopoverPopup({
         <PopoverPrimitive.Popup
           className={cn(
             APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME,
-            "transition-[opacity,scale,translate] duration-150 ease-out relative flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) rounded-xl shadow-md outline-none transition-[width,height,scale,opacity] has-data-[slot=calendar]:rounded-xl data-starting-style:scale-85 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0",
+            "transition-[opacity,scale,translate] duration-150 ease-out relative flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) rounded-xl outline-none transition-[width,height,scale,opacity] has-data-[slot=calendar]:rounded-xl data-starting-style:scale-85 data-starting-style:opacity-0 data-ending-style:scale-95 data-ending-style:opacity-0",
             tooltipStyle &&
-              "w-fit text-balance rounded-md text-ui leading-snug shadow-sm before:rounded-[calc(var(--radius-md)-1px)]",
+              "w-fit text-balance rounded-md text-ui leading-snug app-elevated-prominent",
             className,
           )}
           data-slot="popover-popup"

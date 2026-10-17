@@ -445,11 +445,11 @@ describe("ComposerModelPicker", () => {
     try {
       const slider = page.getByRole("slider", { name: "Reasoning effort" });
       await expect.element(slider).toHaveAttribute("aria-valuetext", "Medium");
-      // The M3E slider sizes its control, track and handle with `data-horizontal:*`
+      // The slider sizes its control, track and handle with `data-horizontal:*`
       // variants. When those stop resolving the control keeps its role, name and
       // aria-valuetext and still passes every assertion above while rendering as
       // nothing at all, so the track has to be measured too.
-      // The M3E primitive renders the handle as a sibling of the track, not a child,
+      // The primitive renders the handle as a sibling of the track, not a child,
       // so measure the track from the slider root rather than with closest() on the thumb.
       const sliderRoot = slider.element().closest<HTMLElement>('[data-slot="slider"]');
       const track = sliderRoot?.querySelector<HTMLElement>('[data-slot="slider-track"]') ?? null;

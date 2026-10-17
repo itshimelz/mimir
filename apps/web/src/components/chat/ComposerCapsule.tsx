@@ -12,20 +12,13 @@ import { useRef, useState, type ReactNode } from "react";
 
 import { cn } from "~/lib/utils";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
-import {
-  COMPOSER_INLINE_ACTION_PILL_CLASS_NAME,
-  COMPOSER_SURFACE_SHADOW_CLASS_NAME,
-  RAISED_SURFACE_BORDER_CLASS_NAME,
-} from "./composerPickerStyles";
+import { COMPOSER_INLINE_ACTION_PILL_CLASS_NAME } from "./composerPickerStyles";
 
 /** Pill chrome: the composer's own glass material, so a capsule reads as a chip of the
  *  input below it. The radius goes through `--composer-radius` because
  *  `.chat-composer-surface` sets `border-radius` in unlayered CSS. */
-const COMPOSER_CAPSULE_CLASS_NAME = [
-  "chat-composer-surface pointer-events-auto inline-flex h-7 min-w-0 max-w-full items-center gap-1.5 border px-2.5 text-ui text-foreground/85 [--composer-radius:9999px]",
-  RAISED_SURFACE_BORDER_CLASS_NAME,
-  COMPOSER_SURFACE_SHADOW_CLASS_NAME,
-].join(" ");
+const COMPOSER_CAPSULE_CLASS_NAME =
+  "chat-composer-surface pointer-events-auto inline-flex h-7 min-w-0 max-w-full items-center gap-1.5 app-elevated-soft px-2.5 text-ui text-foreground/85 [--composer-radius:9999px]";
 
 /** Hover/open wash for clickable capsules, drawn on ::after: the glass fill is unlayered
  *  CSS, so a Tailwind `hover:bg-*` on the capsule itself would never win. */

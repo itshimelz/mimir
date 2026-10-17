@@ -31,6 +31,41 @@
       />
     </noscript>
     <title>Synara</title>
+    <script>
+      /* Pin the colour scheme before the bundle runs.
+         Without this the document stays on `color-scheme: light dark` until
+         `useTheme` hydrates from localStorage, and a dark install flashes the
+         light canvas first. Only the mode is read here — surfaces, theme packs,
+         and font sizes stay owned by `applyThemeState`, so nothing duplicates the
+         theme engine and drifts from it. */
+      (function () {
+        try {
+          var raw = localStorage.getItem("synara:theme");
+          var mode = null;
+          if (raw === "light" || raw === "dark" || raw === "system") {
+            mode = raw;
+          } else if (raw) {
+            var parsed = JSON.parse(raw);
+            if (
+              parsed &&
+              (parsed.mode === "light" || parsed.mode === "dark" || parsed.mode === "system")
+            ) {
+              mode = parsed.mode;
+            }
+          }
+          if (!mode) {
+            return;
+          }
+          var dark =
+            mode === "dark" ||
+            (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+          document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        } catch {
+          /* Blocked storage or malformed state: fall through to the default below. */
+        }
+      })();
+    </script>
     <style>
       /* Boot splash — shown while the JS bundle is parsing and React mounts.
          React's createRoot(...).render(...) wipes #root's children, so no teardown needed. */
@@ -38,7 +73,8 @@
       body {
         margin: 0;
         padding: 0;
-        /* Prevent a white flash before the app's own styles load. */
+        /* Fallback only: the inline script above pins this from the stored mode.
+         Kept as `light dark` so an unpinned first paint still follows the OS. */
         color-scheme: light dark;
       }
       /* Only `html`: an unlayered `body` background here would override the layered

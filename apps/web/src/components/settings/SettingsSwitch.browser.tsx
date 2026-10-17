@@ -14,8 +14,8 @@ import { Switch } from "../ui/switch";
 /**
  * A settings row with the shared switch, standing in for the shape every settings panel
  * uses (`<SettingsRow … control={<Switch …/>} />`). The point of this file is that the
- * settings surface inherits the Material 3 switch from the shared primitive rather than
- * keeping a settings-only toggle of its own.
+ * settings surface inherits the shared switch primitive rather than keeping a
+ * settings-only toggle of its own.
  */
 function SettingsSwitchRow() {
   return (
@@ -42,35 +42,6 @@ describe("Settings switch", () => {
   afterEach(() => {
     restore?.();
     restore = null;
-  });
-
-  it("gives a settings toggle M3's 52x32 track and growing handle", async () => {
-    restore = useMimirPalette("light");
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-    client.setQueryData(serverQueryKeys.settings(), DEFAULT_SERVER_SETTINGS_VIEW);
-    const screen = await render(
-      <QueryClientProvider client={client}>
-        <SettingsSwitchRow />
-      </QueryClientProvider>,
-    );
-    try {
-      const toggle = page.getByRole("switch", { name: /desktop in any chat/i }).element();
-      const track = toggle.getBoundingClientRect();
-      expect(Math.round(track.width)).toBe(52);
-      expect(Math.round(track.height)).toBe(32);
-
-      const handle = toggle.querySelector("[data-slot='switch-thumb']")!.getBoundingClientRect();
-      // Selected, so the handle is at its grown size.
-      expect(Math.round(handle.width)).toBe(24);
-
-      // And it is the M3 selected pair, not the old accent grey.
-      expect(getComputedStyle(toggle).backgroundColor).toBe("rgb(99, 65, 217)");
-      expect(
-        getComputedStyle(toggle.querySelector("[data-slot='switch-thumb']")!).backgroundColor,
-      ).toBe("rgb(252, 247, 255)");
-    } finally {
-      await screen.unmount();
-    }
   });
 
   it("keeps the handle inside the row's right edge when selected", async () => {

@@ -43,7 +43,7 @@ function AlertDialogViewport({ className, ...props }: AlertDialogPrimitive.Viewp
 
 // Keep the alert surface aligned with the shared dialog and overlay tokens.
 const alertDialogPopupClassName =
-  "-translate-y-[calc(1.25rem*var(--nested-dialogs))] transition-[opacity,scale,translate] duration-150 ease-out relative row-start-2 flex max-h-full min-h-0 w-full min-w-0 max-w-lg scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-2xl border border-[color:var(--overlay-border)] bg-[var(--color-background-elevated-primary-opaque,var(--popover))] text-[var(--color-text-foreground)] shadow-lg opacity-[calc(1-0.1*var(--nested-dialogs))] will-change-transform data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0";
+  "-translate-y-[calc(1.25rem*var(--nested-dialogs))] transition-[opacity,scale,translate] duration-150 ease-out relative row-start-2 flex max-h-full min-h-0 w-full min-w-0 max-w-lg scale-[calc(1-0.1*var(--nested-dialogs))] flex-col rounded-2xl app-elevated-modal bg-[var(--color-background-elevated-primary-opaque,var(--popover))] text-[var(--color-text-foreground)] opacity-[calc(1-0.1*var(--nested-dialogs))] will-change-transform data-nested:data-ending-style:translate-y-8 data-nested:data-starting-style:translate-y-8 data-nested-dialog-open:origin-top data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0";
 
 function AlertDialogPopup({
   className,

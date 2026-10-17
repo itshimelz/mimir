@@ -20,6 +20,7 @@ import { readSidebarUiState } from "../components/Sidebar.uiState";
 import { SplashScreen } from "../components/SplashScreen";
 import { useComposerDraftStore } from "../composerDraftStore";
 import { useCourseWorkspaceStore } from "../courseWorkspaceStore";
+import { useRailShellStore } from "../railShellStore";
 import { useHandleNewThread } from "../hooks/useHandleNewThread";
 import { useLatestProjectStore } from "../latestProjectStore";
 import { collectGroupProjectIds } from "../lib/groupProjects";
@@ -50,7 +51,7 @@ function ChatIndexRouteView() {
   const searchHome = Route.useSearch({ select: (search) => search.home });
   const searchView = Route.useSearch({ select: (search) => search.view });
   const searchPicker = Route.useSearch({ select: (search) => search.picker });
-  const _searchEditorFilePath = Route.useSearch({ select: (search) => search.editorFilePath });
+  const searchEditorFilePath = Route.useSearch({ select: (search) => search.editorFilePath });
 
   const threadsHydrated = useStore((state) => state.threadsHydrated);
   const threadIds = useStore((state) => state.threadIds ?? EMPTY_THREAD_IDS);
@@ -86,12 +87,32 @@ function ChatIndexRouteView() {
   //    over the moment the course is bound and pulls the window into an old thread. Switch Course
   //    asks for the picker the same way, through the URL, so the landing needs no extra state.
   useEffect(() => {
-    if (openingCourseId === null || searchPicker === true) return;
+    if (openingCourseId === null || searchPicker === true || searchView === "editor") return;
     setActiveCourseId(openingCourseId);
     if (searchHome !== true) {
       void navigate({ to: "/", search: { home: true }, replace: true });
     }
-  }, [navigate, openingCourseId, searchHome, searchPicker, setActiveCourseId]);
+  }, [navigate, openingCourseId, searchHome, searchPicker, searchView, setActiveCourseId]);
+
+  // 2b. If the search explicitly requests the editor surface, forward immediately to the
+  //     dedicated /editor route so the file or deliverable opens in the editor workspace.
+  useEffect(() => {
+    if (searchView === "editor") {
+      useRailShellStore.getState().selectPanelItem("spaces");
+      void navigate({
+        to: "/editor",
+        search: {
+          view: "editor",
+          ...(searchEditorFilePath ? { editorFilePath: searchEditorFilePath } : {}),
+        },
+        replace: true,
+      });
+    }
+  }, [navigate, searchEditorFilePath, searchView]);
+
+  if (searchView === "editor") {
+    return <SplashScreen />;
+  }
 
   // 3. If hydration has not completed yet, show the splash screen
   if (!threadsHydrated) {
@@ -119,10 +140,12 @@ function ChatIndexRouteView() {
   }
 
   const handleStartStudySession = async (initialPrompt?: string) => {
+    useRailShellStore.getState().selectPanelItem("chats");
     await handleNewCourseStudyThread({ ...(initialPrompt ? { initialPrompt } : {}) });
   };
 
   const handleOpenEditor = () => {
+    useRailShellStore.getState().selectPanelItem("spaces");
     void navigate({
       to: "/editor",
       search: { view: "editor" },

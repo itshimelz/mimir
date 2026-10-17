@@ -82,14 +82,30 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-xs: calc(var(--radius) * 0.4);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: calc(var(--radius) * 0.8);
-  --radius-xl: calc(var(--radius) * 0.8);
-  --radius-2xl: calc(var(--radius) * 0.8);
-  --radius-3xl: calc(var(--radius) * 0.8);
-  --radius-4xl: calc(var(--radius) * 0.8);
+
+  /* Every bare `border` / `border-t` / `divide-x` in the app is this thin, not
+     Tailwind's 1px default. One token rather than a sweep over call sites,
+     because a 1px CSS border also consumes layout box — which is what forced
+     `px-[calc(--spacing(3)-1px)]` compensation in 27 places and the
+     `before:inset-0` inner-border overlays in 7 more. At 0.5px the stroke is
+     still a full physical pixel on a 2x display, so it reads as crisp rather
+     than faint, but it no longer eats the content box. Explicit widths
+     (`border-2`, `border-[1.5px]`) are untouched. */
+  --default-border-width: 0.5px;
+
+  /* Progressive concentric radius scale. Each tier is a real step, not a
+     multiplier on one value: nested surfaces need R_outer = R_inner + padding
+     to line up (a `rounded-xl` menu shell with `p-1` around `rounded-md` rows
+     is 12 = 8 + 4), which only holds if the tiers differ. `--radius` (0.625rem)
+     stays the `lg` step so anything still referencing it keeps its meaning. */
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.25rem;
+  --radius-4xl: 1.5rem;
 
   @keyframes skeleton {
     to {
@@ -520,9 +536,11 @@
   appearance: none;
   width: 14px;
   height: 14px;
+  /* A full-round thumb keeps circular arcs: superellipse turns it into a diamond. */
+  --app-corner-shape: round;
   border-radius: 999px;
   background: var(--card);
-  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--foreground) 18%, transparent);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   cursor: pointer;
   transition:
@@ -533,9 +551,10 @@
 .theme-slider::-moz-range-thumb {
   width: 14px;
   height: 14px;
+  --app-corner-shape: round;
   border-radius: 999px;
   background: var(--card);
-  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--foreground) 18%, transparent);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
@@ -567,6 +586,7 @@
 .theme-color-picker .react-colorful__hue {
   height: 18px;
   margin-top: 10px;
+  --app-corner-shape: round;
   border-radius: 999px;
 }
 
@@ -586,6 +606,21 @@
      panel, ScrollArea `scrollFade`). */
   --scroll-edge-fade-size: 1.5rem;
   --radius-user-message: var(--radius-md, 8px);
+
+  /* Focus, scrollbar, and switch-thumb tokens. All resolve through the
+     theme-derived border and surface colors so a theme pack moves them together;
+     only the alphas here are ours. */
+  --app-focus-ring-color: #4176e6;
+  --app-focus-ring-width: 2px;
+  --app-scrollbar-width: 5px;
+  --app-scrollbar-thumb-l1: rgb(0 0 0 / 14%);
+  --app-scrollbar-thumb-l1-hover: rgb(0 0 0 / 26%);
+  --app-scrollbar-thumb-l2: rgb(0 0 0 / 20%);
+  --app-scrollbar-thumb-l2-hover: rgb(0 0 0 / 34%);
+  --app-scrollbar-thumb: var(--app-scrollbar-thumb-l1);
+  --app-scrollbar-thumb-hover: var(--app-scrollbar-thumb-l1-hover);
+  /* An off switch thumb must be lighter than its track, or it reads as a hole. */
+  --app-switch-thumb: #ffffff;
   --font-ui-family: var(
     --theme-font-ui-family,
     -apple-system,
@@ -808,10 +843,19 @@ body,
 }
 
 pre,
-code,
-textarea,
-input {
+code {
   font-family: var(--font-mono-family);
+}
+
+/* Form controls deliberately keep the UI font. A global monospace reset meant
+   every input, search field, and comment box had to add `.font-system-ui` to
+   opt back out, and any that forgot rendered in code font. Inputs inherit from
+   the UI stack here. */
+input,
+textarea,
+button,
+select {
+  font-family: inherit;
 }
 
 /* Window drag region (frameless titlebar) */
@@ -841,13 +885,17 @@ input {
 }
 
 /* Scrollbar styling.
+
+   One token-rebindable contract, not a fixed 10px bar: a container rebinds
+   `--app-scrollbar-thumb` to whatever reads correctly against its own
+   background, so the bar is legible over a menu without being loud on the page.
    The 2px transparent border + `background-clip: padding-box` insets the thumb so
    it floats with a small gap from the track edges instead of hugging them. Use
    `background-color` (never the `background` shorthand) on the thumb so the clip
    value is preserved across the hover/dark overrides. */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: var(--app-scrollbar-width, 5px);
+  height: var(--app-scrollbar-width, 5px);
 }
 
 ::-webkit-scrollbar-track {
@@ -855,22 +903,27 @@ input {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: var(--app-scrollbar-thumb, transparent);
   border: 2px solid transparent;
   background-clip: padding-box;
+  /* The thumb is a full-round pill; it inherits from whatever it scrolls, so it
+     needs its own guard. */
+  --app-corner-shape: round;
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(0, 0, 0, 0.18);
+  background-color: var(--app-scrollbar-thumb-hover, transparent);
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.07);
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(255, 255, 255, 0.14);
+/* Engine paths are mutually exclusive: Firefox has no ::-webkit-scrollbar, and
+   applying `scrollbar-width` alongside it is what leaves a permanently visible
+   track behind in Chromium. */
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--app-scrollbar-thumb, transparent) transparent;
+  }
 }
 
 .turn-chip-strip {
@@ -883,13 +936,14 @@ input {
   display: none;
 }
 
-/* Terminal drawer scrollbar parity with chat: inset the slider so it floats with
-   a small gap from the edge instead of hugging it. */
+/* Terminal drawer scrollbar parity with chat: same width token, and the slider's
+   transparent inset makes it float with a small gap instead of hugging the edge. */
 .thread-terminal-drawer .xterm .xterm-scrollable-element > .scrollbar.vertical {
-  width: 10px !important;
+  width: var(--app-scrollbar-width) !important;
 }
 
 .thread-terminal-drawer .xterm .xterm-scrollable-element > .scrollbar > .slider {
+  --app-corner-shape: round;
   border-radius: 999px;
 }
 
@@ -1611,7 +1665,7 @@ label:has(> select#reasoning-effort) select {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.75rem 0.875rem;
-  border: 1px solid color-mix(in srgb, var(--color-border) 65%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--color-border) 65%, transparent);
   border-radius: var(--radius-md, 8px);
   background: var(--color-background-elevated-primary-opaque);
   /* The box lives inside the file viewer, which sets the monospace code font on
@@ -1632,7 +1686,7 @@ label:has(> select#reasoning-effort) select {
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 0.4375rem;
-  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--color-border) 75%, transparent);
   background: var(--app-code-viewer-sticky-surface, var(--color-background-surface));
 }
 
@@ -1821,7 +1875,7 @@ label:has(> select#reasoning-effort) select {
   align-items: center;
   justify-content: center;
   border-radius: 0.45rem;
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--border) 80%, transparent);
   background: color-mix(in srgb, var(--background) 88%, transparent);
   color: var(--foreground);
   text-decoration: none;
@@ -1867,7 +1921,7 @@ label:has(> select#reasoning-effort) select {
   gap: 0.6rem;
   padding: 0.6rem 0.75rem;
   border-radius: var(--radius-md, 8px);
-  border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--border) 80%, transparent);
   background: color-mix(in srgb, var(--muted) 35%, transparent);
 }
 
@@ -1935,7 +1989,7 @@ label:has(> select#reasoning-effort) select {
      the viewport, so zoomed-in pages stay fully scroll-reachable on the left. */
   margin-inline: auto;
   background: #fff;
-  border: 1px solid color-mix(in srgb, var(--border), var(--foreground) 10%);
+  border: 0.5px solid color-mix(in srgb, var(--border), var(--foreground) 10%);
   overflow: hidden;
 }
 
@@ -2838,6 +2892,7 @@ label:has(> select#reasoning-effort) select {
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem 0.6rem;
+  --app-corner-shape: round;
   border-radius: 999px;
   background: color-mix(in srgb, #000 55%, transparent);
   color: #fff;
@@ -2892,7 +2947,7 @@ label:has(> select#reasoning-effort) select {
 
 .chat-markdown th,
 .chat-markdown td {
-  border: 1px solid var(--border);
+  border: 0.5px solid var(--border);
   padding: 0.35rem 0.45rem;
   text-align: left;
 }
@@ -2924,7 +2979,7 @@ diffs-container {
 }
 
 .diff-render-file {
-  border: 1px solid var(--border);
+  border: 0.5px solid var(--border);
   border-radius: 0.5rem;
   overflow: clip;
   background: var(--app-code-viewer-surface, var(--background));
@@ -2952,62 +3007,80 @@ diffs-container {
 .dark {
   --composer-surface: var(--color-token-dropdown-background);
   --runtime-full-access-accent: #fe8549;
+  --app-focus-ring-color: #7aaaff;
+  --app-scrollbar-thumb-l1: rgb(255 255 255 / 12%);
+  --app-scrollbar-thumb-l1-hover: rgb(255 255 255 / 24%);
+  --app-scrollbar-thumb-l2: rgb(255 255 255 / 18%);
+  --app-scrollbar-thumb-l2-hover: rgb(255 255 255 / 32%);
+  /* Neutral bluish rather than pure white: on a #0e0e0e canvas the thumb stays
+     clearly lighter than the track without glaring. */
+  --app-switch-thumb: #94a3b8;
 }
 
 /* Raised-chrome outline — the single border shared by every surface that floats over
    the transcript as a solid card: the composer input shell and its attached banners,
-   the stacked rail above it, the docked Environment panel, and kanban cards. These all
-   drew the same color before this token existed (the light recipe below; plain
-   `--border` in dark), so they live on one knob and cannot drift apart again.
+   the stacked rail above it, the docked Environment panel, and kanban cards.
 
-   `--surface-border-strength` thins that base color toward transparent. Lower it to
-   make the whole raised-chrome outline recede; 100% restores the full-weight border.
-   Floating menus, pickers, and popovers use `--overlay-border` below instead — they are
-   transient overlays, not part of this raised-card family. */
+   All four outline tokens now resolve to the same `--app-stroke`. They used to
+   carry four independent recipes at three different weights, which is why a card
+   and the menu above it never quite matched: at some settings the two read as
+   different materials rather than the same one at different heights. They stay
+   separate tokens because the split-view focus rule below still rebinds
+   `--surface-border` on its own. */
 :root {
-  --surface-border-strength: 55%;
-  --surface-border: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--color-border-heavy) 95%, var(--foreground) 5%)
-      var(--surface-border-strength),
-    transparent
-  );
+  --surface-border: var(--app-stroke);
   /* Light keeps rail and input identical; only dark splits them (see below). */
-  --composer-stacked-border: var(--surface-border);
+  --composer-stacked-border: var(--app-stroke);
 }
 
 .dark {
-  --surface-border: color-mix(in srgb, var(--border) var(--surface-border-strength), transparent);
-  /* The stacked rail reads as a translucent continuation of the input shell, so it
-     runs at half the heavy token — matching the live-changes strip. */
-  --composer-stacked-border: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--color-border-heavy) 50%, transparent) var(--surface-border-strength),
-    transparent
-  );
+  --surface-border: var(--app-stroke);
+  --composer-stacked-border: var(--app-stroke);
+
+  /* Dark needs a deeper, more opaque shadow pair than light: on a near-black
+     canvas a light-mode shadow is invisible, so the tiers only ever separate by
+     their stroke, which is exactly what this system is trying to avoid. */
+  --app-shadow-lv1: 0 1px 2px -1px rgb(0 0 0 / 40%), 0 2px 8px -3px rgb(0 0 0 / 34%);
+  --app-shadow-lv2: 0 2px 4px -2px rgb(0 0 0 / 44%), 0 10px 28px -6px rgb(0 0 0 / 42%);
+  --app-shadow-lv3: 0 4px 8px -4px rgb(0 0 0 / 50%), 0 22px 50px -12px rgb(0 0 0 / 56%);
+  --app-shadow-soft: 0 1px 2px -1px rgb(0 0 0 / 36%), 0 8px 24px -6px rgb(0 0 0 / 32%);
 }
 
-/* Floating-overlay outline — menus, pickers, popovers, tooltips, toasts. These no
-   longer frost what passes behind them, so this border carries the whole edge. Built
-   from theme tokens so a pack that shifts `--border` carries the menu edge with it. */
+/* ── Elevation ──────────────────────────────────────────────────────────────────
+   One hairline, one weight, for every surface in the app.
+
+   Outlines are drawn with `box-shadow: 0 0 0 0.5px`, not `border: 1px`, so they
+   consume zero layout box. That is what lets padding stay `px-3` instead of
+   `px-[calc(--spacing(3)-1px)]`, and it halves the rendered stroke on a 2x
+   display from two physical pixels to one.
+
+   The colour is the theme-derived `--color-border`, so a theme pack moves the
+   hairline along with the rest of its chrome. Elevation tiers differ by shadow
+   alone — the outline itself is identical everywhere, which is what makes a
+   dialog and a card read as the same material at two different heights rather
+   than two different materials. */
 :root {
-  --overlay-border-strength: 62%;
-  --overlay-border: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--color-border-heavy) 88%, var(--foreground) 12%)
-      var(--overlay-border-strength),
-    transparent
-  );
+  --app-stroke: var(--color-border);
+  --app-elevation-stroke: 0 0 0 0.5px var(--app-stroke);
+
+  /* Two faint, wide-blur layers per tier: a tight contact shadow that lifts the
+     surface off its parent, and a wide ambient one that spreads onto the canvas.
+     A single tight shadow reads as a sticker; this pair reads as height. */
+  --app-shadow-lv1: 0 1px 2px -1px rgb(15 23 42 / 6%), 0 2px 8px -4px rgb(15 23 42 / 8%);
+  --app-shadow-lv2: 0 2px 4px -2px rgb(15 23 42 / 6%), 0 8px 24px -6px rgb(15 23 42 / 10%);
+  --app-shadow-lv3: 0 4px 8px -4px rgb(15 23 42 / 8%), 0 18px 42px -10px rgb(15 23 42 / 14%);
+  --app-shadow-soft: 0 1px 2px -1px rgb(15 23 42 / 5%), 0 6px 20px -6px rgb(15 23 42 / 7%);
+
+  --app-elevation-soft: var(--app-elevation-stroke), var(--app-shadow-soft);
+  --app-elevation-panel: var(--app-elevation-stroke), var(--app-shadow-lv1);
+  --app-elevation-prominent: var(--app-elevation-stroke), var(--app-shadow-lv2);
+  --app-elevation-modal: var(--app-elevation-stroke), var(--app-shadow-lv3);
 }
 
-.dark {
-  /* Dark needs more foreground in the mix or the edge disappears into the fill. */
-  --overlay-border: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--color-border-heavy) 45%, var(--foreground) 55%)
-      var(--overlay-border-strength),
-    transparent
-  );
+/* Floating-overlay outline — menus, pickers, popovers, tooltips, toasts. Now the
+   same stroke as every other surface; the tier is carried by its shadow. */
+:root {
+  --overlay-border: var(--app-stroke);
 }
 
 /* Split view: the focused pane is marked by its composer outline alone, tinted toward
@@ -3035,7 +3108,7 @@ diffs-container {
 .chat-composer-shell[data-composer-layout="row"],
 .chat-composer-shell[data-composer-layout="row"] .chat-composer-surface {
   --composer-radius: 9999px;
-  corner-shape: round;
+  --app-corner-shape: round;
 }
 
 /* macOS Electron: leading inset for sidebar toggle + route nav past native traffic lights.
@@ -3327,20 +3400,161 @@ diffs-container {
   ) !important;
 }
 
-/* Continuous ("squircle") corners, opt-in with the `squircle` class (composer, user
-   bubbles, palettes, open-thread tabs). The element's own border-radius stays the geometry
-   and the fallback: Electron smooths it natively, browsers that support corner-shape switch
-   to it, and everything else keeps plain rounded corners. Electron smoothing must not
-   stack with browser corner-shape. */
-@utility squircle {
-  :root[data-runtime="electron"] & {
+/* Continuous ("squircle") corners.
+
+   Every element reads one inherited variable, and the radius utilities declare
+   what shape that radius wants. `round` is the default, so anything not
+   classified below keeps today's circular arcs, and a descendant's own radius
+   always beats an ancestor's — a pill nested inside a card is round no matter
+   how deep it sits. Classifying the shape next to the radius that causes it
+   keeps the guard from rotting the way a separate "list every rounded-full
+   site" rule would.
+
+   `superellipse(1.5)` rather than the `squircle` keyword (an alias for
+   `superellipse(2)`): exponent 2 pulls small 6-12px controls in too hard at
+   the vertices, 1.5 is the Apple continuous-curvature curve. Electron gets
+   `-electron-corner-smoothing`, the same Blink feature under its legacy name;
+   exactly one is active per runtime so they never stack. */
+*,
+*::before,
+*::after {
+  corner-shape: var(--app-corner-shape, round);
+}
+
+@supports (corner-shape: superellipse(1.5)) {
+  :root {
+    --app-corner-superellipse: superellipse(1.5);
+  }
+
+  /* The corner-radius tiers opt into continuous curvature... */
+  :is(
+    .rounded-xs,
+    .rounded-sm,
+    .rounded-md,
+    .rounded-lg,
+    .rounded-xl,
+    .rounded-2xl,
+    .rounded-3xl,
+    .rounded-4xl
+  ) {
+    --app-corner-shape: var(--app-corner-superellipse);
+  }
+
+  /* ...and the full-round and square tiers reset, so a superellipse never
+     deforms a 50%/9999px circle into a diamond or a pill into a lozenge. */
+  :is(.rounded-full, .rounded-none) {
+    --app-corner-shape: round;
+  }
+
+  /* The composer pill already opts out through its own rule below. */
+  :root[data-runtime="electron"]
+    :is(
+      .rounded-xs,
+      .rounded-sm,
+      .rounded-md,
+      .rounded-lg,
+      .rounded-xl,
+      .rounded-2xl,
+      .rounded-3xl,
+      .rounded-4xl,
+      .rounded-full,
+      .rounded-none
+    ) {
     -electron-corner-smoothing: system-ui;
   }
-  @supports (corner-shape: squircle) {
-    :root:not([data-runtime="electron"]) & {
-      corner-shape: squircle;
-    }
-  }
+}
+
+/* Opt-in for elements whose radius is not one of the scale tiers
+   (`rounded-[var(--composer-radius)]`, `rounded-[inherit]`, and friends).
+   Electron keeps its legacy Blink spelling alongside the standard property. */
+@utility squircle {
+  --app-corner-shape: var(--app-corner-superellipse, round);
+  -electron-corner-smoothing: system-ui;
+}
+
+/* Explicit guard for full-round shapes whose radius comes from a compound or
+   arbitrary value, where `.rounded-full` is not on the element itself. */
+@utility corner-round {
+  --app-corner-shape: round;
+}
+
+/* Elevation tiers. Each draws the same hairline and differs only in how far the
+   shadow pair lifts the surface, so the four read as one material at four
+   heights.
+
+   These compose the stroke from `--app-stroke` rather than from the frozen
+   `--app-elevation-stroke`, so a component that rebinds `--app-stroke` for a
+   state (focus, split-pane focus, hover) repaints the outline immediately
+   instead of one paint late. `border: 0` is explicit: a surface reaching for
+   this utility alongside a Tailwind `border-*` class wants the shadow outline
+   and not both. */
+@utility app-elevated-soft {
+  border-width: 0;
+  box-shadow:
+    0 0 0 0.5px var(--app-stroke),
+    var(--app-shadow-soft);
+}
+
+@utility app-elevated-panel {
+  border-width: 0;
+  box-shadow:
+    0 0 0 0.5px var(--app-stroke),
+    var(--app-shadow-lv1);
+}
+
+@utility app-elevated-prominent {
+  border-width: 0;
+  box-shadow:
+    0 0 0 0.5px var(--app-stroke),
+    var(--app-shadow-lv2);
+}
+
+@utility app-elevated-modal {
+  border-width: 0;
+  box-shadow:
+    0 0 0 0.5px var(--app-stroke),
+    var(--app-shadow-lv3);
+}
+
+/* Focus rings, gated on input modality.
+
+   `:focus-visible` alone still fires on pointer interaction whenever focus is
+   restored rather than moved — Base UI handing focus back to a dialog trigger on
+   close, an arrow key inside a scroll pane — and the ring then paints on a
+   control the user is not navigating. In pointer mode the ring colour goes
+   transparent instead of the ring being removed: `box-shadow` is never cleared,
+   so elevation strokes and active borders survive untouched. Editable fields
+   keep their feedback because their whole point is the click. */
+:focus-visible {
+  outline-color: var(--app-focus-ring-color);
+  outline-width: var(--app-focus-ring-width);
+}
+
+html[data-input-modality="pointer"] body :focus-visible:not(:read-write) {
+  --app-focus-ring-color: transparent;
+  --tw-ring-color: transparent;
+  outline-color: transparent;
+}
+
+/* Scrollbar contrast is a property of the surface, not of the page. A bar that
+   reads correctly on the canvas disappears on a translucent menu, so elevated
+   containers rebind to the stronger tier. */
+:is(
+  [data-slot="menu-popup"],
+  [data-slot="popover-popup"],
+  [data-slot="dialog-popup"],
+  [data-slot="select-popup"],
+  [data-slot="autocomplete-popup"],
+  .app-popup-surface
+) {
+  --app-scrollbar-thumb: var(--app-scrollbar-thumb-l2);
+  --app-scrollbar-thumb-hover: var(--app-scrollbar-thumb-l2-hover);
+}
+
+/* The sidebar is a persistent column that is scrolled constantly, so a bar
+   parked at its edge is permanent furniture. It appears on hover. */
+[data-slot="sidebar"]:not(:hover) {
+  --app-scrollbar-thumb: transparent;
 }
 
 /* Pull request description/comment prose: long-form reading, roomier than chat bubbles.
@@ -3600,7 +3814,7 @@ diffs-container {
    well, so the raised selected thumb appears to protrude out of it (macOS style). */
 .sidebar-segmented-picker {
   background: var(--color-background-elevated-secondary) !important;
-  border: 1px solid color-mix(in oklab, var(--color-text-foreground) 7%, transparent);
+  border: 0.5px solid color-mix(in oklab, var(--color-text-foreground) 7%, transparent);
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.06) !important;
   filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -3631,7 +3845,7 @@ diffs-container {
       var(--color-background-elevated-secondary)
     ),
     var(--background);
-  border: 1px solid color-mix(in oklab, var(--color-text-foreground) 5%, transparent);
+  border: 0.5px solid color-mix(in oklab, var(--color-text-foreground) 5%, transparent);
   box-shadow:
     0 1px 1.5px rgba(0, 0, 0, 0.04),
     inset 0 0 0 0.5px rgba(255, 255, 255, 0.35),
@@ -3821,10 +4035,11 @@ diffs-container {
 }
 
 .composer-picker-scroll::-webkit-scrollbar {
-  width: 10px;
+  width: var(--app-scrollbar-width);
 }
 
 .composer-picker-scroll::-webkit-scrollbar-thumb {
+  --app-corner-shape: round;
   border-radius: 999px;
   background-color: color-mix(in srgb, var(--foreground) 12%, transparent);
   border: 2px solid transparent;

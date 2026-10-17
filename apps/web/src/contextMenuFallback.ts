@@ -8,9 +8,20 @@ import { isInlineSvgMenuIcon } from "./lib/nativeMenuIcons";
  * and text tokens.
  */
 
-/** Shared focus styling for the currently highlighted item. */
-const HIGHLIGHT_CLASS = "bg-accent text-accent-foreground";
-const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-[180px] rounded-md border border-border shadow-md animate-in fade-in zoom-in-95`;
+/**
+ * Shared focus styling for the currently highlighted item.
+ *
+ * A list, not a string: `classList.add`/`remove` take exactly one token per call
+ * and throw `InvalidCharacterError` on any token containing whitespace. Held as a
+ * single space-joined string, the first hover on a row threw before the rest of
+ * the `mouseenter` listener ran — so the highlight never painted, submenus never
+ * opened on hover, and clicking any row that owns a submenu threw instead of
+ * opening it.
+ */
+const HIGHLIGHT_CLASS_NAMES = ["bg-accent", "text-accent-foreground"] as const;
+/** Same shell every other menu uses: the app-wide hairline outline plus the floating
+ *  elevation tier, instead of this fallback's own `border-border shadow-md`. */
+const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} app-elevated-prominent fixed z-[10000] min-w-[180px] rounded-xl animate-in fade-in zoom-in-95`;
 const VIEWPORT_MARGIN = 4;
 
 function createMenuIconElement(icon: string): HTMLElement | null {
@@ -77,7 +88,7 @@ export function showContextMenuFallback<T extends string>(
       const level = levels[depth];
       if (!level) return;
       if (level.openChildIndex !== level.focusedIndex) {
-        level.buttons[level.openChildIndex]?.classList.remove(HIGHLIGHT_CLASS);
+        level.buttons[level.openChildIndex]?.classList.remove(...HIGHLIGHT_CLASS_NAMES);
       }
       level.openChildIndex = -1;
     }
@@ -86,10 +97,10 @@ export function showContextMenuFallback<T extends string>(
       const level = levels[depth];
       if (!level || index < 0 || index >= level.buttons.length) return;
       if (level.focusedIndex !== level.openChildIndex) {
-        level.buttons[level.focusedIndex]?.classList.remove(HIGHLIGHT_CLASS);
+        level.buttons[level.focusedIndex]?.classList.remove(...HIGHLIGHT_CLASS_NAMES);
       }
       level.focusedIndex = index;
-      level.buttons[index]?.classList.add(HIGHLIGHT_CLASS);
+      level.buttons[index]?.classList.add(...HIGHLIGHT_CLASS_NAMES);
       level.buttons[index]?.focus();
     }
 
@@ -101,7 +112,7 @@ export function showContextMenuFallback<T extends string>(
       if (level.openChildIndex !== index) {
         closeLevelsAfter(depth);
         level.openChildIndex = index;
-        anchor.classList.add(HIGHLIGHT_CLASS);
+        anchor.classList.add(...HIGHLIGHT_CLASS_NAMES);
         const rect = anchor.getBoundingClientRect();
         openLevel(children, { x: rect.right - SUBMENU_OVERLAP, y: rect.top - 4 }, rect);
       }
@@ -239,7 +250,7 @@ export function showContextMenuFallback<T extends string>(
         });
         btn.addEventListener("mouseleave", () => {
           // The row that owns the open submenu stays lit while the pointer is inside it.
-          if (level.openChildIndex !== i) btn.classList.remove(HIGHLIGHT_CLASS);
+          if (level.openChildIndex !== i) btn.classList.remove(...HIGHLIGHT_CLASS_NAMES);
           if (level.focusedIndex === i) level.focusedIndex = -1;
         });
         level.buttons.push(btn);

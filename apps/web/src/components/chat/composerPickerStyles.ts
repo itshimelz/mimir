@@ -153,24 +153,25 @@ export const RAISED_SURFACE_BORDER_CLASS_NAME = "border-[color:var(--surface-bor
 export const COMPOSER_STACKED_SURFACE_BORDER_CLASS_NAME =
   "border-[color:var(--composer-stacked-border)]";
 
-/** Border + shadow chrome for raised opaque surfaces (kanban cards): a real border
- *  follows squircle/corner-shape geometry more evenly than an outer ring (box-shadow),
- *  and with a flat `shadow-sm` it is the only thing separating a card from its column. */
-export const RAISED_SURFACE_CHROME_CLASS_NAME = `border ${RAISED_SURFACE_BORDER_CLASS_NAME} ${COMPOSER_SURFACE_SHADOW_CLASS_NAME}`;
+/** Chrome for raised opaque surfaces (kanban cards). A 1px border used to be the only
+ *  thing separating a card from its column, and it drew a hairline a full pixel wider
+ *  than the surface it framed. The outline is a `0.5px` shadow ring now, which is
+ *  concentric with the corner radius by construction and costs no layout. */
+export const RAISED_SURFACE_CHROME_CLASS_NAME = `app-elevated-soft`;
 
 /** Composer input shell. Like RAISED_SURFACE_CHROME but keeps a visible border in
  *  dark mode (via `--surface-border`) instead of dropping to shadow-only separation. */
-export const COMPOSER_INPUT_SURFACE_CLASS_NAME = `chat-composer-surface squircle border ${RAISED_SURFACE_BORDER_CLASS_NAME} ${COMPOSER_SURFACE_SHADOW_CLASS_NAME} transition-colors duration-200`;
+export const COMPOSER_INPUT_SURFACE_CLASS_NAME = `chat-composer-surface squircle app-elevated-soft transition-colors duration-200`;
 
 /** Shell for floating menus, pickers, and popovers: opaque fill, theme border, no frost.
  *  The `before:` layer is the inner-surface hook dependents add hairlines to. */
-export const APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden border border-[color:var(--overlay-border)] bg-popover text-popover-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
+export const APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} relative overflow-hidden app-elevated-prominent bg-popover text-popover-foreground before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit]`;
 
 /** Default floating popup shell. */
-export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xl shadow-md`;
+export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xl`;
 
 /** Chrome for plain tooltips and the sidebar hover cards. */
-export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xs shadow-sm`;
+export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xs`;
 
 /** Shared border, radius, and shadow for composer-attached popup panels. */
 export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-[color:var(--overlay-border)] ${COMPOSER_PICKER_RADIUS_CLASS_NAME} shadow-md`;
@@ -205,14 +206,14 @@ export const COMPOSER_PICKER_TOOLTIP_SURFACE_CLASS_NAME = `${COMPOSER_PICKER_MEN
  *  browser. A solid fill in every window mode: the menu floats over the live transcript,
  *  above the edge where it dissolves, so the composer's glass (sheer and unblurred on a
  *  whole-window glass shell) would leave the transcript text readable through the rows. */
-export const COMPOSER_COMMAND_MENU_SURFACE_CLASS_NAME = `relative overflow-hidden rounded-2xl border border-border bg-popover text-popover-foreground ${COMPOSER_SURFACE_SHADOW_CLASS_NAME}`;
+export const COMPOSER_COMMAND_MENU_SURFACE_CLASS_NAME = `relative overflow-hidden rounded-2xl app-elevated-prominent bg-popover text-popover-foreground`;
 
 /** Environment panel card. Opaque for the same reason as the command menu (it overlays the
  *  transcript), except on a whole-window glass shell, where it takes the shared raised
  *  tint (see `.app-glass-raised` in index.css).
  *  Docks alongside the composer, so it carries the shared raised-chrome border rather
  *  than plain `border-border`: the two cards sit side by side and must read as one weight. */
-export const ENVIRONMENT_PANEL_SURFACE_CLASS_NAME = `relative overflow-hidden rounded-2xl border ${RAISED_SURFACE_BORDER_CLASS_NAME} chat-raised-panel-surface text-popover-foreground ${COMPOSER_SURFACE_SHADOW_CLASS_NAME}`;
+export const ENVIRONMENT_PANEL_SURFACE_CLASS_NAME = `relative overflow-hidden rounded-2xl app-elevated-prominent chat-raised-panel-surface text-popover-foreground`;
 
 /** Top-right overlay host shared by the right-side surface panels (Environment, Group,
  *  Library). Clip horizontal slide overflow so a caller enabling vertical scrolling cannot
@@ -250,7 +251,7 @@ export const COMPOSER_COMMAND_MENU_ITEM_CLASS_NAME =
 export const COMPOSER_COMMAND_MENU_ITEM_ACTIVE_CLASS_NAME =
   "bg-[var(--color-background-button-secondary)] text-[var(--color-text-foreground)]";
 
-export const COMPOSER_INPUT_SURFACE_BANNER_CLASS_NAME = `chat-composer-surface-banner squircle border-b ${RAISED_SURFACE_BORDER_CLASS_NAME} bg-[var(--color-background-elevated-secondary)]`;
+export const COMPOSER_INPUT_SURFACE_BANNER_CLASS_NAME = `chat-composer-surface-banner squircle border-b bg-[var(--color-background-elevated-secondary)]`;
 
 /** Compact bordered action pill for inline composer chrome (Review changes, hint
  *  actions). One token so every trailing action in a composer strip reads alike. */

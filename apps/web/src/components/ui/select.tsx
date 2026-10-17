@@ -16,7 +16,6 @@ import {
   COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME,
   COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME,
   COMPOSER_PICKER_SELECT_OPTION_CLASS_NAME,
-  COMPOSER_SURFACE_SHADOW_CLASS_NAME,
 } from "../chat/composerPickerStyles";
 
 const Select = SelectPrimitive.Root;
@@ -46,10 +45,10 @@ const selectTriggerVariants = cva(
           "border-transparent text-[var(--color-text-foreground-secondary)] focus-visible:ring-1 focus-visible:ring-primary/60 data-pressed:bg-[var(--color-background-elevated-secondary)] [:hover,[data-pressed]]:bg-[var(--color-background-elevated-secondary)] [:hover,[data-pressed]]:text-[var(--color-text-foreground)]",
       },
       size: {
-        default: "min-h-9 px-[calc(--spacing(3)-1px)] sm:min-h-8",
-        lg: "min-h-10 px-[calc(--spacing(3)-1px)] sm:min-h-9",
-        sm: "min-h-8 gap-1.5 px-[calc(--spacing(2.5)-1px)] sm:min-h-7",
-        xs: "h-7 gap-1 rounded-sm px-[calc(--spacing(2)-1px)] text-ui-sm sm:h-6 sm:text-ui-xs [&_svg:not([class*='size-'])]:size-4 sm:[&_svg:not([class*='size-'])]:size-3.5",
+        default: "min-h-9 px-3 sm:min-h-8",
+        lg: "min-h-10 px-3 sm:min-h-9",
+        sm: "min-h-8 gap-1.5 px-2.5 sm:min-h-7",
+        xs: "h-7 gap-1 rounded-sm px-2 text-ui-sm sm:h-6 sm:text-ui-xs [&_svg:not([class*='size-'])]:size-4 sm:[&_svg:not([class*='size-'])]:size-3.5",
       },
     },
   },
@@ -156,7 +155,7 @@ function SelectPopup({
   const viewportClassName = cn(
     COMPOSER_PICKER_MENU_POPUP_VIEWPORT_CLASS_NAME,
     surface === "settings"
-      ? cn(APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME, "rounded-md", "shadow-md")
+      ? cn(APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME, "rounded-md")
       : COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME,
     shellClassName,
   );
@@ -191,7 +190,7 @@ function SelectPopup({
           >
             <SelectPrimitive.ScrollUpArrow
               className={cn(
-                "top-0 z-50 flex h-6 w-full cursor-default items-center justify-center before:pointer-events-none before:absolute before:inset-x-px before:top-px before:h-[200%] before:rounded-t-[calc(var(--radius-lg)-1px)] before:bg-linear-to-b before:from-50%",
+                "top-0 z-50 flex h-6 w-full cursor-default items-center justify-center before:pointer-events-none before:absolute before:top-0 before:h-[200%] before:rounded-t-xl before:bg-linear-to-b before:from-50%",
                 scrollArrowSurfaceClassName,
               )}
               data-slot="select-scroll-up-arrow"
@@ -210,7 +209,7 @@ function SelectPopup({
             </div>
             <SelectPrimitive.ScrollDownArrow
               className={cn(
-                "bottom-0 z-50 flex h-6 w-full cursor-default items-center justify-center before:pointer-events-none before:absolute before:inset-x-px before:bottom-px before:h-[200%] before:rounded-b-[calc(var(--radius-lg)-1px)] before:bg-linear-to-t before:from-50%",
+                "bottom-0 z-50 flex h-6 w-full cursor-default items-center justify-center before:pointer-events-none before:absolute before:bottom-0 before:h-[200%] before:rounded-b-xl before:bg-linear-to-t before:from-50%",
                 scrollArrowSurfaceClassName,
               )}
               data-slot="select-scroll-down-arrow"

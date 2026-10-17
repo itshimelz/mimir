@@ -726,7 +726,7 @@ export function SidebarSearchPalette(props: SidebarSearchPaletteProps) {
 
   return (
     <CommandDialog open={props.open} onOpenChange={props.onOpenChange}>
-      <CommandDialogPopup className="max-w-lg rounded-md border-transparent before:rounded-[calc(var(--radius-md)-1px)] before:shadow-none dark:before:shadow-none">
+      <CommandDialogPopup className="max-w-lg rounded-md [--app-stroke:transparent]">
         {props.mode === "import" ? (
           <div className="flex flex-col overflow-hidden">
             <div className="border-b border-border/70 px-4 py-3">

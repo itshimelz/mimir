@@ -492,14 +492,14 @@ it("never clips a surface label, at the largest text scale", async () => {
   }
 });
 
-it("renders M3E segmented tab in Mimir theme and switches surfaces", async () => {
+it("renders the segmented tab in Mimir theme and switches surfaces", async () => {
   setCodeThemeId("dark", "synara");
   setCodeThemeId("light", "synara");
   try {
     const view = makeView();
     const screen = await render(view("file", "README.md", WORKSPACE_ROOT, [LESSON]));
 
-    // In Mimir theme, M3E segmented tab uses role="tablist" and role="tab"
+    // In Mimir theme, the segmented tab uses role="tablist" and role="tab"
     const tablist = page.getByRole("tablist", { name: "Surface" });
     await expect.element(tablist).toBeInTheDocument();
 

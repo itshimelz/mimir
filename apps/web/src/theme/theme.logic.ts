@@ -1276,7 +1276,12 @@ function buildLightDerivedTokens(theme: ReturnType<typeof buildComputedTheme>) {
     border: formatRgba(theme.ink, 0.09 + theme.contrast * 0.04),
     borderFocus: theme.theme.accent,
     borderHeavy: formatRgba(theme.ink, 0.09 + theme.contrast * 0.06),
-    borderLight: formatRgba(theme.ink, 0.07 + theme.contrast * 0.02),
+    // Same recipe as `border`. These were two weights a few percent apart, which
+    // made an outline on an attachment card and the outline on the surface above
+    // it read as two different materials. Every structural edge in the app is now
+    // one hairline at one weight; height comes from the shadow ladder in index.css
+    // and from state colours, not from a second border tone.
+    borderLight: formatRgba(theme.ink, 0.09 + theme.contrast * 0.04),
     buttonPrimaryBackground: theme.theme.ink,
     buttonPrimaryBackgroundActive: formatRgba(theme.ink, 0.1 + theme.contrast * 0.12),
     buttonPrimaryBackgroundHover: formatRgba(theme.ink, 0.05 + theme.contrast * 0.06),
@@ -1322,7 +1327,8 @@ function buildDarkDerivedTokens(theme: ReturnType<typeof buildComputedTheme>) {
     border: formatRgba(theme.ink, 0.1 + theme.contrast * 0.04),
     borderFocus: formatRgba(focusBase, 0.7 + theme.contrast * 0.1),
     borderHeavy: formatRgba(theme.ink, 0.16 + theme.contrast * 0.06),
-    borderLight: formatRgba(theme.ink, 0.06 + theme.contrast * 0.02),
+    // Same recipe as `border` — see the light-mode note above.
+    borderLight: formatRgba(theme.ink, 0.1 + theme.contrast * 0.04),
     // High-contrast primary button (white-on-dark) mirroring the light-mode
     // derivation (bg = ink, text = surface). Intentionally diverges from Codex
     // Electron's dark elevated primary so the primary action reads as filled.

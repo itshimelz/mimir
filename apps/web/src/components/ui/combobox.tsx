@@ -87,7 +87,7 @@ function ComboboxInput({
       {startAddon && (
         <div
           aria-hidden="true"
-          className="[&_svg]:-mx-0.5 pointer-events-none absolute inset-y-0 start-px z-10 flex items-center ps-[calc(--spacing(3)-1px)] opacity-80 has-[+[data-size=sm]]:ps-[calc(--spacing(2.5)-1px)] [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4"
+          className="[&_svg]:-mx-0.5 pointer-events-none absolute inset-y-0 start-px z-10 flex items-center ps-3 opacity-80 has-[+[data-size=sm]]:ps-2.5 [&_svg:not([class*='size-'])]:size-4.5 sm:[&_svg:not([class*='size-'])]:size-4"
           data-slot="combobox-start-addon"
         >
           {startAddon}
@@ -96,7 +96,7 @@ function ComboboxInput({
       <ComboboxPrimitive.Input
         className={cn(
           startAddon &&
-            "data-[size=sm]:*:data-[slot=combobox-input]:ps-[calc(--spacing(7.5)-1px)] *:data-[slot=combobox-input]:ps-[calc(--spacing(8.5)-1px)] sm:data-[size=sm]:*:data-[slot=combobox-input]:ps-[calc(--spacing(7)-1px)] sm:*:data-[slot=combobox-input]:ps-[calc(--spacing(8)-1px)]",
+            "data-[size=sm]:*:data-[slot=combobox-input]:ps-7.5 *:data-[slot=combobox-input]:ps-8.5 sm:data-[size=sm]:*:data-[slot=combobox-input]:ps-7 sm:*:data-[slot=combobox-input]:ps-8",
           sizeValue === "sm"
             ? "[&:has(+.combobox-end-control)_input]:pe-6.5"
             : "[&:has(+.combobox-end-control)_input]:pe-7",
@@ -329,7 +329,7 @@ function ComboboxChips({
   return (
     <ComboboxPrimitive.Chips
       className={cn(
-        "relative inline-flex min-h-9 w-full flex-wrap gap-1 rounded-lg border border-[color:var(--color-border)] bg-[var(--color-background-control-opaque)] p-[calc(--spacing(1)-1px)] text-ui text-[var(--color-text-foreground)] outline-none ring-[color:var(--color-border-focus)]/24 *:min-h-(--combobox-chip-min-h) [--combobox-chip-min-h:--spacing(7)] focus-within:border-[color:var(--color-border-focus)] focus-within:ring-[3px] has-disabled:pointer-events-none has-data-[size=lg]:min-h-10 has-data-[size=sm]:min-h-8 has-aria-invalid:border-destructive/36 has-autofill:bg-foreground/4 has-disabled:opacity-64 focus-within:has-aria-invalid:border-destructive/64 focus-within:has-aria-invalid:ring-destructive/16 has-data-[size=lg]:[--combobox-chip-min-h:--spacing(8)] has-data-[size=sm]:[--combobox-chip-min-h:--spacing(6)] sm:min-h-8 sm:text-ui sm:has-data-[size=lg]:min-h-9 sm:has-data-[size=sm]:min-h-7 sm:[--combobox-chip-min-h:--spacing(6)] sm:has-data-[size=lg]:[--combobox-chip-min-h:--spacing(7)] sm:has-data-[size=sm]:[--combobox-chip-min-h:--spacing(5)] dark:has-autofill:bg-foreground/8 dark:has-aria-invalid:ring-destructive/24",
+        "relative inline-flex min-h-9 w-full flex-wrap gap-1 rounded-lg border border-[color:var(--color-border)] bg-[var(--color-background-control-opaque)] p-1 text-ui text-[var(--color-text-foreground)] outline-none ring-[color:var(--color-border-focus)]/24 *:min-h-(--combobox-chip-min-h) [--combobox-chip-min-h:--spacing(7)] focus-within:border-[color:var(--color-border-focus)] focus-within:ring-[3px] has-disabled:pointer-events-none has-data-[size=lg]:min-h-10 has-data-[size=sm]:min-h-8 has-aria-invalid:border-destructive/36 has-autofill:bg-foreground/4 has-disabled:opacity-64 focus-within:has-aria-invalid:border-destructive/64 focus-within:has-aria-invalid:ring-destructive/16 has-data-[size=lg]:[--combobox-chip-min-h:--spacing(8)] has-data-[size=sm]:[--combobox-chip-min-h:--spacing(6)] sm:min-h-8 sm:text-ui sm:has-data-[size=lg]:min-h-9 sm:has-data-[size=sm]:min-h-7 sm:[--combobox-chip-min-h:--spacing(6)] sm:has-data-[size=lg]:[--combobox-chip-min-h:--spacing(7)] sm:has-data-[size=sm]:[--combobox-chip-min-h:--spacing(5)] dark:has-autofill:bg-foreground/8 dark:has-aria-invalid:ring-destructive/24",
         className,
       )}
       data-slot="combobox-chips"
@@ -353,7 +353,7 @@ function ComboboxChips({
 function ComboboxChip({ children, ...props }: ComboboxPrimitive.Chip.Props) {
   return (
     <ComboboxPrimitive.Chip
-      className="flex items-center rounded-[calc(var(--radius-md)-1px)] bg-[var(--color-background-elevated-secondary)] ps-2 font-medium text-[var(--color-text-foreground)] text-ui outline-none sm:text-ui-sm [&_svg:not([class*='size-'])]:size-4 sm:[&_svg:not([class*='size-'])]:size-3.5"
+      className="flex items-center rounded-sm bg-[var(--color-background-elevated-secondary)] ps-2 font-medium text-[var(--color-text-foreground)] text-ui outline-none sm:text-ui-sm [&_svg:not([class*='size-'])]:size-4 sm:[&_svg:not([class*='size-'])]:size-3.5"
       data-slot="combobox-chip"
       {...props}
     >

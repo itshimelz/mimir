@@ -1550,15 +1550,30 @@ export default function Sidebar() {
 
   const handleSelectWorkspaceFile = useCallback(
     (filePath: string) => {
-      void navigate({
-        search: ((prev: Record<string, unknown>) => ({
-          ...stripDiffSearchParams(prev),
-          view: "editor",
-          editorFilePath: filePath,
-        })) as never,
-      });
+      if (routeThreadId) {
+        void navigate({
+          to: "/$threadId",
+          params: { threadId: routeThreadId },
+          search: ((prev: Record<string, unknown>) => {
+            const { home: _, ...rest } = stripDiffSearchParams(prev);
+            return {
+              ...rest,
+              view: "editor",
+              editorFilePath: filePath,
+            };
+          }) as never,
+        });
+      } else {
+        void navigate({
+          to: "/editor",
+          search: {
+            view: "editor",
+            editorFilePath: filePath,
+          },
+        });
+      }
     },
-    [navigate],
+    [navigate, routeThreadId],
   );
 
   useEffect(() => {
@@ -2184,6 +2199,39 @@ export default function Sidebar() {
       projectIds: threadsHydrated ? new Set(projects.map((project) => project.id)) : null,
     });
   }, [isOnGroups, pathname, projects, reconcileRailShell, threadsHydrated]);
+
+  const isDedicatedRailRoute =
+    isOnSettings ||
+    isOnGroups ||
+    isOnKanban ||
+    isOnTasks ||
+    isOnAutomations ||
+    isOnPullRequests ||
+    isOnInbox;
+  useEffect(() => {
+    if (isDedicatedRailRoute) return;
+    if (pathname === "/") {
+      if (railActiveItem !== "home") {
+        selectRailPanelItem("home");
+      }
+      return;
+    }
+    if (!routeThreadId) return;
+    if (routeSearch.view === "editor") {
+      if (railActiveItem !== "spaces") {
+        selectRailPanelItem("spaces");
+      }
+    } else if (railActiveItem !== "chats") {
+      selectRailPanelItem("chats");
+    }
+  }, [
+    isDedicatedRailRoute,
+    pathname,
+    railActiveItem,
+    routeSearch.view,
+    routeThreadId,
+    selectRailPanelItem,
+  ]);
   const ordinarySpaceProjects = useMemo(
     () =>
       projects.filter((project) =>
@@ -5083,15 +5131,38 @@ export default function Sidebar() {
   const handleSelectStudioOutput = useCallback(
     (entry: StudioOutputEntry) => {
       setSelectedStudioOutputPath(entry.fullPath);
-      void navigate({
-        search: ((prev: Record<string, unknown>) => ({
-          ...stripDiffSearchParams(prev),
-          view: "editor",
-        })) as never,
-      });
+      useEditorSurfaceStore.getState().setSurface("studio");
+      if (routeThreadId) {
+        void navigate({
+          to: "/$threadId",
+          params: { threadId: routeThreadId },
+          search: ((prev: Record<string, unknown>) => {
+            const { home: _, ...rest } = stripDiffSearchParams(prev);
+            return {
+              ...rest,
+              view: "editor",
+            };
+          }) as never,
+        });
+      } else {
+        void navigate({
+          to: "/editor",
+          search: {
+            view: "editor",
+          },
+        });
+      }
     },
-    [navigate, setSelectedStudioOutputPath],
+    [navigate, routeThreadId, setSelectedStudioOutputPath],
   );
+
+  useEffect(() => {
+    if (editorSurface === "studio") {
+      setUserSelectedCourseTab("studio");
+    } else if (editorSurface === "study" && userSelectedCourseTab === "studio") {
+      setUserSelectedCourseTab("files");
+    }
+  }, [editorSurface, userSelectedCourseTab]);
 
   const currentSearchView =
     typeof settingsSectionSearch.view === "string" ? settingsSectionSearch.view : null;
@@ -6283,7 +6354,10 @@ export default function Sidebar() {
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-background/50",
               )}
-              onClick={() => setUserSelectedCourseTab("files")}
+              onClick={() => {
+                setUserSelectedCourseTab("files");
+                useEditorSurfaceStore.getState().setSurface("study");
+              }}
               title="Course Files"
             >
               <FolderIcon className="size-3.5 shrink-0" />
@@ -6297,7 +6371,10 @@ export default function Sidebar() {
                   ? "bg-background text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground hover:bg-background/50",
               )}
-              onClick={() => setUserSelectedCourseTab("studio")}
+              onClick={() => {
+                setUserSelectedCourseTab("studio");
+                useEditorSurfaceStore.getState().setSurface("studio");
+              }}
               title="Deliverables"
             >
               <SparkleIcon className="size-3.5 shrink-0" />
@@ -7185,27 +7262,60 @@ export default function Sidebar() {
             setActivityViewEnabledSmoothly(false);
             setSpacesBrowseMode("files");
             setUserSelectedCourseTab("files");
-            void navigate({
-              search: ((prev: Record<string, unknown>) => ({
-                ...stripDiffSearchParams(prev),
-                view: "editor",
-              })) as never,
-            });
+            useEditorSurfaceStore.getState().setSurface("study");
+            if (routeThreadId) {
+              void navigate({
+                to: "/$threadId",
+                params: { threadId: routeThreadId },
+                search: ((prev: Record<string, unknown>) => {
+                  const { home: _, ...rest } = stripDiffSearchParams(prev);
+                  return {
+                    ...rest,
+                    view: "editor",
+                  };
+                }) as never,
+              });
+            } else {
+              void navigate({
+                to: "/editor",
+                search: {
+                  view: "editor",
+                },
+              });
+            }
           } else if (id === "chats") {
             setActivityViewEnabledSmoothly(false);
             setUserSelectedCourseTab("chats");
+            if (routeThreadId) {
+              void navigate({
+                to: "/$threadId",
+                params: { threadId: routeThreadId },
+                search: ((prev: Record<string, unknown>) => {
+                  const { home: _home, view: _view, ...rest } = stripDiffSearchParams(prev);
+                  return rest;
+                }) as never,
+              });
+            } else {
+              const recentThreadId = courseProject
+                ? useCourseWorkspaceStore.getState().recentThreadIdByCourse[courseProject.id]
+                : undefined;
+              if (recentThreadId) {
+                void navigate({
+                  to: "/$threadId",
+                  params: { threadId: recentThreadId },
+                  search: ((prev: Record<string, unknown>) => {
+                    const { home: _home, view: _view, ...rest } = stripDiffSearchParams(prev);
+                    return rest;
+                  }) as never,
+                });
+              } else {
+                void handleNewCourseStudyThread();
+              }
+            }
           } else if (id === "home") {
-            setUserSelectedCourseTab("chats");
             void navigate({
               to: "/",
               search: { home: true },
-            });
-          } else {
-            void navigate({
-              search: ((prev: Record<string, unknown>) => ({
-                ...stripDiffSearchParams(prev),
-                view: "chat",
-              })) as never,
             });
           }
           selectRailPanelItem(id);
@@ -7599,6 +7709,7 @@ export default function Sidebar() {
                           openRailSpacesProject(projectId);
                           setSpacesBrowseMode("files");
                           setUserSelectedCourseTab("chats");
+                          selectRailPanelItem("home");
                           void navigate({
                             to: "/",
                             search: { home: true },
@@ -7631,6 +7742,7 @@ export default function Sidebar() {
                           tooltip="Course Overview"
                           tooltipSide="bottom"
                           onClick={() => {
+                            selectRailPanelItem("home");
                             void navigate({
                               to: "/",
                               search: { home: true },

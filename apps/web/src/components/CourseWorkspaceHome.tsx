@@ -34,6 +34,7 @@ import {
   buildCourseStudyPrompt,
 } from "~/lib/courseStudyPrompts";
 import { RouteSurfaceHeader } from "~/components/RouteSurface";
+import { useEditorSurfaceStore } from "~/editorSurfaceStore";
 import { readNativeApi } from "~/nativeApi";
 import { type Project } from "~/types";
 
@@ -64,6 +65,11 @@ export function CourseWorkspaceHome(props: {
       const target = subPath ? `${course.cwd}/${subPath}` : course.cwd;
       void api.shell.showInFolder(target);
     } else if (onOpenEditor) {
+      if (subPath === "Outbox") {
+        useEditorSurfaceStore.getState().setSurface("studio");
+      } else {
+        useEditorSurfaceStore.getState().setSurface("study");
+      }
       onOpenEditor();
     }
   };

@@ -54,6 +54,7 @@ import { useTemporaryThreadStore } from "../temporaryThreadStore";
 import { useTerminalStateStore } from "../terminalStateStore";
 import { type CourseStudyIntent, buildCourseStudyPrompt } from "../lib/courseStudyPrompts";
 import { useCourseWorkspaceStore } from "../courseWorkspaceStore";
+import { useRailShellStore } from "../railShellStore";
 
 export interface NewThreadNavigationOptions {
   /**
@@ -483,6 +484,7 @@ export function useHandleNewThread() {
     if (!activeCourseId) {
       return null;
     }
+    useRailShellStore.getState().selectPanelItem("chats");
     const threadId = await handleNewThread(activeCourseId, {
       fresh: true,
       envMode: "local",

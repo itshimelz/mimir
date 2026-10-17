@@ -12,10 +12,16 @@ import { APP_DISPLAY_NAME } from "./branding";
 import { isElectron } from "./env";
 import { isMacPlatform } from "./lib/utils";
 import { installGlassOverlayCutout } from "./lib/glassOverlayCutout";
+import { installInputModalityTracker } from "./lib/inputModality";
 import { installRendererErrorDiagnostics } from "./lib/rendererErrorDiagnostics";
 
 const disposeRendererDiagnostics = installRendererErrorDiagnostics();
 if (import.meta.hot) import.meta.hot.dispose(() => disposeRendererDiagnostics?.());
+
+// Before the first render: the stylesheet reads data-input-modality from the
+// first paint, and a focus ring painted then has to be torn down again.
+const disposeInputModality = installInputModalityTracker();
+if (import.meta.hot) import.meta.hot.dispose(() => disposeInputModality());
 
 // Before the first render: settings hooks read the stored rail on mount.
 revealHubsRailItemOnce();

@@ -27,7 +27,11 @@ export function StatusDot({
 }) {
   return (
     <span
-      className={cn("size-1.5 shrink-0 rounded-full", pulse && "animate-pulse", className)}
+      className={cn(
+        "size-1.5 shrink-0 rounded-full corner-round",
+        pulse && "animate-pulse",
+        className,
+      )}
       {...props}
     />
   );
@@ -37,7 +41,7 @@ const statusChipVariants = cva("flex items-center gap-1.5", {
   variants: {
     variant: {
       /** Tinted capsule that names what an agent is doing. */
-      pill: "h-5.5 shrink-0 rounded-md px-2 text-ui-xs font-medium",
+      pill: "h-5.5 shrink-0 rounded-full corner-round px-2.5 text-ui-xs font-medium",
       /** Bare dot + text for dense meta rows; the label truncates instead of wrapping. */
       inline: "min-w-0 text-ui-sm",
     },

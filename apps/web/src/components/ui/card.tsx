@@ -7,10 +7,9 @@ const cardVariants = cva(
   {
     variants: {
       variant: {
-        muted: "bg-[var(--color-background-elevated-secondary)] border border-transparent",
-        raised:
-          "bg-[var(--color-background-elevated-primary-opaque)] shadow-sm border border-transparent",
-        plain: "border border-border bg-card",
+        muted: "bg-[var(--color-background-elevated-secondary)]",
+        raised: "app-elevated-panel bg-[var(--color-background-elevated-primary-opaque)]",
+        plain: "app-elevated-panel bg-card",
       },
       /* adds hover/press feedback for clickable cards */
       interactive: {
@@ -22,7 +21,7 @@ const cardVariants = cva(
       {
         variant: "raised",
         interactive: true,
-        className: "hover:shadow-md data-press:shadow-sm",
+        className: "app-elevated-prominent data-press:app-elevated-panel",
       },
       {
         variant: "muted",

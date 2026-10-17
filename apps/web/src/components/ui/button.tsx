@@ -30,8 +30,8 @@ const buttonVariants = cva(
     },
     variants: {
       shape: {
-        capsule: "rounded-md font-normal",
-        round: "rounded-full",
+        capsule: "rounded-full corner-round font-normal",
+        round: "rounded-full corner-round",
         square: "rounded-md",
         default: "",
       },
@@ -101,7 +101,7 @@ const buttonVariants = cva(
     compoundVariants: [
       {
         class:
-          "!box-border !h-auto !min-h-7 gap-1.5 rounded-lg px-[calc(--spacing(2.5)-1px)] !py-0.5 text-ui sm:!h-auto sm:px-[calc(--spacing(2.5)-1px)] sm:text-ui-sm",
+          "!box-border !h-auto !min-h-7 gap-1.5 rounded-lg px-2.5 !py-0.5 text-ui sm:!h-auto sm:px-2.5 sm:text-ui-sm",
         size: "xs",
         variant: "chrome-outline",
       },
@@ -111,7 +111,7 @@ const buttonVariants = cva(
         variant: "chrome-outline",
       },
       // Last, so a size's own radius (xs, icon-xs) never squares a capsule off.
-      { class: "rounded-md", shape: "capsule" },
+      { class: "rounded-full corner-round", shape: "capsule" },
     ],
   },
 );

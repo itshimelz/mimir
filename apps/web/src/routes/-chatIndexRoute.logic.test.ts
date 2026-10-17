@@ -128,5 +128,14 @@ describe("resolveChatIndexRestoreRoute", () => {
       });
       expect(result).toBeNull();
     });
+
+    it("preserves view: 'editor' on the restored route", () => {
+      const result = resolveChatIndexRestoreRoute({
+        ...baseInput,
+        selectedCourseId: courseA,
+        lastThreadRoute: { threadId: threadA1, view: "editor" },
+      });
+      expect(result).toEqual({ threadId: threadA1, view: "editor" });
+    });
   });
 });

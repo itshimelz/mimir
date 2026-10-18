@@ -1,15 +1,14 @@
 // FILE: CourseKnowledgeTree.tsx
 // Purpose: Renders the structured Course Knowledge Tree inside the sidebar flyout,
 //          organizing courses into Syllabus Roadmap, Modules (Source Stack, Living Notes,
-//          Study Sessions, Recall Cards), and Course Library.
+//          Study Sessions), and Course Library drawers.
 // Layer: Web UI component
 
 import { useState } from "react";
-import type { ProjectId, ThreadId } from "@synara/contracts";
+import type { ThreadId } from "@synara/contracts";
 import {
   BookIcon,
   BookOpenIcon,
-  BrainIcon,
   ChatBubbleIcon,
   ChevronDownIcon,
   FolderIcon,
@@ -17,9 +16,18 @@ import {
   PlayIcon,
   SparkleIcon,
   AddPlusIcon,
-  CheckIcon,
 } from "~/lib/icons";
 import { cn } from "~/lib/utils";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "~/components/ui/empty";
 import {
   DISCLOSURE_CHEVRON_MOTION_CLASS,
   DISCLOSURE_INNER_CLASS,
@@ -51,7 +59,6 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
     onOpenStudySession,
     onStartNewStudySession,
     onOpenLibraryFolder,
-    onReviewCards,
   } = props;
 
   // Track expanded weeks (default Week 1 expanded)
@@ -72,54 +79,75 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
   const renderSourceKindIcon = (kind: CourseSourceItem["kind"]) => {
     switch (kind) {
       case "slides":
-        return <PageTextIcon className="size-3.5 text-blue-500 shrink-0" />;
+        return <PageTextIcon className="size-3.5 text-primary shrink-0" />;
       case "recording":
-        return <PlayIcon className="size-3.5 text-purple-500 shrink-0" />;
+        return <PlayIcon className="size-3.5 text-primary shrink-0" />;
       case "textbook":
-        return <BookIcon className="size-3.5 text-amber-500 shrink-0" />;
+        return <BookIcon className="size-3.5 text-primary shrink-0" />;
       case "assignment":
-        return <SparkleIcon className="size-3.5 text-emerald-500 shrink-0" />;
+        return <SparkleIcon className="size-3.5 text-primary shrink-0" />;
       default:
         return <PageTextIcon className="size-3.5 text-muted-foreground shrink-0" />;
     }
   };
 
+  if (tree.modules.length === 0) {
+    return (
+      <Empty className="h-full flex-1 p-4">
+        <EmptyMedia variant="icon">
+          <BookOpenIcon className="size-4.5" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle className="text-ui font-semibold">No course modules</EmptyTitle>
+          <EmptyDescription className="text-ui-xs">
+            Add lecture slides or course files to your course folder to organize them into modules.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
   return (
     <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-y-auto px-1.5 py-1">
-      {/* 1. Syllabus & Milestones Summary Card */}
-      <div className="mb-2 rounded-lg border border-border/60 bg-secondary/30 p-2.5">
-        <div className="flex items-center justify-between text-ui-xs">
-          <div className="flex items-center gap-1.5 font-medium text-foreground">
-            <BookOpenIcon className="size-3.5 text-primary shrink-0" />
-            <span>Syllabus & Roadmap</span>
+      {/* 1. Syllabus Roadmap Card */}
+      <Card variant="plain" size="sm" className="mb-2 gap-1.5">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-medium text-foreground">
+              <BookOpenIcon className="size-3.5 text-primary shrink-0" />
+              <CardTitle className="text-ui-xs font-semibold">Syllabus & Roadmap</CardTitle>
+            </div>
+            {tree.syllabus.fileName ? (
+              <Badge variant="outline" size="sm">
+                {tree.syllabus.fileName}
+              </Badge>
+            ) : null}
           </div>
-          <span className="rounded-full bg-primary/10 px-1.5 py-0.5 text-ui-2xs font-semibold text-primary">
-            {tree.syllabus.overallMastery}% Mastery
-          </span>
-        </div>
-        {tree.syllabus.nextMilestone ? (
-          <div className="mt-1.5 flex items-center justify-between text-ui-2xs text-muted-foreground">
-            <span className="truncate">{tree.syllabus.nextMilestone.name}</span>
-            <span className="font-semibold text-amber-600 dark:text-amber-400 shrink-0">
-              {tree.syllabus.nextMilestone.date}
-            </span>
-          </div>
-        ) : null}
-      </div>
+          {tree.syllabus.nextMilestone ? (
+            <div className="mt-1 flex items-center justify-between text-ui-2xs text-muted-foreground">
+              <span className="truncate">{tree.syllabus.nextMilestone.name}</span>
+              <span className="font-semibold text-primary shrink-0">
+                {tree.syllabus.nextMilestone.date}
+              </span>
+            </div>
+          ) : null}
+        </CardHeader>
+      </Card>
 
       {/* 2. Modules / Weekly Tree */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center justify-between px-1 text-ui-2xs font-semibold uppercase tracking-wider text-muted-foreground">
           <span>Weekly Knowledge Modules</span>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="chip"
             onClick={() => onStartNewStudySession()}
-            className="flex items-center gap-1 text-primary hover:underline"
+            className="flex items-center gap-1 text-primary hover:text-primary h-auto p-0"
             title="Start new study session"
           >
             <AddPlusIcon className="size-3" />
             <span>New Session</span>
-          </button>
+          </Button>
         </div>
 
         {tree.modules.map((mod: CourseModule) => {
@@ -133,7 +161,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
               <button
                 type="button"
                 onClick={() => toggleWeek(mod.weekNumber)}
-                className="flex w-full items-center justify-between gap-2 p-2 text-left hover:bg-secondary/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-md"
+                className="flex w-full items-center justify-between gap-2 p-2 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-md transition-colors"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <ChevronDownIcon
@@ -150,21 +178,11 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
-                  {mod.mastery.dueCards > 0 ? (
-                    <span
-                      title={`${mod.mastery.dueCards} cards due for recall`}
-                      className="rounded-full bg-amber-500/15 px-1.5 py-0.5 text-ui-2xs font-semibold text-amber-600 dark:text-amber-400"
-                    >
-                      {mod.mastery.dueCards} due
-                    </span>
-                  ) : (
-                    <span
-                      title="Mastery Retrievability"
-                      className="rounded-full bg-emerald-500/15 px-1.5 py-0.5 text-ui-2xs font-semibold text-emerald-600 dark:text-emerald-400"
-                    >
-                      {mod.mastery.retrievability}%
-                    </span>
-                  )}
+                  {mod.sourceStack.length > 0 ? (
+                    <Badge variant="secondary" size="sm">
+                      {mod.sourceStack.length}
+                    </Badge>
+                  ) : null}
                 </div>
               </button>
 
@@ -177,13 +195,13 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
               >
                 <div className={cn(DISCLOSURE_INNER_CLASS, "flex flex-col gap-2 p-2 pt-0")}>
                   {/* Canonical Source Stack */}
-                  <div className="flex flex-col gap-1 rounded bg-secondary/20 p-1.5">
+                  <div className="flex flex-col gap-1 rounded bg-muted/30 p-1.5">
                     <span className="text-ui-2xs font-medium text-muted-foreground">
                       Source Stack ({mod.sourceStack.length})
                     </span>
                     {mod.sourceStack.length === 0 ? (
-                      <span className="text-ui-2xs italic text-muted-foreground/80">
-                        Drop slides or textbook chapters here
+                      <span className="text-ui-2xs text-muted-foreground">
+                        No materials added yet
                       </span>
                     ) : (
                       <div className="flex flex-col gap-0.5">
@@ -192,7 +210,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                             key={src.id}
                             type="button"
                             onClick={() => onOpenSourceItem(src)}
-                            className="flex items-center gap-1.5 rounded px-1.5 py-1 text-left text-ui-xs hover:bg-secondary/60 transition-colors"
+                            className="flex items-center gap-1.5 rounded px-1.5 py-1 text-left text-ui-xs hover:bg-muted/60 transition-colors"
                           >
                             {renderSourceKindIcon(src.kind)}
                             <span className="truncate flex-1 text-foreground">{src.name}</span>
@@ -203,7 +221,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                   </div>
 
                   {/* Living Synthesis Note */}
-                  <div className="flex items-center justify-between rounded bg-secondary/20 p-1.5 text-ui-xs">
+                  <div className="flex items-center justify-between rounded bg-muted/30 p-1.5 text-ui-xs">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <PageTextIcon className="size-3.5 text-primary shrink-0" />
                       <span className="truncate text-foreground font-medium">
@@ -212,17 +230,18 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                           : `Week ${mod.weekNumber} Synthesis Note`}
                       </span>
                     </div>
-                    <button
-                      type="button"
+                    <Button
+                      variant="link"
+                      size="chip"
                       onClick={() =>
                         onOpenSynthesisNote(
                           mod.synthesisNote?.path ?? `Outbox/Notes/Week_${mod.weekNumber}_Notes.md`,
                         )
                       }
-                      className="text-ui-2xs font-semibold text-primary hover:underline shrink-0"
+                      className="text-ui-2xs font-semibold text-primary hover:underline shrink-0 h-auto p-0"
                     >
-                      {mod.synthesisNote ? "Open Note" : "Create Note"}
-                    </button>
+                      {mod.synthesisNote ? "Open" : "Create"}
+                    </Button>
                   </div>
 
                   {/* Anchored Study Sessions */}
@@ -236,7 +255,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                           key={session.threadId}
                           type="button"
                           onClick={() => onOpenStudySession(session.threadId)}
-                          className="flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-ui-xs text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors"
+                          className="flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-ui-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
                         >
                           <ChatBubbleIcon className="size-3 text-muted-foreground shrink-0" />
                           <span className="truncate">{session.title}</span>
@@ -244,23 +263,6 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                       ))}
                     </div>
                   ) : null}
-
-                  {/* Active Recall Deck Trigger */}
-                  <div className="flex items-center justify-between border-t border-border/40 pt-1.5 text-ui-2xs text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <BrainIcon className="size-3 text-primary shrink-0" />
-                      <span>{mod.mastery.totalCards} Flashcards</span>
-                    </div>
-                    {onReviewCards ? (
-                      <button
-                        type="button"
-                        onClick={() => onReviewCards(mod.id)}
-                        className="font-medium text-primary hover:underline"
-                      >
-                        Drill Recall
-                      </button>
-                    ) : null}
-                  </div>
                 </div>
               </div>
             </div>
@@ -277,7 +279,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
           <button
             type="button"
             onClick={() => onOpenLibraryFolder("Inbox")}
-            className="flex items-center gap-1.5 rounded-md border border-border/40 bg-secondary/20 p-2 text-left hover:bg-secondary/50 transition-colors"
+            className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted/20 p-2 text-left hover:bg-muted/50 transition-colors"
           >
             <FolderIcon className="size-3.5 text-primary shrink-0" />
             <div className="flex flex-col min-w-0">
@@ -291,7 +293,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
           <button
             type="button"
             onClick={() => onOpenLibraryFolder("Outbox")}
-            className="flex items-center gap-1.5 rounded-md border border-border/40 bg-secondary/20 p-2 text-left hover:bg-secondary/50 transition-colors"
+            className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted/20 p-2 text-left hover:bg-muted/50 transition-colors"
           >
             <SparkleIcon className="size-3.5 text-primary shrink-0" />
             <div className="flex flex-col min-w-0">

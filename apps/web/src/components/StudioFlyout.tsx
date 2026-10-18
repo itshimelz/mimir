@@ -1,22 +1,24 @@
 // FILE: StudioFlyout.tsx
 // Purpose: Sidebar flyout view for Pillar 3: Study Studio (Cmd+3).
-//          Shows active module outline, pinned source stack, living synthesis notes,
-//          and margin threads for deep co-reading.
+//          Shows real source files, living notes, and studio triggers.
 // Layer: Web UI component
 
 import type { Project } from "~/types";
-import {
-  BookOpenIcon,
-  ChatBubbleIcon,
-  PageTextIcon,
-  SparkleIcon,
-  AddPlusIcon,
-  PlayIcon,
-} from "~/lib/icons";
+import { BookOpenIcon, PageTextIcon, SparkleIcon, AddPlusIcon, PlayIcon } from "~/lib/icons";
 import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "~/components/ui/empty";
 
 export interface StudioFlyoutProps {
   readonly course: Project | null;
+  readonly recentFiles?: readonly string[] | undefined;
   readonly onOpenStudioWorkspace: () => void;
   readonly onOpenSourceFile: (fileName: string) => void;
   readonly onOpenSynthesisNote: () => void;
@@ -26,6 +28,7 @@ export interface StudioFlyoutProps {
 export function StudioFlyout(props: StudioFlyoutProps) {
   const {
     course,
+    recentFiles = [],
     onOpenStudioWorkspace,
     onOpenSourceFile,
     onOpenSynthesisNote,
@@ -34,123 +37,122 @@ export function StudioFlyout(props: StudioFlyoutProps) {
 
   if (!course) {
     return (
-      <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center p-4 text-center">
-        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
-          <SparkleIcon className="size-5" />
-        </div>
-        <p className="text-ui font-medium text-foreground">No active course</p>
-        <p className="mt-1 text-ui-xs text-muted-foreground">
-          Select or open a course to launch the Study Studio.
-        </p>
-      </div>
+      <Empty className="h-full flex-1 p-4">
+        <EmptyMedia variant="icon">
+          <SparkleIcon className="size-4.5" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle className="text-ui font-semibold">No active course</EmptyTitle>
+          <EmptyDescription className="text-ui-xs">
+            Select or open a course to launch the Study Studio.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
+  const displayFiles = recentFiles.slice(0, 4);
+
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto px-2 py-1.5">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-2.5 overflow-y-auto px-2 py-1.5">
       {/* 1. Studio Status & Full Workspace Trigger */}
-      <div className="rounded-lg border border-primary/25 bg-primary/5 p-3">
-        <div className="flex items-center justify-between text-ui-xs font-semibold text-foreground">
-          <div className="flex items-center gap-1.5">
-            <SparkleIcon className="size-4 text-primary shrink-0" />
-            <span>Study Studio Workspace</span>
-          </div>
-          <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-ui-2xs font-semibold text-primary">
-            Tri-Pane
-          </span>
-        </div>
-        <p className="mt-1 text-ui-2xs text-muted-foreground">
-          Co-reading reader, living synthesis notes, and contextual Socratic tutor in one
-          synchronized canvas.
-        </p>
-        <Button
-          size="sm"
-          className="mt-2.5 w-full gap-1.5 text-ui font-medium shadow-xs"
-          onClick={onOpenStudioWorkspace}
-        >
-          <BookOpenIcon className="size-3.5" />
-          <span>Launch Study Studio</span>
-        </Button>
-      </div>
-
-      {/* 2. Current Session Pinned Source Stack */}
-      <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
-        <span className="text-ui-xs font-semibold text-foreground">Active Source Stack</span>
-        <div className="mt-2 flex flex-col gap-1.5">
-          <button
-            type="button"
-            onClick={() => onOpenSourceFile("Lecture_03_Slides.pdf")}
-            className="flex items-center justify-between rounded border border-border/40 bg-background/60 p-2 text-left hover:border-primary/40 transition-colors"
-          >
-            <div className="flex items-center gap-1.5 min-w-0">
-              <PageTextIcon className="size-3.5 text-blue-500 shrink-0" />
-              <span className="truncate text-ui-xs font-medium text-foreground">
-                Lecture_03_Slides.pdf
-              </span>
+      <Card variant="plain" size="sm" className="gap-2">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-medium text-foreground">
+              <SparkleIcon className="size-3.5 text-primary shrink-0" />
+              <CardTitle className="text-ui-xs font-semibold">Study Studio</CardTitle>
             </div>
-            <span className="text-ui-2xs text-muted-foreground shrink-0">p. 14</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onOpenSourceFile("Lecture_03_Recording.mp3")}
-            className="flex items-center justify-between rounded border border-border/40 bg-background/60 p-2 text-left hover:border-primary/40 transition-colors"
+            <Badge variant="outline" size="sm">
+              Tri-Pane
+            </Badge>
+          </div>
+          <CardDescription className="text-ui-2xs text-muted-foreground">
+            Synchronized co-reading reader, living synthesis notes, and Socratic tutor.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Button
+            size="sm"
+            className="w-full gap-1.5 text-ui font-medium shadow-xs"
+            onClick={onOpenStudioWorkspace}
           >
-            <div className="flex items-center gap-1.5 min-w-0">
-              <PlayIcon className="size-3.5 text-purple-500 shrink-0" />
-              <span className="truncate text-ui-xs font-medium text-foreground">
-                Lecture_03_Recording.mp3
-              </span>
+            <BookOpenIcon className="size-3.5" />
+            <span>Launch Studio Canvas</span>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* 2. Current Session Source Stack */}
+      <Card variant="plain" size="sm" className="gap-2">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-medium text-foreground">
+              <PageTextIcon className="size-3.5 text-primary shrink-0" />
+              <CardTitle className="text-ui-xs font-semibold">Source Stack</CardTitle>
             </div>
-            <span className="text-ui-2xs text-muted-foreground shrink-0">18:42</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 3. Living Synthesis Note */}
-      <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
-        <div className="flex items-center justify-between text-ui-xs font-semibold text-foreground">
-          <div className="flex items-center gap-1.5">
-            <PageTextIcon className="size-3.5 text-primary shrink-0" />
-            <span>Living Synthesis Note</span>
+            {displayFiles.length > 0 ? (
+              <Badge variant="secondary" size="sm">
+                {displayFiles.length}
+              </Badge>
+            ) : null}
           </div>
-          <button
-            type="button"
-            onClick={onOpenSynthesisNote}
-            className="text-ui-2xs font-medium text-primary hover:underline"
-          >
-            Open Note
-          </button>
-        </div>
-        <p className="mt-1 text-ui-2xs text-muted-foreground">
-          Notes co-authored with Mimir containing clickable source citations.
-        </p>
-      </div>
+        </CardHeader>
+        <CardContent className="p-0 flex flex-col gap-1.5">
+          {displayFiles.length > 0 ? (
+            displayFiles.map((file) => {
+              const fileName = file.split("/").pop() ?? file;
+              return (
+                <button
+                  key={file}
+                  type="button"
+                  onClick={() => onOpenSourceFile(file)}
+                  className="flex items-center justify-between rounded-md border border-border/40 bg-muted/30 px-2 py-1.5 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <span className="truncate text-ui-xs font-medium text-foreground">
+                    {fileName}
+                  </span>
+                  <PlayIcon className="size-3 text-muted-foreground shrink-0" />
+                </button>
+              );
+            })
+          ) : (
+            <div className="rounded-md border border-dashed border-border/50 p-2.5 text-center text-ui-2xs text-muted-foreground">
+              No course documents found. Place slides or readings in the course folder.
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* 4. Anchored Margin Discussions */}
-      <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
-        <span className="text-ui-xs font-semibold text-foreground">Anchored Margin Threads</span>
-        <div className="mt-2 flex flex-col gap-1 text-ui-xs">
-          <div className="flex items-center gap-1.5 rounded p-1 text-muted-foreground hover:text-foreground">
-            <ChatBubbleIcon className="size-3 text-muted-foreground shrink-0" />
-            <span className="truncate">Slide 14: Goldman-Hodgkin-Katz eq</span>
+      {/* 3. Living Notes Action */}
+      <Card variant="plain" size="sm" className="gap-2">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-ui-xs font-semibold">Synthesis Notes</CardTitle>
+            <Button
+              variant="link"
+              size="chip"
+              onClick={onOpenSynthesisNote}
+              className="text-ui-2xs p-0 text-primary hover:underline h-auto"
+            >
+              Open →
+            </Button>
           </div>
-          <div className="flex items-center gap-1.5 rounded p-1 text-muted-foreground hover:text-foreground">
-            <ChatBubbleIcon className="size-3 text-muted-foreground shrink-0" />
-            <span className="truncate">Slide 22: Voltage-gated Na+ channels</span>
-          </div>
-        </div>
-      </div>
+          <CardDescription className="text-ui-2xs text-muted-foreground">
+            Co-authored living notes with source citations.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
-      {/* 5. Quick Socratic Ask */}
+      {/* 4. Quick Socratic Ask */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
-        className="w-full justify-start gap-2 text-ui-xs text-muted-foreground hover:text-foreground"
+        className="w-full justify-start gap-2 text-ui-xs font-medium shadow-xs"
         onClick={onStartNewSession}
       >
         <AddPlusIcon className="size-3.5 text-primary" />
-        <span>Ask Socratic Tutor Question</span>
+        <span>Ask Socratic Tutor</span>
       </Button>
     </div>
   );

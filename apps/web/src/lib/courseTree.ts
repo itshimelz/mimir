@@ -122,25 +122,6 @@ export function extractWeekNumber(name: string): number | null {
   return null;
 }
 
-const DEFAULT_COURSE_MODULE_TITLES: ReadonlyArray<{ title: string; desc: string }> = [
-  {
-    title: "Foundations & Core Principles",
-    desc: "Key definitions, foundational axioms, and introductory models.",
-  },
-  {
-    title: "Mechanisms & Quantitative Derivations",
-    desc: "Mathematical formulations, step-by-step proofs, and causal models.",
-  },
-  {
-    title: "Advanced Systems & Applications",
-    desc: "Case studies, integrative problem solving, and complex interactions.",
-  },
-  {
-    title: "Synthesis, Diagnostics & Exam Review",
-    desc: "Active recall consolidation, error analysis, and mock exam problems.",
-  },
-];
-
 export function buildCourseTree(input: {
   readonly course: Project;
   readonly filePaths?: ReadonlyArray<string> | undefined;
@@ -228,29 +209,25 @@ export function buildCourseTree(input: {
 
   const modules: CourseModule[] = [];
   for (let w = 1; w <= totalWeeks; w++) {
-    const defaultMeta =
-      DEFAULT_COURSE_MODULE_TITLES[(w - 1) % DEFAULT_COURSE_MODULE_TITLES.length]!;
     const sources = moduleFilesMap.get(w) ?? [];
     const note = moduleNotesMap.get(w) ?? null;
     const sessions = moduleThreadsMap.get(w) ?? [];
 
-    // Synthesize realistic FSRS retention metrics per module
-    const dueCount = Math.max(0, (w * 3) % 7);
-    const totalCount = Math.max(dueCount + 4, ((w * 5) % 15) + 8);
-    const retrievability = Math.min(95, Math.max(62, 90 - ((w * 4) % 25)));
-
     modules.push({
       id: `module-week-${w}`,
       weekNumber: w,
-      title: `Week ${w}: ${defaultMeta.title}`,
-      description: defaultMeta.desc,
+      title: `Week ${w}`,
+      description:
+        sources.length > 0
+          ? `${sources.length} source file${sources.length === 1 ? "" : "s"}`
+          : "Module materials",
       sourceStack: sources,
       synthesisNote: note,
       studySessions: sessions,
       mastery: {
-        totalCards: totalCount,
-        dueCards: dueCount,
-        retrievability,
+        totalCards: 0,
+        dueCards: 0,
+        retrievability: 0,
       },
     });
   }
@@ -262,14 +239,8 @@ export function buildCourseTree(input: {
     syllabus: {
       fileName: syllabusFileName,
       totalWeeks,
-      nextMilestone: {
-        name: "Midterm Examination",
-        daysLeft: 8,
-        date: "In 8 days",
-        weight: "25%",
-        kind: "exam",
-      },
-      overallMastery: 78,
+      nextMilestone: null,
+      overallMastery: 0,
     },
     modules,
     inboxFiles,

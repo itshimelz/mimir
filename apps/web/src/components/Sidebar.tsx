@@ -6368,20 +6368,27 @@ export default function Sidebar() {
       );
     }
 
+    const realCourseFiles = resolvedStudioOutputs.entries.map((e) => e.relativePath);
+
     if (railActiveItem === "home") {
       return (
         <TodayBriefingFlyout
           course={courseProject}
+          recentFiles={realCourseFiles}
           onStartRecallSession={() => {
             selectRailPanelItem("mastery");
             void navigate({ to: "/mastery" });
           }}
-          onResumeReading={() => {
-            selectRailPanelItem("spaces");
-            void navigate({
-              to: "/editor",
-              search: { view: "editor" },
-            });
+          onResumeReading={(filePath) => {
+            if (filePath) {
+              handleSelectWorkspaceFile(filePath);
+            } else {
+              selectRailPanelItem("spaces");
+              void navigate({
+                to: "/editor",
+                search: { view: "editor" },
+              });
+            }
           }}
           onStartNewSession={() => void handleNewCourseStudyThread()}
           onOpenMastery={() => {
@@ -6396,9 +6403,10 @@ export default function Sidebar() {
       return (
         <StudioFlyout
           course={courseProject}
+          recentFiles={realCourseFiles}
           onOpenStudioWorkspace={() => void navigate({ to: "/studio" })}
           onOpenSourceFile={(fileName) => handleSelectWorkspaceFile(fileName)}
-          onOpenSynthesisNote={() => handleSelectWorkspaceFile("Outbox/Notes/Week_01_Notes.md")}
+          onOpenSynthesisNote={() => handleSelectWorkspaceFile("Outbox/Notes/Synthesis_Notes.md")}
           onStartNewSession={() => void handleNewCourseStudyThread()}
         />
       );

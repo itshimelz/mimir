@@ -1,128 +1,161 @@
 // FILE: TodayBriefingFlyout.tsx
 // Purpose: Sidebar flyout view for Pillar 1: Today & Briefing (Cmd+1).
-//          Surfaces today's due FSRS recall queue, active reading bookmarks,
-//          and upcoming exam countdowns to eliminate student cold-start friction.
+//          Surfaces real course actions, study session triggers, and active files.
 // Layer: Web UI component
 
 import type { Project } from "~/types";
 import {
   BookOpenIcon,
   BrainIcon,
-  ClockIcon,
   PageTextIcon,
   PlayIcon,
   SparkleIcon,
   AddPlusIcon,
 } from "~/lib/icons";
 import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "~/components/ui/empty";
 
 export interface TodayBriefingFlyoutProps {
   readonly course: Project | null;
+  readonly recentFiles?: readonly string[] | undefined;
   readonly onStartRecallSession: () => void;
-  readonly onResumeReading: () => void;
+  readonly onResumeReading: (filePath?: string) => void;
   readonly onStartNewSession: () => void;
   readonly onOpenMastery: () => void;
 }
 
 export function TodayBriefingFlyout(props: TodayBriefingFlyoutProps) {
-  const { course, onStartRecallSession, onResumeReading, onStartNewSession, onOpenMastery } = props;
+  const {
+    course,
+    recentFiles = [],
+    onStartRecallSession,
+    onResumeReading,
+    onStartNewSession,
+    onOpenMastery,
+  } = props;
 
   if (!course) {
     return (
-      <div className="flex h-full min-h-0 flex-1 flex-col items-center justify-center p-4 text-center">
-        <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
-          <BookOpenIcon className="size-5" />
-        </div>
-        <p className="text-ui font-medium text-foreground">No active course</p>
-        <p className="mt-1 text-ui-xs text-muted-foreground">
-          Select or open a course to view your daily study briefing.
-        </p>
-      </div>
+      <Empty className="h-full flex-1 p-4">
+        <EmptyMedia variant="icon">
+          <BookOpenIcon className="size-4.5" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle className="text-ui font-semibold">No active course</EmptyTitle>
+          <EmptyDescription className="text-ui-xs">
+            Select or open a course to view your daily study briefing.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
+  const displayFiles = recentFiles.slice(0, 3);
+
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto px-2 py-1.5">
-      {/* 1. Daily Due FSRS Recall Queue */}
-      <div className="rounded-lg border border-primary/25 bg-primary/5 p-3">
-        <div className="flex items-center justify-between text-ui-xs">
-          <div className="flex items-center gap-1.5 font-semibold text-foreground">
-            <BrainIcon className="size-4 text-primary shrink-0" />
-            <span>Due Active Recall</span>
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-2.5 overflow-y-auto px-2 py-1.5">
+      {/* 1. Daily Active Recall Card */}
+      <Card variant="plain" size="sm" className="gap-2">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-medium text-foreground">
+              <BrainIcon className="size-3.5 text-primary shrink-0" />
+              <CardTitle className="text-ui-xs font-semibold">Active Recall</CardTitle>
+            </div>
+            <Badge variant="outline" size="sm">
+              Practice
+            </Badge>
           </div>
-          <span className="rounded-full bg-primary/15 px-2 py-0.5 text-ui-2xs font-bold text-primary">
-            12 Cards Due
-          </span>
-        </div>
-        <p className="mt-1 text-ui-2xs text-muted-foreground">
-          3 concepts are below 85% retrievability (high decay risk before exam).
-        </p>
-        <Button
-          size="sm"
-          className="mt-2.5 w-full gap-1.5 text-ui font-medium shadow-xs"
-          onClick={onStartRecallSession}
-        >
-          <SparkleIcon className="size-3.5" />
-          <span>Start 5-min Recall Queue</span>
-        </Button>
-      </div>
+          <CardDescription className="text-ui-2xs text-muted-foreground">
+            Test concept comprehension with guided turn-by-turn prompts.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Button
+            size="sm"
+            className="w-full gap-1.5 text-ui font-medium shadow-xs"
+            onClick={onStartRecallSession}
+          >
+            <SparkleIcon className="size-3.5" />
+            <span>Practice Recall Queue</span>
+          </Button>
+        </CardContent>
+      </Card>
 
-      {/* 2. Active Reading Bookmark */}
-      <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
-        <div className="flex items-center gap-1.5 text-ui-xs font-semibold text-foreground">
-          <PageTextIcon className="size-3.5 text-blue-500 shrink-0" />
-          <span>Resume Reading</span>
-        </div>
-        <div className="mt-2 flex flex-col gap-1 rounded border border-border/40 bg-background/60 p-2">
-          <span className="text-ui-xs font-medium text-foreground">Lecture 03 Slides.pdf</span>
-          <div className="flex items-center justify-between text-ui-2xs text-muted-foreground">
-            <span>Slide 14 of 42</span>
-            <span>Recorded at 18:42</span>
+      {/* 2. Reading Materials */}
+      <Card variant="plain" size="sm" className="gap-2">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 font-medium text-foreground">
+              <PageTextIcon className="size-3.5 text-primary shrink-0" />
+              <CardTitle className="text-ui-xs font-semibold">Course Materials</CardTitle>
+            </div>
+            {displayFiles.length > 0 ? (
+              <Badge variant="secondary" size="sm">
+                {displayFiles.length}
+              </Badge>
+            ) : null}
           </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-2.5 w-full gap-1.5 text-ui-xs"
-          onClick={onResumeReading}
-        >
-          <PlayIcon className="size-3" />
-          <span>Resume at Slide 14</span>
-        </Button>
-      </div>
+        </CardHeader>
+        <CardContent className="p-0 flex flex-col gap-1.5">
+          {displayFiles.length > 0 ? (
+            displayFiles.map((file) => {
+              const fileName = file.split("/").pop() ?? file;
+              return (
+                <button
+                  key={file}
+                  type="button"
+                  onClick={() => onResumeReading(file)}
+                  className="flex items-center justify-between rounded-md border border-border/40 bg-muted/30 px-2 py-1.5 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <span className="truncate text-ui-xs font-medium text-foreground">
+                    {fileName}
+                  </span>
+                  <PlayIcon className="size-3 text-muted-foreground shrink-0" />
+                </button>
+              );
+            })
+          ) : (
+            <div className="rounded-md border border-dashed border-border/50 p-2.5 text-center text-ui-2xs text-muted-foreground">
+              No recent documents open. Use the Courses panel to browse files.
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* 3. 7-Day Exam & Milestone Countdown */}
-      <div className="rounded-lg border border-border/60 bg-secondary/20 p-3">
-        <div className="flex items-center justify-between text-ui-xs font-semibold text-foreground">
-          <div className="flex items-center gap-1.5">
-            <ClockIcon className="size-3.5 text-amber-500 shrink-0" />
-            <span>Upcoming Exam</span>
+      {/* 3. Mastery Progress Link */}
+      <Card variant="plain" size="sm" className="gap-2">
+        <CardHeader className="p-0">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-ui-xs font-semibold">Mastery & Diagnostics</CardTitle>
+            <Button
+              variant="link"
+              size="chip"
+              onClick={onOpenMastery}
+              className="text-ui-2xs p-0 text-primary hover:underline h-auto"
+            >
+              View →
+            </Button>
           </div>
-          <span className="text-ui-2xs font-bold text-amber-600 dark:text-amber-400">
-            8 Days Left
-          </span>
-        </div>
-        <div className="mt-2 flex flex-col gap-1">
-          <span className="text-ui-xs font-medium text-foreground">Midterm Exam (Weeks 1–4)</span>
-          <div className="flex items-center justify-between text-ui-2xs text-muted-foreground">
-            <span>Course Weight: 25%</span>
-            <span>Prep Readiness: 78%</span>
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onOpenMastery}
-          className="mt-2 text-left text-ui-2xs font-medium text-primary hover:underline"
-        >
-          View Weakest Concepts Diagnostic →
-        </button>
-      </div>
+          <CardDescription className="text-ui-2xs text-muted-foreground">
+            View topic diagnostics, retention curves, and exam prep drills.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* 4. Quick Action */}
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
-        className="w-full justify-start gap-2 text-ui-xs text-muted-foreground hover:text-foreground"
+        className="w-full justify-start gap-2 text-ui-xs font-medium shadow-xs"
         onClick={onStartNewSession}
       >
         <AddPlusIcon className="size-3.5 text-primary" />

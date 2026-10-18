@@ -774,6 +774,25 @@ describe("agent directives rendering", () => {
     expect(markup).toContain('data-prompt="Checklist prompt"');
     expect(markup).toContain('data-prompt="Mockup prompt"');
   });
+
+  it("renders fenced mermaid blocks as interactive Pele SVG diagrams", async () => {
+    const text = [
+      "# Architecture",
+      "",
+      "```mermaid",
+      "flowchart TD",
+      "    Frontend --> Backend",
+      "    Backend --> Database",
+      "```",
+    ].join("\n");
+    const markup = await renderMarkdown(text);
+    expect(markup).toContain("chat-markdown-mermaid");
+    expect(markup).toContain("pele pele-flowchart");
+    expect(markup).toContain("<svg");
+    expect(markup).toContain("Frontend");
+    expect(markup).toContain("Backend");
+    expect(markup).toContain("Database");
+  });
 });
 
 describe("ChatMarkdown streaming block split", () => {

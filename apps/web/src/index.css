@@ -621,6 +621,33 @@
   --app-scrollbar-thumb-hover: var(--app-scrollbar-thumb-l1-hover);
   /* An off switch thumb must be lighter than its track, or it reads as a hole. */
   --app-switch-thumb: #ffffff;
+
+  /* Dual-compartment Figma-style toggle switch tokens (Light theme - Accent Driven & Dynamic Font) */
+  --toggle-track-bg: color-mix(in srgb, var(--input, #e4e4e7) 70%, var(--background, #ffffff));
+  --toggle-track-checked-bg: color-mix(
+    in srgb,
+    var(--color-text-accent, var(--info, var(--primary, #0969da))) 12%,
+    var(--toggle-track-bg)
+  );
+  --toggle-track-hover-bg: color-mix(in srgb, var(--foreground, #000) 6%, var(--toggle-track-bg));
+  --toggle-on-bg: color-mix(
+    in srgb,
+    var(--color-text-accent, var(--info, var(--primary, #0969da))) 16%,
+    var(--color-background-surface, var(--background, #ffffff))
+  );
+  --toggle-on-color: var(--color-text-accent, var(--info, var(--primary, #0969da)));
+  --toggle-off-bg: color-mix(
+    in srgb,
+    var(--muted, #e4e4e7) 60%,
+    var(--color-background-surface, var(--background, #ffffff))
+  );
+  --toggle-off-color: var(--muted-foreground, var(--color-text-foreground-secondary, #71717a));
+  --toggle-thumb-on-bg: var(--color-text-accent, var(--info, var(--primary, #0969da)));
+  --toggle-thumb-off-bg: color-mix(
+    in srgb,
+    var(--muted-foreground, #71717a) 55%,
+    var(--color-background-surface, #ffffff)
+  );
   --font-ui-family: var(
     --theme-font-ui-family,
     -apple-system,
@@ -991,6 +1018,7 @@ label:has(> select#reasoning-effort) select {
 .chat-markdown ol,
 .chat-markdown blockquote,
 .chat-markdown pre,
+.chat-markdown .chat-markdown-table-wrapper,
 .chat-markdown table {
   margin: 0.65rem 0;
 }
@@ -1183,22 +1211,28 @@ label:has(> select#reasoning-effort) select {
 }
 
 .chat-markdown blockquote {
-  border-inline-start: 2px solid var(--border);
-  padding-inline-start: 0.8rem;
+  border-inline-start: 3px solid var(--border);
+  padding: 0.45rem 0.85rem;
+  border-radius: 0 var(--radius-md, 0.5rem) var(--radius-md, 0.5rem) 0;
+  background: color-mix(in srgb, var(--foreground) 3%, transparent);
   color: var(--muted-foreground);
 }
 
 .chat-markdown[data-direction-mode="auto-blocks"] blockquote {
   border-left: 0;
-  border-inline-start: 2px solid var(--border);
+  border-inline-start: 3px solid var(--border);
   padding-left: 0;
-  padding-inline-start: 0.8rem;
+  padding-inline-start: 0.85rem;
 }
 
 /* GitHub `> [!NOTE]` alerts (tagged by remarkGithubAlerts). */
 .chat-markdown blockquote[data-github-alert] {
   --github-alert-color: var(--info);
-  border-inline-start-width: 3px;
+  border-radius: var(--radius-md, 0.5rem);
+  background: color-mix(in srgb, var(--github-alert-color) 6%, transparent);
+  border: var(--default-border-width, 0.5px) solid
+    color-mix(in srgb, var(--github-alert-color) 25%, transparent);
+  border-inline-start-width: 3.5px;
   border-inline-start-color: var(--github-alert-color);
   color: var(--foreground);
 }
@@ -1223,12 +1257,16 @@ label:has(> select#reasoning-effort) select {
 }
 
 .chat-markdown :not(pre) > code {
-  border-radius: 0.4rem;
-  background: var(--app-user-message-background);
-  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm, 0.375rem);
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+  border: var(--default-border-width, 0.5px) solid
+    color-mix(in srgb, var(--foreground) 10%, transparent);
+  padding: 0.12rem 0.38rem;
   color: var(--foreground);
   font-size: var(--app-font-size-chat-code);
   font-family: var(--font-chat-code-family);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 /* User-bubble markdown (sent messages). The bubble tint IS the code surface
@@ -1306,7 +1344,8 @@ label:has(> select#reasoning-effort) select {
 .chat-markdown .chat-markdown-codeblock {
   margin: 0.65rem 0;
   overflow: hidden;
-  border-radius: var(--radius-md, 8px);
+  border-radius: var(--radius-xl, 0.75rem);
+  border: var(--default-border-width, 0.5px) solid var(--border);
   background: var(--app-chat-code-surface);
 }
 
@@ -1315,7 +1354,9 @@ label:has(> select#reasoning-effort) select {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.1rem 0.4rem 0.1rem 0.6rem;
+  padding: 0.2rem 0.4rem 0.2rem 0.6rem;
+  border-bottom: var(--default-border-width, 0.5px) solid var(--border);
+  background: color-mix(in srgb, var(--muted) 35%, transparent);
 }
 
 .chat-markdown .chat-markdown-codeblock__lang {
@@ -1414,6 +1455,162 @@ label:has(> select#reasoning-effort) select {
 
 .chat-markdown .chat-markdown-shiki .shiki * {
   font-family: inherit !important;
+}
+
+/* Mermaid diagram styling (Pele theme tokens + diagram layout) */
+.pele,
+.chat-markdown-mermaid,
+[data-pele-theme="light"] {
+  --pele-font: var(--font-ui-family, sans-serif);
+  --pele-font-mono: var(--font-mono-family, monospace);
+  --pele-radius: var(--radius-sm, 6px);
+  --pele-bg: #fffcf0;
+  --pele-fg: #100f0f;
+  --pele-muted: #6f6e69;
+  --pele-line: #100f0f;
+  --pele-surface: #f2f0e5;
+  --pele-surface-alt: #e6e4d9;
+  --pele-border: #cecdc3;
+  --pele-accent: #205ea6;
+  --pele-critical: #af3029;
+  --pele-error: #af3029;
+  --pele-series-1: #af3029;
+  --pele-series-2: #bc5215;
+  --pele-series-3: #ad8301;
+  --pele-series-4: #66800b;
+  --pele-series-5: #24837b;
+  --pele-series-6: #205ea6;
+  --pele-series-7: #5e409d;
+  --pele-series-8: #a02f6f;
+}
+
+.dark .pele,
+.dark .chat-markdown-mermaid,
+.dark [data-pele-theme],
+[data-pele-theme="dark"] {
+  --pele-bg: #100f0f;
+  --pele-fg: #cecdc3;
+  --pele-muted: #878580;
+  --pele-line: #cecdc3;
+  --pele-surface: #1c1b1a;
+  --pele-surface-alt: #282726;
+  --pele-border: #403e3c;
+  --pele-accent: #4385be;
+  --pele-critical: #d14d41;
+  --pele-error: #d14d41;
+  --pele-series-1: #d14d41;
+  --pele-series-2: #da702c;
+  --pele-series-3: #d0a215;
+  --pele-series-4: #879a39;
+  --pele-series-5: #3aa99f;
+  --pele-series-6: #4385be;
+  --pele-series-7: #8b7ec8;
+  --pele-series-8: #ce5d97;
+}
+
+.chat-markdown .chat-markdown-mermaid {
+  margin: 0.65rem 0;
+  overflow: hidden;
+  border-radius: var(--radius-md, 8px);
+  border: var(--default-border-width, 0.5px) solid var(--pele-border);
+  background: var(--pele-surface);
+}
+
+.chat-markdown .chat-markdown-mermaid__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem 0.35rem 0.75rem;
+  background: var(--pele-surface);
+  border-bottom: var(--default-border-width, 0.5px) solid var(--pele-border);
+}
+
+.chat-markdown .chat-markdown-mermaid__title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-family: var(--font-chat-code-family);
+  font-size: 0.72rem;
+  line-height: 1.4;
+  user-select: none;
+  color: var(--pele-fg);
+}
+
+.chat-markdown .chat-markdown-mermaid__actions {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chat-markdown .chat-markdown-mermaid__view-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--pele-surface-alt);
+  border-radius: var(--radius-xs, 4px);
+  padding: 1.5px;
+  gap: 1.5px;
+}
+
+.chat-markdown .chat-markdown-mermaid__view-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1.3;
+  border-radius: calc(var(--radius-xs, 4px) - 1px);
+  color: var(--pele-muted);
+  transition: all 120ms ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+}
+
+.chat-markdown .chat-markdown-mermaid__view-button:hover {
+  color: var(--pele-fg);
+}
+
+.chat-markdown .chat-markdown-mermaid__view-button[data-active="true"] {
+  color: var(--pele-fg);
+  background: var(--pele-bg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  font-weight: 500;
+}
+
+.chat-markdown .chat-markdown-mermaid__diagram-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.25rem 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-height: 90px;
+  background: var(--pele-bg);
+}
+
+.chat-markdown .chat-markdown-mermaid__svg-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.chat-markdown .chat-markdown-mermaid__svg-wrapper svg.pele {
+  max-width: 100%;
+  height: auto;
+}
+
+.chat-markdown .chat-markdown-mermaid__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  color: var(--pele-critical);
+  background: color-mix(in srgb, var(--pele-critical) 10%, var(--pele-bg));
+  border-bottom: var(--default-border-width, 0.5px) solid
+    color-mix(in srgb, var(--pele-critical) 25%, transparent);
 }
 
 .editor-file-viewer__plain,
@@ -1659,57 +1856,54 @@ label:has(> select#reasoning-effort) select {
 
 .local-comment__box {
   position: absolute;
-  z-index: 3;
-  margin-top: 0.3rem;
+  z-index: 10;
+  margin-top: 0.35rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.625rem;
   padding: 0.75rem 0.875rem;
-  border: 0.5px solid color-mix(in srgb, var(--color-border) 65%, transparent);
-  border-radius: var(--radius-md, 8px);
-  background: var(--color-background-elevated-primary-opaque);
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: var(--radius-lg, 0.75rem);
+  background: var(--popover, var(--color-background-elevated-primary-opaque));
+  color: var(--popover-foreground, var(--color-text-foreground));
   /* The box lives inside the file viewer, which sets the monospace code font on
      its content; reset to the normal UI font so the comment chrome reads as app
      UI, not code. Cascades to the header, textarea, and buttons. */
   font-family: var(--font-ui-family);
   box-shadow:
-    0 12px 34px -16px color-mix(in srgb, var(--color-black, #000) 30%, transparent),
-    0 1px 4px -2px color-mix(in srgb, var(--color-black, #000) 16%, transparent);
+    0 16px 36px -12px color-mix(in srgb, var(--color-black, #000) 25%, transparent),
+    0 2px 8px -2px color-mix(in srgb, var(--color-black, #000) 12%, transparent);
 }
 
-/* Rounded chip holding the Synara mark in the box header, echoing the source
-   file's row gutter badge so the comment reads as "from Synara". */
-.local-comment__badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 0.4375rem;
-  border: 0.5px solid color-mix(in srgb, var(--color-border) 75%, transparent);
-  background: var(--app-code-viewer-sticky-surface, var(--color-background-surface));
-}
-
-/* Borderless request field: it blends into the card so the box reads as one
-   surface (matching Codex's local-comment editor) rather than an input-in-a-box. */
 .local-comment__input {
   width: 100%;
-  min-height: 2.5rem;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  min-height: 3.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: var(--radius-md, 0.5rem);
+  background: color-mix(in srgb, var(--color-background-surface) 60%, transparent);
   /* Override the global `textarea { font-family: mono }` reset — this field is
      UI chrome, not code, so it must use the normal UI font. */
   font-family: var(--font-ui-family);
-  font-size: var(--app-font-size-ui-lg, 13px);
-  line-height: 1.5;
+  font-size: var(--app-font-size-ui, 13px);
+  line-height: 1.45;
   color: var(--color-text-foreground);
   outline: none;
   resize: none;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.local-comment__input:focus {
+  border-color: var(--ring, var(--color-text-accent));
+  background: var(--color-background-elevated-primary-opaque);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ring, var(--color-text-accent)) 30%, transparent);
 }
 
 .local-comment__input::placeholder {
-  color: color-mix(in srgb, var(--color-text-foreground) 40%, transparent);
+  color: var(--muted-foreground);
 }
 
 .editor-file-viewer--markdown-preview {
@@ -1793,6 +1987,7 @@ label:has(> select#reasoning-effort) select {
 .editor-markdown-preview :where(.chat-markdown) ol,
 .editor-markdown-preview :where(.chat-markdown) blockquote,
 .editor-markdown-preview :where(.chat-markdown) pre,
+.editor-markdown-preview :where(.chat-markdown) .chat-markdown-table-wrapper,
 .editor-markdown-preview :where(.chat-markdown) table {
   margin: 0.85rem 0;
 }
@@ -2940,16 +3135,86 @@ label:has(> select#reasoning-effort) select {
   outline-offset: 2px;
 }
 
-.chat-markdown table {
+.chat-markdown-table-wrapper {
   width: 100%;
-  border-collapse: collapse;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+  border-radius: var(--radius-xl, 0.75rem);
 }
 
-.chat-markdown th,
-.chat-markdown td {
-  border: 0.5px solid var(--border);
-  padding: 0.35rem 0.45rem;
+.chat-markdown table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: var(--default-border-width, 0.5px) solid var(--border);
+  border-radius: var(--radius-xl, 0.75rem);
+  overflow: hidden;
+  background: var(--card, var(--background));
+  margin: 0.75rem 0;
+}
+
+.chat-markdown-table-wrapper > table {
+  margin: 0;
+}
+
+/* Rounded corners for table corner cells to match the superellipse / round corner */
+.chat-markdown table thead tr:first-child th:first-child,
+.chat-markdown table tr:first-child > :first-child {
+  border-start-start-radius: calc(var(--radius-xl, 0.75rem) - 1px);
+}
+
+.chat-markdown table thead tr:first-child th:last-child,
+.chat-markdown table tr:first-child > :last-child {
+  border-start-end-radius: calc(var(--radius-xl, 0.75rem) - 1px);
+}
+
+.chat-markdown table tbody tr:last-child td:first-child,
+.chat-markdown table tr:last-child > :first-child {
+  border-end-start-radius: calc(var(--radius-xl, 0.75rem) - 1px);
+}
+
+.chat-markdown table tbody tr:last-child td:last-child,
+.chat-markdown table tr:last-child > :last-child {
+  border-end-end-radius: calc(var(--radius-xl, 0.75rem) - 1px);
+}
+
+.chat-markdown th {
+  background: color-mix(in srgb, var(--muted) 45%, var(--background));
+  font-weight: 600;
+  color: var(--foreground);
+  padding: 0.5rem 0.75rem;
   text-align: left;
+  border-bottom: var(--default-border-width, 0.5px) solid var(--border);
+  border-inline-end: var(--default-border-width, 0.5px) solid var(--border);
+}
+
+.chat-markdown th:last-child {
+  border-inline-end: none;
+}
+
+.chat-markdown td {
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+  border-bottom: var(--default-border-width, 0.5px) solid var(--border);
+  border-inline-end: var(--default-border-width, 0.5px) solid var(--border);
+}
+
+.chat-markdown td:last-child {
+  border-inline-end: none;
+}
+
+.chat-markdown tbody tr:last-child td,
+.chat-markdown tr:last-child td {
+  border-bottom: none;
+}
+
+.chat-markdown tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--foreground) 2.5%, transparent);
+}
+
+.chat-markdown tbody tr:hover {
+  background: color-mix(in srgb, var(--foreground) 4.5%, transparent);
 }
 
 /* A visual placed in a reply sits inside that reply's markdown. Its components style
@@ -3015,6 +3280,29 @@ diffs-container {
   /* Neutral bluish rather than pure white: on a #0e0e0e canvas the thumb stays
      clearly lighter than the track without glaring. */
   --app-switch-thumb: #94a3b8;
+
+  /* Dual-compartment Figma-style toggle switch tokens (Dark theme - Accent Driven & Dynamic Font) */
+  --toggle-track-bg: color-mix(in srgb, var(--input, #18181b) 70%, var(--background, #0d0e11));
+  --toggle-track-checked-bg: color-mix(
+    in srgb,
+    var(--color-text-accent, var(--info, var(--primary, #339cff))) 15%,
+    var(--toggle-track-bg)
+  );
+  --toggle-track-hover-bg: color-mix(in srgb, var(--foreground, #fff) 8%, var(--toggle-track-bg));
+  --toggle-on-bg: color-mix(
+    in srgb,
+    var(--color-text-accent, var(--info, var(--primary, #339cff))) 24%,
+    var(--color-background-surface, var(--background, #0f1013))
+  );
+  --toggle-on-color: var(--color-text-accent, var(--info, var(--primary, #339cff)));
+  --toggle-off-bg: color-mix(in srgb, var(--background, #0f1013) 65%, var(--card, #18181b));
+  --toggle-off-color: var(--muted-foreground, var(--color-text-foreground-secondary, #878580));
+  --toggle-thumb-on-bg: var(--color-text-accent, var(--info, var(--primary, #339cff)));
+  --toggle-thumb-off-bg: color-mix(
+    in srgb,
+    var(--muted-foreground, #878580) 45%,
+    var(--card, #1c1b1a)
+  );
 }
 
 /* Raised-chrome outline — the single border shared by every surface that floats over
@@ -3435,7 +3723,13 @@ diffs-container {
     .rounded-xl,
     .rounded-2xl,
     .rounded-3xl,
-    .rounded-4xl
+    .rounded-4xl,
+    .chat-markdown table,
+    .chat-markdown-table-wrapper,
+    .chat-markdown-codeblock,
+    .chat-markdown blockquote,
+    .chat-markdown img,
+    .chat-markdown :not(pre) > code
   ) {
     --app-corner-shape: var(--app-corner-superellipse);
   }
@@ -3457,6 +3751,12 @@ diffs-container {
       .rounded-2xl,
       .rounded-3xl,
       .rounded-4xl,
+      .chat-markdown table,
+      .chat-markdown-table-wrapper,
+      .chat-markdown-codeblock,
+      .chat-markdown blockquote,
+      .chat-markdown img,
+      .chat-markdown :not(pre) > code,
       .rounded-full,
       .rounded-none
     ) {
@@ -3561,6 +3861,10 @@ html[data-input-modality="pointer"] body :focus-visible:not(:read-write) {
    Composes with .chat-markdown (which zeroes first/last child margins). */
 .pull-request-prose {
   line-height: 1.7;
+}
+.chat-markdown img {
+  border-radius: var(--radius-xl, 0.75rem);
+  max-width: 100%;
 }
 .chat-markdown img[data-expandable-image] {
   cursor: zoom-in;
@@ -4119,4 +4423,153 @@ html[data-input-modality="pointer"] body :focus-visible:not(:read-write) {
 /* Expanded document panes retain a readable line length while using more space. */
 [data-dock-maximized="true"] .editor-markdown-preview__body {
   max-width: 1120px;
+}
+
+/* Dual-Compartment Figma-style Toggle Switch */
+.toggle-switch-track {
+  --toggle-w: 48px;
+  --toggle-h: 24px;
+  --toggle-p: 2.5px;
+  --toggle-gap: 2.5px;
+  --toggle-radius: 6px;
+  --toggle-inner-radius: 4px;
+
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: var(--toggle-w);
+  height: var(--toggle-h);
+  padding: var(--toggle-p);
+  border-radius: var(--toggle-radius);
+  background-color: var(--toggle-track-bg);
+  border: 0;
+  box-shadow: none;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  transition: background-color 0.18s ease-out;
+}
+
+.toggle-switch-track:hover:not([data-disabled]) {
+  background-color: var(--toggle-track-hover-bg, var(--toggle-track-bg));
+}
+
+.toggle-switch-track:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--color-background, #000),
+    0 0 0 4px var(--color-primary, #3b82f6);
+}
+
+.toggle-switch-track[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.toggle-switch-track[data-checked],
+.toggle-switch-track[data-state="checked"],
+[data-slot="menu-checkbox-item"][data-checked] .toggle-switch-track {
+  background-color: var(--toggle-track-checked-bg, var(--toggle-track-bg));
+}
+
+.toggle-switch-slots {
+  position: absolute;
+  inset: var(--toggle-p);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--toggle-gap);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.toggle-switch-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--toggle-inner-radius);
+  border: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: var(--font-ui-family, inherit);
+  font-size: clamp(7.5px, calc(var(--toggle-h) * 0.38), 9.5px);
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  user-select: none;
+  transition:
+    background-color 0.18s ease-out,
+    color 0.18s ease-out,
+    opacity 0.15s ease-out;
+}
+
+.toggle-switch-slot--on {
+  background-color: var(--toggle-on-bg);
+  color: var(--toggle-on-color);
+  border: 0;
+  opacity: 1;
+}
+
+.toggle-switch-slot--off {
+  background-color: var(--toggle-off-bg);
+  color: var(--toggle-off-color);
+  border: 0;
+  opacity: 1;
+}
+
+/* In OFF state: hide ON slot text and background completely so it cannot be seen under the thumb */
+.toggle-switch-track:not([data-checked]):not([data-state="checked"]) .toggle-switch-slot--on,
+[data-slot="menu-checkbox-item"]:not([data-checked]) .toggle-switch-slot--on {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* In ON state: hide OFF slot text completely */
+.toggle-switch-track[data-checked] .toggle-switch-slot--off,
+.toggle-switch-track[data-state="checked"] .toggle-switch-slot--off,
+[data-slot="menu-checkbox-item"][data-checked] .toggle-switch-slot--off {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.toggle-switch-thumb {
+  pointer-events: none;
+  position: relative;
+  z-index: 2;
+  width: calc((100% - var(--toggle-gap)) / 2);
+  height: 100%;
+  border-radius: var(--toggle-inner-radius);
+  border: 0;
+  background-color: var(--toggle-thumb-off-bg);
+  box-shadow: none;
+  transform: translateX(0);
+  will-change: transform;
+  box-sizing: border-box;
+  transition:
+    transform 0.22s cubic-bezier(0.34, 1.25, 0.64, 1),
+    background-color 0.18s ease-out,
+    scale 0.15s ease-out;
+}
+
+.toggle-switch-track:active:not([data-disabled]) .toggle-switch-thumb,
+[data-slot="menu-checkbox-item"]:active:not([data-disabled]) .toggle-switch-thumb {
+  scale: 0.96 0.94;
+}
+
+.toggle-switch-track[data-checked] .toggle-switch-thumb,
+.toggle-switch-track[data-state="checked"] .toggle-switch-thumb,
+.toggle-switch-thumb[data-checked],
+.toggle-switch-thumb[data-state="checked"],
+[data-slot="menu-checkbox-item"][data-checked] .toggle-switch-thumb {
+  transform: translateX(calc(100% + var(--toggle-gap)));
+  background-color: var(--toggle-thumb-on-bg);
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toggle-switch-thumb {
+    transition: none;
+  }
 }

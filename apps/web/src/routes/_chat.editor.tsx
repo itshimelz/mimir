@@ -50,11 +50,11 @@ function ChatEditorRouteView() {
       : undefined;
 
     const buildEditorSearch = (previous?: Record<string, unknown>) => {
-      const { home: _, ...rest } = previous ?? {};
+      const { home: _, editorFilePath: _prevFile, ...rest } = previous ?? {};
       return {
         ...rest,
-        ...search,
         view: "editor" as const,
+        ...(search.editorFilePath ? { editorFilePath: search.editorFilePath } : {}),
       };
     };
 
@@ -87,7 +87,16 @@ function ChatEditorRouteView() {
       }
     }
 
-    // 3. Try lastThreadRoute
+    // 3. Fallback when activeCourseId is set: create a fresh thread for activeCourseId.
+    // Never fall back to an unrelated course's thread when activeCourseId is chosen.
+    if (activeCourseId) {
+      void handleNewThread(activeCourseId, undefined, {
+        search: (previous) => buildEditorSearch(previous as Record<string, unknown>),
+      });
+      return;
+    }
+
+    // 4. No activeCourseId: Try lastThreadRoute
     const lastThreadRoute = readSidebarUiState().lastThreadRoute;
     if (lastThreadRoute?.threadId && isThreadKnown(lastThreadRoute.threadId)) {
       void navigate({
@@ -99,7 +108,7 @@ function ChatEditorRouteView() {
       return;
     }
 
-    // 4. Try the first available thread
+    // 5. Try the first available thread
     const candidateThreadId = threadIds[0];
     if (candidateThreadId) {
       void navigate({
@@ -111,8 +120,8 @@ function ChatEditorRouteView() {
       return;
     }
 
-    // 5. Fallback: create fresh thread for the active course or first project
-    const targetProjectId = activeCourseId ?? projects[0]?.id;
+    // 6. Final fallback: create fresh thread for the first project
+    const targetProjectId = projects[0]?.id;
     if (targetProjectId) {
       void handleNewThread(targetProjectId, undefined, {
         search: (previous) => buildEditorSearch(previous as Record<string, unknown>),

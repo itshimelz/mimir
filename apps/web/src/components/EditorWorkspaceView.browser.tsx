@@ -369,17 +369,17 @@ it("refuses to starve the center pane below its minimum", async () => {
   expect(Math.abs(chatPanel().getBoundingClientRect().left - center.right)).toBeLessThanOrEqual(1);
 });
 
-it("keeps the center pane from stretching past its ceiling on a wide window", async () => {
-  // Wider than centerMax + chatMax, so the center's ceiling is the binding constraint here.
-  await page.viewport(EDITOR_CENTER_PANE_MAX_WIDTH + EDITOR_CHAT_PANE_MAX_WIDTH + 600, 900);
+it("stretches the center pane across the full width when the chat rail is collapsed on a wide window", async () => {
+  const viewportWidth = 2560;
+  await page.viewport(viewportWidth, 900);
   await render(makeView()());
-  // Collapse the rail: the center pane is then the only thing in the row, and `flex-1` alone
-  // would hand it the whole window.
+  // Collapse the rail: the center pane is then the only thing in the row, and `flex-1`
+  // hands it the whole available width without leaving dead space.
   await page.getByRole("button", { name: "Hide study chat" }).click();
 
-  const center = centerPane().getBoundingClientRect();
-  expect(center.width).toBeLessThanOrEqual(EDITOR_CENTER_PANE_MAX_WIDTH + 1);
-  expect(center.width).toBeGreaterThanOrEqual(EDITOR_CENTER_PANE_MIN_WIDTH - 1);
+  await expect
+    .poll(() => centerPane().getBoundingClientRect().width)
+    .toBeGreaterThanOrEqual(viewportWidth - 100);
 });
 
 it("re-clamps a width stored on a wide monitor when the window is narrower", async () => {

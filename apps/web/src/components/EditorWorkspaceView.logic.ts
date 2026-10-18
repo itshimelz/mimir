@@ -1,19 +1,18 @@
 // FILE: EditorWorkspaceView.logic.ts
 // Purpose: Pure width policy for the editor workspace's two panes — the center workspace and
-//          the chat rail. Both panes have a floor and a ceiling; the ceiling on one is
-//          yielded to the other so the row never opens a gap between them.
+//          the chat rail. The center pane flexes to fill available space; the chat rail has
+//          a floor and ceiling to keep the chat legible without starving the center workspace.
 // Layer: Web UI logic
 
 /** Below this the transcript and the file preview both stop being readable. */
 export const EDITOR_CENTER_PANE_MIN_WIDTH = 320;
-/** The center pane stops widening past this, handing the room to the chat rail. */
+/** The former center pane max-width ceiling; retained as an exported constant for compatibility. */
 export const EDITOR_CENTER_PANE_MAX_WIDTH = 1600;
 /** Narrow enough to be a peek at the chat; the rail's own toggle collapses it below this. */
 export const EDITOR_CHAT_PANE_MIN_WIDTH = 280;
 /**
- * The ceiling the user feels while dragging. It is a *preference*, not a hard stop: a row
- * wide enough to push the center past {@link EDITOR_CENTER_PANE_MAX_WIDTH} may widen the rail
- * further, because the alternative is a dead gap between the two panes.
+ * The ceiling the user feels while dragging the chat rail. Clamped on narrow rows to keep
+ * the center pane from being starved below {@link EDITOR_CENTER_PANE_MIN_WIDTH}.
  */
 export const EDITOR_CHAT_PANE_MAX_WIDTH = 960;
 export const EDITOR_CHAT_PANE_DEFAULT_WIDTH = 384;
@@ -29,10 +28,8 @@ export interface EditorPaneBounds {
  *
  * Both panes' floors always hold: the rail can never be dragged so wide that the center
  * drops under its own minimum, and the center's CSS floor holds it even while the rail is
- * collapsed. The center's ceiling is the softer of the two constraints — exceeding it is
- * what makes the rail yield room, so on an ultrawide row the rail's effective ceiling rises
- * past {@link EDITOR_CHAT_PANE_MAX_WIDTH} rather than leaving the center stranded at its max
- * with dead space beside it.
+ * collapsed. On a wide monitor, the rail stops at {@link EDITOR_CHAT_PANE_MAX_WIDTH} while
+ * the center pane flexes to fill the rest of the window.
  */
 export function resolveEditorPaneBounds(rowWidth: number): EditorPaneBounds {
   const chatMinWidth = EDITOR_CHAT_PANE_MIN_WIDTH;
@@ -48,10 +45,7 @@ export function resolveEditorPaneBounds(rowWidth: number): EditorPaneBounds {
   // its floor (it is the content the student is reading) and the rail yields.
   const chatMaxWidth = Math.max(
     chatMinWidth,
-    Math.min(
-      Math.max(EDITOR_CHAT_PANE_MAX_WIDTH, rowWidth - EDITOR_CENTER_PANE_MAX_WIDTH),
-      Math.max(chatMinWidth, rowWidth - centerMinWidth),
-    ),
+    Math.min(EDITOR_CHAT_PANE_MAX_WIDTH, Math.max(chatMinWidth, rowWidth - centerMinWidth)),
   );
   return { centerMinWidth, chatMinWidth, chatMaxWidth };
 }

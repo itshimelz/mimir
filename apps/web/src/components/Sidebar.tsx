@@ -1548,34 +1548,6 @@ export default function Sidebar() {
     });
   }, []);
 
-  const handleSelectWorkspaceFile = useCallback(
-    (filePath: string) => {
-      if (routeThreadId) {
-        void navigate({
-          to: "/$threadId",
-          params: { threadId: routeThreadId },
-          search: ((prev: Record<string, unknown>) => {
-            const { home: _, ...rest } = stripDiffSearchParams(prev);
-            return {
-              ...rest,
-              view: "editor",
-              editorFilePath: filePath,
-            };
-          }) as never,
-        });
-      } else {
-        void navigate({
-          to: "/editor",
-          search: {
-            view: "editor",
-            editorFilePath: filePath,
-          },
-        });
-      }
-    },
-    [navigate, routeThreadId],
-  );
-
   useEffect(() => {
     if (!selectedEditorFilePath) return;
     const parentPaths = collectParentDirectoryPaths(selectedEditorFilePath);
@@ -4780,7 +4752,10 @@ export default function Sidebar() {
     return sortThreadsForSidebar(
       chatProjects.flatMap((project) => sortedSidebarThreadsByProjectId.get(project.id) ?? []),
       appSettings.sidebarThreadSortOrder,
-      { attentionFirst: sidebarThreadAttentionFirst, heldKeys: heldSidebarThreadSortKeys },
+      {
+        attentionFirst: sidebarThreadAttentionFirst,
+        heldKeys: heldSidebarThreadSortKeys,
+      },
     );
   }, [
     appSettings.sidebarThreadSortOrder,
@@ -4850,7 +4825,10 @@ export default function Sidebar() {
         (thread) =>
           thread.archivedAt == null &&
           !snoozedIds.has(thread.id) &&
-          isSidebarThreadVisible(thread, { hideAutomationRunThreads, includeSubagents: true }),
+          isSidebarThreadVisible(thread, {
+            hideAutomationRunThreads,
+            includeSubagents: true,
+          }),
       ),
     );
   }, [displaySidebarThreads, hideAutomationRunThreads]);
@@ -5090,7 +5068,7 @@ export default function Sidebar() {
   );
 
   const activeCourseThreadId = useMemo(() => {
-    if (routeThreadId) return routeThreadId;
+    if (routeThreadId && activeRouteProjectId === courseProject?.id) return routeThreadId;
     if (!courseProject) return null;
     const projectThreads = Object.values(sidebarThreadSummaryById).filter(
       (thread) => thread.projectId === courseProject.id,
@@ -5102,7 +5080,7 @@ export default function Sidebar() {
       return bTime.localeCompare(aTime);
     });
     return projectThreads[0]?.id ?? null;
-  }, [routeThreadId, courseProject, sidebarThreadSummaryById]);
+  }, [routeThreadId, activeRouteProjectId, courseProject, sidebarThreadSummaryById]);
 
   const studioOutputScope = resolveStudioOutputScope({
     projectId: courseProject?.id ?? null,
@@ -5128,14 +5106,50 @@ export default function Sidebar() {
     threadIsPending: editorStudioOutputs.isPending,
   });
 
+  const handleSelectWorkspaceFile = useCallback(
+    (filePath: string) => {
+      const targetThreadId =
+        routeThreadId && activeRouteProjectId === courseProject?.id
+          ? routeThreadId
+          : activeCourseThreadId;
+      if (targetThreadId) {
+        void navigate({
+          to: "/$threadId",
+          params: { threadId: targetThreadId },
+          search: ((prev: Record<string, unknown>) => {
+            const { home: _, ...rest } = stripDiffSearchParams(prev);
+            return {
+              ...rest,
+              view: "editor",
+              editorFilePath: filePath,
+            };
+          }) as never,
+        });
+      } else {
+        void navigate({
+          to: "/editor",
+          search: {
+            view: "editor",
+            editorFilePath: filePath,
+          },
+        });
+      }
+    },
+    [activeCourseThreadId, activeRouteProjectId, courseProject?.id, navigate, routeThreadId],
+  );
+
   const handleSelectStudioOutput = useCallback(
     (entry: StudioOutputEntry) => {
       setSelectedStudioOutputPath(entry.fullPath);
       useEditorSurfaceStore.getState().setSurface("studio");
-      if (routeThreadId) {
+      const targetThreadId =
+        routeThreadId && activeRouteProjectId === courseProject?.id
+          ? routeThreadId
+          : activeCourseThreadId;
+      if (targetThreadId) {
         void navigate({
           to: "/$threadId",
-          params: { threadId: routeThreadId },
+          params: { threadId: targetThreadId },
           search: ((prev: Record<string, unknown>) => {
             const { home: _, ...rest } = stripDiffSearchParams(prev);
             return {
@@ -5153,7 +5167,14 @@ export default function Sidebar() {
         });
       }
     },
-    [navigate, routeThreadId, setSelectedStudioOutputPath],
+    [
+      activeCourseThreadId,
+      activeRouteProjectId,
+      courseProject?.id,
+      navigate,
+      routeThreadId,
+      setSelectedStudioOutputPath,
+    ],
   );
 
   useEffect(() => {
@@ -6379,11 +6400,6 @@ export default function Sidebar() {
             >
               <SparkleIcon className="size-3.5 shrink-0" />
               <span>Outbox</span>
-              {resolvedStudioOutputs.entries.length > 0 ? (
-                <span className="ml-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-ui-2xs font-semibold">
-                  {resolvedStudioOutputs.entries.length}
-                </span>
-              ) : null}
             </button>
           </div>
         ) : null}
@@ -7263,15 +7279,26 @@ export default function Sidebar() {
             setSpacesBrowseMode("files");
             setUserSelectedCourseTab("files");
             useEditorSurfaceStore.getState().setSurface("study");
-            if (routeThreadId) {
+            const routeThreadBelongsToCourse = Boolean(
+              routeThreadId && activeRouteProjectId === courseProject?.id,
+            );
+            const targetThreadId = routeThreadBelongsToCourse
+              ? routeThreadId
+              : activeCourseThreadId;
+            if (targetThreadId) {
               void navigate({
                 to: "/$threadId",
-                params: { threadId: routeThreadId },
+                params: { threadId: targetThreadId },
                 search: ((prev: Record<string, unknown>) => {
-                  const { home: _, ...rest } = stripDiffSearchParams(prev);
+                  const {
+                    home: _,
+                    editorFilePath: prevFile,
+                    ...rest
+                  } = stripDiffSearchParams(prev);
                   return {
                     ...rest,
                     view: "editor",
+                    ...(routeThreadBelongsToCourse && prevFile ? { editorFilePath: prevFile } : {}),
                   };
                 }) as never,
               });
@@ -7707,13 +7734,48 @@ export default function Sidebar() {
                         onProjectIdChange={(projectId) => {
                           useCourseWorkspaceStore.getState().setActiveCourseId(projectId);
                           openRailSpacesProject(projectId);
-                          setSpacesBrowseMode("files");
-                          setUserSelectedCourseTab("chats");
-                          selectRailPanelItem("home");
-                          void navigate({
-                            to: "/",
-                            search: { home: true },
-                          });
+                          useEditorSurfaceStore.getState().setSelectedStudioOutputPath(null);
+
+                          const isInEditorView =
+                            effectiveCourseTab === "files" ||
+                            effectiveCourseTab === "studio" ||
+                            railActiveItem === "spaces" ||
+                            currentSearchView === "editor";
+
+                          if (isInEditorView) {
+                            setSpacesBrowseMode("files");
+                            setUserSelectedCourseTab("files");
+                            selectRailPanelItem("spaces");
+
+                            const recentThreadId =
+                              useCourseWorkspaceStore.getState().recentThreadIdByCourse[projectId];
+                            const targetThreadId =
+                              recentThreadId &&
+                              sidebarThreadSummaryById[recentThreadId]?.projectId === projectId
+                                ? recentThreadId
+                                : Object.values(sidebarThreadSummaryById).find(
+                                    (t) => t?.projectId === projectId,
+                                  )?.id;
+
+                            if (targetThreadId) {
+                              void navigate({
+                                to: "/$threadId",
+                                params: { threadId: targetThreadId },
+                                search: { view: "editor" },
+                              });
+                            } else {
+                              void handleNewThread(projectId, undefined, {
+                                search: () => ({ view: "editor" }),
+                              });
+                            }
+                          } else {
+                            setUserSelectedCourseTab("chats");
+                            selectRailPanelItem("home");
+                            void navigate({
+                              to: "/",
+                              search: { home: true },
+                            });
+                          }
                         }}
                         trigger={
                           <button

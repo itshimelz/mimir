@@ -16,11 +16,11 @@ import { cn } from "~/lib/utils";
 // top edge over Electron's draggable titlebar region; without this the OS
 // captures clicks in that band for window dragging and the X stops working.
 const NOTIFICATION_SURFACE_BASE_CLASS_NAME =
-  "border border-[color:var(--overlay-border)] bg-popover [--notification-fg:var(--popover-foreground)] text-[var(--notification-fg)] shadow-sm before:hidden [-webkit-app-region:no-drag]";
+  "app-elevated-prominent bg-popover [--notification-fg:var(--popover-foreground)] text-[var(--notification-fg)] before:hidden [-webkit-app-region:no-drag]";
 
-export const COMPACT_NOTIFICATION_SURFACE_CLASS_NAME = `w-max max-w-[min(calc(100vw-2rem),28rem)] rounded-sm ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
+export const COMPACT_NOTIFICATION_SURFACE_CLASS_NAME = `w-max max-w-[min(calc(100vw-2rem),28rem)] rounded-xl ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
 
-export const EXPANDED_NOTIFICATION_SURFACE_CLASS_NAME = `w-full rounded-sm ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
+export const EXPANDED_NOTIFICATION_SURFACE_CLASS_NAME = `w-full rounded-xl ${NOTIFICATION_SURFACE_BASE_CLASS_NAME}`;
 
 // The icon carries the tone color while the copy stays on the neutral
 // `--notification-fg`, so tones only need to set `--notification-icon-fg`.
@@ -34,7 +34,7 @@ export type NotificationTone = "default" | "error";
 // (near-white in dark themes, near-black in light ones) instead of the destructive
 // role color, which reads muddy against the tint; the icon carries the red instead.
 const ERROR_NOTIFICATION_TONE_CLASS_NAME =
-  "border-[color-mix(in_srgb,var(--destructive)_16%,transparent)] bg-[color-mix(in_srgb,var(--destructive)_5%,var(--popover))] [--notification-icon-fg:var(--destructive)] dark:border-[color-mix(in_srgb,var(--destructive)_13%,transparent)] dark:bg-[color-mix(in_srgb,var(--destructive)_8%,var(--popover))]";
+  "border-[color-mix(in_srgb,var(--destructive)_16%,transparent)] [--app-stroke:color-mix(in_srgb,var(--destructive)_16%,transparent)] bg-[color-mix(in_srgb,var(--destructive)_5%,var(--popover))] [--notification-icon-fg:var(--destructive)] dark:border-[color-mix(in_srgb,var(--destructive)_13%,transparent)] dark:[--app-stroke:color-mix(in_srgb,var(--destructive)_13%,transparent)] dark:bg-[color-mix(in_srgb,var(--destructive)_8%,var(--popover))]";
 
 export function notificationSurfaceClassName(options: {
   compact: boolean;

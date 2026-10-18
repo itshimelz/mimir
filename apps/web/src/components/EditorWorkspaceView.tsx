@@ -39,11 +39,7 @@ import {
 import { CHAT_BACKGROUND_CLASS_NAME } from "./chat/composerPickerStyles";
 import {
   clampEditorChatPaneWidth,
-  EDITOR_CENTER_PANE_MAX_WIDTH,
-  EDITOR_CENTER_PANE_MIN_WIDTH,
   EDITOR_CHAT_PANE_DEFAULT_WIDTH,
-  EDITOR_CHAT_PANE_MAX_WIDTH,
-  EDITOR_CHAT_PANE_MIN_WIDTH,
   resolveEditorPaneBounds,
   shouldAcceptEditorChatPaneWidth,
 } from "./EditorWorkspaceView.logic";
@@ -90,7 +86,7 @@ interface EditorWorkspaceViewProps {
   diffOptionsControl?: ReactNode;
   diffPanel: ReactNode;
   chatPanel: ReactNode;
-  onSelectFile: (path: string) => void;
+  onSelectFile: (path: string | null) => void;
   onSelectDiffFile: (path: string) => void;
   onToggleDirectory: (path: string) => void;
   editFilePath: string | null;
@@ -241,6 +237,20 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   const handleMarkdownPreviewChange = (rendered: boolean) => {
     setMarkdownPreviewModes((current) => new Map(current).set(markdownPreviewKey, rendered));
   };
+
+  // When workspaceRoot changes (e.g. workspace/course switched), clear any selected file from the old root
+  const previousWorkspaceRootRef = useRef(props.workspaceRoot);
+  useEffect(() => {
+    if (
+      previousWorkspaceRootRef.current !== null &&
+      props.workspaceRoot !== null &&
+      previousWorkspaceRootRef.current !== props.workspaceRoot
+    ) {
+      props.onSelectFile(null);
+    }
+    previousWorkspaceRootRef.current = props.workspaceRoot;
+  }, [props.workspaceRoot, props.onSelectFile]);
+
   const desktopTopBarWindowControlsGutterClassName =
     useDesktopTopBarWindowControlsGutterClassName();
 
@@ -360,11 +370,6 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                   >
                     <SparkleIcon className="size-3.5" />
                     <span>Studio</span>
-                    {(props.studioOutputs?.length ?? 0) > 0 ? (
-                      <span className="ml-1 inline-flex items-center justify-center rounded-full bg-primary/15 px-1.5 py-0.2 text-ui-2xs font-semibold text-primary leading-none">
-                        {props.studioOutputs?.length}
-                      </span>
-                    ) : null}
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -404,17 +409,15 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
       </div>
       <div ref={rowRef} className="flex min-h-0 min-w-0 flex-1 overflow-hidden">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden lg:flex-row">
-          {/* The center pane carries its own floor and ceiling in CSS as well as in the drag
+          {/* The center pane carries its own floor in CSS as well as in the drag
               contract: `flex-1` alone lets it collapse to nothing when the rail is dragged to
-              its own maximum, and lets it stretch unbounded on a wide monitor while the rail
-              sits at its minimum. A rail collapsed off-canvas leaves `flex-1` free, so the
-              ceiling is what stops that case from becoming a single 3000px-wide preview. */}
+              its own maximum. When the rail is collapsed off-canvas, `flex-1` lets the preview
+              stretch to the full width of the workspace. */}
           <main
             className="flex min-h-[16rem] min-w-0 flex-1 border-b border-border/65 lg:h-full lg:border-b-0"
             style={
               {
                 minWidth: paneBounds.centerMinWidth,
-                maxWidth: EDITOR_CENTER_PANE_MAX_WIDTH,
               } as CSSProperties
             }
           >
@@ -431,6 +434,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                     markdownPreviewEnabled
                     onReferenceInChat={props.onReferenceInChat}
                     onAskWhyInChat={props.onAskWhyInChat}
+                    onClose={() => setSelectedStudioOutputPath(null)}
                   />
                 </div>
               ) : (
@@ -485,6 +489,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                       pptxAnnotations={props.pptxAnnotations}
                       onPptxCommentInChat={props.onPptxCommentInChat}
                       onEditFile={props.onEditFile}
+                      onClose={() => props.onSelectFile(null)}
                     />
                   </div>
                 ) : null}
@@ -511,7 +516,11 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               storeEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY, open);
             }}
             className="relative h-full w-auto min-h-0 flex-none bg-transparent [contain:paint]"
-            style={{ "--sidebar-width": `${effectiveChatPaneWidth}px` } as CSSProperties}
+            style={
+              {
+                "--sidebar-width": `${effectiveChatPaneWidth}px`,
+              } as CSSProperties
+            }
           >
             <Sidebar
               side="right"
@@ -529,7 +538,10 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                 // is applied before the layout settles, so the same contract is enforced here
                 // to stop the center being pushed under its minimum mid-gesture.
                 shouldAcceptWidth: ({ nextWidth, wrapper }) =>
-                  shouldAcceptEditorChatPaneWidth({ nextWidth, rowWidth: wrapper.clientWidth }),
+                  shouldAcceptEditorChatPaneWidth({
+                    nextWidth,
+                    rowWidth: wrapper.clientWidth,
+                  }),
                 storageKey: EDITOR_CHAT_PANE_STORAGE_KEY,
                 onResize: (width) => {
                   setChatPaneWidth(width);

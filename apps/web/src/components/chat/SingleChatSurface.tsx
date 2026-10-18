@@ -25,6 +25,8 @@ import type { DiffRouteSearch } from "../../diffRouteSearch";
 import { stripDiffSearchParams } from "../../diffRouteSearch";
 import { readEditorViewState, storeEditorViewState } from "../../editorViewState";
 import { useRailShellStore } from "../../railShellStore";
+import { useCourseWorkspaceStore } from "../../courseWorkspaceStore";
+import { useEditorSurfaceStore } from "../../editorSurfaceStore";
 import { useBrowserPanelDesktopBridge } from "../../hooks/useBrowserPanelDesktopBridge";
 import { useDockPaneRuntimeActivation } from "../../hooks/useDockPaneRuntimeActivation";
 import { useHandleNewThread } from "../../hooks/useHandleNewThread";
@@ -508,7 +510,7 @@ export function SingleChatSurface(props: {
     }
   };
 
-  const handleSelectEditorFile = (filePath: string) =>
+  const handleSelectEditorFile = (filePath: string | null) =>
     guardEditorLeave(() => {
       setEditorCenterMode("file");
       setEditorEditTarget(null);
@@ -516,11 +518,14 @@ export function SingleChatSurface(props: {
         to: "/$threadId",
         params: { threadId: props.threadId },
         replace: true,
-        search: (previous) => ({
-          ...stripDiffSearchParams(previous),
-          view: "editor",
-          editorFilePath: filePath,
-        }),
+        search: (previous) => {
+          const { editorFilePath: _, ...rest } = stripDiffSearchParams(previous);
+          return {
+            ...rest,
+            view: "editor",
+            ...(filePath ? { editorFilePath: filePath } : {}),
+          };
+        },
       });
     });
 
@@ -829,6 +834,10 @@ export function SingleChatSurface(props: {
     project.kind === "project" ? [{ id: project.id, name: project.name }] : [],
   );
   const openEditorProject = async (projectId: ProjectId) => {
+    useCourseWorkspaceStore.getState().setActiveCourseId(projectId);
+    useRailShellStore.getState().openSpacesProject(projectId);
+    useEditorSurfaceStore.getState().setSelectedStudioOutputPath(null);
+
     const latestThread = sortThreadsForSidebar(
       threadSummaries.filter((thread) => thread.projectId === projectId),
       appSettings.sidebarThreadSortOrder,
@@ -927,7 +936,11 @@ export function SingleChatSurface(props: {
 
   const renderDockPane = (
     pane: RightDockPane,
-    context: { runtimeMode: DockPaneRuntimeMode; isActive: boolean; isVisible: boolean },
+    context: {
+      runtimeMode: DockPaneRuntimeMode;
+      isActive: boolean;
+      isVisible: boolean;
+    },
   ): ReactNode => {
     switch (pane.kind) {
       case "browser":

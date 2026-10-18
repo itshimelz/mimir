@@ -3,7 +3,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "~/lib/utils";
 
 const cardVariants = cva(
-  "group/card relative flex flex-col gap-(--card-spacing) overflow-hidden rounded-md py-(--card-spacing) text-ui text-card-foreground transition-[background-color,border-color,box-shadow] duration-150 ease-out [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=lg]:[--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-md *:[img:last-child]:rounded-b-md",
+  "group/card relative flex flex-col gap-(--card-spacing) overflow-hidden rounded-xl py-(--card-spacing) text-ui text-card-foreground transition-[background-color,border-color,box-shadow] duration-150 ease-out [--card-spacing:--spacing(4)] has-[>img:first-child]:pt-0 data-[size=lg]:[--card-spacing:--spacing(6)] data-[size=sm]:[--card-spacing:--spacing(3)] *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl",
   {
     variants: {
       variant: {

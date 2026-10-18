@@ -18,7 +18,7 @@ import {
   CheckboxCheckGlyph,
 } from "./checkbox";
 import { ShortcutKbd } from "./kbd";
-import { SWITCH_THUMB_CLASS_NAME, SWITCH_TRACK_CLASS_NAME } from "./switch";
+import { SWITCH_THUMB_CLASS_NAME, SWITCH_TRACK_CLASS_NAME, SwitchSlots } from "./switch";
 
 const MenuCreateHandle = MenuPrimitive.createHandle;
 
@@ -224,16 +224,12 @@ function MenuCheckboxItem({
           <MenuPrimitive.CheckboxItemIndicator
             className={cn(
               SWITCH_TRACK_CLASS_NAME,
-              "inset-shadow-[0_1px_--theme(--color-black/4%)] [--thumb-size:--spacing(4)] focus-visible:ring-1 sm:[--thumb-size:--spacing(3)]",
+              "focus-visible:ring-1 [--toggle-w:38px] [--toggle-h:20px] [--toggle-p:1.5px] [--toggle-gap:1.5px] [--toggle-radius:4px] [--toggle-inner-radius:2.5px]",
             )}
             keepMounted
           >
-            <span
-              className={cn(
-                SWITCH_THUMB_CLASS_NAME,
-                "in-[[data-slot=menu-checkbox-item][data-checked]]:origin-[var(--thumb-size)_50%] in-[[data-slot=menu-checkbox-item][data-checked]]:translate-x-[calc(var(--thumb-size)-4px)] in-[[data-slot=menu-checkbox-item]:active]:not-data-disabled:scale-x-110 in-[[data-slot=menu-checkbox-item]:active]:rounded-[var(--thumb-size)/calc(var(--thumb-size)*1.10)]",
-              )}
-            />
+            <SwitchSlots />
+            <span className={SWITCH_THUMB_CLASS_NAME} />
           </MenuPrimitive.CheckboxItemIndicator>
         </>
       ) : (

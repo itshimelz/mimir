@@ -16,15 +16,17 @@ import {
 const WIDE_ROW = EDITOR_CENTER_PANE_MAX_WIDTH + EDITOR_CHAT_PANE_MAX_WIDTH;
 
 describe("resolveEditorPaneBounds", () => {
-  it("yields the center's ceiling to the rail instead of opening a gap", () => {
+  it("bounds the chat rail to its maximum ceiling on wide displays", () => {
     const { chatMaxWidth } = resolveEditorPaneBounds(WIDE_ROW);
     expect(chatMaxWidth).toBe(EDITOR_CHAT_PANE_MAX_WIDTH);
 
-    // On a row wide enough to push the center past its own maximum, the rail may exceed its
-    // preferred ceiling — otherwise the center sits at 1600px with dead space beside it.
     const ultrawide = resolveEditorPaneBounds(WIDE_ROW + 900);
-    expect(ultrawide.chatMaxWidth).toBeGreaterThan(EDITOR_CHAT_PANE_MAX_WIDTH);
-    expect(WIDE_ROW + 900 - ultrawide.chatMaxWidth).toBe(EDITOR_CENTER_PANE_MAX_WIDTH);
+    expect(ultrawide.chatMaxWidth).toBe(EDITOR_CHAT_PANE_MAX_WIDTH);
+  });
+
+  it("clamps the rail's max width on narrow rows to protect the center floor", () => {
+    const bounds = resolveEditorPaneBounds(600);
+    expect(bounds.chatMaxWidth).toBe(600 - EDITOR_CENTER_PANE_MIN_WIDTH);
   });
 
   it("keeps the rail's floor even on a row too narrow for both floors", () => {

@@ -95,6 +95,7 @@ import {
 } from "../markdown-links";
 import type { ExpandedImagePreview } from "./chat/ExpandedImagePreview";
 import { GeneratedMarkdownImage } from "./chat/GeneratedMarkdownImage";
+import { MermaidBlock } from "./chat/MermaidBlock";
 import { TerminalContextInlineChip } from "./chat/TerminalContextInlineChip";
 import type { ParsedTerminalContextEntry } from "../lib/terminalContext";
 import { formatInlineTerminalContextLabel } from "./chat/userMessageTerminalContexts";
@@ -1335,6 +1336,13 @@ function TechnicalBidiIsolate(props: { active: boolean; children: ReactNode }) {
 }
 
 const MARKDOWN_COMPONENTS: Components = {
+  table: function MarkdownTable({ node: _node, children, ...props }) {
+    return (
+      <div className="chat-markdown-table-wrapper">
+        <table {...props}>{children}</table>
+      </div>
+    );
+  },
   blockquote: function MarkdownBlockquote({ node: _node, children, ...props }) {
     const kind = (props as { "data-github-alert"?: GithubAlertKind })["data-github-alert"];
     const alert = kind ? GITHUB_ALERTS[kind] : undefined;
@@ -1496,27 +1504,48 @@ const MARKDOWN_COMPONENTS: Components = {
       </pre>
     );
 
+    const codeChildren =
+      code.length > MAX_SYNTAX_HIGHLIGHT_INPUT_CHARS ? (
+        highlightedFallback
+      ) : (
+        <CodeHighlightErrorBoundary fallback={highlightedFallback}>
+          <Suspense fallback={highlightedFallback}>
+            <SuspenseShikiCodeBlock
+              language={fence.language}
+              code={code}
+              themeName={diffThemeName}
+              isStreaming={isStreaming}
+              sourceOffset={sourceOffset}
+            />
+          </Suspense>
+        </CodeHighlightErrorBoundary>
+      );
+
+    const isMermaid =
+      fence.language === "mermaid" ||
+      fence.language === "mmd" ||
+      fence.language.startsWith("mermaid");
+
+    if (isMermaid) {
+      return (
+        <MermaidBlock
+          code={code}
+          fence={fence}
+          isStreaming={isStreaming}
+          direction={usesAutomaticBlockDirection ? "ltr" : undefined}
+        >
+          {codeChildren}
+        </MermaidBlock>
+      );
+    }
+
     return (
       <MarkdownCodeBlock
         code={code}
         fence={fence}
         direction={usesAutomaticBlockDirection ? "ltr" : undefined}
       >
-        {code.length > MAX_SYNTAX_HIGHLIGHT_INPUT_CHARS ? (
-          highlightedFallback
-        ) : (
-          <CodeHighlightErrorBoundary fallback={highlightedFallback}>
-            <Suspense fallback={highlightedFallback}>
-              <SuspenseShikiCodeBlock
-                language={fence.language}
-                code={code}
-                themeName={diffThemeName}
-                isStreaming={isStreaming}
-                sourceOffset={sourceOffset}
-              />
-            </Suspense>
-          </CodeHighlightErrorBoundary>
-        )}
+        {codeChildren}
       </MarkdownCodeBlock>
     );
   },

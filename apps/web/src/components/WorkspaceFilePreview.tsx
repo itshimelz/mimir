@@ -97,7 +97,7 @@ import { PdfFilePreview } from "./PdfFilePreview";
 import { PptxFilePreview } from "./PptxFilePreview";
 import { Skeleton } from "./ui/skeleton";
 
-const MARKDOWN_PREVIEW_EXTENSIONS = new Set([".markdown", ".md", ".mdx"]);
+const MARKDOWN_PREVIEW_EXTENSIONS = new Set([".markdown", ".md", ".mdx", ".mermaid", ".mmd"]);
 
 export function isMarkdownPreviewablePath(filePath: string): boolean {
   const extension = lowerCaseExtensionOf(filePath);
@@ -308,7 +308,10 @@ function PierreEditableFileContents(props: EditableFileContentsProps) {
     if (editorObserverRef.current === null) {
       editorObserverRef.current = new MutationObserver(labelEditor);
     }
-    editorObserverRef.current.observe(shadowRoot, { childList: true, subtree: true });
+    editorObserverRef.current.observe(shadowRoot, {
+      childList: true,
+      subtree: true,
+    });
   }, [labelEditor]);
   useEffect(() => {
     attachEditor();
@@ -566,6 +569,7 @@ export interface WorkspaceFilePreviewProps {
   pptxAnnotations?: ReadonlyArray<PptxAnnotationDraft> | undefined;
   onPptxCommentInChat?: ((annotation: PptxAnnotationSelection) => void) | undefined;
   onEditFile?: ((filePath: string) => void) | undefined;
+  onClose?: (() => void) | undefined;
 }
 
 export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
@@ -574,7 +578,10 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
   const diffThemeName = resolveDiffThemeName(resolvedTheme);
   const contentsRef = useRef<HTMLDivElement>(null);
   const taskWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
-  const latestTaskWriteVersionRef = useRef({ next: 0, byFile: new Map<string, number>() });
+  const latestTaskWriteVersionRef = useRef({
+    next: 0,
+    byFile: new Map<string, number>(),
+  });
   const taskFileDiskVersionRef = useRef(new Map<string, string>());
   const {
     filePath: requestedFilePath,
@@ -743,7 +750,10 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
         current?.requestedKey === relocationRequestKey &&
         current.fullPath === resolvedOutOfRootFullPath
           ? current
-          : { requestedKey: relocationRequestKey, fullPath: resolvedOutOfRootFullPath },
+          : {
+              requestedKey: relocationRequestKey,
+              fullPath: resolvedOutOfRootFullPath,
+            },
       );
       return;
     }
@@ -902,7 +912,10 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
     if (!workspaceRoot || !filePath) {
       return;
     }
-    const options = projectReadFileQueryOptions({ cwd: workspaceRoot, relativePath: filePath });
+    const options = projectReadFileQueryOptions({
+      cwd: workspaceRoot,
+      relativePath: filePath,
+    });
     const current = queryClient.getQueryData(options.queryKey);
     if (
       !current ||
@@ -933,7 +946,10 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
       editor.save();
       return;
     }
-    queryClient.setQueryData(options.queryKey, { ...current, contents: nextContents });
+    queryClient.setQueryData(options.queryKey, {
+      ...current,
+      contents: nextContents,
+    });
     // The read RPC may have resolved a bare/partial reference (e.g. a clicked
     // `notes.md`) to its real nested path. Write back to that resolved path,
     // not the opened reference, so the toggle lands on the file we read from
@@ -1226,6 +1242,15 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
           <p className="text-left text-ui-sm text-destructive/85">
             {fileReadError instanceof Error ? fileReadError.message : "Could not read file."}
           </p>
+          {props.onClose ? (
+            <button
+              type="button"
+              className="mt-2.5 rounded-md border border-border/80 px-2.5 py-1 text-ui-xs font-medium text-foreground/80 hover:bg-foreground/5 hover:text-foreground"
+              onClick={props.onClose}
+            >
+              Close preview
+            </button>
+          ) : null}
         </PanelStateMessage>
       ) : !hasFileContents ? (
         <FilePreviewLoadingState />
@@ -1263,7 +1288,13 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
               {showMarkdownPreview ? (
                 <div className="editor-markdown-preview">
                   <ChatMarkdown
-                    text={displayedFileContents}
+                    text={
+                      filePath !== null &&
+                      (filePath.endsWith(".mermaid") || filePath.endsWith(".mmd")) &&
+                      !displayedFileContents.trim().startsWith("```")
+                        ? `\`\`\`mermaid\n${displayedFileContents}\n\`\`\``
+                        : displayedFileContents
+                    }
                     cwd={markdownPreviewCwd(props.workspaceRoot, filePath)}
                     wikiLinkRoot={props.workspaceRoot ?? undefined}
                     isStreaming={false}
@@ -1320,7 +1351,10 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
                 <>
                   <div
                     className="editor-file-viewer__comment-line-highlight"
-                    style={{ top: activeCommentLine.top, height: activeCommentLine.height }}
+                    style={{
+                      top: activeCommentLine.top,
+                      height: activeCommentLine.height,
+                    }}
                     aria-hidden="true"
                   />
                   <LocalCommentBox

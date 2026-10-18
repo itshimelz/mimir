@@ -1,15 +1,12 @@
 // FILE: LocalCommentBox.tsx
-// Purpose: Inline "Local comment" editor anchored to a target in a read-only
-//          preview surface — a file line today, a slide shape next. Mirrors
-//          Codex's comment box: a Synara badge header, the target label, a
-//          borderless request field, and Cancel/Comment actions (Comment stays
-//          disabled until non-empty text).
+// Purpose: Inline comment editor anchored to a target in a read-only
+//          preview surface — a file line or a slide shape.
 // Layer: Chat preview interaction UI
 
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 
+import { MessageCircleIcon, XIcon } from "~/lib/icons";
 import { FILE_COMMENT_TEXT_MAX_CHARS, normalizeFileCommentText } from "~/lib/fileComments";
-import { SynaraLogo } from "../SynaraLogo";
 import { Button } from "../ui/button";
 
 interface LocalCommentBoxProps {
@@ -60,6 +57,9 @@ export function LocalCommentBox(props: LocalCommentBoxProps) {
     }
   };
 
+  const isMac =
+    typeof navigator !== "undefined" && /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform);
+
   return (
     <div
       className="local-comment__box"
@@ -71,15 +71,24 @@ export function LocalCommentBox(props: LocalCommentBoxProps) {
       onClick={(event) => event.stopPropagation()}
       onContextMenu={(event) => event.stopPropagation()}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-2 text-ui-lg font-semibold text-[var(--color-text-foreground)]">
-          <span className="local-comment__badge">
-            <SynaraLogo className="size-3 text-[var(--color-text-foreground-secondary)]" />
+      <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
+        <div className="flex min-w-0 items-center gap-1.5 text-ui-xs text-muted-foreground">
+          <MessageCircleIcon className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="truncate">
+            Comment on <span className="font-medium text-foreground">{props.targetLabel}</span>
           </span>
-          Local comment
-        </span>
-        <span className="text-ui text-muted-foreground">Comment on {props.targetLabel}</span>
+        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="inline-flex size-5 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          title="Close (Esc)"
+          aria-label="Close"
+        >
+          <XIcon className="size-3" />
+        </button>
       </div>
+
       <textarea
         ref={textareaRef}
         value={value}
@@ -90,20 +99,35 @@ export function LocalCommentBox(props: LocalCommentBoxProps) {
         maxLength={FILE_COMMENT_TEXT_MAX_CHARS}
         className="local-comment__input"
       />
-      <div className="flex items-center justify-end gap-1">
-        <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          variant="default"
-          size="sm"
-          className="px-3.5"
-          disabled={!canSubmit}
-          onClick={submit}
-        >
-          Comment
-        </Button>
+
+      <div className="flex items-center justify-between gap-2 pt-0.5">
+        <span className="hidden text-ui-xs text-muted-foreground/60 sm:inline">
+          <kbd className="rounded border border-border/60 bg-muted/30 px-1 py-0.5 font-mono text-ui-xs text-muted-foreground">
+            {isMac ? "⌘↵" : "Ctrl+↵"}
+          </kbd>{" "}
+          to send
+        </span>
+        <div className="ml-auto flex items-center gap-1.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="xs"
+            onClick={onCancel}
+            className="text-ui-xs text-muted-foreground hover:text-foreground"
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="xs"
+            className="px-3 text-ui-xs font-medium shadow-sm"
+            disabled={!canSubmit}
+            onClick={submit}
+          >
+            Comment
+          </Button>
+        </div>
       </div>
     </div>
   );

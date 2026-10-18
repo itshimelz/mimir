@@ -95,7 +95,7 @@ function isArchiveUndoToast(toast: ToastObject<ThreadToastData>): boolean {
 // toast root no-drag so Electron titlebar hit testing cannot swallow clicks.
 const ARCHIVE_UNDO_TOAST_SURFACE_CLASS_NAME = cn(
   APP_TOOLTIP_SURFACE_CLASS_NAME,
-  "absolute w-max max-w-[min(calc(100vw-2rem),28rem)] rounded-2xl [--notification-fg:var(--popover-foreground)] [-webkit-app-region:no-drag]",
+  "absolute w-max max-w-[min(calc(100vw-2rem),28rem)] rounded-xl [--notification-fg:var(--popover-foreground)] [-webkit-app-region:no-drag]",
 );
 
 // Toast actions are ghost buttons on the notification foreground. They keep the
@@ -814,7 +814,7 @@ function AnchoredToasts() {
                   className={cn(
                     "relative text-balance transition-[scale,opacity] data-ending-style:scale-98 data-starting-style:scale-98 data-ending-style:opacity-0 data-starting-style:opacity-0",
                     tooltipStyle
-                      ? "rounded-lg app-elevated-prominent bg-popover text-popover-foreground text-ui leading-snug [-webkit-app-region:no-drag]"
+                      ? "rounded-xl app-elevated-prominent bg-popover text-popover-foreground text-ui leading-snug [-webkit-app-region:no-drag]"
                       : notificationSurfaceClassName({
                           compact,
                           tone: toastTone(toast.type),

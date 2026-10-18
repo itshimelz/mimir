@@ -89,7 +89,7 @@ const buttonVariants = cva(
         // Neutral filled circle for an icon action beside a `prominent` one (composer +, mic):
         // one set, so every composer action reads alike.
         circle:
-          "rounded-full border-transparent bg-[var(--color-background-button-secondary)] text-[var(--color-text-foreground)] transition-colors focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-[var(--color-background-button-secondary-hover)]",
+          "rounded-full corner-round border-transparent bg-[var(--color-background-button-secondary)] text-[var(--color-text-foreground)] transition-colors focus-visible:ring-[color:var(--color-border-focus)]/60 focus-visible:ring-offset-0 [:hover,[data-pressed]]:bg-[var(--color-background-button-secondary-hover)]",
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [:active,[data-pressed]]:bg-secondary/80 [:hover,[data-pressed]]:bg-secondary/90",
         "secondary-outline":
@@ -112,6 +112,7 @@ const buttonVariants = cva(
       },
       // Last, so a size's own radius (xs, icon-xs) never squares a capsule off.
       { class: "rounded-full corner-round", shape: "capsule" },
+      { class: "rounded-full corner-round", shape: "round" },
     ],
   },
 );

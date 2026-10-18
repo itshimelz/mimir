@@ -173,8 +173,8 @@ export const APP_TRANSLUCENT_POPUP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP
 /** Chrome for plain tooltips and the sidebar hover cards. */
 export const APP_TOOLTIP_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} rounded-xs`;
 
-/** Shared border, radius, and shadow for composer-attached popup panels. */
-export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `border border-[color:var(--overlay-border)] ${COMPOSER_PICKER_RADIUS_CLASS_NAME} shadow-md`;
+/** Shared radius for composer-attached popup panels. */
+export const COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME = `${COMPOSER_PICKER_RADIUS_CLASS_NAME}`;
 
 /** Visual shell for composer picker dropdown panels (menus attached to the composer). */
 export const COMPOSER_PICKER_MENU_SURFACE_CLASS_NAME = `${APP_TRANSLUCENT_POPUP_SURFACE_BASE_CLASS_NAME} ${COMPOSER_PICKER_MENU_SURFACE_CHROME_CLASS_NAME}`;

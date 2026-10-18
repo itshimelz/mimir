@@ -9,7 +9,7 @@ import { DEFAULT_CHAT_FONT_SIZE_PX, normalizeChatFontSizePx } from "../../appSet
 // Inline mono chip for a command quoted inside a work-row sentence ("Ran `ls`"),
 // matching inline code in chat markdown.
 export const INLINE_COMMAND_CHIP_CLASS_NAME =
-  "rounded-[0.4rem] bg-[var(--app-user-message-background)] px-[0.35rem] py-[0.05rem] font-chat-code text-chat-code text-foreground/80";
+  "squircle rounded-md border-[0.5px] border-border/40 bg-[var(--app-user-message-background)] px-1.5 py-0.5 font-chat-code text-chat-code text-foreground/85";
 
 // index.css shares composer corner smoothing; keep the radius as the browser fallback.
 export const USER_MESSAGE_BUBBLE_RADIUS_CLASS_NAME =

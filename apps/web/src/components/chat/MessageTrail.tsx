@@ -93,7 +93,7 @@ const AUDIO_FRAMES_PER_TICK = 3;
 const AUDIO_RELEASE_PER_FRAME = 0.82;
 const AUDIO_HISTORY_FRAMES = 120;
 const AUDIO_SILENCE_LEVEL = 0.002;
-const TOOLTIP_ESTIMATED_H_PX = 56;
+const TOOLTIP_ESTIMATED_H_PX = 36;
 const TOOLTIP_OFFSET_X_PX = 8;
 
 export function MessageTrail({
@@ -108,7 +108,6 @@ export function MessageTrail({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
   const tooltipMessageRef = useRef<HTMLDivElement | null>(null);
-  const tooltipResponseRef = useRef<HTMLDivElement | null>(null);
   const tickRefs = useRef(new Map<number, HTMLButtonElement>());
   const pendingFocusRef = useRef<number | null>(null);
   const tooltipId = useId();
@@ -218,14 +217,8 @@ export function MessageTrail({
     if (tooltipIndexRef.current !== index) {
       tooltipIndexRef.current = index;
       const messageEl = tooltipMessageRef.current;
-      const responseEl = tooltipResponseRef.current;
       if (messageEl) {
         messageEl.textContent = item.preview;
-      }
-      if (responseEl) {
-        responseEl.textContent = item.responsePreview;
-        // Collapse the gray reply line entirely when the turn has no reply yet.
-        responseEl.style.display = item.responsePreview ? "" : "none";
       }
     }
     // Ticks live in scrolling content space; the tooltip is a non-scrolling sibling,
@@ -798,11 +791,6 @@ export function MessageTrail({
         <div
           ref={tooltipMessageRef}
           className="line-clamp-2 text-ui leading-snug font-medium text-foreground"
-        />
-        {/* The turn's first reply: muted gray, max three lines. */}
-        <div
-          ref={tooltipResponseRef}
-          className="mt-1 line-clamp-3 text-ui leading-snug text-muted-foreground"
         />
       </div>
     </nav>

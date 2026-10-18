@@ -676,7 +676,11 @@ function SortableProviderVisibilityRow(props: {
 
 function ProviderDocsLinks({ docs }: { docs: ProviderInstallSettings["docs"] }) {
   return (
-    <div className={cn(SETTINGS_OUTLINED_SURFACE_CLASS_NAME, "px-3 py-2.5")}>
+    <div
+      className={cn(
+        "overflow-hidden rounded-xl border-[0.5px] border-border/70 bg-card/25 px-3.5 py-2.5 shadow-xs",
+      )}
+    >
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <span className="text-ui leading-snug font-medium text-foreground">CLI docs</span>
         <div className="flex flex-wrap gap-2">
@@ -1414,16 +1418,14 @@ function ProviderAccountsControl(props: {
     return (
       <div
         className={cn(
-          SETTINGS_OUTLINED_SURFACE_CLASS_NAME,
-          SETTINGS_INSET_RADIUS_CLASS_NAME,
-          "min-w-0 flex-1 overflow-hidden",
+          "min-w-0 flex-1 overflow-hidden rounded-xl border-[0.5px] border-border/70 bg-card/20 shadow-xs",
         )}
         // Remount per account so a pending debounced edit can never land on another one.
         key={instanceId}
         role="group"
         aria-label={`${account.label} account`}
       >
-        <div className="flex items-start gap-3 border-b border-border/70 bg-muted/25 px-3 py-3">
+        <div className="flex items-center gap-3 border-b border-border/70 bg-muted/25 px-3.5 py-3">
           <ProviderAccountAvatar provider={provider} accentColor={account.accentColor} size="md" />
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-2">
@@ -1444,42 +1446,63 @@ function ProviderAccountsControl(props: {
               <span className="truncate">{status.headline}</span>
             </StatusChip>
           </div>
-          <Button
-            type="button"
-            size="xs"
-            variant="outline"
-            disabled={!account.enabled || liveStatus?.available === false || startingSignIn}
-            aria-label={`Sign in to ${account.label}`}
-            onClick={() => void startSignIn(account)}
-          >
-            {startingSignIn ? (
-              <Loader2Icon className="size-3.5 animate-spin" />
-            ) : (
-              <PlayIcon className="size-3.5" />
-            )}
-            Sign in
-          </Button>
-          {account.isDefault ? (
-            defaultIsCustomized ? (
-              <SettingResetButton
-                label={`${account.label} account`}
-                onClick={resetDefaultAccount}
-              />
-            ) : null
-          ) : (
+          <div className="flex shrink-0 items-center gap-2.5">
+            {accounts.length === 1 ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="text-ui-xs font-medium text-muted-foreground">
+                    {account.enabled ? "Enabled" : "Disabled"}
+                  </span>
+                  <Switch
+                    checked={account.enabled}
+                    onCheckedChange={(enabled) =>
+                      updateInstance(account.instanceId, { enabled: Boolean(enabled) })
+                    }
+                    aria-label={`Enable ${account.label}`}
+                  />
+                </div>
+                <div className="h-4 w-px bg-border/70" aria-hidden="true" />
+              </>
+            ) : null}
             <Button
               type="button"
               size="xs"
-              variant="ghost"
-              onClick={() => {
-                props.updateSettings(removeManageableProviderInstance(props.settings, instanceId));
-                setSelectedAccountId(provider);
-              }}
+              variant="outline"
+              disabled={!account.enabled || liveStatus?.available === false || startingSignIn}
+              aria-label={`Sign in to ${account.label}`}
+              onClick={() => void startSignIn(account)}
             >
-              <XIcon className="size-3.5" />
-              Remove
+              {startingSignIn ? (
+                <Loader2Icon className="size-3.5 animate-spin" />
+              ) : (
+                <PlayIcon className="size-3.5" />
+              )}
+              Sign in
             </Button>
-          )}
+            {account.isDefault ? (
+              defaultIsCustomized ? (
+                <SettingResetButton
+                  label={`${account.label} account`}
+                  onClick={resetDefaultAccount}
+                />
+              ) : null
+            ) : (
+              <Button
+                type="button"
+                size="xs"
+                variant="ghost"
+                onClick={() => {
+                  props.updateSettings(
+                    removeManageableProviderInstance(props.settings, instanceId),
+                  );
+                  setSelectedAccountId(provider);
+                }}
+              >
+                <XIcon className="size-3.5" />
+                Remove
+              </Button>
+            )}
+          </div>
         </div>
 
         {status.detail && status.tone !== "ready" && status.tone !== "idle" ? (
@@ -1605,70 +1628,74 @@ function ProviderAccountsControl(props: {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 md:flex-row md:items-start">
-        <div
-          role="list"
-          aria-label={`${providerLabel} accounts`}
-          className={cn(
-            SETTINGS_INSET_LIST_CLASS_NAME,
-            SETTINGS_STACKED_ROWS_DIVIDER_CLASS_NAME,
-            "shrink-0 md:w-60",
-          )}
-        >
-          {accounts.map((account) => {
-            const selected = account.instanceId === selectedAccount?.instanceId;
-            const status = providerAccountStatusSummary({
-              status: props.providerStatusByInstance.get(account.instanceId),
-              enabled: account.enabled,
-              usageSnapshot: usageByInstance.get(account.instanceId),
-            });
-            return (
-              <div
-                key={account.instanceId}
-                role="listitem"
-                className={cn(
-                  "relative flex items-center gap-2 px-3 py-2.5 transition-colors",
-                  selected
-                    ? // The bar takes the account's accent, so the selection points at it.
-                      "bg-muted/55 before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-r-full before:bg-(--account-accent,var(--foreground))"
-                    : "hover:bg-muted/25",
-                  !account.enabled && !selected && "opacity-60",
-                )}
-                style={
-                  normalizeProviderAccentColor(account.accentColor)
-                    ? ({
-                        "--account-accent": normalizeProviderAccentColor(account.accentColor),
-                      } as CSSProperties)
-                    : undefined
-                }
-              >
-                <button
-                  type="button"
-                  aria-label={`Select ${account.label}`}
-                  aria-current={selected ? "true" : undefined}
-                  className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-left outline-none focus-visible:ring-1 focus-visible:ring-ring/60"
-                  onClick={() => setSelectedAccountId(account.instanceId)}
-                >
-                  <ProviderAccountAvatar provider={provider} accentColor={account.accentColor} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-ui-sm font-medium text-foreground">
-                      {account.label}
-                    </span>
-                    <ProviderInstanceStatusLine status={status} />
-                  </span>
-                </button>
-                <Switch
-                  checked={account.enabled}
-                  onCheckedChange={(enabled) =>
-                    updateInstance(account.instanceId, { enabled: Boolean(enabled) })
+      <div className="flex flex-col gap-3">
+        {accounts.length > 1 ? (
+          <div
+            role="list"
+            aria-label={`${providerLabel} accounts`}
+            className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {accounts.map((account) => {
+              const selected = account.instanceId === selectedAccount?.instanceId;
+              const status = providerAccountStatusSummary({
+                status: props.providerStatusByInstance.get(account.instanceId),
+                enabled: account.enabled,
+                usageSnapshot: usageByInstance.get(account.instanceId),
+              });
+              return (
+                <div
+                  key={account.instanceId}
+                  role="listitem"
+                  className={cn(
+                    "relative flex items-center justify-between gap-3 rounded-xl border-[0.5px] px-3.5 py-2.5 transition-all",
+                    selected
+                      ? "border-border/80 bg-muted/40 shadow-xs ring-1 ring-border/50"
+                      : "border-border/60 bg-muted/15 hover:border-border/80 hover:bg-muted/30",
+                    !account.enabled && !selected && "opacity-60",
+                  )}
+                  style={
+                    normalizeProviderAccentColor(account.accentColor)
+                      ? ({
+                          "--account-accent": normalizeProviderAccentColor(account.accentColor),
+                        } as CSSProperties)
+                      : undefined
                   }
-                  aria-label={`Enable ${account.label}`}
-                />
-              </div>
-            );
-          })}
-        </div>
-        {selectedAccount ? renderEditor(selectedAccount) : null}
+                >
+                  <button
+                    type="button"
+                    aria-label={`Select ${account.label}`}
+                    aria-current={selected ? "true" : undefined}
+                    className="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 text-left outline-none focus-visible:ring-1 focus-visible:ring-ring/60"
+                    onClick={() => setSelectedAccountId(account.instanceId)}
+                  >
+                    <ProviderAccountAvatar provider={provider} accentColor={account.accentColor} />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-1.5">
+                        <span className="truncate text-ui-sm font-medium text-foreground">
+                          {account.label}
+                        </span>
+                        {account.isDefault ? (
+                          <span className="shrink-0 rounded-full border border-border/70 px-1.5 py-px text-ui-2xs font-medium text-muted-foreground">
+                            Default
+                          </span>
+                        ) : null}
+                      </span>
+                      <ProviderInstanceStatusLine status={status} />
+                    </span>
+                  </button>
+                  <Switch
+                    checked={account.enabled}
+                    onCheckedChange={(enabled) =>
+                      updateInstance(account.instanceId, { enabled: Boolean(enabled) })
+                    }
+                    aria-label={`Enable ${account.label}`}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+        <div className="w-full">{selectedAccount ? renderEditor(selectedAccount) : null}</div>
       </div>
 
       {signInAccount ? (
@@ -1719,7 +1746,7 @@ function ProviderInstanceStatusLine(props: { status: ProviderAccountStatusSummar
 // One titled band of the account editor; bands are separated by hairlines.
 function ProviderAccountEditorSection(props: { title: string; children: ReactNode }) {
   return (
-    <section className="space-y-2 border-b border-border/70 px-3 py-3 last:border-b-0">
+    <section className="space-y-2 border-b border-border/70 px-3.5 py-3.5 last:border-b-0">
       <h4 className="text-ui-xs font-medium tracking-wide text-muted-foreground uppercase">
         {props.title}
       </h4>

@@ -22,11 +22,6 @@ import {
 import { toastManager } from "./ui/toast";
 import { useOptionalSidebar } from "./ui/sidebar";
 
-const MENU_TRIGGER_CLASS =
-  "inline-flex h-7 items-center rounded-md px-2 text-ui-sm font-normal text-muted-foreground hover:text-foreground hover:bg-surface-secondary/80 aria-expanded:text-foreground aria-expanded:bg-surface-secondary/80 select-none cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring/60 focus-visible:ring-offset-1 focus-visible:ring-offset-[var(--color-background-surface-under)] transition-colors duration-100 [-webkit-app-region:no-drag]";
-const MENU_CONTENT_CLASS =
-  "rounded-xl border border-[color:var(--color-border-light)] bg-[var(--color-background-surface-under)] text-[var(--color-text-foreground)] shadow-md before:hidden";
-
 function handleCloseWindow(): void {
   if (window.desktopBridge?.windowControls?.close) {
     void window.desktopBridge.windowControls.close();
@@ -142,14 +137,8 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
       <Menubar className="h-8 gap-0.5 rounded-none border-0 bg-transparent p-0">
         {/* File Menu */}
         <MenubarMenu>
-          <MenubarTrigger className={MENU_TRIGGER_CLASS}>File</MenubarTrigger>
-          <MenubarContent
-            align="start"
-            alignOffset={0}
-            side="bottom"
-            sideOffset={4}
-            className={cn(MENU_CONTENT_CLASS, "min-w-48")}
-          >
+          <MenubarTrigger>File</MenubarTrigger>
+          <MenubarContent className="min-w-48">
             <MenubarItem onClick={() => dispatchDesktopMenuAction("new-thread")}>
               <span>New Thread</span>
               <MenubarShortcut>{isMac ? "⌘N" : "Ctrl+N"}</MenubarShortcut>
@@ -172,14 +161,8 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
 
         {/* Edit Menu */}
         <MenubarMenu>
-          <MenubarTrigger className={MENU_TRIGGER_CLASS}>Edit</MenubarTrigger>
-          <MenubarContent
-            align="start"
-            alignOffset={0}
-            side="bottom"
-            sideOffset={4}
-            className={cn(MENU_CONTENT_CLASS, "min-w-48")}
-          >
+          <MenubarTrigger>Edit</MenubarTrigger>
+          <MenubarContent className="min-w-48">
             <MenubarItem onClick={handleUndo}>
               <span>Undo</span>
               <MenubarShortcut>{isMac ? "⌘Z" : "Ctrl+Z"}</MenubarShortcut>
@@ -211,14 +194,8 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
 
         {/* View Menu */}
         <MenubarMenu>
-          <MenubarTrigger className={MENU_TRIGGER_CLASS}>View</MenubarTrigger>
-          <MenubarContent
-            align="start"
-            alignOffset={0}
-            side="bottom"
-            sideOffset={4}
-            className={cn(MENU_CONTENT_CLASS, "min-w-52")}
-          >
+          <MenubarTrigger>View</MenubarTrigger>
+          <MenubarContent className="min-w-52">
             <MenubarItem onClick={() => dispatchDesktopMenuAction("toggle-sidebar")}>
               <span>Toggle Sidebar</span>
               <MenubarShortcut>{isMac ? "⌘B" : "Ctrl+B"}</MenubarShortcut>
@@ -254,14 +231,8 @@ export function ApplicationMenuBar({ className }: { className?: string }) {
 
         {/* Help Menu */}
         <MenubarMenu>
-          <MenubarTrigger className={MENU_TRIGGER_CLASS}>Help</MenubarTrigger>
-          <MenubarContent
-            align="start"
-            alignOffset={0}
-            side="bottom"
-            sideOffset={4}
-            className={cn(MENU_CONTENT_CLASS, "min-w-48")}
-          >
+          <MenubarTrigger>Help</MenubarTrigger>
+          <MenubarContent className="min-w-48">
             <MenubarItem onClick={() => openExternalLink(MIMIR_DOCS_URL)}>
               <span>Documentation</span>
             </MenubarItem>

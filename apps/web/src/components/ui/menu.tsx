@@ -373,7 +373,7 @@ function MenuShortcut({ className, children, ...props }: React.ComponentProps<"k
       <ShortcutKbd
         shortcutLabel={children}
         data-slot="menu-shortcut"
-        groupClassName={cn("ms-auto", className)}
+        groupClassName={cn("ms-auto text-ui-xs", className)}
         {...props}
       />
     );

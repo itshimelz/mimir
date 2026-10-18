@@ -557,15 +557,19 @@ function isFileChangeWorkEntry(workEntry: TimelineWorkEntry): boolean {
 
 function commandTooltipContent(command: string, displayText: string) {
   return (
-    <div className="max-w-96 whitespace-pre-wrap leading-tight">
-      <div className="space-y-2">
-        <div className="space-y-0.5">
-          <div className="text-muted-foreground/70">Summary</div>
-          <div>{displayText}</div>
+    <div className="max-w-96 whitespace-pre-wrap leading-normal p-0.5">
+      <div className="space-y-2.5">
+        <div className="space-y-1">
+          <div className="text-ui-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+            Summary
+          </div>
+          <div className="text-ui leading-snug text-foreground">{displayText}</div>
         </div>
-        <div className="space-y-0.5">
-          <div className="text-muted-foreground/70">Raw call</div>
-          <code className="block whitespace-pre-wrap break-words font-chat-code text-chat-code text-foreground/92">
+        <div className="space-y-1">
+          <div className="text-ui-xs font-medium uppercase tracking-wider text-muted-foreground/70">
+            Raw call
+          </div>
+          <code className="block whitespace-pre-wrap break-words rounded-lg border-[0.5px] border-border/50 bg-[var(--app-chat-code-surface)] p-2 font-chat-code text-chat-code text-foreground/90 selection:bg-primary/20">
             {command}
           </code>
         </div>
@@ -585,7 +589,9 @@ function toolRowTooltipContent(
   if (rawCommand) {
     return commandTooltipContent(rawCommand, displayText);
   }
-  return fallback ? <span className="whitespace-pre-wrap">{fallback}</span> : null;
+  return fallback ? (
+    <span className="whitespace-pre-wrap text-ui leading-normal break-words">{fallback}</span>
+  ) : null;
 }
 
 // Frosted hover tooltip for tool-call rows — the same surface (via the `default`
@@ -599,7 +605,7 @@ function ToolRowTooltip(props: { content: ReactNode; children: ReactElement }) {
   return (
     <Tooltip>
       <TooltipTrigger render={props.children} />
-      <TooltipPopup side="top" align="start" className="max-w-96 whitespace-normal">
+      <TooltipPopup side="top" align="start" className="max-w-96 whitespace-normal p-1">
         {props.content}
       </TooltipPopup>
     </Tooltip>
@@ -1173,7 +1179,7 @@ function ProviderContextLifecycleDetails(props: {
     info.provider;
   return (
     <div className="space-y-3" data-provider-context-lifecycle-details="true">
-      <dl className="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border/45 bg-background/60 px-3 py-2.5 text-ui-sm">
+      <dl className="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border-[0.5px] border-border/50 bg-background/60 px-3 py-2.5 text-ui-sm">
         <dt className="text-muted-foreground/56">Provider</dt>
         <dd className="text-foreground/84">{provider}</dd>
         <dt className="text-muted-foreground/56">Previous history</dt>
@@ -1195,7 +1201,7 @@ function ProviderContextLifecycleDetails(props: {
         <section className="space-y-2">
           <h3 className="text-ui-sm font-medium text-muted-foreground/56">Summary preview</h3>
           <pre
-            className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border/45 bg-background/60 px-3 py-2.5 font-chat-code text-chat-code leading-relaxed text-foreground/84"
+            className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border-[0.5px] border-border/50 bg-background/60 px-3 py-2.5 font-chat-code text-chat-code leading-relaxed text-foreground/84"
             data-session-context-recap-preview="true"
           >
             {info.recapPreview}
@@ -1231,7 +1237,7 @@ export function ProviderHandoffDetails(props: {
   const { info } = props;
   return (
     <div className="space-y-3" data-provider-handoff-details="true">
-      <dl className="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border border-border/45 bg-background/60 px-3 py-2.5 text-ui-sm">
+      <dl className="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-1.5 rounded-lg border-[0.5px] border-border/50 bg-background/60 px-3 py-2.5 text-ui-sm">
         <dt className="text-muted-foreground/56">From</dt>
         <dd className="text-foreground/84">
           {providerModelLabel(info.sourceModelSelection, info.sourceFastModeNotice)}
@@ -1260,7 +1266,7 @@ export function ProviderHandoffDetails(props: {
         <section className="space-y-2">
           <h3 className="text-ui-sm font-medium text-muted-foreground/56">Transferred context</h3>
           <pre
-            className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border border-border/45 bg-background/60 px-3 py-2.5 font-chat-code text-chat-code leading-relaxed text-foreground/84"
+            className="max-h-56 overflow-auto whitespace-pre-wrap break-words rounded-lg border-[0.5px] border-border/50 bg-background/60 px-3 py-2.5 font-chat-code text-chat-code leading-relaxed text-foreground/84"
             data-provider-handoff-context="true"
           >
             {info.contextText}

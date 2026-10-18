@@ -1,33 +1,32 @@
+import {
+  COMPOSER_PICKER_MENU_POPUP_BODY_CLASS_NAME,
+  COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME,
+} from "~/components/chat/composerPickerStyles";
+import { composerPickerMenuShellClassName } from "~/components/chat/composerPickerSize";
+import { observeNativeSurfaceOverlay } from "~/lib/nativeSurfaceOcclusion";
 import { FLOATING_OVERLAY_SURFACE_CLASS_NAME } from "~/surfaceStyles";
 import type { ContextMenuItem } from "@synara/contracts";
 import { createCentralIconElement } from "./lib/central-icons";
 import { isInlineSvgMenuIcon } from "./lib/nativeMenuIcons";
 
 /**
- * Browser fallback for native context menus, styled with the app's shared semantic surface
- * and text tokens.
+ * Browser fallback for native context menus, styled with the app's shared semantic surface,
+ * composer picker tokens, and text tokens matching the top bar menu.
  */
 
-/**
- * Shared focus styling for the currently highlighted item.
- *
- * A list, not a string: `classList.add`/`remove` take exactly one token per call
- * and throw `InvalidCharacterError` on any token containing whitespace. Held as a
- * single space-joined string, the first hover on a row threw before the rest of
- * the `mouseenter` listener ran — so the highlight never painted, submenus never
- * opened on hover, and clicking any row that owns a submenu threw instead of
- * opening it.
- */
-const HIGHLIGHT_CLASS_NAMES = ["bg-accent", "text-accent-foreground"] as const;
-/** Same shell every other menu uses: the app-wide hairline outline plus the floating
- *  elevation tier, instead of this fallback's own `border-border shadow-md`. */
-const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} app-elevated-prominent fixed z-[10000] min-w-[180px] rounded-xl animate-in fade-in zoom-in-95`;
+const DEFAULT_HIGHLIGHT_CLASS_NAMES = ["bg-primary/10", "text-primary"] as const;
+const SUBMENU_OPEN_HIGHLIGHT_CLASS_NAMES = ["bg-primary/12", "text-primary"] as const;
+const DESTRUCTIVE_HIGHLIGHT_CLASS_NAMES = ["bg-destructive/10"] as const;
+
+/** Same shell every other menu uses: hairline outline, theme popup surface, and composer picker tokens. */
+const MENU_CLASS_NAME = `${FLOATING_OVERLAY_SURFACE_CLASS_NAME} fixed z-[10000] min-w-48 overflow-hidden app-elevated-prominent bg-popover text-popover-foreground rounded-xl before:pointer-events-none before:absolute before:inset-0 before:-z-1 before:rounded-[inherit] ${composerPickerMenuShellClassName("normal")} outline-none focus:outline-none transition-[opacity,scale] duration-[120ms] ease-out animate-in fade-in zoom-in-95`;
 const VIEWPORT_MARGIN = 4;
 
 function createMenuIconElement(icon: string): HTMLElement | null {
-  if (!isInlineSvgMenuIcon(icon)) return createCentralIconElement(icon, "opacity-60");
+  if (!isInlineSvgMenuIcon(icon)) return createCentralIconElement(icon, "size-3.5 opacity-80");
   const wrapper = document.createElement("span");
-  wrapper.className = "flex size-4 shrink-0 items-center justify-center opacity-60 [&>svg]:size-4";
+  wrapper.className =
+    "flex size-3.5 shrink-0 items-center justify-center opacity-80 [&>svg]:size-3.5";
   wrapper.innerHTML = icon;
   return wrapper;
 }
@@ -42,6 +41,7 @@ const SUBMENU_SWITCH_DELAY_MS = 150;
 
 interface MenuLevel<T extends string> {
   readonly element: HTMLDivElement;
+  readonly unobserve?: (() => void) | undefined;
   readonly items: readonly ContextMenuItem<T>[];
   readonly buttons: HTMLButtonElement[];
   focusedIndex: number;
@@ -77,18 +77,62 @@ export function showContextMenuFallback<T extends string>(
       cancelPendingSwitch();
       document.removeEventListener("keydown", onKeyDown);
       overlay.remove();
-      for (const level of levels) level.element.remove();
+      for (const level of levels) {
+        level.unobserve?.();
+        level.element.remove();
+      }
       resolve(result);
+    }
+
+    function highlightItem(level: MenuLevel<T>, index: number, isSubmenuOpen: boolean = false) {
+      const btn = level.buttons[index];
+      const item = level.items[index];
+      if (!btn || !item) return;
+      const isDestructive = item.destructive === true || item.id === "delete";
+
+      unhighlightItem(level, index);
+      btn.dataset.highlighted = "";
+      if (isSubmenuOpen) {
+        btn.dataset.popupOpen = "";
+        btn.classList.remove("text-foreground");
+        btn.classList.add(...SUBMENU_OPEN_HIGHLIGHT_CLASS_NAMES);
+      } else if (isDestructive) {
+        btn.classList.add(...DESTRUCTIVE_HIGHLIGHT_CLASS_NAMES);
+      } else {
+        btn.classList.remove("text-foreground");
+        btn.classList.add(...DEFAULT_HIGHLIGHT_CLASS_NAMES);
+      }
+    }
+
+    function unhighlightItem(level: MenuLevel<T>, index: number) {
+      const btn = level.buttons[index];
+      const item = level.items[index];
+      if (!btn || !item) return;
+      const isDestructive = item.destructive === true || item.id === "delete";
+
+      delete btn.dataset.highlighted;
+      delete btn.dataset.popupOpen;
+
+      btn.classList.remove(
+        ...DEFAULT_HIGHLIGHT_CLASS_NAMES,
+        ...SUBMENU_OPEN_HIGHLIGHT_CLASS_NAMES,
+        ...DESTRUCTIVE_HIGHLIGHT_CLASS_NAMES,
+      );
+      if (!isDestructive) {
+        btn.classList.add("text-foreground");
+      }
     }
 
     function closeLevelsAfter(depth: number) {
       while (levels.length > depth + 1) {
-        levels.pop()!.element.remove();
+        const popped = levels.pop()!;
+        popped.unobserve?.();
+        popped.element.remove();
       }
       const level = levels[depth];
       if (!level) return;
-      if (level.openChildIndex !== level.focusedIndex) {
-        level.buttons[level.openChildIndex]?.classList.remove(...HIGHLIGHT_CLASS_NAMES);
+      if (level.openChildIndex !== -1 && level.openChildIndex !== level.focusedIndex) {
+        unhighlightItem(level, level.openChildIndex);
       }
       level.openChildIndex = -1;
     }
@@ -96,11 +140,11 @@ export function showContextMenuFallback<T extends string>(
     function focusItem(depth: number, index: number) {
       const level = levels[depth];
       if (!level || index < 0 || index >= level.buttons.length) return;
-      if (level.focusedIndex !== level.openChildIndex) {
-        level.buttons[level.focusedIndex]?.classList.remove(...HIGHLIGHT_CLASS_NAMES);
+      if (level.focusedIndex !== -1 && level.focusedIndex !== level.openChildIndex) {
+        unhighlightItem(level, level.focusedIndex);
       }
       level.focusedIndex = index;
-      level.buttons[index]?.classList.add(...HIGHLIGHT_CLASS_NAMES);
+      highlightItem(level, index, level.openChildIndex === index);
       level.buttons[index]?.focus();
     }
 
@@ -112,7 +156,7 @@ export function showContextMenuFallback<T extends string>(
       if (level.openChildIndex !== index) {
         closeLevelsAfter(depth);
         level.openChildIndex = index;
-        anchor.classList.add(...HIGHLIGHT_CLASS_NAMES);
+        highlightItem(level, index, true);
         const rect = anchor.getBoundingClientRect();
         openLevel(children, { x: rect.right - SUBMENU_OVERLAP, y: rect.top - 4 }, rect);
       }
@@ -177,18 +221,21 @@ export function showContextMenuFallback<T extends string>(
       const menu = document.createElement("div");
       menu.dataset.slot = depth === 0 ? "context-menu-popup" : "context-menu-sub-popup";
       menu.className = MENU_CLASS_NAME;
+      menu.style.position = "fixed";
       menu.style.top = `${origin.y}px`;
       menu.style.left = `${origin.x}px`;
-      menu.style.backdropFilter = "blur(24px)";
-      (menu.style as any).webkitBackdropFilter = "blur(24px)";
+      const unobserve = observeNativeSurfaceOverlay(menu);
 
       const inner = document.createElement("div");
+      inner.dataset.slot = "menu-popup-body";
+      inner.dataset.pickerSize = "normal";
       // A submenu taller than the window (many providers or hubs) scrolls in place.
-      inner.className = "max-h-[calc(100vh-8px)] overflow-y-auto p-1";
+      inner.className = `${COMPOSER_PICKER_MENU_POPUP_BODY_CLASS_NAME} max-h-[calc(100vh-8px)] p-1`;
       menu.appendChild(inner);
 
       const level: MenuLevel<T> = {
         element: menu,
+        unobserve,
         items: levelItems,
         buttons: [],
         focusedIndex: -1,
@@ -205,15 +252,20 @@ export function showContextMenuFallback<T extends string>(
         // Keep explicit groups visible in the browser fallback; destructive items remain isolated by default.
         if ((item.separatorBefore === true || isDestructive) && i > 0) {
           const sep = document.createElement("div");
-          sep.className = "mx-2.5 my-1 h-px bg-border";
+          sep.dataset.slot = "menu-separator";
+          sep.className = "mx-2 my-1 h-px bg-border";
           inner.appendChild(sep);
         }
 
         const btn = document.createElement("button");
         btn.type = "button";
+        btn.dataset.slot = item.children ? "menu-sub-trigger" : "menu-item";
+        if (isDestructive) {
+          btn.dataset.variant = "destructive";
+        }
         btn.className = isDestructive
-          ? "flex w-full min-h-7 cursor-default select-none items-center gap-2 rounded-md px-3.5 py-1.5 text-left text-ui text-destructive transition-colors duration-150 ease-out"
-          : "flex w-full min-h-7 cursor-default select-none items-center gap-2.5 rounded-md px-3.5 py-1.5 text-left text-ui text-foreground transition-colors duration-150 ease-out";
+          ? `flex w-full min-h-7 cursor-default select-none items-center gap-2.5 ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} px-2 py-1 text-left text-ui-sm text-destructive outline-none transition-colors duration-100 ease-out [&>svg,&>[data-slot=central-icon]]:-mx-0.5 [&>svg,&>[data-slot=central-icon]]:shrink-0 [&>svg,&>[data-slot=central-icon]]:pointer-events-none`
+          : `flex w-full min-h-7 cursor-default select-none items-center gap-2.5 ${COMPOSER_PICKER_OPTION_RADIUS_CLASS_NAME} px-2 py-1 text-left text-ui-sm text-foreground outline-none transition-colors duration-100 ease-out [&>svg,&>[data-slot=central-icon]]:-mx-0.5 [&>svg,&>[data-slot=central-icon]]:shrink-0 [&>svg,&>[data-slot=central-icon]]:pointer-events-none`;
 
         const icon = item.icon ? createMenuIconElement(item.icon) : null;
         if (icon) {
@@ -221,12 +273,13 @@ export function showContextMenuFallback<T extends string>(
         }
 
         const label = document.createElement("span");
+        label.className = "truncate";
         label.textContent = item.label;
         btn.appendChild(label);
 
         if (item.children) {
           btn.setAttribute("aria-haspopup", "menu");
-          const chevron = createCentralIconElement("chevron-right", "ms-auto opacity-60");
+          const chevron = createCentralIconElement("chevron-right", "ms-auto size-3.5 opacity-70");
           if (chevron) btn.appendChild(chevron);
         }
 
@@ -250,7 +303,11 @@ export function showContextMenuFallback<T extends string>(
         });
         btn.addEventListener("mouseleave", () => {
           // The row that owns the open submenu stays lit while the pointer is inside it.
-          if (level.openChildIndex !== i) btn.classList.remove(...HIGHLIGHT_CLASS_NAMES);
+          if (level.openChildIndex !== i) {
+            unhighlightItem(level, i);
+          } else {
+            highlightItem(level, i, true);
+          }
           if (level.focusedIndex === i) level.focusedIndex = -1;
         });
         level.buttons.push(btn);
@@ -276,6 +333,10 @@ export function showContextMenuFallback<T extends string>(
     }
 
     overlay.addEventListener("mousedown", () => cleanup(null));
+    overlay.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      cleanup(null);
+    });
     document.addEventListener("keydown", onKeyDown);
 
     document.body.appendChild(overlay);

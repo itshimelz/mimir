@@ -2284,6 +2284,56 @@ label:has(> select#reasoning-effort) select {
   word-break: break-word;
 }
 
+/* In-app Word (.docx) document viewer: centered page sheets with crisp paper borders,
+   subtle elevation, and diff redlines styling. */
+.docx-viewer-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: var(--app-user-message-background);
+  scrollbar-gutter: stable;
+}
+
+.mimir-docx-preview-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+section.mimir-docx-preview {
+  position: relative;
+  flex: 0 0 auto;
+  margin-inline: auto;
+  background: #ffffff !important;
+  color: #111827 !important;
+  border: 0.5px solid color-mix(in srgb, var(--border), var(--foreground) 10%);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  zoom: var(--mimir-docx-preview-zoom, 1);
+  transform-origin: top center;
+}
+
+section.mimir-docx-preview ::selection {
+  background: rgba(59, 130, 246, 0.25);
+  color: inherit;
+}
+
+/* Tracked changes / Redlines: insertions and deletions */
+section.mimir-docx-preview ins {
+  background: rgba(34, 197, 94, 0.2);
+  color: #15803d;
+  text-decoration: underline;
+}
+
+section.mimir-docx-preview del {
+  background: rgba(239, 68, 68, 0.2);
+  color: #b91c1c;
+  text-decoration: line-through;
+}
+
 /* Generated image preview/download card rendered inline from markdown ![alt](file.png) */
 .chat-generated-image {
   position: relative;

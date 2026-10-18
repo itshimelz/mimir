@@ -80,6 +80,22 @@ export function isSupportedLocalCanvasPath(filePath: string): boolean {
   return extension !== null && SUPPORTED_LOCAL_CANVAS_EXTENSIONS_SET.has(extension);
 }
 
+/**
+ * Word documents. Only the OOXML `.docx` container is previewable: the legacy
+ * binary `.doc` format predates the ZIP/XML package and cannot be read in the
+ * browser, so it stays out of this list and keeps its read-as-text path.
+ */
+export const SUPPORTED_LOCAL_DOCX_EXTENSIONS = [".docx"] as const;
+
+const SUPPORTED_LOCAL_DOCX_EXTENSIONS_SET: ReadonlySet<string> = new Set(
+  SUPPORTED_LOCAL_DOCX_EXTENSIONS,
+);
+
+export function isSupportedLocalDocxPath(filePath: string): boolean {
+  const extension = lowerCaseExtensionOf(filePath);
+  return extension !== null && SUPPORTED_LOCAL_DOCX_EXTENSIONS_SET.has(extension);
+}
+
 // Full allowlist for the /api/local-image serving route. Markdown image source
 // detection (below) intentionally stays image-only: a `.pdf` link in chat
 // markdown must never be inlined as an <img>.
@@ -88,6 +104,7 @@ export function isSupportedLocalPreviewFilePath(filePath: string): boolean {
     isSupportedLocalImagePath(filePath) ||
     isSupportedLocalPdfPath(filePath) ||
     isSupportedLocalPptxPath(filePath) ||
+    isSupportedLocalDocxPath(filePath) ||
     isSupportedLocalCanvasPath(filePath)
   );
 }

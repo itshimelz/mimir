@@ -79,7 +79,7 @@ function TooltipPopup({
       >
         <TooltipPrimitive.Popup
           className={cn(
-            "transition-[opacity,scale,translate] duration-150 ease-out flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance rounded-xs shadow-sm text-ui-sm transition-[width,height,scale,opacity] data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0 data-instant:duration-0",
+            "transition-[opacity,scale,translate] duration-150 ease-out flex h-(--popup-height,auto) w-(--popup-width,auto) origin-(--transform-origin) text-balance rounded-xl text-ui-sm transition-[width,height,scale,opacity] data-ending-style:scale-90 data-starting-style:scale-90 data-ending-style:opacity-0 data-starting-style:opacity-0 data-instant:duration-0",
             TOOLTIP_SURFACE_BY_VARIANT[variant],
             className,
           )}
@@ -88,7 +88,7 @@ function TooltipPopup({
         >
           <TooltipPrimitive.Viewport
             className={cn(
-              "relative size-full overflow-clip px-(--viewport-inline-padding) py-1 [--viewport-inline-padding:--spacing(2)] data-instant:transition-none **:data-current:data-ending-style:opacity-0 **:data-current:data-starting-style:opacity-0 **:data-previous:data-ending-style:opacity-0 **:data-previous:data-starting-style:opacity-0 **:data-current:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-previous:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-previous:truncate **:data-current:opacity-100 **:data-previous:opacity-100 **:data-current:transition-opacity **:data-previous:transition-opacity",
+              "relative size-full overflow-clip px-(--viewport-inline-padding) py-1.5 [--viewport-inline-padding:--spacing(2.5)] data-instant:transition-none **:data-current:data-ending-style:opacity-0 **:data-current:data-starting-style:opacity-0 **:data-previous:data-ending-style:opacity-0 **:data-previous:data-starting-style:opacity-0 **:data-current:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-previous:w-[calc(var(--popup-width)-2*var(--viewport-inline-padding)-2px)] **:data-previous:truncate **:data-current:opacity-100 **:data-previous:opacity-100 **:data-current:transition-opacity **:data-previous:transition-opacity",
               viewportClassName,
             )}
             data-slot="tooltip-viewport"

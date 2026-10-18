@@ -8,6 +8,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import { ApplicationMenuBar } from "./ApplicationMenuBar";
 import { SidebarProvider } from "./ui/sidebar";
+import {
+  Menubar,
+  MenubarContent,
+  MenubarItem,
+  MenubarMenu,
+  MenubarShortcut,
+  MenubarTrigger,
+} from "./ui/menubar";
 import { dispatchDesktopMenuAction, subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
 
 describe("ApplicationMenuBar", () => {
@@ -45,5 +53,30 @@ describe("ApplicationMenuBar", () => {
     unsubscribe();
     dispatchDesktopMenuAction("toggle-sidebar");
     expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it("renders MenubarShortcut with ShortcutKbd keycaps and authentic primitive UI tokens", () => {
+    const html = renderToStaticMarkup(<MenubarShortcut>Ctrl+N</MenubarShortcut>);
+
+    expect(html).toContain('data-slot="menubar-shortcut"');
+    expect(html).toContain("<kbd");
+    expect(html).toContain("rounded-xs");
+    expect(html).toContain("bg-foreground/5");
+    expect(html).toContain("Ctrl+N");
+    expect(html).toContain("text-ui-xs");
+    expect(html).not.toContain("shadow-md");
+    expect(html).not.toContain("var(--color-background-surface-under)");
+  });
+
+  it("renders MenubarTrigger with primitive trigger styling", () => {
+    const html = renderToStaticMarkup(
+      <MenubarMenu>
+        <MenubarTrigger>File</MenubarTrigger>
+      </MenubarMenu>,
+    );
+
+    expect(html).toContain('data-slot="menubar-trigger"');
+    expect(html).toContain("text-ui-sm");
+    expect(html).toContain("File");
   });
 });

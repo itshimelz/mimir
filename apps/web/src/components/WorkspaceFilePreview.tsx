@@ -14,6 +14,7 @@ import {
 import { EditProvider, File as PierreFile } from "@pierre/diffs/react";
 import {
   isSupportedLocalCanvasPath,
+  isSupportedLocalDocxPath,
   isSupportedLocalImagePath,
   isSupportedLocalPdfPath,
   isSupportedLocalPptxPath,
@@ -92,6 +93,7 @@ import { WorkspaceFilePreviewHeader } from "./chat/WorkspaceFilePreviewHeader";
 import { TranscriptSelectionAction } from "./chat/TranscriptSelectionAction";
 import { useCodeSelectionAction } from "./chat/useCodeSelectionAction";
 import { CanvasFilePreview } from "./CanvasFilePreview";
+import { DocxFilePreview } from "./DocxFilePreview";
 import { LocalImagePreview } from "./LocalImagePreview";
 import { PdfFilePreview } from "./PdfFilePreview";
 import { PptxFilePreview } from "./PptxFilePreview";
@@ -613,10 +615,11 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
   const fileIsImage = filePath !== null && isSupportedLocalImagePath(filePath);
   const fileIsPdf = filePath !== null && isSupportedLocalPdfPath(filePath);
   const fileIsPptx = filePath !== null && isSupportedLocalPptxPath(filePath);
+  const fileIsDocx = filePath !== null && isSupportedLocalDocxPath(filePath);
   const fileIsCanvas = filePath !== null && isSupportedLocalCanvasPath(filePath);
   // Binary and rich document previews stream through the local-image HTTP route
-  // instead of the text read RPC, so every check that asks "is this binary?" wants all four.
-  const fileIsBinary = fileIsImage || fileIsPdf || fileIsPptx || fileIsCanvas;
+  // instead of the text read RPC, so every check that asks "is this binary?" wants all of them.
+  const fileIsBinary = fileIsImage || fileIsPdf || fileIsPptx || fileIsDocx || fileIsCanvas;
   const fileIsLocalAbsolute = filePath !== null && isLocalAbsolutePath(filePath);
   const fileIsWorkspaceRelative = filePath !== null && isWorkspaceRelativePathSafe(filePath);
   const fileIsScratchBinaryPreview =
@@ -1119,6 +1122,29 @@ export function WorkspaceFilePreview(props: WorkspaceFilePreviewProps) {
         openInTarget={openInTarget}
         onPreviewReady={handleBinaryPreviewReady}
         onPreviewError={handleBinaryPreviewError}
+      />
+    );
+  }
+
+  if (fileIsDocx) {
+    const openInTarget =
+      props.workspaceRoot && isWorkspaceRelativePathSafe(filePath)
+        ? joinWorkspaceRelativePath(props.workspaceRoot, filePath)
+        : filePath;
+    return (
+      <DocxFilePreview
+        key={binaryPreviewKey}
+        filePath={filePath}
+        cwd={props.workspaceRoot}
+        previewGrant={localPreviewGrant}
+        cacheKey={binaryPreviewRevision}
+        onReload={handleFileReload}
+        openInTarget={openInTarget}
+        onPreviewReady={handleBinaryPreviewReady}
+        onPreviewError={handleBinaryPreviewError}
+        onReferenceInChat={props.onReferenceInChat}
+        onAskWhyInChat={props.onAskWhyInChat}
+        onCommentInChat={props.onCommentInChat}
       />
     );
   }

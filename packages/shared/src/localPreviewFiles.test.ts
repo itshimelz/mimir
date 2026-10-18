@@ -8,6 +8,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   isSupportedLocalCanvasPath,
+  isSupportedLocalDocxPath,
   isSupportedLocalImagePath,
   isSupportedLocalPdfPath,
   isSupportedLocalPptxPath,
@@ -16,7 +17,7 @@ import {
 } from "./localPreviewFiles";
 
 describe("local preview file allowlist", () => {
-  it("accepts images, PDFs, .pptx decks, and .canvas files", () => {
+  it("accepts images, PDFs, .pptx decks, .docx documents, and .canvas files", () => {
     for (const previewable of [
       "diagram.png",
       "photo.JPEG",
@@ -24,6 +25,9 @@ describe("local preview file allowlist", () => {
       "lecture.DECK.PPTX",
       "/Users/me/course/Outbox/quiz.pptx",
       "C:\\Users\\me\\deck.pptx",
+      "proposal.docx",
+      "MEMORANDUM.DOCX",
+      "/workspace/docs/specification.docx",
       "mindmap.canvas",
       "FLOWCHART.CANVAS",
       "/workspace/notes/architecture.canvas",
@@ -32,11 +36,13 @@ describe("local preview file allowlist", () => {
     }
   });
 
-  it("keeps the legacy binary .ppt format out of the preview allowlist", () => {
-    // `.ppt` predates the ZIP/XML package, so the browser cannot read it; it must
-    // keep falling through to the read-as-text path rather than 404ing.
+  it("keeps the legacy binary .ppt and .doc formats out of the preview allowlist", () => {
+    // `.ppt` and `.doc` predate the ZIP/XML package, so the browser cannot read them;
+    // they must keep falling through to the read-as-text path rather than 404ing.
     expect(isSupportedLocalPptxPath("slides.ppt")).toBe(false);
     expect(isSupportedLocalPreviewFilePath("slides.ppt")).toBe(false);
+    expect(isSupportedLocalDocxPath("document.doc")).toBe(false);
+    expect(isSupportedLocalPreviewFilePath("document.doc")).toBe(false);
   });
 
   it("rejects other document and text types", () => {

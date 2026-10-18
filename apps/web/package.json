@@ -48,6 +48,7 @@
     "@xterm/xterm": "^6.0.0",
     "class-variance-authority": "^0.7.1",
     "cn": "^0.4.0",
+    "docx-preview": "^0.4.1",
     "effect": "catalog:",
     "html-to-image": "^1.11.13",
     "jszip": "^3.10.2",

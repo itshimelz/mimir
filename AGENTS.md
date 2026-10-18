@@ -48,6 +48,22 @@ Use a separate home directory and unused server/web ports when another Synara in
 
 For browser development, an inherited `SYNARA_AUTH_TOKEN` must match the client configuration; remove it only from the isolated test process when appropriate, never from production policy. Check both IPv4 and IPv6 listeners. An empty UI with a healthy `orchestration.getSnapshot` is a connection/hydration lead, not permission to alter SQLite data.
 
+## Mermaid and Pele diagram generation
+
+When generating Mermaid diagrams in Markdown (rendered client-side via Pele):
+
+- **Quote special characters**: Always enclose node labels and edge text containing punctuation, parentheses `()`, brackets `[]`, braces `{}`, colons `:`, slashes `/`, commas `,`, quotes, or arrows in double quotes (e.g. `nodeA["Component (detail)"] -->|"event (payload)"| nodeB`).
+- **Alphanumeric node IDs**: Use concise, alphanumeric IDs without spaces (e.g. `clientApp["Client App"]`, `apiGateway["API Gateway"]`). Do not use spaces or raw sentences as node IDs.
+- **Select specific diagram types**:
+  - `flowchart TD` (top-down) for hierarchical architectures, decision trees, and lifecycle models; `flowchart LR` for linear pipelines, data streams, and chronological transitions.
+  - `sequenceDiagram` with `autonumber` and explicit `participant` aliases for request/response lifecycles, protocols, and actor interactions. Use `activate`/`deactivate` blocks for execution lifecycles.
+  - `stateDiagram-v2` for state transitions and session states (`[*] --> Idle --> Processing --> [*]`).
+  - `erDiagram` for database entities, schemas, relations (`||--o{`, `}|..|{`), and attribute definitions.
+  - `classDiagram` for type hierarchies, interfaces, inheritance (`<|--`), and composition (`*--`).
+  - `mindmap` for concept trees and taxonomies; `timeline` or `gantt` for roadmaps; `gitGraph` for git workflows.
+- **Group with subgraphs**: Use `subgraph "Domain / Layer Name"` ... `end` to clearly demarcate module and architectural boundaries.
+- **Clean SVG styling**: Avoid raw HTML tags (`<br>`, `<b>`, `<span>`, inline `style=`) inside nodes. Multi-line labels should use `\n` inside quoted strings (`nodeA["First Line\nSecond Line"]`). Let Pele's dynamic theme tokens (`--pele-*`) style background, text, borders, and series colors.
+
 ## Reporting style
 
 Write replies and completion reports as a TL;DR: the result first, then only what the reader needs to act. Prefer dense information over prose: use tables for measurements, comparisons, and per-case results, and short bullets for findings and open decisions. Cut narration of steps taken, restated requests, and closing recaps. Keep failures, unverified behavior, and required decisions; shorten the wording, never the facts.

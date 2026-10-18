@@ -137,12 +137,23 @@ describe("Mimir harness policy", () => {
     assert.notInclude(policy, "com.apple.Preferences");
   });
 
+  it("instructs agents to generate valid Mermaid diagrams formatted for Pele SVG rendering", () => {
+    const gateway = renderSynaraHarnessPolicy({ gatewayControlAvailable: true });
+    const identityOnly = renderSynaraHarnessPolicy({ gatewayControlAvailable: false });
+
+    for (const policy of [gateway, identityOnly]) {
+      assert.include(policy, "rendered client-side via Pele");
+      assert.include(policy, 'A["Label (detail)"]');
+      assert.include(policy, "sequenceDiagram with autonumber");
+    }
+  });
+
   it("keeps the gateway policy below its prompt budget", () => {
-    assert.isAtMost(renderSynaraHarnessPolicy({ gatewayControlAvailable: true }).length, 6_030);
+    assert.isAtMost(renderSynaraHarnessPolicy({ gatewayControlAvailable: true }).length, 6_600);
     // Inline visuals add one line where the server offers them.
     assert.isAtMost(
       renderSynaraHarnessPolicy({ gatewayControlAvailable: true, inlineVisuals: true }).length,
-      6_160,
+      6_750,
     );
   });
 

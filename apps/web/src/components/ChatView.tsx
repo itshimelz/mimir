@@ -6870,7 +6870,7 @@ export default function ChatView({
                       CHAT_COLUMN_FRAME_CLASS_NAME,
                     )}
                   >
-                    <SynaraLogo aria-label="Mimir logo" className="size-10" />
+                    <SynaraLogo variant="color-badge" aria-label="Mimir logo" className="size-13" />
                     <h2
                       data-testid="empty-landing-heading"
                       // A combobox contributes its (empty) value, not its text, to the

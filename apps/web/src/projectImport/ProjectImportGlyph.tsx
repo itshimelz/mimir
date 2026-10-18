@@ -43,8 +43,13 @@ export function ProjectImportGlyph(props: { size?: GlyphSize; className?: string
         size={size}
         dotClassNames={["bg-[#d97757]/45", "bg-[#d97757]/70", "bg-[#d97757]"]}
       />
-      <AppIconTile size={size} glow="left" glowColor={NEUTRAL_GLOW} className="rotate-6">
-        <SynaraLogo className={classes.icon} />
+      <AppIconTile
+        size={size}
+        glow="left"
+        glowColor={NEUTRAL_GLOW}
+        className="rotate-6 bg-white shadow-xs"
+      >
+        <SynaraLogo variant="color" className={classes.icon} />
       </AppIconTile>
     </span>
   );

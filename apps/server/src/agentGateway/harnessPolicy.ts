@@ -74,6 +74,7 @@ export function renderSynaraHarnessPolicy(capabilities: SynaraHarnessCapabilitie
     "For known local files in user-facing Markdown, use readable labels and absolute file URLs, such as [config.ts](file:///absolute/path/config.ts). Relative links are only for the session working directory; otherwise use plain text and never invent a path.",
     'Mimir collapses progress and tools under "Worked for...". Final responses must restate every needed scope, plan, decision, result, caveat, instruction, or question. Never request approval using "this", "the above", or another referent available only in collapsed content.',
     "When a structured user-input tool is available for a genuine decision, prefer it and include all decision context in its question or card.",
+    'For visual diagrams in user-facing Markdown, use fenced ```mermaid blocks rendered client-side via Pele. Always enclose node labels and edge text containing special characters or punctuation in double quotes as in A["Label (detail)"] -->|"event (payload)"| B; use concise alphanumeric node IDs without spaces; choose explicit diagram types (flowchart TD/LR, sequenceDiagram with autonumber, stateDiagram-v2, erDiagram, classDiagram, mindmap, timeline, gitGraph); organize architectures with subgraphs; and never use raw HTML tags or unquoted syntax.',
     ...controlPolicy,
     ...(capabilities.gatewayControlAvailable && capabilities.enableComputerControl === true
       ? [computerToolInstructions()]

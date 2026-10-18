@@ -20,7 +20,11 @@ export function SplashScreen({
     <RouteInsetSurface>
       <div className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
         <div className="flex flex-col items-center gap-5 select-none">
-          <SynaraLogo aria-label="Mimir" className="size-24" />
+          <SynaraLogo
+            variant="color-badge"
+            aria-label="Mimir"
+            className="size-24 rounded-3xl shadow-sm"
+          />
 
           {errorMessage ? (
             <div className="flex max-w-sm flex-col items-center gap-3 px-6 text-center">

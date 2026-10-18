@@ -155,7 +155,7 @@ export function WhatsNewPopoutCard({
               aria-hidden="true"
               className="flex h-full w-full items-center justify-center bg-[radial-gradient(120%_140%_at_10%_0%,color-mix(in_srgb,var(--color-primary)_38%,transparent)_0%,transparent_60%),radial-gradient(100%_120%_at_100%_100%,color-mix(in_srgb,var(--color-primary)_22%,transparent)_0%,transparent_70%)]"
             >
-              <SynaraLogo aria-hidden className="size-9 text-foreground" />
+              <SynaraLogo variant="color-badge" aria-hidden className="size-10" />
             </div>
           )}
           {/* Subtle bottom gradient so text below the band always reads. */}

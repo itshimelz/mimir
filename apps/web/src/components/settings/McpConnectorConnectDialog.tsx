@@ -197,9 +197,9 @@ export function McpConnectorConnectDialog(props: {
                 size="xl"
                 glow="right"
                 glowColor={NEUTRAL_GLOW}
-                className="bg-black text-white"
+                className="bg-white shadow-xs"
               >
-                <SynaraLogo className="size-8 text-white" />
+                <SynaraLogo variant="color" className="size-8" />
               </AppIconTile>
               <ConnectorDots
                 size="xl"

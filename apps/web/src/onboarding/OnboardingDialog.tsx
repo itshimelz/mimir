@@ -162,7 +162,9 @@ function OnboardingFlow(props: {
           hero && "items-center text-center",
         )}
       >
-        {step === "welcome" ? <SynaraLogo aria-hidden className="mb-3.5 size-11" /> : null}
+        {step === "welcome" ? (
+          <SynaraLogo aria-hidden variant="color-badge" className="mb-3.5 size-12" />
+        ) : null}
         {step === "done" ? (
           <span
             aria-hidden

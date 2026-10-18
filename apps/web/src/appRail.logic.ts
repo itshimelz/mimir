@@ -25,48 +25,58 @@ import { normalizeIdOrder, normalizeKnownIds } from "./lib/orderedIds";
 import type { SidebarNavItemId } from "./sidebarNavOrdering";
 import type { Space } from "./types";
 
-/**
- * Rail items that switch the panel content instead of navigating. A membership set: the rail's
- * real order comes from RAIL_ORDERABLE_ITEM_IDS.
- */
-export const RAIL_PANEL_ITEM_IDS = ["home", "spaces", "chats"] as const;
+/** Rail items that switch the panel content instead of navigating. */
+export const RAIL_PANEL_ITEM_IDS = ["home", "spaces", "studio", "mastery", "chats"] as const;
 export type RailPanelItemId = (typeof RAIL_PANEL_ITEM_IDS)[number];
 export const RAIL_PANEL_ITEM_LABELS: Record<RailPanelItemId, string> = {
-  spaces: "Courses",
-  chats: "Chats",
   home: "Today",
+  spaces: "Courses",
+  studio: "Studio",
+  mastery: "Mastery",
+  chats: "Chats",
 };
+
+const RAIL_PANEL_ITEM_ID_SET: ReadonlySet<string> = new Set(RAIL_PANEL_ITEM_IDS);
+
+export function isRailPanelItemId(value: string): value is RailPanelItemId {
+  return RAIL_PANEL_ITEM_ID_SET.has(value);
+}
 /**
  * Rail items that navigate to a route. "New thread" stays in the panel, never the rail;
  * Inbox is available in Stable and Beta (see INBOX_ON).
  */
-export type RailRouteItemId = Exclude<SidebarNavItemId, "newThread"> | "studio" | "settings";
+export type RailRouteItemId =
+  | Exclude<SidebarNavItemId, "newThread">
+  | "studio"
+  | "mastery"
+  | "settings";
 export type RailItemId = RailPanelItemId | RailRouteItemId;
 
 /**
- * Rail items the user orders and hides from Customize. Settings stays pinned at the bottom;
- * developer-only surfaces start hidden in the learning workspace. Today leads: it is the
- * view a launch opens on (see railShellStore), and Courses follows it.
+ * Rail items the user orders and hides from Customize. The 4 core study companion
+ * pillars (Today, Courses, Studio, Mastery) are always available and prioritized.
+ * Developer-only surfaces start hidden in the learning workspace.
  */
 export const RAIL_ORDERABLE_ITEM_IDS = [
   "home",
   "spaces",
+  "studio",
+  "mastery",
   "chats",
   "inbox",
   "kanban",
   "tasks",
   "pullRequests",
   "automations",
-  "studio",
 ] as const;
 export type RailOrderableItemId = (typeof RAIL_ORDERABLE_ITEM_IDS)[number];
 export const DEFAULT_HIDDEN_RAIL_ITEMS: readonly RailOrderableItemId[] = [
+  "chats",
   "inbox",
   "kanban",
   "tasks",
   "pullRequests",
   "automations",
-  "studio",
 ];
 
 const RAIL_ORDERABLE_ITEM_ID_SET: ReadonlySet<string> = new Set(RAIL_ORDERABLE_ITEM_IDS);
@@ -75,9 +85,9 @@ export function isRailOrderableItemId(value: string): value is RailOrderableItem
   return RAIL_ORDERABLE_ITEM_ID_SET.has(value);
 }
 
-/** Courses, Chats, and Today are the primary panels: they can move but never be hidden. */
+/** The 4 core study companion pillars can move but never be hidden. */
 export function railItemCanHide(id: RailOrderableItemId): boolean {
-  return !(RAIL_PANEL_ITEM_IDS as ReadonlyArray<string>).includes(id);
+  return id !== "home" && id !== "spaces" && id !== "studio" && id !== "mastery";
 }
 
 export function normalizeRailItemOrder(order: readonly string[]): RailOrderableItemId[] {
@@ -100,7 +110,7 @@ export interface RailAvailability {
 
 /** Whether an item exists on this host at all: the rail and its Customize list agree. */
 export function isRailItemAvailable(id: RailOrderableItemId, availability: RailAvailability) {
-  if (id === "studio") return availability.studioAvailable;
+  if (id === "home" || id === "spaces" || id === "studio" || id === "mastery") return true;
   if (id === "inbox") return availability.inboxAvailable;
   if (id === "pullRequests") {
     return (
@@ -232,13 +242,14 @@ export function railItemForPathname(pathname: string): RailRouteItemId | null {
   if (matchesRoute(pathname, "/tasks")) return "tasks";
   if (matchesRoute(pathname, "/pull-requests")) return "pullRequests";
   if (matchesRoute(pathname, "/automations")) return "automations";
-  // The rail item keeps its stored id "studio"; Hubs live at /hubs with legacy redirects.
+  if (matchesRoute(pathname, "/mastery")) return "mastery";
   if (
+    matchesRoute(pathname, "/studio") ||
     matchesRoute(pathname, "/hubs") ||
-    matchesRoute(pathname, "/groups") ||
-    matchesRoute(pathname, "/studio")
-  )
+    matchesRoute(pathname, "/groups")
+  ) {
     return "studio";
+  }
   if (matchesRoute(pathname, "/settings")) return "settings";
   return null;
 }
@@ -256,7 +267,22 @@ export function reconcileActiveRailItem(input: {
   panelView: RailPanelItemId;
 }): RailItemId {
   if (input.pathname === "/editor" || input.pathname.startsWith("/editor/")) {
-    return input.panelView === "chats" ? "chats" : "spaces";
+    return "spaces";
+  }
+  if (input.pathname === "/mastery" || input.pathname.startsWith("/mastery/")) {
+    return "mastery";
+  }
+  if (input.pathname === "/studio" || input.pathname.startsWith("/studio/")) {
+    return "studio";
+  }
+  if (input.pathname === "/" || input.pathname === "") {
+    return input.panelView === "spaces"
+      ? "spaces"
+      : input.panelView === "studio"
+        ? "studio"
+        : input.panelView === "mastery"
+          ? "mastery"
+          : "home";
   }
   return (
     railItemForPathname(input.pathname) ?? (input.onStudioSurface ? "studio" : input.panelView)

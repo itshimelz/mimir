@@ -26,12 +26,13 @@ describe("rail item order", () => {
       "automations",
       "home",
       "spaces",
+      "studio",
+      "mastery",
       "chats",
       "inbox",
       "kanban",
       "tasks",
       "pullRequests",
-      "studio",
     ]);
   });
 
@@ -40,12 +41,13 @@ describe("rail item order", () => {
       "kanban",
       "home",
       "spaces",
+      "studio",
+      "mastery",
       "chats",
       "inbox",
       "tasks",
       "pullRequests",
       "automations",
-      "studio",
     ]);
     expect(normalizeRailItemOrder(["spaces", "chats", "home", "inbox"]).slice(0, 4)).toEqual([
       "spaces",
@@ -55,10 +57,19 @@ describe("rail item order", () => {
     ]);
   });
 
-  it("never keeps Home or Chats hidden", () => {
-    expect(normalizeHiddenRailItems(["home", "chats", "kanban", "gone", "kanban"])).toEqual([
-      "kanban",
-    ]);
+  it("never keeps core study pillars hidden", () => {
+    expect(
+      normalizeHiddenRailItems([
+        "home",
+        "spaces",
+        "studio",
+        "mastery",
+        "chats",
+        "kanban",
+        "gone",
+        "kanban",
+      ]),
+    ).toEqual(["chats", "kanban"]);
   });
 
   it("drops hidden items unless active, and Studio or Inbox unless available", () => {
@@ -71,7 +82,7 @@ describe("rail item order", () => {
         studioAvailable: false,
         inboxAvailable: false,
       }),
-    ).toEqual(["home", "chats", "automations"]);
+    ).toEqual(["home", "studio", "mastery", "chats", "automations"]);
     expect(
       buildRailItemOrder({
         order,
@@ -90,7 +101,7 @@ describe("rail item order", () => {
     const academicDefaults = { studioAvailable: false, inboxAvailable: false };
     expect(
       RAIL_ORDERABLE_ITEM_IDS.filter((id) => isRailItemAvailable(id, academicDefaults)),
-    ).toEqual(["home", "spaces", "chats", "automations"]);
+    ).toEqual(["home", "spaces", "studio", "mastery", "chats", "automations"]);
     expect(isRailItemAvailable("inbox", { studioAvailable: false, inboxAvailable: true })).toBe(
       true,
     );
@@ -152,7 +163,7 @@ describe("railItemShowsPanel", () => {
     expect(railItemShowsPanel("tasks")).toBe(false);
     expect(railItemShowsPanel("pullRequests")).toBe(false);
     expect(railItemShowsPanel("inbox")).toBe(false);
-    for (const id of ["home", "spaces", "automations", "studio", "settings"] as const) {
+    for (const id of ["home", "spaces", "studio", "mastery", "automations", "settings"] as const) {
       expect(railItemShowsPanel(id)).toBe(true);
     }
   });
@@ -165,6 +176,8 @@ describe("railItemForPathname", () => {
     expect(railItemForPathname("/tasks")).toBe("tasks");
     expect(railItemForPathname("/pull-requests/42")).toBe("pullRequests");
     expect(railItemForPathname("/automations")).toBe("automations");
+    expect(railItemForPathname("/mastery")).toBe("mastery");
+    expect(railItemForPathname("/mastery/quiz")).toBe("mastery");
     expect(railItemForPathname("/studio/abc")).toBe("studio");
     expect(railItemForPathname("/groups")).toBe("studio");
     expect(railItemForPathname("/hubs")).toBe("studio");

@@ -20,6 +20,7 @@ import type { RailItemId } from "~/appRail.logic";
 import { createCentralIconComponent } from "~/lib/central-icons";
 import {
   BookIcon,
+  BrainIcon,
   ChatBubbleIcon,
   ClockIcon,
   CodeReviewIcon,
@@ -91,7 +92,8 @@ type HugeiconRailItemId =
   | "automations"
   | "tasks"
   | "spaces"
-  | "studio";
+  | "studio"
+  | "mastery";
 const RAIL_HUGEICON_GLYPHS: Record<HugeiconRailItemId, AppRailGlyphs> = {
   home: sameGlyphs(HomeIcon),
   chats: railCentralGlyphs("bubble-text"),
@@ -102,6 +104,8 @@ const RAIL_HUGEICON_GLYPHS: Record<HugeiconRailItemId, AppRailGlyphs> = {
   spaces: sameGlyphs(BookIcon),
   // Studio: sparkles icon representing agent-crafted academic outputs.
   studio: sameGlyphs(SparkleIcon),
+  // Mastery: brain icon representing active recall, flashcards, and concept mastery.
+  mastery: sameGlyphs(BrainIcon),
 };
 
 /** Central glyphs matching the Codex rail for the remaining fixed rail items. */

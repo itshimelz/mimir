@@ -129,6 +129,7 @@ import {
   buildRailItemOrder,
   isRailItemAvailable,
   buildRailSpacesSections,
+  isRailPanelItemId,
   normalizeHiddenRailItems,
   normalizeRailItemOrder,
   RAIL_PANEL_ITEM_LABELS,
@@ -472,6 +473,11 @@ import { resolveStudioOutputEntries, resolveStudioOutputScope } from "./chat/stu
 import { useEditorSurfaceStore } from "~/editorSurfaceStore";
 import type { StudioOutputEntry } from "@synara/contracts";
 import { collectParentDirectoryPaths } from "~/routes/-chatThreadRoute.logic";
+import { CourseKnowledgeTree } from "./CourseKnowledgeTree";
+import { buildCourseTree } from "~/lib/courseTree";
+import { TodayBriefingFlyout } from "./TodayBriefingFlyout";
+import { StudioFlyout } from "./StudioFlyout";
+import { MasteryFlyout } from "./MasteryFlyout";
 import {
   sidebarHoverRevealHideClassName,
   SIDEBAR_HEADER_LEADING_ACTION_CLASS_NAME,
@@ -6338,7 +6344,7 @@ export default function Sidebar() {
     );
   }
 
-  // Rail layout Spaces panel: renders course workspace with Chats, Files, and Deliverables
+  // Rail layout Spaces panel: renders 4-pillar study flyouts and Course Knowledge Tree
   function renderRailSpacesPanel() {
     if (!courseProject) {
       return (
@@ -6362,78 +6368,134 @@ export default function Sidebar() {
       );
     }
 
+    if (railActiveItem === "home") {
+      return (
+        <TodayBriefingFlyout
+          course={courseProject}
+          onStartRecallSession={() => {
+            selectRailPanelItem("mastery");
+            void navigate({ to: "/mastery" });
+          }}
+          onResumeReading={() => {
+            selectRailPanelItem("spaces");
+            void navigate({
+              to: "/editor",
+              search: { view: "editor" },
+            });
+          }}
+          onStartNewSession={() => void handleNewCourseStudyThread()}
+          onOpenMastery={() => {
+            selectRailPanelItem("mastery");
+            void navigate({ to: "/mastery" });
+          }}
+        />
+      );
+    }
+
+    if (railActiveItem === "studio") {
+      return (
+        <StudioFlyout
+          course={courseProject}
+          onOpenStudioWorkspace={() => void navigate({ to: "/studio" })}
+          onOpenSourceFile={(fileName) => handleSelectWorkspaceFile(fileName)}
+          onOpenSynthesisNote={() => handleSelectWorkspaceFile("Outbox/Notes/Week_01_Notes.md")}
+          onStartNewSession={() => void handleNewCourseStudyThread()}
+        />
+      );
+    }
+
+    if (railActiveItem === "mastery") {
+      return (
+        <MasteryFlyout
+          course={courseProject}
+          onOpenMasteryDashboard={() => void navigate({ to: "/mastery" })}
+          onStartQuizDrill={() =>
+            void handleNewCourseStudyThread({
+              initialPrompt:
+                "Quiz me on our course concepts one question at a time. Do not give away the solution upfront. Wait for my answer, diagnose my understanding, and guide me through errors.",
+            })
+          }
+          onStartFeynmanChallenge={() =>
+            void handleNewCourseStudyThread({
+              initialPrompt:
+                "I want to explain a key concept from our course in my own words using the Feynman technique. Ask me which topic I want to teach you, then evaluate my explanation against the lecture slides.",
+            })
+          }
+        />
+      );
+    }
+
+    // Default for spaces (Courses & Library):
+    const courseKnowledgeTree = buildCourseTree({
+      course: courseProject,
+      filePaths: resolvedStudioOutputs.entries.map((e) => e.relativePath),
+      threads: courseThreads,
+    });
+
     return (
       <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1">
-        {/* Course Workspace Tabs: Files, Deliverables (Chats is in App Rail) */}
-        {effectiveCourseTab !== "chats" ? (
-          <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-1 shrink-0">
-            <button
-              type="button"
-              className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
-                effectiveCourseTab === "files"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/50",
-              )}
-              onClick={() => {
-                setUserSelectedCourseTab("files");
-                useEditorSurfaceStore.getState().setSurface("study");
-              }}
-              title="Course Files"
-            >
-              <FolderIcon className="size-3.5 shrink-0" />
-              <span>Files</span>
-            </button>
-            <button
-              type="button"
-              className={cn(
-                "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
-                effectiveCourseTab === "studio"
-                  ? "bg-background text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground hover:bg-background/50",
-              )}
-              onClick={() => {
-                setUserSelectedCourseTab("studio");
-                useEditorSurfaceStore.getState().setSurface("studio");
-              }}
-              title="Deliverables"
-            >
-              <SparkleIcon className="size-3.5 shrink-0" />
-              <span>Outbox</span>
-            </button>
-          </div>
-        ) : null}
-
-        {/* Tab Content */}
-        {effectiveCourseTab === "chats" ? (
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-0.5 py-1">
-            <div className="pb-1.5">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full justify-start gap-2 text-ui font-medium shadow-xs"
-                onClick={() => void handleNewCourseStudyThread()}
-              >
-                <AddPlusIcon className="size-4 text-primary shrink-0" />
-                <span className="truncate">New Study Session</span>
-              </Button>
-            </div>
-            {courseThreads.length === 0 ? (
-              <div className="flex flex-col items-center justify-center px-4 py-8 text-center">
-                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary mb-3">
-                  <SparkleIcon className="size-5" />
-                </div>
-                <p className="text-ui font-medium text-foreground">No study sessions yet</p>
-                <p className="mt-1 text-ui-xs text-muted-foreground">
-                  Start a guided session to review lecture materials, ask questions, or practice
-                  quizzes.
-                </p>
-              </div>
-            ) : (
-              <SidebarMenu className="gap-0.5">
-                {courseThreads.map((thread) => renderThreadRow(thread, courseThreadIds, true))}
-              </SidebarMenu>
+        {/* Course Workspace Tabs: Modules Tree, Raw Files, Deliverables */}
+        <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-1 shrink-0">
+          <button
+            type="button"
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+              effectiveCourseTab !== "files" && effectiveCourseTab !== "studio"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
             )}
+            onClick={() => setUserSelectedCourseTab("chats")}
+            title="Course Modules Tree"
+          >
+            <BookOpenIcon className="size-3.5 shrink-0" />
+            <span>Modules</span>
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+              effectiveCourseTab === "files"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+            )}
+            onClick={() => setUserSelectedCourseTab("files")}
+            title="Raw Files Explorer"
+          >
+            <FolderIcon className="size-3.5 shrink-0" />
+            <span>Files</span>
+          </button>
+          <button
+            type="button"
+            className={cn(
+              "flex flex-1 items-center justify-center gap-1.5 py-1 px-1.5 rounded-md font-medium text-ui-xs transition-colors",
+              effectiveCourseTab === "studio"
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-background/50",
+            )}
+            onClick={() => setUserSelectedCourseTab("studio")}
+            title="Deliverables"
+          >
+            <SparkleIcon className="size-3.5 shrink-0" />
+            <span>Outbox</span>
+            {resolvedStudioOutputs.entries.length > 0 ? (
+              <span className="ml-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-ui-2xs font-semibold">
+                {resolvedStudioOutputs.entries.length}
+              </span>
+            ) : null}
+          </button>
+        </div>
+
+        {effectiveCourseTab === "files" ? (
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <WorkspaceFilesSidebar
+              workspaceRoot={courseProject.cwd}
+              selectedFilePath={selectedEditorFilePath}
+              expandedDirectories={workspaceExpandedDirs}
+              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
+              onSelectFile={handleSelectWorkspaceFile}
+              onToggleDirectory={handleToggleWorkspaceDir}
+              onReferenceInChat={undefined}
+            />
           </div>
         ) : effectiveCourseTab === "studio" ? (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -6447,14 +6509,17 @@ export default function Sidebar() {
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            <WorkspaceFilesSidebar
-              workspaceRoot={courseProject.cwd}
-              selectedFilePath={selectedEditorFilePath}
-              expandedDirectories={workspaceExpandedDirs}
-              containerClassName="flex min-h-0 w-full flex-1 flex-col overflow-hidden bg-transparent"
-              onSelectFile={handleSelectWorkspaceFile}
-              onToggleDirectory={handleToggleWorkspaceDir}
-              onReferenceInChat={undefined}
+            <CourseKnowledgeTree
+              tree={courseKnowledgeTree}
+              onOpenSourceItem={(item) => handleSelectWorkspaceFile(item.path)}
+              onOpenSynthesisNote={(path) => handleSelectWorkspaceFile(path)}
+              onOpenStudySession={(threadId) => activateThreadFromSidebarIntent(threadId)}
+              onStartNewStudySession={() => void handleNewCourseStudyThread()}
+              onOpenLibraryFolder={(folder) => handleSelectWorkspaceFile(`${folder}/`)}
+              onReviewCards={() => {
+                selectRailPanelItem("mastery");
+                void navigate({ to: "/mastery" });
+              }}
             />
           </div>
         )}
@@ -7252,14 +7317,12 @@ export default function Sidebar() {
     ),
   );
   const railItemLabel = (id: RailOrderableItemId): string =>
-    id === "home" || id === "spaces" || id === "chats"
+    isRailPanelItemId(id)
       ? RAIL_PANEL_ITEM_LABELS[id]
-      : id === "studio"
-        ? "Hubs"
-        : sidebarNavDescriptors[id].label;
+      : (sidebarNavDescriptors[id as keyof typeof sidebarNavDescriptors]?.label ?? id);
   const railItemFor = (id: RailOrderableItemId): AppRailItem => {
     const base = { id, glyphs: railItemGlyphs(id), label: railItemLabel(id) };
-    if (id === "home" || id === "spaces" || id === "chats") {
+    if (id === "home" || id === "spaces" || id === "studio" || id === "mastery" || id === "chats") {
       return {
         ...base,
         badge: null,
@@ -7272,44 +7335,26 @@ export default function Sidebar() {
               optionalSidebar.setOpen(false);
             }
           }
-          // Home is the threads panel, so it keeps the Activity view the user chose;
-          // only the Spaces drill-in replaces it.
           if (id === "spaces") {
             setActivityViewEnabledSmoothly(false);
             setSpacesBrowseMode("files");
-            setUserSelectedCourseTab("files");
-            useEditorSurfaceStore.getState().setSurface("study");
-            const routeThreadBelongsToCourse = Boolean(
-              routeThreadId && activeRouteProjectId === courseProject?.id,
-            );
-            const targetThreadId = routeThreadBelongsToCourse
-              ? routeThreadId
-              : activeCourseThreadId;
-            if (targetThreadId) {
-              void navigate({
-                to: "/$threadId",
-                params: { threadId: targetThreadId },
-                search: ((prev: Record<string, unknown>) => {
-                  const {
-                    home: _,
-                    editorFilePath: prevFile,
-                    ...rest
-                  } = stripDiffSearchParams(prev);
-                  return {
-                    ...rest,
-                    view: "editor",
-                    ...(routeThreadBelongsToCourse && prevFile ? { editorFilePath: prevFile } : {}),
-                  };
-                }) as never,
-              });
-            } else {
-              void navigate({
-                to: "/editor",
-                search: {
-                  view: "editor",
-                },
-              });
-            }
+            setUserSelectedCourseTab("chats");
+            void navigate({
+              search: ((prev: Record<string, unknown>) => ({
+                ...stripDiffSearchParams(prev),
+                view: "editor",
+              })) as never,
+            });
+          } else if (id === "studio") {
+            setActivityViewEnabledSmoothly(false);
+            void navigate({
+              to: "/studio",
+            });
+          } else if (id === "mastery") {
+            setActivityViewEnabledSmoothly(false);
+            void navigate({
+              to: "/mastery",
+            });
           } else if (id === "chats") {
             setActivityViewEnabledSmoothly(false);
             setUserSelectedCourseTab("chats");
@@ -7340,6 +7385,7 @@ export default function Sidebar() {
               }
             }
           } else if (id === "home") {
+            setUserSelectedCourseTab("chats");
             void navigate({
               to: "/",
               search: { home: true },
@@ -7350,14 +7396,6 @@ export default function Sidebar() {
           // Spaces go back to the thread view instead of opening over that section.
           if (!isOnThreadsSection) handleSidebarViewChange("threads");
         },
-      };
-    }
-    if (id === "studio") {
-      return {
-        ...base,
-        badge: null,
-        active: railActiveItem === "studio",
-        onSelect: () => openRailStudio?.(),
       };
     }
     const item = sidebarNavDescriptors[id];
@@ -7374,7 +7412,7 @@ export default function Sidebar() {
     };
   };
   const railAvailability = {
-    studioAvailable: openRailStudio !== null,
+    studioAvailable: true,
     inboxAvailable,
   };
   const railVisibleItemIds = buildRailItemOrder({

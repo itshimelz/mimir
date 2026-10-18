@@ -29,11 +29,13 @@ const shared = {
   outExtensions: () => ({ js: ".js" }),
 };
 
+const isWatch = process.argv.includes("--watch") || process.argv.includes("-w");
+
 export default defineConfig([
   {
     ...shared,
     entry: ["src/main.ts"],
-    clean: true,
+    clean: !isWatch,
     // Electron exposes this builtin only at runtime; keeping it external avoids
     // asking Rolldown to resolve a package that intentionally does not exist.
     external: ["original-fs"],
@@ -51,12 +53,16 @@ export default defineConfig([
     ...shared,
     entry: ["src/browserAnnotations/guestPreload.ts"],
   },
-  {
-    ...shared,
-    // The cross-platform driver host, deployable to a Windows/Linux target:
-    // `node dist-electron/cuaDriverHostStandalone.js --driver <path>`. It
-    // must bundle the shared protocol (no node_modules on the target).
-    entry: ["src/cuaDriverHostStandalone.ts"],
-    noExternal: (id) => id.startsWith("@synara/"),
-  },
+  ...(isWatch
+    ? []
+    : [
+        {
+          ...shared,
+          // The cross-platform driver host, deployable to a Windows/Linux target:
+          // `node dist-electron/cuaDriverHostStandalone.js --driver <path>`. It
+          // must bundle the shared protocol (no node_modules on the target).
+          entry: ["src/cuaDriverHostStandalone.ts"],
+          noExternal: (id: string) => id.startsWith("@synara/"),
+        },
+      ]),
 ]);

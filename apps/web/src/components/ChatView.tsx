@@ -294,7 +294,6 @@ import {
 } from "@synara/shared/unavailableFeatures";
 import TerminalWorkspaceTabs from "./TerminalWorkspaceTabs";
 import { ThreadWorktreeHandoffDialog } from "./ThreadWorktreeHandoffDialog";
-import { useOptionalSidebar } from "./ui/sidebar";
 
 import { ChatComposerFooter } from "./chat/ChatComposerFooter";
 import { ChatHeader } from "./chat/ChatHeader";

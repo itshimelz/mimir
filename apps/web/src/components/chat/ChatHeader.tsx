@@ -466,7 +466,6 @@ export function ChatHeader({
   onRenameThread,
   onCloseThreadPane,
 }: ChatHeaderProps) {
-  const sidebarOpen = useOptionalSidebar()?.open ?? false;
   const hideSidebarControls = hideSidebarControlsProp ?? false;
   const hideHandoffControls = hideHandoffControlsProp ?? false;
   const showHandoffAction = showHandoffActionProp ?? true;

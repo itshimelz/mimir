@@ -58,7 +58,6 @@ import { useProviderStatusesForLocalConfig } from "~/hooks/useProviderStatusesFo
 import { useRefreshProviderStatusesNow } from "~/hooks/useProviderStatusRefresh";
 import { resolveProviderSendAvailabilityWithRefresh } from "~/lib/providerAvailability";
 import { toastManager } from "~/components/ui/toast";
-import { subscribeDesktopMenuAction } from "~/lib/desktopMenuActions";
 import {
   Sidebar,
   SIDEBAR_OFFCANVAS_MOTION_CLASS,

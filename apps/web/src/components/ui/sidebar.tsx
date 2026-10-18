@@ -101,7 +101,7 @@ function useSidebar() {
   return context;
 }
 
-export function useOptionalSidebar() {
+function useOptionalSidebar() {
   return React.useContext(SidebarContext);
 }
 

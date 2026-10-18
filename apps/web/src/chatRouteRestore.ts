@@ -23,10 +23,10 @@ export type LastThreadRoute = {
  * that must not pull in the router graph, and the validator below is what keeps the two from
  * drifting — an unrecognised persisted value is dropped rather than trusted.
  */
-export type EditorView = "editor";
+export type EditorView = "editor" | "studio";
 
 export function parseEditorView(value: unknown): EditorView | undefined {
-  return value === "editor" ? "editor" : undefined;
+  return value === "editor" || value === "studio" ? value : undefined;
 }
 
 export type EmptyRouteRestoreRecoveryState = "idle" | "pending" | "done";

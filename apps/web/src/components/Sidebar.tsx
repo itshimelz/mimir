@@ -6400,14 +6400,60 @@ export default function Sidebar() {
     }
 
     if (railActiveItem === "studio") {
+      const targetThreadId =
+        routeThreadId && activeRouteProjectId === courseProject?.id
+          ? routeThreadId
+          : activeCourseThreadId;
+
       return (
         <StudioFlyout
           course={courseProject}
           recentFiles={realCourseFiles}
-          onOpenStudioWorkspace={() => void navigate({ to: "/studio" })}
-          onOpenSourceFile={(fileName) => handleSelectWorkspaceFile(fileName)}
-          onOpenSynthesisNote={() => handleSelectWorkspaceFile("Outbox/Notes/Synthesis_Notes.md")}
-          onStartNewSession={() => void handleNewCourseStudyThread()}
+          onOpenStudioWorkspace={() => {
+            if (targetThreadId) {
+              void navigate({
+                to: "/$threadId",
+                params: { threadId: targetThreadId },
+                search: ((prev: Record<string, unknown>) => ({
+                  ...stripDiffSearchParams(prev),
+                  view: "studio",
+                })) as never,
+              });
+            } else {
+              void navigate({ to: "/studio" });
+            }
+          }}
+          onOpenSourceFile={(fileName) => {
+            if (targetThreadId) {
+              void navigate({
+                to: "/$threadId",
+                params: { threadId: targetThreadId },
+                search: ((prev: Record<string, unknown>) => ({
+                  ...stripDiffSearchParams(prev),
+                  view: "studio",
+                  editorFilePath: fileName,
+                })) as never,
+              });
+            } else {
+              handleSelectWorkspaceFile(fileName);
+            }
+          }}
+          onOpenSynthesisNote={() => {
+            if (targetThreadId) {
+              void navigate({
+                to: "/$threadId",
+                params: { threadId: targetThreadId },
+                search: ((prev: Record<string, unknown>) => ({
+                  ...stripDiffSearchParams(prev),
+                  view: "studio",
+                  editorFilePath: "Outbox/Notes/Synthesis_Notes.md",
+                })) as never,
+              });
+            } else {
+              handleSelectWorkspaceFile("Outbox/Notes/Synthesis_Notes.md");
+            }
+          }}
+          onStartNewSession={() => void handleNewCourseStudyThread({ view: "studio" })}
         />
       );
     }

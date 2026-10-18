@@ -69,6 +69,8 @@ export interface HandleNewCourseStudyThreadOptions {
   readonly intent?: CourseStudyIntent | undefined;
   readonly topic?: string | undefined;
   readonly initialPrompt?: string | undefined;
+  readonly view?: "chat" | "editor" | "studio" | undefined;
+  readonly search?: ((previous: Record<string, unknown>) => Record<string, unknown>) | undefined;
 }
 
 // Coordinator hand-off threads never mint through this hook, so every caller
@@ -484,11 +486,23 @@ export function useHandleNewThread() {
     if (!activeCourseId) {
       return null;
     }
-    useRailShellStore.getState().selectPanelItem("chats");
-    const threadId = await handleNewThread(activeCourseId, {
-      fresh: true,
-      envMode: "local",
-    });
+    const view = options?.view ?? "studio";
+    if (view === "studio") {
+      useRailShellStore.getState().selectPanelItem("studio");
+    } else {
+      useRailShellStore.getState().selectPanelItem("chats");
+    }
+    const searchParamFn =
+      options?.search ??
+      (view !== "chat" ? (previous: Record<string, unknown>) => ({ ...previous, view }) : null);
+    const threadId = await handleNewThread(
+      activeCourseId,
+      {
+        fresh: true,
+        envMode: "local",
+      },
+      searchParamFn ? { search: searchParamFn } : undefined,
+    );
     if (!threadId) {
       return null;
     }

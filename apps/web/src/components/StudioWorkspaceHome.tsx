@@ -28,6 +28,7 @@ export interface StudioWorkspaceHomeProps {
   readonly course: Project | null;
   readonly onStartStudySession: (initialPrompt?: string) => void;
   readonly onOpenEditor: () => void;
+  readonly onOpenStudioCanvas?: (() => void) | undefined;
 }
 
 const PEDAGOGICAL_MODES = [
@@ -121,15 +122,27 @@ export function StudioWorkspaceHome(props: StudioWorkspaceHomeProps) {
             <span className="text-ui-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Study Modes
             </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onOpenEditor}
-              className="gap-1.5 text-ui-xs"
-            >
-              <FolderIcon className="size-3.5" />
-              <span>Browse Course Files</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              {props.onOpenStudioCanvas ? (
+                <Button
+                  size="sm"
+                  onClick={props.onOpenStudioCanvas}
+                  className="gap-1.5 text-ui-xs font-medium"
+                >
+                  <SparkleIcon className="size-3.5" />
+                  <span>Launch Studio Canvas</span>
+                </Button>
+              ) : null}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onOpenEditor}
+                className="gap-1.5 text-ui-xs"
+              >
+                <FolderIcon className="size-3.5" />
+                <span>Browse Course Files</span>
+              </Button>
+            </div>
           </div>
 
           {/* Pedagogical Intent Launchers */}

@@ -26,7 +26,25 @@ function StudioIndexRouteView() {
   }, []);
 
   const handleStartStudySession = async (initialPrompt?: string) => {
-    await handleNewCourseStudyThread({ ...(initialPrompt ? { initialPrompt } : {}) });
+    await handleNewCourseStudyThread({
+      view: "studio",
+      ...(initialPrompt ? { initialPrompt } : {}),
+    });
+  };
+
+  const handleOpenStudioCanvas = async () => {
+    if (!activeCourse) return;
+    const recentThreadId =
+      useCourseWorkspaceStore.getState().recentThreadIdByCourse[activeCourse.id];
+    if (recentThreadId) {
+      void navigate({
+        to: "/$threadId",
+        params: { threadId: recentThreadId },
+        search: { view: "studio" },
+      });
+      return;
+    }
+    await handleNewCourseStudyThread({ view: "studio" });
   };
 
   const handleOpenEditor = () => {
@@ -40,6 +58,7 @@ function StudioIndexRouteView() {
     <StudioWorkspaceHome
       course={activeCourse}
       onStartStudySession={handleStartStudySession}
+      onOpenStudioCanvas={handleOpenStudioCanvas}
       onOpenEditor={handleOpenEditor}
     />
   );

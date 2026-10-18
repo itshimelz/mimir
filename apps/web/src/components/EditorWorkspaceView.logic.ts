@@ -83,6 +83,52 @@ export function shouldAcceptEditorChatPaneWidth(input: {
 
 export const EDITOR_STUDIO_SOURCE_MIN_WIDTH = 280;
 export const EDITOR_STUDIO_SYNTHESIS_MIN_WIDTH = 260;
+export const EDITOR_STUDIO_SPLIT_RATIO_STORAGE_KEY = "synara.editor.studioSplitRatio";
+export const EDITOR_STUDIO_DEFAULT_SPLIT_RATIO = 0.55;
+
+export function clampStudioSplitRatio(ratio: number, containerWidth?: number): number {
+  if (!Number.isFinite(ratio)) {
+    return EDITOR_STUDIO_DEFAULT_SPLIT_RATIO;
+  }
+  if (!containerWidth || containerWidth <= 0) {
+    return Math.min(0.85, Math.max(0.15, ratio));
+  }
+  const minRatio = Math.min(0.45, Math.max(0.15, EDITOR_STUDIO_SOURCE_MIN_WIDTH / containerWidth));
+  const maxRatio = Math.max(
+    minRatio,
+    Math.min(0.85, (containerWidth - EDITOR_STUDIO_SYNTHESIS_MIN_WIDTH) / containerWidth),
+  );
+  return Math.min(maxRatio, Math.max(minRatio, ratio));
+}
+
+export function readStoredStudioSplitRatio(): number {
+  if (typeof window === "undefined") {
+    return EDITOR_STUDIO_DEFAULT_SPLIT_RATIO;
+  }
+  try {
+    const raw = window.localStorage.getItem(EDITOR_STUDIO_SPLIT_RATIO_STORAGE_KEY);
+    const parsed = raw === null ? Number.NaN : Number.parseFloat(raw);
+    return Number.isFinite(parsed)
+      ? clampStudioSplitRatio(parsed)
+      : EDITOR_STUDIO_DEFAULT_SPLIT_RATIO;
+  } catch {
+    return EDITOR_STUDIO_DEFAULT_SPLIT_RATIO;
+  }
+}
+
+export function storeStudioSplitRatio(ratio: number): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+  try {
+    window.localStorage.setItem(
+      EDITOR_STUDIO_SPLIT_RATIO_STORAGE_KEY,
+      String(clampStudioSplitRatio(ratio)),
+    );
+  } catch {
+    // Best-effort persistence
+  }
+}
 
 /** Formats a Markdown source citation pill for living notes. */
 export function formatSourceCitationPill(

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildStepVerificationPrompt,
   clampEditorChatPaneWidth,
+  clampStudioSplitRatio,
   EDITOR_CENTER_PANE_MAX_WIDTH,
   EDITOR_CENTER_PANE_MIN_WIDTH,
   EDITOR_CHAT_PANE_DEFAULT_WIDTH,
@@ -115,5 +116,26 @@ describe("formatSourceCitationPill", () => {
 
   it("formats citation without page", () => {
     expect(formatSourceCitationPill("Readings.md")).toBe("[Source: Readings.md]");
+  });
+});
+
+describe("clampStudioSplitRatio", () => {
+  it("defaults to 0.55 when given NaN", () => {
+    expect(clampStudioSplitRatio(Number.NaN)).toBe(0.55);
+  });
+
+  it("clamps ratio within container bounds", () => {
+    // 1000px container width:
+    // minRatio = 280 / 1000 = 0.28
+    // maxRatio = (1000 - 260) / 1000 = 0.74
+    expect(clampStudioSplitRatio(0.55, 1000)).toBe(0.55);
+    expect(clampStudioSplitRatio(0.1, 1000)).toBeCloseTo(0.28, 2);
+    expect(clampStudioSplitRatio(0.9, 1000)).toBeCloseTo(0.74, 2);
+  });
+
+  it("falls back to [0.15, 0.85] bounds when width is unknown", () => {
+    expect(clampStudioSplitRatio(0.05)).toBe(0.15);
+    expect(clampStudioSplitRatio(0.95)).toBe(0.85);
+    expect(clampStudioSplitRatio(0.6)).toBe(0.6);
   });
 });

@@ -41,7 +41,23 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "./ui/empty";
 import { Textarea } from "./ui/textarea";
 import { appendComposerPromptText } from "~/lib/chatReferences";
-import { buildStepVerificationPrompt, formatSourceCitationPill } from "./EditorWorkspaceView.logic";
+import {
+  buildStepVerificationPrompt,
+  clampStudioSplitRatio,
+  EDITOR_STUDIO_DEFAULT_SPLIT_RATIO,
+  EDITOR_STUDIO_SOURCE_MIN_WIDTH,
+  EDITOR_STUDIO_SYNTHESIS_MIN_WIDTH,
+  formatSourceCitationPill,
+  readStoredStudioSplitRatio,
+  storeStudioSplitRatio,
+} from "./EditorWorkspaceView.logic";
+import {
+  attachPanelPointerOverlaySession,
+  createPanelResizeOverlay,
+  removePanelResizeOverlay,
+} from "~/lib/panelResize";
+import { useMediaQuery } from "~/hooks/useMediaQuery";
+import { useStableCallback } from "~/hooks/useStableCallback";
 import {
   useDesktopTopBarTrafficLightGutterClassName,
   useDesktopTopBarWindowControlsGutterClassName,
@@ -231,6 +247,132 @@ function EditorWorkspaceSeamRail() {
   );
 }
 
+interface StudioPaneSplitterProps {
+  containerRef: RefObject<HTMLDivElement | null>;
+  currentRatio: number;
+  onResize: (nextRatio: number) => void;
+  onReset: () => void;
+}
+
+/**
+ * Resizable seam handle between Pane A (Source Reader) and Pane B (Synthesis Canvas) in Studio mode.
+ * Provides a 16px interactive hit-area, a 1px resting seam with an expandable 3px accent line,
+ * an accessible grip pill, and keyboard / double-click controls.
+ */
+function StudioPaneSplitter({
+  containerRef,
+  currentRatio,
+  onResize,
+  onReset,
+}: StudioPaneSplitterProps) {
+  const [isResizing, setIsResizing] = useState(false);
+  const onResizeStable = useStableCallback(onResize);
+
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const containerRect = container.getBoundingClientRect();
+    const containerWidth = containerRect.width;
+    if (containerWidth <= 0) return;
+
+    const overlay = createPanelResizeOverlay("col-resize");
+    const previousUserSelect = document.body.style.userSelect;
+    const previousCursor = document.body.style.cursor;
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    setIsResizing(true);
+
+    let latestRatio = currentRatio;
+    let rafId: number | null = null;
+
+    const update = () => {
+      rafId = null;
+      onResizeStable(latestRatio);
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      const deltaX = e.clientX - containerRect.left;
+      const rawRatio = deltaX / containerWidth;
+      latestRatio = clampStudioSplitRatio(rawRatio, containerWidth);
+      if (rafId === null) {
+        rafId = window.requestAnimationFrame(update);
+      }
+    };
+
+    const finish = () => {
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      detachSession();
+      removePanelResizeOverlay(overlay);
+      document.body.style.userSelect = previousUserSelect;
+      document.body.style.cursor = previousCursor;
+      setIsResizing(false);
+      onResizeStable(latestRatio);
+    };
+
+    const detachSession = attachPanelPointerOverlaySession(overlay, {
+      onMove: onPointerMove,
+      onRelease: finish,
+      onAbort: finish,
+    });
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const step = event.shiftKey ? 0.05 : 0.02;
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      onResizeStable(clampStudioSplitRatio(currentRatio - step));
+    } else if (event.key === "ArrowRight") {
+      event.preventDefault();
+      onResizeStable(clampStudioSplitRatio(currentRatio + step));
+    } else if (event.key === "Home") {
+      event.preventDefault();
+      onResizeStable(0.25);
+    } else if (event.key === "End") {
+      event.preventDefault();
+      onResizeStable(0.75);
+    }
+  };
+
+  return (
+    <div
+      role="separator"
+      tabIndex={0}
+      aria-orientation="vertical"
+      aria-label="Resize source reader and synthesis panes"
+      aria-valuenow={Math.round(currentRatio * 100)}
+      aria-valuemin={20}
+      aria-valuemax={80}
+      data-resizing={isResizing ? "true" : undefined}
+      onPointerDown={handlePointerDown}
+      onKeyDown={handleKeyDown}
+      onDoubleClick={onReset}
+      className={cn(
+        "group relative hidden md:flex shrink-0 w-px cursor-col-resize items-center justify-center select-none",
+        "bg-[var(--seam-line)] transition-[background-color] duration-150 ease-out",
+        "before:absolute before:inset-y-0 before:-left-2 before:w-4 before:bg-transparent before:z-10",
+        "after:absolute after:inset-y-0 after:left-1/2 after:-translate-x-1/2 after:w-0",
+        "after:transition-[width,background-color] after:duration-150 after:ease-out",
+        "hover:after:w-[3px] hover:after:bg-foreground/45",
+        "data-[resizing=true]:after:w-[3px] data-[resizing=true]:after:bg-foreground/45",
+        "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:after:w-[3px] focus-visible:after:bg-ring",
+      )}
+      title="Drag to resize source reader and synthesis panes (Double-click to reset, Left/Right arrows to adjust)"
+    >
+      <div className="z-10 h-7 w-1 rounded-full bg-border/80 shadow-xs transition-colors group-hover:bg-foreground/60 pointer-events-none flex items-center justify-center">
+        <div className="h-3 w-0.5 rounded-full bg-muted-foreground/40" />
+      </div>
+    </div>
+  );
+}
+
 export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   // The editor header sits flush against the window's left edge whenever the
   // global sidebar is collapsed, so it has to clear the macOS traffic lights the
@@ -270,6 +412,20 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   }, [props.initialSurface, setSurface, surface]);
 
   // Tri-Pane Study Studio state:
+  const isDesktop = useMediaQuery("md");
+  const studioContainerRef = useRef<HTMLDivElement | null>(null);
+  const [studioSplitRatio, setStudioSplitRatio] = useState(readStoredStudioSplitRatio);
+
+  const handleStudioSplitResize = useCallback((nextRatio: number) => {
+    setStudioSplitRatio(nextRatio);
+    storeStudioSplitRatio(nextRatio);
+  }, []);
+
+  const handleStudioSplitReset = useCallback(() => {
+    setStudioSplitRatio(EDITOR_STUDIO_DEFAULT_SPLIT_RATIO);
+    storeStudioSplitRatio(EDITOR_STUDIO_DEFAULT_SPLIT_RATIO);
+  }, []);
+
   const [synthesisMode, setSynthesisMode] = useState<"notes" | "scratchpad">("notes");
   const [scratchpadText, setScratchpadText] = useState("");
   const [scratchpadSubmittedStep, setScratchpadSubmittedStep] = useState<string | null>(null);
@@ -302,8 +458,12 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
   const activeNotePath = useMemo(() => {
     const list = props.sourceFiles ?? [];
     const existing = list.find((f) => /synthesis|notes/i.test(f) && f.endsWith(".md"));
-    return existing ?? "Outbox/Notes/Synthesis_Notes.md";
-  }, [props.sourceFiles]);
+    if (existing) return existing;
+    const outputMd = props.studioOutputs?.find((e) => e.relativePath.endsWith(".md"))?.relativePath;
+    if (outputMd) return outputMd;
+    const anyMd = list.find((f) => f.endsWith(".md"));
+    return anyMd ?? null;
+  }, [props.sourceFiles, props.studioOutputs]);
 
   const handleInsertCitation = useCallback(() => {
     if (!activeSourceDoc) return;
@@ -553,11 +713,23 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
             }
           >
             {surface === "studio" ? (
-              <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden flex-col md:flex-row">
-                {/* PANE A: Primary Source Reader (~55% of center area) */}
+              <div
+                ref={studioContainerRef}
+                className="flex min-h-0 min-w-0 flex-1 overflow-hidden flex-col md:flex-row"
+              >
+                {/* PANE A: Primary Source Reader */}
                 <div
                   data-pane="source-reader"
-                  className="flex min-h-0 min-w-[280px] flex-[5.5] flex-col border-b md:border-b-0 md:border-r border-border/40 overflow-hidden bg-background relative"
+                  className="flex min-h-0 min-w-0 md:min-w-[280px] w-full md:w-auto flex-col border-b md:border-b-0 overflow-hidden bg-background relative shrink-0"
+                  style={
+                    isDesktop
+                      ? {
+                          width: `${studioSplitRatio * 100}%`,
+                          minWidth: EDITOR_STUDIO_SOURCE_MIN_WIDTH,
+                          maxWidth: `calc(100% - ${EDITOR_STUDIO_SYNTHESIS_MIN_WIDTH}px)`,
+                        }
+                      : undefined
+                  }
                 >
                   {/* Pane A Header */}
                   <div className="flex shrink-0 items-center justify-between border-b border-border/30 px-3 py-1.5 bg-muted/15">
@@ -661,10 +833,18 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                   </div>
                 </div>
 
-                {/* PANE B: Living Synthesis Canvas & Problem Scratchpad (~45% of center area) */}
+                {/* Studio Splitter between Pane A & Pane B */}
+                <StudioPaneSplitter
+                  containerRef={studioContainerRef}
+                  currentRatio={studioSplitRatio}
+                  onResize={handleStudioSplitResize}
+                  onReset={handleStudioSplitReset}
+                />
+
+                {/* PANE B: Living Synthesis Canvas & Problem Scratchpad */}
                 <div
                   data-pane="synthesis-canvas"
-                  className="flex min-h-0 min-w-[280px] flex-[4.5] flex-col overflow-hidden bg-background"
+                  className="flex min-h-0 min-w-0 md:min-w-[260px] flex-1 flex-col overflow-hidden bg-background"
                 >
                   {/* Pane B Header */}
                   <div className="flex shrink-0 items-center justify-between border-b border-border/30 px-3 py-1.5 bg-muted/15">
@@ -706,7 +886,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                   <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                     {synthesisMode === "notes" ? (
                       <div className="flex min-h-0 min-w-0 flex-1">
-                        {props.workspaceRoot ? (
+                        {props.workspaceRoot && activeNotePath ? (
                           <WorkspaceFileEditorPane
                             workspaceRoot={props.workspaceRoot}
                             filePath={activeNotePath}
@@ -717,12 +897,24 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                           <Empty className="h-full flex-1 p-6">
                             <EmptyHeader>
                               <EmptyTitle className="text-ui font-semibold">
-                                No Note Workspace
+                                No Note File Available
                               </EmptyTitle>
                               <EmptyDescription className="text-ui-xs">
-                                Open a course to start authoring synthesis notes.
+                                Select a Markdown document to synthesize, or use the Problem
+                                Scratchpad for step-by-step derivations.
                               </EmptyDescription>
                             </EmptyHeader>
+                            <div className="mt-3">
+                              <Button
+                                size="xs"
+                                variant="outline"
+                                onClick={() => setSynthesisMode("scratchpad")}
+                                className="text-ui-xs gap-1.5"
+                              >
+                                <SparkleIcon className="size-3 text-primary" />
+                                <span>Switch to Problem Scratchpad</span>
+                              </Button>
+                            </div>
                           </Empty>
                         )}
                       </div>

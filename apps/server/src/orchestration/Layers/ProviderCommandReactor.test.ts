@@ -5,6 +5,7 @@
 
 import * as betaOperationalIssue from "../../betaOperationalIssue";
 import fs from "node:fs";
+import { execFileSync } from "node:child_process";
 import os from "node:os";
 import path from "node:path";
 
@@ -22,6 +23,7 @@ import type {
 } from "@synara/contracts";
 import {
   ApprovalRequestId,
+  CheckpointRef,
   type ChatAttachment,
   CommandId,
   DEFAULT_GIT_TEXT_GENERATION_MODEL,
@@ -30,6 +32,7 @@ import {
   MessageId,
   PROVIDER_SEND_TURN_MAX_INPUT_CHARS,
   ProjectId,
+  RuntimeItemId,
   ThreadId,
   TurnId,
 } from "@synara/contracts";
@@ -108,6 +111,8 @@ import {
   type ProviderHealthShape,
 } from "../../provider/Services/ProviderHealth.ts";
 import { GitCore, type GitCoreShape } from "../../git/Services/GitCore.ts";
+import { GitCoreLive } from "../../git/Layers/GitCore.ts";
+import { CheckpointStoreLive } from "../../checkpointing/Layers/CheckpointStore.ts";
 import { TextGeneration, type TextGenerationShape } from "../../git/Services/TextGeneration.ts";
 import { OrchestrationEngineLive } from "./OrchestrationEngine.ts";
 import { TurnCheckpointCoordinatorLive } from "./TurnCheckpointCoordinator.ts";
@@ -144,7 +149,10 @@ import { attachmentRelativePath } from "../../attachmentStore.ts";
 import { resolveProviderAttachmentPath } from "../../provider/providerAttachmentPaths.ts";
 import { PROVIDER_DEBUG_MODE_PROMPT_PREFIX } from "../../provider/debugMode.ts";
 import { ServerSettingsService } from "../../serverSettings.ts";
-import { checkpointRefForThreadTurn } from "../../checkpointing/Utils.ts";
+import {
+  checkpointRefForThreadTurn,
+  isManagedCheckpointRefForThread,
+} from "../../checkpointing/Utils.ts";
 import {
   CheckpointStore,
   type CheckpointStoreShape,
@@ -442,7 +450,8 @@ describe("ProviderCommandReactor", () => {
         nativeResumeAttempted && (input?.confirmNativeResume?.(effectiveResumeCursor) ?? true);
       if (
         (outcomeOptions?.registerPriorTranscriptBootstrapOnFreshStart === true ||
-          (sessionInput.provider === "devin" && nativeResumeAttempted)) &&
+          ((sessionInput.provider === "devin" || sessionInput.provider === "grok") &&
+            nativeResumeAttempted)) &&
         !nativeResumeSucceeded
       ) {
         pendingPriorTranscriptBootstraps.add(threadId);
@@ -1575,6 +1584,108 @@ describe("ProviderCommandReactor", () => {
           } as ProviderRuntimeEvent),
     );
   }
+
+  // #1900: a full thread detail read (every message plus the whole activity
+  // timeline) once ran 18+ times per turn and took seconds on long threads.
+  // Drive one scripted turn through command dispatch and runtime ingestion and
+  // count the detail reads, so the next hot-path caller that regresses fails here.
+  it("drives a scripted turn without full thread detail reads", async () => {
+    const harness = await createHarness({ ingestRuntimeEvents: true });
+    const threadId = ThreadId.makeUnsafe("thread-1");
+    const detailReads = vi.spyOn(harness.projectionSnapshotQuery, "getThreadDetailById");
+    const activityFreeDetailReads = vi.spyOn(
+      harness.projectionSnapshotQuery,
+      "getThreadDetailWithoutActivitiesById",
+    );
+    await dispatchHarnessUserTurn(harness, {
+      messageId: "scripted-turn-message",
+      text: "Refactor the session store",
+      createdAt: new Date().toISOString(),
+    });
+    await waitFor(() => harness.sendTurn.mock.calls.length === 1);
+    await harness.drain();
+
+    const turnId = asTurnId("scripted-turn");
+    harness.setRuntimeSessionTurnState({
+      threadId: "thread-1",
+      status: "running",
+      activeTurnId: turnId,
+    });
+    const eventBase = (eventId: string) =>
+      ({
+        eventId: asEventId(`scripted-turn-${eventId}`),
+        provider: "codex",
+        createdAt: new Date().toISOString(),
+        threadId,
+        turnId,
+        providerRefs: {},
+      }) as const;
+    await harness.emitRuntimeEvent({ ...eventBase("started"), type: "turn.started", payload: {} });
+    const assistantItems = 5;
+    for (let index = 0; index < assistantItems; index += 1) {
+      const itemId = RuntimeItemId.makeUnsafe(`scripted-assistant-${index}`);
+      await harness.emitRuntimeEvent({
+        ...eventBase(`assistant-delta-${index}`),
+        type: "content.delta",
+        itemId,
+        payload: { streamKind: "assistant_text", delta: `Step ${index}.` },
+      });
+      await harness.emitRuntimeEvent({
+        ...eventBase(`assistant-completed-${index}`),
+        type: "item.completed",
+        itemId,
+        payload: { itemType: "assistant_message", status: "completed" },
+      });
+    }
+    // Codex emits a turn diff after every patch, so each file change gets one.
+    // Several diff events keep a diff-path regression above the bound below.
+    for (let index = 0; index < 3; index += 1) {
+      await harness.emitRuntimeEvent({
+        ...eventBase(`file-change-${index}`),
+        type: "item.completed",
+        itemId: RuntimeItemId.makeUnsafe(`scripted-file-change-${index}`),
+        payload: {
+          itemType: "file_change",
+          status: "completed",
+          title: "Edited file",
+          detail: `src/file-${index}.ts`,
+          data: { changes: [{ path: `src/file-${index}.ts`, kind: "update" }] },
+        },
+      });
+      await harness.emitRuntimeEvent({
+        ...eventBase(`diff-${index}`),
+        type: "turn.diff.updated",
+        payload: {
+          unifiedDiff: [
+            `diff --git a/src/file-${index}.ts b/src/file-${index}.ts`,
+            `--- a/src/file-${index}.ts`,
+            `+++ b/src/file-${index}.ts`,
+            "@@ -1 +1 @@",
+            "-old",
+            "+new",
+            "",
+          ].join("\n"),
+        },
+      });
+    }
+    harness.setRuntimeSessionTurnState({ threadId: "thread-1", status: "ready" });
+    await harness.emitRuntimeEvent({
+      ...eventBase("completed"),
+      type: "turn.completed",
+      payload: { state: "completed" },
+    });
+    await waitFor(
+      async () => (await readHarnessThread(harness))?.latestTurn?.state === "completed",
+    );
+    await harness.drain();
+
+    expect(detailReads).not.toHaveBeenCalled();
+    // Turn dispatch builds its bootstrap from messages (1); ingestion reads
+    // messages for each assistant completion (K) and the terminal event (1).
+    // No slack: one more read per diff event or file change must fail here.
+    expect(activityFreeDetailReads.mock.calls.length).toBeGreaterThan(0);
+    expect(activityFreeDetailReads.mock.calls.length).toBeLessThanOrEqual(assistantItems + 2);
+  });
 
   describe("Claude cache review", () => {
     function expiredCacheObservation(): ClaudeCacheObservation {
@@ -11772,6 +11883,71 @@ describe("ProviderCommandReactor", () => {
     ).toBe(storagePath);
   });
 
+  it.each([
+    { name: "reloads its native session", nativeResume: true, bootstraps: false },
+    { name: "cannot reload its native session", nativeResume: false, bootstraps: true },
+  ])("bootstraps a Droid model switch only when it $name", async ({ nativeResume, bootstraps }) => {
+    const harness = await createHarness({
+      threadModelSelection: { provider: "droid", model: "model-a" },
+      sessionModelSwitch: "restart-session",
+      confirmNativeResume: () => nativeResume,
+    });
+    const threadId = ThreadId.makeUnsafe("thread-1");
+    const now = new Date().toISOString();
+    await Effect.runPromise(
+      harness.engine.dispatch({
+        type: "thread.messages.import",
+        commandId: CommandId.makeUnsafe("cmd-import-droid-model-switch"),
+        threadId,
+        messages: [
+          {
+            messageId: asMessageId("droid-switch-earlier-user"),
+            role: "user",
+            text: "Earlier question",
+            createdAt: now,
+            updatedAt: now,
+          },
+          {
+            messageId: asMessageId("droid-switch-earlier-assistant"),
+            role: "assistant",
+            text: "Earlier answer",
+            createdAt: now,
+            updatedAt: now,
+          },
+        ],
+        createdAt: now,
+      }),
+    );
+    for (const [index, model] of ["model-a", "model-b"].entries()) {
+      await Effect.runPromise(
+        harness.engine.dispatch({
+          type: "thread.turn.start",
+          commandId: CommandId.makeUnsafe(`cmd-droid-model-switch-${index}`),
+          threadId,
+          message: {
+            messageId: asMessageId(`droid-model-switch-user-${index}`),
+            role: "user",
+            text: `turn on ${model}`,
+            attachments: [],
+          },
+          modelSelection: { provider: "droid", model },
+          runtimeMode: "approval-required",
+          interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
+          createdAt: now,
+        }),
+      );
+      await waitFor(() => harness.sendTurn.mock.calls.length === index + 1);
+    }
+
+    expect(harness.startSessionWithOutcome.mock.calls).toHaveLength(2);
+    expect(harness.startSessionWithOutcome.mock.calls[1]?.[1]).toMatchObject({
+      modelSelection: { provider: "droid", model: "model-b" },
+    });
+    const switched = harness.sendTurn.mock.calls[1]?.[0] as { input?: string } | undefined;
+    expect(switched?.input?.includes("<thread_context>")).toBe(bootstraps);
+    expect(switched?.input).toContain("turn on model-b");
+  });
+
   it("restarts Droid edits and bootstraps only the retained transcript", async () => {
     const harness = await createHarness({
       threadModelSelection: { provider: "droid", model: "claude-opus-4-8" },
@@ -12165,51 +12341,225 @@ describe("ProviderCommandReactor", () => {
     });
   });
 
-  it("restores the previous filesystem checkpoint before resending a completed edit", async () => {
-    const harness = await createHarness();
-    const now = new Date().toISOString();
-    harness.isGitRepository.mockImplementationOnce(() => Effect.succeed(true));
+  it.each(["success", "capture-failed", "rollback-failed", "restore-failed"] as const)(
+    "preserves edit replay recovery when %s",
+    async (mode) => {
+      const deletedRefs = vi.fn<CheckpointStoreShape["deleteCheckpointRefs"]>(() => Effect.void);
+      const harness = await createHarness({
+        checkpointStore: { deleteCheckpointRefs: deletedRefs },
+      });
+      const operations: string[] = [];
+      const gitFailure = () =>
+        new GitCommandError({
+          operation: "test.edit-recovery",
+          cwd: "/tmp/provider-project",
+          command: "git",
+          detail: mode,
+        });
+      harness.captureCheckpoint.mockImplementation(() =>
+        Effect.suspend(() => {
+          operations.push("capture");
+          return mode === "capture-failed" ? Effect.fail(gitFailure()) : Effect.void;
+        }),
+      );
+      harness.rollbackConversation.mockImplementation(() =>
+        Effect.suspend(() => {
+          operations.push("rollback");
+          return mode === "rollback-failed"
+            ? Effect.fail(
+                new ProviderAdapterRequestError({
+                  provider: "codex",
+                  method: "thread/rollback",
+                  detail: mode,
+                }),
+              )
+            : Effect.void;
+        }),
+      );
+      harness.restoreCheckpoint.mockImplementation(() =>
+        Effect.suspend(() => {
+          operations.push("restore");
+          return mode === "restore-failed" ? Effect.fail(gitFailure()) : Effect.succeed(true);
+        }),
+      );
+      const now = new Date().toISOString();
+      harness.isGitRepository.mockImplementationOnce(() => Effect.succeed(true));
 
+      await seedRollbackTarget(harness, {
+        messageId: asMessageId("user-message-checkpoint-edit"),
+        turnId: asTurnId("turn-checkpoint-edit"),
+        createdAt: now,
+      });
+      await Effect.runPromise(
+        harness.engine.dispatch({
+          type: "thread.turn.diff.complete",
+          commandId: CommandId.makeUnsafe("cmd-checkpoint-edit-complete"),
+          threadId: ThreadId.makeUnsafe("thread-1"),
+          turnId: asTurnId("turn-checkpoint-edit"),
+          completedAt: now,
+          checkpointRef: checkpointRefForThreadTurn(ThreadId.makeUnsafe("thread-1"), 1),
+          status: "ready",
+          files: [],
+          assistantMessageId: asMessageId("assistant-user-message-checkpoint-edit"),
+          checkpointTurnCount: 1,
+          createdAt: now,
+        }),
+      );
+
+      await Effect.runPromise(
+        harness.engine.dispatch({
+          type: "thread.message.edit-and-resend",
+          commandId: CommandId.makeUnsafe("cmd-edit-checkpoint-resend"),
+          threadId: ThreadId.makeUnsafe("thread-1"),
+          messageId: asMessageId("user-message-checkpoint-edit"),
+          text: "edited checkpoint prompt",
+          runtimeMode: "approval-required",
+          interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
+          createdAt: now,
+        }),
+      );
+
+      if (mode === "success") {
+        await waitFor(() => harness.sendTurn.mock.calls.length === 1);
+        expect(harness.restoreCheckpoint).toHaveBeenCalledWith({
+          cwd: "/tmp/provider-project",
+          checkpointRef: checkpointRefForThreadTurn(ThreadId.makeUnsafe("thread-1"), 0),
+          fallbackToHead: true,
+        });
+        expect(operations).toEqual(["capture", "rollback", "restore"]);
+      } else {
+        await waitFor(async () => (await readHarnessThread(harness))?.session?.status === "error");
+        expect(harness.sendTurn).not.toHaveBeenCalled();
+        if (mode === "capture-failed") {
+          expect(harness.rollbackConversation).not.toHaveBeenCalled();
+          expect(harness.restoreCheckpoint).not.toHaveBeenCalled();
+        }
+        expect((await readHarnessThread(harness))?.session?.lastError).toContain(mode);
+      }
+      expect(deletedRefs).not.toHaveBeenCalled();
+      const rescueRef = harness.captureCheckpoint.mock.calls[0]?.[0].checkpointRef;
+      expect(rescueRef).toContain("/revert-rescue/");
+      expect((await readHarnessThread(harness))?.activities).not.toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ kind: "checkpoint.edit-replay.snapshot" }),
+        ]),
+      );
+    },
+  );
+
+  it("retains a discoverable file recovery snapshot across edit replay and store restart", async () => {
+    const cwd = fs.mkdtempSync(path.join(os.tmpdir(), "synara-edit-replay-recovery-"));
+    createdBaseDirs.add(cwd);
+    const git = (args: string[]) => execFileSync("git", args, { cwd, encoding: "utf8" });
+    git(["init", "--initial-branch=main"]);
+    git(["config", "user.email", "test@example.com"]);
+    git(["config", "user.name", "Test User"]);
+    git(["config", "core.autocrlf", "false"]);
+    fs.writeFileSync(path.join(cwd, "tracked.txt"), "baseline\n");
+    git(["add", "."]);
+    git(["commit", "-m", "Initial"]);
+    const storeLayer = CheckpointStoreLive.pipe(
+      Layer.provide(
+        GitCoreLive.pipe(
+          Layer.provide(ServerConfig.layerTest(cwd, { prefix: "synara-edit-replay-recovery-" })),
+        ),
+      ),
+      Layer.provide(NodeServices.layer),
+    );
+    const firstRuntime = ManagedRuntime.make(storeLayer);
+    runtimes.add(firstRuntime);
+    const store = await firstRuntime.runPromise(Effect.service(CheckpointStore));
+    const harness = await createHarness({ checkpointStore: store });
+    await Effect.runPromise(
+      harness.engine.dispatch({
+        type: "project.meta.update",
+        commandId: CommandId.makeUnsafe("edit-recovery-real-project"),
+        projectId: asProjectId("project-1"),
+        workspaceRoot: cwd,
+      }),
+    );
+    const threadId = ThreadId.makeUnsafe("thread-1");
+    const now = new Date().toISOString();
     await seedRollbackTarget(harness, {
-      messageId: asMessageId("user-message-checkpoint-edit"),
-      turnId: asTurnId("turn-checkpoint-edit"),
+      messageId: asMessageId("user-edit-recovery-real"),
+      turnId: asTurnId("turn-edit-recovery-real"),
       createdAt: now,
     });
     await Effect.runPromise(
       harness.engine.dispatch({
         type: "thread.turn.diff.complete",
-        commandId: CommandId.makeUnsafe("cmd-checkpoint-edit-complete"),
-        threadId: ThreadId.makeUnsafe("thread-1"),
-        turnId: asTurnId("turn-checkpoint-edit"),
+        commandId: CommandId.makeUnsafe("edit-recovery-real-checkpoint"),
+        threadId,
+        turnId: asTurnId("turn-edit-recovery-real"),
         completedAt: now,
-        checkpointRef: checkpointRefForThreadTurn(ThreadId.makeUnsafe("thread-1"), 1),
+        checkpointRef: checkpointRefForThreadTurn(threadId, 1),
         status: "ready",
         files: [],
-        assistantMessageId: asMessageId("assistant-user-message-checkpoint-edit"),
+        assistantMessageId: asMessageId("assistant-user-edit-recovery-real"),
         checkpointTurnCount: 1,
         createdAt: now,
       }),
     );
-
+    fs.writeFileSync(path.join(cwd, "tracked.txt"), "user changed this after the turn\n");
+    fs.writeFileSync(path.join(cwd, "untracked.txt"), "unsaved elsewhere\n");
+    let refsBeforeRollback = "";
+    harness.rollbackConversation.mockImplementation(() =>
+      Effect.sync(() => {
+        refsBeforeRollback = git([
+          "for-each-ref",
+          "--format=%(refname)",
+          "refs/synara/checkpoints",
+        ]);
+      }),
+    );
     await Effect.runPromise(
       harness.engine.dispatch({
         type: "thread.message.edit-and-resend",
-        commandId: CommandId.makeUnsafe("cmd-edit-checkpoint-resend"),
-        threadId: ThreadId.makeUnsafe("thread-1"),
-        messageId: asMessageId("user-message-checkpoint-edit"),
+        commandId: CommandId.makeUnsafe("edit-recovery-real-resend"),
+        threadId,
+        messageId: asMessageId("user-edit-recovery-real"),
         text: "edited checkpoint prompt",
         runtimeMode: "approval-required",
         interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
         createdAt: now,
       }),
     );
-
     await waitFor(() => harness.sendTurn.mock.calls.length === 1);
-    expect(harness.restoreCheckpoint).toHaveBeenCalledWith({
-      cwd: "/tmp/provider-project",
-      checkpointRef: checkpointRefForThreadTurn(ThreadId.makeUnsafe("thread-1"), 0),
-      fallbackToHead: true,
-    });
+    // Provider history can be trimmed only after durable file recovery exists.
+    expect(refsBeforeRollback).toContain("/revert-rescue/");
+    expect(fs.readFileSync(path.join(cwd, "tracked.txt"), "utf8")).toBe("baseline\n");
+    expect(fs.existsSync(path.join(cwd, "untracked.txt"))).toBe(false);
+    const rescueRefs = git(["for-each-ref", "--format=%(refname)", "refs/synara/checkpoints"])
+      .trim()
+      .split("\n")
+      .filter(
+        (ref) => ref.includes("/revert-rescue/") && isManagedCheckpointRefForThread(ref, threadId),
+      );
+    expect(rescueRefs).toHaveLength(1);
+    await firstRuntime.dispose();
+    runtimes.delete(firstRuntime);
+    const reopenedRuntime = ManagedRuntime.make(storeLayer);
+    runtimes.add(reopenedRuntime);
+    await reopenedRuntime.runPromise(
+      Effect.gen(function* () {
+        const reopenedStore = yield* CheckpointStore;
+        expect(
+          yield* reopenedStore.restoreCheckpoint({
+            cwd,
+            checkpointRef: CheckpointRef.makeUnsafe(rescueRefs[0]!),
+          }),
+        ).toBe(true);
+      }),
+    );
+    expect(fs.readFileSync(path.join(cwd, "tracked.txt"), "utf8")).toBe(
+      "user changed this after the turn\n",
+    );
+    expect(fs.readFileSync(path.join(cwd, "untracked.txt"), "utf8")).toBe("unsaved elsewhere\n");
+    expect((await readHarnessThread(harness))?.activities).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "checkpoint.edit-replay.snapshot" }),
+      ]),
+    );
   });
 
   it("clears the edit loading state when provider rollback fails before resend", async () => {
@@ -15776,9 +16126,16 @@ describe("ProviderCommandReactor", () => {
       await harness.startReactor();
       await harness.drain();
       expect(harness.sendTurn).toHaveBeenCalled();
-      if (manualTitle !== null || extraMessages > 0) {
+      if (manualTitle !== null) {
         expect(harness.generateThreadTitle).not.toHaveBeenCalled();
-        expect((await readHarnessThread(harness))?.title).toBe(manualTitle ?? "New thread");
+        expect((await readHarnessThread(harness))?.title).toBe(manualTitle);
+      } else if (extraMessages > 0) {
+        // Turn start reads the sent message by id (#1900), not from the newest
+        // 2000-message detail window, so the replayed first send still starts
+        // its turn and owns naming. The later prompt never does.
+        await waitFor(async () => (await readHarnessThread(harness))?.title === "Server recovery");
+        expect(harness.generateThreadTitle).toHaveBeenCalledTimes(1);
+        expect(harness.generateThreadTitle.mock.calls[0]?.[0].message).toBe(firstPrompt);
       } else {
         await waitFor(async () => (await readHarnessThread(harness))?.title === "Server recovery");
         expect(harness.generateThreadTitle).toHaveBeenCalledTimes(1);
@@ -18721,6 +19078,129 @@ describe("ProviderCommandReactor", () => {
       expect(harness.sendTurn.mock.calls[1]?.[0].input).toContain("first turn on grok");
     });
 
+    it.each(["successful", "timed-out"] as const)(
+      "settles a %s handoff after its durable write exceeds the provider deadline",
+      async (result) => {
+        const harness = await createHarness({
+          threadModelSelection: { provider: "grok", model: "grok-code-fast-1" },
+          commandEventTimeout: Duration.millis(300),
+        });
+        await runFirstGrokTurn(harness);
+        if (result === "timed-out") {
+          harness.startSession.mockImplementationOnce(() => Effect.never);
+        }
+        const settlementEntered = Deferred.makeUnsafe<void>();
+        const releaseSettlement = Deferred.makeUnsafe<void>();
+        const dispatch = harness.engine.dispatch;
+        const settlementCommandId =
+          result === "successful"
+            ? "server:provider-handoff-meta:cmd-handoff-to-claude"
+            : "server:provider-handoff-revert:cmd-handoff-to-claude";
+        harness.interceptEngineDispatch((command) => {
+          if (command.commandId !== settlementCommandId) return undefined;
+          // Hold the real engine write after the bounded native phase. The
+          // claim cannot be acknowledged or quarantined while this known
+          // handoff outcome is still waiting for durable settlement.
+          return Deferred.succeed(settlementEntered, undefined).pipe(
+            Effect.andThen(Deferred.await(releaseSettlement)),
+            Effect.andThen(Effect.suspend(() => dispatch(command))),
+          );
+        });
+        const handoff = await dispatchHandoff(harness);
+        const deliveryKey = {
+          consumerName: PROVIDER_COMMAND_REACTOR_CONSUMER,
+          eventSequence: handoff.sequence,
+        };
+        try {
+          await waitFor(() => Effect.runPromise(Deferred.isDone(settlementEntered)));
+          // Cross the configured 300ms provider deadline after the settlement
+          // has begun; this does not grant more time to provider startup.
+          await new Promise((resolve) => setTimeout(resolve, 350));
+          const pending = Option.getOrThrow(
+            await Effect.runPromise(harness.deliveryRepository.getDelivery(deliveryKey)),
+          );
+          expect(pending).toMatchObject({ state: "inflight", attemptCount: 1 });
+          const cursor = Option.getOrThrow(
+            await Effect.runPromise(
+              harness.deliveryRepository.getConsumerState(PROVIDER_COMMAND_REACTOR_CONSUMER),
+            ),
+          );
+          expect(cursor.lastAckedSequence).toBeLessThan(handoff.sequence);
+        } finally {
+          await Effect.runPromise(Deferred.succeed(releaseSettlement, undefined));
+        }
+        await waitFor(async () => {
+          const delivery = Option.getOrThrow(
+            await Effect.runPromise(harness.deliveryRepository.getDelivery(deliveryKey)),
+          );
+          return delivery.state === "succeeded";
+        });
+        const thread = await readHarnessThread(harness);
+        const expectedProvider = result === "successful" ? "claudeAgent" : "grok";
+        expect(thread?.modelSelection.provider).toBe(expectedProvider);
+        expect(
+          thread?.activities.filter((activity) => activity.kind.startsWith("provider.handoff")),
+        ).toMatchObject([
+          {
+            kind: result === "successful" ? "provider.handoff" : "provider.handoff.failed",
+          },
+        ]);
+        await sendSecondTurn(harness);
+        await waitFor(() => harness.sendTurn.mock.calls.length === 2);
+        expect(harness.sendTurn.mock.calls[1]?.[0].modelSelection?.provider).toBe(expectedProvider);
+        expect(harness.sendTurn.mock.calls[1]?.[0].input).toContain("first turn on grok");
+      },
+    );
+
+    it("does not replay a handoff when its durable outcome cannot be persisted", async () => {
+      const harness = await createHarness({
+        threadModelSelection: { provider: "grok", model: "grok-code-fast-1" },
+      });
+      await runFirstGrokTurn(harness);
+      let settlementAttempts = 0;
+      harness.interceptEngineDispatch((command) => {
+        if (command.commandId !== "server:provider-handoff-meta:cmd-handoff-to-claude") {
+          return undefined;
+        }
+        settlementAttempts += 1;
+        return Effect.fail(
+          new PersistenceSqlError({
+            operation: "provider-handoff-outcome",
+            detail: "Injected durable outcome write failure.",
+          }),
+        );
+      });
+      const handoff = await dispatchHandoff(harness);
+      const deliveryKey = {
+        consumerName: PROVIDER_COMMAND_REACTOR_CONSUMER,
+        eventSequence: handoff.sequence,
+      };
+      await waitFor(async () => {
+        const delivery = Option.getOrUndefined(
+          await Effect.runPromise(harness.deliveryRepository.getDelivery(deliveryKey)),
+        );
+        return (
+          delivery?.state === "uncertain" ||
+          delivery?.state === "dead" ||
+          delivery?.state === "succeeded"
+        );
+      });
+      await harness.drain();
+      expect(
+        Option.getOrThrow(
+          await Effect.runPromise(harness.deliveryRepository.getDelivery(deliveryKey)),
+        ),
+      ).toMatchObject({ state: "uncertain", attemptCount: 1 });
+      expect(settlementAttempts).toBe(1);
+      expect(harness.startSession).toHaveBeenCalledTimes(2);
+      expect(harness.clearSessionResumeCursor).toHaveBeenCalledTimes(1);
+      expect(
+        (await readHarnessThread(harness))?.activities.some((activity) =>
+          activity.kind.startsWith("provider.handoff"),
+        ),
+      ).toBe(false);
+    });
+
     it("keeps the source runtime while background tasks are still active", async () => {
       const harness = await createHarness({
         threadModelSelection: { provider: "grok", model: "grok-code-fast-1" },
@@ -20730,7 +21210,7 @@ describe("ProviderCommandReactor", () => {
     expect(harness.completePriorTranscriptBootstrap).not.toHaveBeenCalled();
   });
 
-  it.each(["opencode", "devin"] as const)(
+  it.each(["opencode", "devin", "grok"] as const)(
     "injects transcript context when %s rejects the persisted resume cursor",
     async (provider) => {
       const harness = await createHarness({

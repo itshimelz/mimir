@@ -2061,7 +2061,7 @@ describe("ClaudeAdapterLive", () => {
   });
 
   it.effect(
-    "retains image metadata in Claude snapshots and runtime events without changing SDK messages",
+    "omits images from runtime events, retains no snapshot bodies, and leaves SDK messages unchanged",
     () => {
       const harness = makeHarness();
       return Effect.gen(function* () {
@@ -2134,12 +2134,7 @@ describe("ClaudeAdapterLive", () => {
         const events = Array.from(yield* Fiber.join(eventsFiber));
         const snapshot = yield* adapter.readThread(session.threadId);
         assert.lengthOf(snapshot.turns, 1);
-        assert.lengthOf(snapshot.turns[0]!.items, 2);
-        for (const item of snapshot.turns[0]!.items) {
-          const serialized = JSON.stringify(item);
-          assert.include(serialized, '"synaraImageOmitted":true');
-          assert.isBelow(serialized.length, 1000);
-        }
+        assert.deepEqual(snapshot.turns[0]!.items, []);
         const eventJson = JSON.stringify(events);
         assert.include(eventJson, '"synaraImageOmitted":true');
         assert.notInclude(eventJson, data);
@@ -6431,6 +6426,151 @@ await agent("Draft the spec", { label: "delta-agent", phase: "Two" });
     },
   );
 
+  it.effect(
+    "uses native CLI effort metadata for discovery, default spawn and live dispatch",
+    () => {
+      const queries: FakeClaudeQuery[] = [];
+      const inputs: ClaudeQueryOptions[] = [];
+      const layer = makeClaudeAdapterLive({
+        createQuery: (input) => {
+          const query = new FakeClaudeQuery();
+          setSupportedModels(query, [
+            {
+              value: "runtime-fixture-model",
+              displayName: "Runtime fixture",
+              description: "Fixture",
+              supportsEffort: true,
+              supportedEffortLevels: ["low", "xhigh", "max"],
+              supportsAdaptiveThinking: true,
+              supportsFastMode: false,
+            },
+          ]);
+          queries.push(query);
+          inputs.push(input.options);
+          return query;
+        },
+      }).pipe(
+        Layer.provideMerge(ServerConfig.layerTest("/tmp/claude-adapter-test", "/tmp")),
+        Layer.provideMerge(NodeServices.layer),
+      );
+      return Effect.gen(function* () {
+        const adapter = yield* ClaudeAdapter;
+        const catalog = yield* adapter.listModels!({
+          provider: "claudeAgent",
+          cwd: "/tmp/project",
+        });
+        const model = catalog.models[0]!;
+        assert.deepEqual(
+          model.supportedReasoningEfforts?.map((level) => level.value),
+          ["low", "xhigh", "max"],
+        );
+        assert.equal(model.defaultReasoningEffort, undefined);
+        assert.equal(model.supportedReasoningEfforts?.[0]?.label, "Low");
+        assert.equal(model.supportsThinkingToggle, false);
+        assert.equal(model.supportsFastMode, false);
+        yield* adapter.startSession({
+          threadId: THREAD_ID,
+          provider: "claudeAgent",
+          runtimeMode: "approval-required",
+          cwd: "/tmp/project",
+          modelSelection: { provider: "claudeAgent", model: "runtime-fixture-model" },
+        });
+        assert.equal((inputs[1]!.settings as Record<string, unknown>).effortLevel, undefined);
+        assert.equal(inputs[1]!.effort, undefined);
+        yield* adapter.sendTurn({
+          threadId: THREAD_ID,
+          input: "Fixture request",
+          attachments: [],
+          modelSelection: {
+            provider: "claudeAgent",
+            model: "runtime-fixture-model",
+            options: { effort: "xhigh" },
+          },
+        });
+        assert.deepInclude(queries[1]!.applyFlagSettingsCalls, { effortLevel: "xhigh" });
+      }).pipe(
+        Effect.provideService(Random.Random, makeDeterministicRandomService()),
+        Effect.provide(layer),
+      );
+    },
+  );
+
+  it.effect("rejects an effort the session CLI explicitly excludes before dispatch", () => {
+    const harness = makeHarness();
+    setSupportedModels(harness.query, [
+      {
+        value: "runtime-fixture-model",
+        displayName: "Runtime fixture",
+        description: "Fixture",
+        supportsEffort: true,
+        supportedEffortLevels: ["low"],
+        supportsAdaptiveThinking: true,
+      },
+    ]);
+    return Effect.gen(function* () {
+      const adapter = yield* ClaudeAdapter;
+      yield* adapter.startSession({
+        threadId: THREAD_ID,
+        provider: "claudeAgent",
+        runtimeMode: "approval-required",
+        modelSelection: { provider: "claudeAgent", model: "runtime-fixture-model" },
+      });
+      const result = yield* adapter
+        .sendTurn({
+          threadId: THREAD_ID,
+          input: "Fixture request",
+          attachments: [],
+          modelSelection: {
+            provider: "claudeAgent",
+            model: "runtime-fixture-model",
+            options: { effort: "xhigh" },
+          },
+        })
+        .pipe(Effect.result);
+      assert.equal(result._tag, "Failure");
+      if (result._tag === "Failure")
+        assert.include(providerValidationIssue(result.failure), 'does not support effort "xhigh"');
+      assert.notDeepInclude(harness.query.applyFlagSettingsCalls, { effortLevel: "xhigh" });
+    }).pipe(
+      Effect.provideService(Random.Random, makeDeterministicRandomService()),
+      Effect.provide(harness.layer),
+    );
+  });
+
+  it.effect(
+    "keeps native max spawn-fixed on a runtime-only model without prior UI discovery",
+    () => {
+      const harness = makeHarness();
+      setSupportedModels(harness.query, [
+        {
+          value: "runtime-fixture-model",
+          displayName: "Runtime fixture",
+          description: "Fixture",
+          supportsEffort: true,
+          supportedEffortLevels: ["low", "max"],
+          supportsAdaptiveThinking: true,
+        },
+      ]);
+      return Effect.gen(function* () {
+        const adapter = yield* ClaudeAdapter;
+        yield* adapter.startSession({
+          threadId: THREAD_ID,
+          provider: "claudeAgent",
+          runtimeMode: "approval-required",
+          modelSelection: {
+            provider: "claudeAgent",
+            model: "runtime-fixture-model",
+            options: { effort: "max" },
+          },
+        });
+        assert.equal(harness.getLastCreateQueryInput()!.options.effort, "max");
+      }).pipe(
+        Effect.provideService(Random.Random, makeDeterministicRandomService()),
+        Effect.provide(harness.layer),
+      );
+    },
+  );
+
   it.effect("discovers Claude model capabilities before a session starts", () => {
     const query = new FakeClaudeQuery();
     let createQueryCalls = 0;
@@ -8916,73 +9056,70 @@ await agent("Draft the spec", { label: "delta-agent", phase: "Two" });
     );
   });
 
-  it.effect(
-    "preserves earlier SDK history and previously returned snapshots after another turn",
-    () => {
-      const harness = makeHarness();
-      return Effect.gen(function* () {
-        const adapter = yield* ClaudeAdapter;
+  it.effect("keeps turn ids but retains no SDK message bodies across many turns", () => {
+    const harness = makeHarness();
+    return Effect.gen(function* () {
+      const adapter = yield* ClaudeAdapter;
 
-        const session = yield* adapter.startSession({
-          threadId: THREAD_ID,
-          provider: "claudeAgent",
-          runtimeMode: "full-access",
+      const session = yield* adapter.startSession({
+        threadId: THREAD_ID,
+        provider: "claudeAgent",
+        runtimeMode: "full-access",
+      });
+
+      const runTurn = (input: string, suffix: string) =>
+        Effect.gen(function* () {
+          const turn = yield* adapter.sendTurn({
+            threadId: session.threadId,
+            input,
+            attachments: [],
+          });
+          const completedFiber = yield* Stream.filter(
+            adapter.streamEvents,
+            (event) => event.type === "turn.completed",
+          ).pipe(Stream.runHead, Effect.forkChild);
+          harness.query.emit({
+            type: "assistant",
+            session_id: "sdk-session-retained-items",
+            uuid: `assistant-${suffix}`,
+            parent_tool_use_id: null,
+            message: {
+              id: `assistant-message-${suffix}`,
+              content: [{ type: "text", text: "x".repeat(64 * 1024) }],
+            },
+          } as unknown as SDKMessage);
+          harness.query.emit({
+            type: "result",
+            subtype: "success",
+            is_error: false,
+            errors: [],
+            session_id: "sdk-session-retained-items",
+            uuid: `result-${suffix}`,
+          } as unknown as SDKMessage);
+          const completed = yield* Fiber.join(completedFiber);
+          assert.equal(completed._tag, "Some");
+          return turn;
         });
 
-        const runTurn = (input: string, suffix: string) =>
-          Effect.gen(function* () {
-            const turn = yield* adapter.sendTurn({
-              threadId: session.threadId,
-              input,
-              attachments: [],
-            });
-            const completedFiber = yield* Stream.filter(
-              adapter.streamEvents,
-              (event) => event.type === "turn.completed",
-            ).pipe(Stream.runHead, Effect.forkChild);
-            harness.query.emit({
-              type: "assistant",
-              session_id: "sdk-session-retained-items",
-              uuid: `assistant-${suffix}`,
-              parent_tool_use_id: null,
-              message: {
-                id: `assistant-message-${suffix}`,
-                content: [{ type: "text", text: "x".repeat(64 * 1024) }],
-              },
-            } as unknown as SDKMessage);
-            harness.query.emit({
-              type: "result",
-              subtype: "success",
-              is_error: false,
-              errors: [],
-              session_id: "sdk-session-retained-items",
-              uuid: `result-${suffix}`,
-            } as unknown as SDKMessage);
-            const completed = yield* Fiber.join(completedFiber);
-            assert.equal(completed._tag, "Some");
-            return turn;
-          });
+      const turnIds: string[] = [];
+      for (let index = 0; index < 12; index += 1) {
+        const turn = yield* runTurn(`turn ${index}`, String(index));
+        turnIds.push(String(turn.turnId));
+      }
 
-        const firstTurn = yield* runTurn("first", "first");
-        const afterFirst = yield* adapter.readThread(session.threadId);
-        assert.equal(afterFirst.turns.length, 1);
-        assert.equal(afterFirst.turns[0]?.items.length, 1);
-
-        const secondTurn = yield* runTurn("second", "second");
-        const afterSecond = yield* adapter.readThread(session.threadId);
-        assert.equal(afterSecond.turns.length, 2);
-        assert.equal(afterSecond.turns[0]?.id, firstTurn.turnId);
-        assert.equal(afterSecond.turns[1]?.id, secondTurn.turnId);
-        assert.deepEqual(afterSecond.turns[0]?.items, afterFirst.turns[0]?.items);
-        assert.equal(afterFirst.turns.length, 1);
-        assert.equal(afterFirst.turns[0]?.items.length, 1);
-        assert.equal(afterSecond.turns[1]?.items.length, 1);
-      }).pipe(
-        Effect.provideService(Random.Random, makeDeterministicRandomService()),
-        Effect.provide(harness.layer),
+      // Each turn carried a 64 KiB assistant message; none of it may stay resident.
+      const snapshot = yield* adapter.readThread(session.threadId);
+      assert.deepEqual(
+        snapshot.turns.map((turn) => String(turn.id)),
+        turnIds,
       );
-    },
-  );
+      assert.isTrue(snapshot.turns.every((turn) => turn.items.length === 0));
+      assert.isBelow(JSON.stringify(snapshot).length, 4096);
+    }).pipe(
+      Effect.provideService(Random.Random, makeDeterministicRandomService()),
+      Effect.provide(harness.layer),
+    );
+  });
 
   it.effect("rejects unsupported live model switches before changing an Auto session", () => {
     const query = new FakeClaudeQuery();

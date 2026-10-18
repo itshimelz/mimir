@@ -82,6 +82,7 @@ import {
 } from "../lib/linkContextMenu";
 import { useTheme } from "../hooks/useTheme";
 import { useSmoothStreamedText } from "../hooks/useSmoothStreamedText";
+import { useStableValue } from "../hooks/useStableValue";
 import { useThrottledStreamingValue } from "../hooks/useThrottledStreamingValue";
 import { openWorkspaceFileReference, useWorkspaceFileOpener } from "../lib/workspaceFileOpener";
 import { useQuery } from "@tanstack/react-query";
@@ -118,7 +119,15 @@ import {
   parseComposerChipSegment,
 } from "../lib/remarkComposerChips";
 import { IconButton } from "./ui/icon-button";
-import { applyActiveChatFindMatch, type ThreadFindRange } from "./chat/threadFind.logic";
+import {
+  applyActiveChatFindMatch,
+  normalizeFindQuery,
+  type ThreadFindRange,
+} from "./chat/threadFind.logic";
+import {
+  useStreamingMarkdownChildren,
+  type StreamingMarkdownBlock,
+} from "./chat/streamingMarkdownBlocks";
 import {
   ChatFindRenderProvider,
   FindAwareCodeFallback,
@@ -245,22 +254,73 @@ type MarkdownRehypePlugins = NonNullable<
 >;
 interface ParsedMarkdownProps {
   text: string;
+  /**
+   * Parses settled top-level blocks once and re-parses only the growing tail
+   * (see streamingMarkdownBlocks). The flattened output matches a single parse
+   * of `text` element for element, keys included, so turning this off when a
+   * stream ends updates the same DOM nodes in place.
+   */
+  splitBlocks: boolean;
   remarkPlugins: MarkdownRemarkPlugins;
   rehypePlugins: MarkdownRehypePlugins;
   components: Components;
 }
 
-const ParsedMarkdown = memo(function ParsedMarkdown(props: ParsedMarkdownProps) {
-  return (
-    <ReactMarkdown
-      remarkPlugins={props.remarkPlugins}
-      rehypePlugins={props.rehypePlugins}
-      components={props.components}
-      urlTransform={markdownUrlTransform}
-    >
-      {props.text}
-    </ReactMarkdown>
+// react-markdown's `Markdown` is synchronous and hook-free, so calling it as a
+// function yields exactly the element tree it renders as a component.
+const renderMarkdownToElements = ReactMarkdown;
+
+function markdownRootChildren(root: ReactNode): readonly ReactNode[] {
+  if (
+    isValidElement<{ children?: ReactNode }>(root) &&
+    root.type === React.Fragment &&
+    root.key === null
+  ) {
+    const children = root.props.children;
+    if (Array.isArray(children)) return children;
+    return children === undefined || children === null ? [] : [children];
+  }
+  return root === undefined || root === null ? [] : [root];
+}
+
+interface MarkdownParseOptions {
+  readonly remarkPlugins: MarkdownRemarkPlugins;
+  readonly rehypePlugins: MarkdownRehypePlugins;
+  readonly components: Components;
+}
+
+function parseMarkdownBlock(
+  block: StreamingMarkdownBlock,
+  options: MarkdownParseOptions,
+): readonly ReactNode[] {
+  return markdownRootChildren(
+    renderMarkdownToElements({
+      children: block.text,
+      remarkPlugins:
+        block.offset === 0
+          ? options.remarkPlugins
+          : withSourcePositionOffset(options.remarkPlugins, block),
+      rehypePlugins: options.rehypePlugins,
+      components: options.components,
+      urlTransform: markdownUrlTransform,
+    }),
   );
+}
+
+const ParsedMarkdown = memo(function ParsedMarkdown({
+  text,
+  splitBlocks,
+  remarkPlugins,
+  rehypePlugins,
+  components,
+}: ParsedMarkdownProps) {
+  const children = useStreamingMarkdownChildren(
+    text,
+    splitBlocks,
+    { remarkPlugins, rehypePlugins, components },
+    parseMarkdownBlock,
+  );
+  return <>{children}</>;
 });
 
 const MARKDOWN_REMARK_PLUGINS: MarkdownRemarkPlugins = [
@@ -456,6 +516,53 @@ function wrapFindableTextNode(node: MarkdownTextNode): MarkdownNode {
     },
     children: [node],
   };
+}
+
+type SourcePoint = { line: number; column: number; offset?: number | undefined };
+type SourcePositionedNode = {
+  position?: { start: SourcePoint; end: SourcePoint } | undefined;
+  children?: SourcePositionedNode[];
+};
+
+/**
+ * Moves the mdast positions of a block parsed on its own to where the block
+ * sits in the whole message, so find offsets, code source offsets and task
+ * line numbers match a single parse. Runs after the plugins that slice the
+ * block's own source by offset (alerts, wiki links) and before
+ * `remarkFindableText`. Plugins may share point objects between nodes, so
+ * points are replaced, never mutated.
+ */
+function remarkSourcePositionOffset(options: { offset: number; lineOffset: number }) {
+  const shiftPoint = (point: SourcePoint): SourcePoint => ({
+    ...point,
+    line: point.line + options.lineOffset,
+    ...(point.offset === undefined ? {} : { offset: point.offset + options.offset }),
+  });
+  const shiftNode = (node: SourcePositionedNode): void => {
+    if (node.position) {
+      node.position = {
+        ...node.position,
+        start: shiftPoint(node.position.start),
+        end: shiftPoint(node.position.end),
+      };
+    }
+    for (const child of node.children ?? []) shiftNode(child);
+  };
+  return (tree: SourcePositionedNode) => shiftNode(tree);
+}
+
+function withSourcePositionOffset(
+  plugins: MarkdownRemarkPlugins,
+  block: StreamingMarkdownBlock,
+): MarkdownRemarkPlugins {
+  const offsetPlugin: MarkdownRemarkPlugins[number] = [
+    remarkSourcePositionOffset,
+    { offset: block.offset, lineOffset: block.line - 1 },
+  ];
+  const findableIndex = plugins.indexOf(remarkFindableText);
+  return findableIndex < 0
+    ? [...plugins, offsetPlugin]
+    : [...plugins.slice(0, findableIndex), offsetPlugin, ...plugins.slice(findableIndex)];
 }
 
 const INLINE_MATH_HINT_REGEX = /[\\^_=+\-*/<>()[\]{}]/;
@@ -1199,10 +1306,13 @@ interface MarkdownRenderContextValue {
   onFollowUpClick: ChatMarkdownProps["onFollowUpClick"];
   resolvedTheme: ReturnType<typeof useTheme>["resolvedTheme"];
   terminalContexts: ChatMarkdownProps["terminalContexts"];
-  sourceText: string;
 }
 
 const MarkdownRenderContext = createContext<MarkdownRenderContextValue | null>(null);
+// The raw message text changes with every streamed token; only code blocks and
+// inline code read it, so it stays out of MarkdownRenderContext and the links,
+// images and chips of settled blocks do not re-render per token.
+const MarkdownSourceTextContext = createContext("");
 
 // Stable component types preserve code highlighting timers, copy state and image state.
 const GITHUB_ALERTS: Record<GithubAlertKind, { title: string; icon: LucideIcon }> = {
@@ -1353,8 +1463,9 @@ const MARKDOWN_COMPONENTS: Components = {
     );
   },
   pre: function MarkdownPre({ node, children, ...props }) {
-    const { sourceText, diffThemeName, isStreaming, isUserVariant, usesAutomaticBlockDirection } =
+    const { diffThemeName, isStreaming, isUserVariant, usesAutomaticBlockDirection } =
       useContext(MarkdownRenderContext)!;
+    const sourceText = useContext(MarkdownSourceTextContext);
     const renderInlineVisual = useContext(InlineVisualEmbedContext);
     const codeBlock = extractCodeBlock(children);
     if (!codeBlock) {
@@ -1410,8 +1521,9 @@ const MARKDOWN_COMPONENTS: Components = {
     );
   },
   code: function MarkdownInlineCode({ node, className, children, ...props }) {
-    const { sourceText, knownAbsoluteFilePaths, cwd, resolvedTheme, usesAutomaticBlockDirection } =
+    const { knownAbsoluteFilePaths, cwd, resolvedTheme, usesAutomaticBlockDirection } =
       useContext(MarkdownRenderContext)!;
+    const sourceText = useContext(MarkdownSourceTextContext);
     // Fenced blocks carry a `language-*` class and are rendered by `pre`;
     // only inline code (no class) that names a file becomes an openable
     // mention chip. Absolute local paths chip immediately. Relative names
@@ -1696,6 +1808,10 @@ const MARKDOWN_COMPONENTS: Components = {
   } as unknown as Components),
 };
 
+function stringArraysEqual(previous: readonly string[], next: readonly string[]): boolean {
+  return previous.length === next.length && previous.every((value, index) => value === next[index]);
+}
+
 function ChatMarkdown({
   text,
   cwd,
@@ -1730,7 +1846,12 @@ function ChatMarkdown({
   const { resolvedTheme } = useTheme();
   const diffThemeName = resolveDiffThemeName(resolvedTheme);
   const isUserVariant = variant === "user";
-  const extractedAbsoluteFilePaths = useMemo(() => extractAbsoluteFilesystemPaths(text), [text]);
+  // A fresh array per streamed token would rebuild the render context and
+  // re-render every link and code node; keep it while its paths are unchanged.
+  const extractedAbsoluteFilePaths = useStableValue(
+    useMemo(() => extractAbsoluteFilesystemPaths(text), [text]),
+    stringArraysEqual,
+  );
   const knownAbsoluteFilePaths = useMemo(() => {
     if (
       (knownAbsoluteFilePathsProp === undefined || knownAbsoluteFilePathsProp.length === 0) &&
@@ -1748,23 +1869,30 @@ function ChatMarkdown({
   // The dollar rewrite exists to disambiguate math from currency; the user
   // variant has no math, so its text must stay byte-for-byte what was typed.
   // Table repair runs first so find offsets use the same normalized text.
-  const normalizedText = useMemo(
-    () =>
-      isUserVariant
-        ? smoothedText
-        : protectLiteralMarkdownDollars(repairMarkdownTableDelimiters(smoothedText)),
-    [isUserVariant, smoothedText],
+  const sourceText = useMemo(
+    () => (isUserVariant ? text : repairMarkdownTableDelimiters(text)),
+    [isUserVariant, text],
   );
+  const normalizedText = useMemo(() => {
+    if (isUserVariant) return smoothedText;
+    // Once the reveal has caught up (and always outside streaming) the smoothed
+    // text is the raw text, whose repair is already done above.
+    const repairedText =
+      smoothedText === text ? sourceText : repairMarkdownTableDelimiters(smoothedText);
+    return protectLiteralMarkdownDollars(repairedText);
+  }, [isUserVariant, smoothedText, text, sourceText]);
   // While streaming, let React deprioritize and coalesce the markdown re-parse so a
   // fast token stream (one flush per ~100ms) doesn't re-render the full ReactMarkdown
   // tree on every flush. The deferred value always converges to the latest text, and
   // completed messages render the exact current text immediately (no visual change).
   const deferredNormalizedText = useDeferredValue(normalizedText);
   const renderedText = isStreaming ? deferredNormalizedText : normalizedText;
-  const sourceText = useMemo(
-    () => (isUserVariant ? text : repairMarkdownTableDelimiters(text)),
-    [isUserVariant, text],
-  );
+  // Only streaming assistant markdown is split; authored HTML previews go
+  // through rehype-raw, which re-parses positions, and are never streamed.
+  const splitBlocks = isStreaming && !isUserVariant && !parseHtml;
+  // Find ranges are empty without a query; keep the provider's value stable
+  // then instead of recomputing it (and every text node) per streamed token.
+  const findSourceText = normalizeFindQuery(findQuery).length > 0 ? sourceText : "";
   const composerChipsRemarkPlugin = useMemo(
     () =>
       isUserVariant
@@ -1825,7 +1953,6 @@ function ChatMarkdown({
       onFollowUpClick,
       resolvedTheme,
       terminalContexts,
-      sourceText,
     }),
     [
       cwd,
@@ -1841,7 +1968,6 @@ function ChatMarkdown({
       onFollowUpClick,
       resolvedTheme,
       terminalContexts,
-      sourceText,
     ],
   );
 
@@ -1854,16 +1980,19 @@ function ChatMarkdown({
     >
       <ChatFindRenderProvider
         query={findQuery}
-        sourceText={sourceText}
+        sourceText={findSourceText}
         activeRange={findActiveRange}
       >
         <MarkdownRenderContext.Provider value={renderContext}>
-          <ParsedMarkdown
-            text={renderedText}
-            remarkPlugins={remarkPlugins}
-            rehypePlugins={rehypePlugins}
-            components={MARKDOWN_COMPONENTS}
-          />
+          <MarkdownSourceTextContext.Provider value={sourceText}>
+            <ParsedMarkdown
+              text={renderedText}
+              splitBlocks={splitBlocks}
+              remarkPlugins={remarkPlugins}
+              rehypePlugins={rehypePlugins}
+              components={MARKDOWN_COMPONENTS}
+            />
+          </MarkdownSourceTextContext.Provider>
         </MarkdownRenderContext.Provider>
       </ChatFindRenderProvider>
     </div>

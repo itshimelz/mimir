@@ -132,7 +132,7 @@ describe("course workspace preparation", () => {
   });
 
   it("registers coursePrepareWorkspace with standard request classification", async () => {
-    const { classifyWsRequest } = await import("./wsRequestAdmission");
+    const { classifyWsRequest } = await import("@synara/shared/wsRequestClass");
     const { WS_METHODS } = await import("@synara/contracts");
     expect(WS_METHODS.coursePrepareWorkspace).toBe("course.prepareWorkspace");
     expect(classifyWsRequest(WS_METHODS.coursePrepareWorkspace)).toBe("standard");

@@ -5,7 +5,13 @@
 //          workspace and one chat rail; only the left column and center swap.
 // Layer: Chat route presentation
 
-import type { ProjectId, SpaceIconName, SpaceId, StudioOutputEntry } from "@synara/contracts";
+import type {
+  ProjectId,
+  SpaceIconName,
+  SpaceId,
+  StudioOutputEntry,
+  ThreadId,
+} from "@synara/contracts";
 import type { FileDiffMetadata } from "@pierre/diffs/react";
 import {
   type CSSProperties,
@@ -19,7 +25,23 @@ import {
   useState,
 } from "react";
 
-import { BookOpenIcon, ChatBubbleIcon, SparkleIcon } from "~/lib/icons";
+import {
+  BookOpenIcon,
+  BrainIcon,
+  ChatBubbleIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  PageTextIcon,
+  PlayIcon,
+  SparkleIcon,
+  XIcon,
+} from "~/lib/icons";
+import { Badge } from "./ui/badge";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "./ui/empty";
+import { Textarea } from "./ui/textarea";
+import { appendComposerPromptText } from "~/lib/chatReferences";
+import { buildStepVerificationPrompt, formatSourceCitationPill } from "./EditorWorkspaceView.logic";
 import {
   useDesktopTopBarTrafficLightGutterClassName,
   useDesktopTopBarWindowControlsGutterClassName,
@@ -70,6 +92,9 @@ const EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY = "synara.editor.chatPaneVisible";
 interface EditorWorkspaceViewProps {
   workspaceRoot: string | null;
   projectName: string | null;
+  threadId?: ThreadId | undefined;
+  initialSurface?: EditorSurface | undefined;
+  sourceFiles?: readonly string[] | undefined;
   currentProjectId?: ProjectId | null;
   projectOptions?: ReadonlyArray<ProjectMenuPickerOption>;
   /** The Space (course) this workspace belongs to; shown above the project row. */
@@ -238,6 +263,73 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
     setMarkdownPreviewModes((current) => new Map(current).set(markdownPreviewKey, rendered));
   };
 
+  useEffect(() => {
+    if (props.initialSurface && props.initialSurface !== surface) {
+      setSurface(props.initialSurface);
+    }
+  }, [props.initialSurface, setSurface, surface]);
+
+  // Tri-Pane Study Studio state:
+  const [synthesisMode, setSynthesisMode] = useState<"notes" | "scratchpad">("notes");
+  const [scratchpadText, setScratchpadText] = useState("");
+  const [scratchpadSubmittedStep, setScratchpadSubmittedStep] = useState<string | null>(null);
+  const [marginMasteryVisible, setMarginMasteryVisible] = useState(true);
+
+  // Available course materials (from sourceFiles or studioOutputs)
+  const allSourceDocs = useMemo(() => {
+    const fromFiles = props.sourceFiles ?? [];
+    const fromOutputs = props.studioOutputs?.map((e) => e.relativePath) ?? [];
+    const combined = Array.from(new Set([...fromFiles, ...fromOutputs]));
+    return combined.filter((f) => /\.(pdf|pptx|docx|md|txt)$/i.test(f));
+  }, [props.sourceFiles, props.studioOutputs]);
+
+  const [internalSelectedDoc, setInternalSelectedDoc] = useState<string | null>(null);
+  const activeSourceDoc =
+    props.selectedFilePath ??
+    selectedStudioOutput?.relativePath ??
+    internalSelectedDoc ??
+    allSourceDocs[0] ??
+    null;
+
+  const handleSelectSourceDoc = useCallback(
+    (file: string | null) => {
+      setInternalSelectedDoc(file);
+      props.onSelectFile(file);
+    },
+    [props.onSelectFile],
+  );
+
+  const activeNotePath = useMemo(() => {
+    const list = props.sourceFiles ?? [];
+    const existing = list.find((f) => /synthesis|notes/i.test(f) && f.endsWith(".md"));
+    return existing ?? "Outbox/Notes/Synthesis_Notes.md";
+  }, [props.sourceFiles]);
+
+  const handleInsertCitation = useCallback(() => {
+    if (!activeSourceDoc) return;
+    const citation = formatSourceCitationPill(activeSourceDoc.split("/").pop() ?? activeSourceDoc);
+    if (synthesisMode === "scratchpad") {
+      setScratchpadText((prev) => (prev ? `${prev}\n\n${citation}` : citation));
+    } else if (props.threadId) {
+      appendComposerPromptText(props.threadId, citation);
+    }
+  }, [activeSourceDoc, props.threadId, synthesisMode]);
+
+  const handleVerifyCurrentStep = useCallback(() => {
+    if (!scratchpadText.trim()) return;
+    const fileName = activeSourceDoc?.split("/").pop();
+    const prompt = buildStepVerificationPrompt(scratchpadText, fileName);
+    setScratchpadSubmittedStep(scratchpadText.trim());
+
+    if (props.threadId) {
+      appendComposerPromptText(props.threadId, prompt);
+      if (!chatPaneVisible) {
+        setChatPaneVisible(true);
+        storeEditorVisibility(EDITOR_CHAT_PANE_VISIBLE_STORAGE_KEY, true);
+      }
+    }
+  }, [activeSourceDoc, chatPaneVisible, props.threadId, scratchpadText]);
+
   // When workspaceRoot changes (e.g. workspace/course switched), clear any selected file from the old root
   const previousWorkspaceRootRef = useRef(props.workspaceRoot);
   useEffect(() => {
@@ -345,9 +437,9 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
           {!sidebarOpen ? <ApplicationMenuBar className="ms-1 shrink-0" /> : null}
         </div>
 
-        {/* Center: Segmented Surface Picker (Study vs Studio), placed exactly in the middle of the topbar */}
+        {/* Center: Segmented Surface Picker (Study vs Studio) + Quick Document Switcher */}
         <div className="pointer-events-none absolute inset-x-0 flex items-center justify-center">
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center gap-2">
             {isMimirTheme ? (
               <Tabs
                 value={surface}
@@ -365,7 +457,7 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                   </TabsTrigger>
                   <TabsTrigger
                     value="studio"
-                    title="Studio — deliverables produced by Mimir"
+                    title="Studio — Tri-Pane co-reading and synthesis studio"
                     className="px-3 gap-1.5 text-ui-xs"
                   >
                     <SparkleIcon className="size-3.5" />
@@ -385,25 +477,64 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
                 ]}
               />
             )}
+
+            {surface === "studio" && allSourceDocs.length > 0 ? (
+              <div className="relative hidden md:flex items-center">
+                <select
+                  aria-label="Select source document"
+                  value={activeSourceDoc ?? ""}
+                  onChange={(e) => handleSelectSourceDoc(e.target.value || null)}
+                  className="appearance-none rounded-md border border-border/40 bg-muted/30 ps-2.5 pe-6 py-1 text-ui-xs font-medium text-foreground transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring cursor-pointer max-w-[160px] sm:max-w-[220px] truncate"
+                >
+                  <option value="">Choose Document...</option>
+                  {allSourceDocs.map((file) => (
+                    <option key={file} value={file}>
+                      {file.split("/").pop()}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDownIcon className="pointer-events-none absolute end-1.5 size-3 text-muted-foreground" />
+              </div>
+            ) : null}
           </div>
         </div>
 
-        {/* Right Column: Single Study Chat toggle button */}
+        {/* Right Column: Mastery Gutter toggle & Socratic Tutor toggle */}
         <div className="relative z-10 flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
+          {surface === "studio" ? (
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => setMarginMasteryVisible((prev) => !prev)}
+              aria-pressed={marginMasteryVisible}
+              aria-label="Toggle Margin Mastery Gutter"
+              className={cn(
+                "text-ui-xs gap-1.5",
+                marginMasteryVisible ? "text-primary hover:bg-primary/10" : "text-muted-foreground",
+              )}
+              title="Toggle Margin Mastery Gutter"
+            >
+              <BookOpenIcon className="size-3.5" />
+              <span className="hidden md:inline">Mastery Gutter</span>
+            </Button>
+          ) : null}
+
           <Button
             variant={chatPaneVisible ? "secondary" : "outlined"}
             size="xs"
             aria-pressed={chatPaneVisible}
-            aria-label={chatPaneVisible ? "Hide study chat" : "Show study chat"}
-            title={chatPaneVisible ? "Hide study chat" : "Show study chat"}
+            aria-label={chatPaneVisible ? "Hide tutor chat" : "Show tutor chat"}
+            title={chatPaneVisible ? "Hide tutor chat" : "Show tutor chat"}
             onClick={toggleChatPaneVisible}
             className={cn(
               "gap-1.5 text-ui-xs font-medium",
               chatPaneVisible && "bg-primary/10 text-primary border-primary/25",
             )}
           >
-            <ChatBubbleIcon className="size-3.5" />
-            <span className="hidden sm:inline">Study Chat</span>
+            <BrainIcon className="size-3.5" />
+            <span className="hidden sm:inline">
+              {surface === "studio" ? "Socratic Tutor" : "Study Chat"}
+            </span>
           </Button>
         </div>
       </div>
@@ -421,31 +552,238 @@ export function EditorWorkspaceView(props: EditorWorkspaceViewProps) {
               } as CSSProperties
             }
           >
-            {/* Studio reviews what the agent produced, in the same viewer Study uses.
-                `StudioOutputEntry.relativePath` is resolved against the thread's own
-                workspace root (apps/server/src/studioOutputs.ts:393), so the course
-                workspace is the correct containment root here. */}
             {surface === "studio" ? (
-              selectedStudioOutput ? (
-                <div className="flex min-h-0 min-w-0 flex-1">
-                  <WorkspaceFilePreview
-                    workspaceRoot={props.workspaceRoot}
-                    filePath={selectedStudioOutput.relativePath}
-                    markdownPreviewEnabled
-                    onReferenceInChat={props.onReferenceInChat}
-                    onAskWhyInChat={props.onAskWhyInChat}
-                    onClose={() => setSelectedStudioOutputPath(null)}
-                  />
+              <div className="flex min-h-0 min-w-0 flex-1 overflow-hidden flex-col md:flex-row">
+                {/* PANE A: Primary Source Reader (~55% of center area) */}
+                <div
+                  data-pane="source-reader"
+                  className="flex min-h-0 min-w-[280px] flex-[5.5] flex-col border-b md:border-b-0 md:border-r border-border/40 overflow-hidden bg-background relative"
+                >
+                  {/* Pane A Header */}
+                  <div className="flex shrink-0 items-center justify-between border-b border-border/30 px-3 py-1.5 bg-muted/15">
+                    <div className="flex items-center gap-1.5 text-ui-xs font-semibold text-foreground truncate">
+                      <BookOpenIcon className="size-3.5 text-primary shrink-0" />
+                      <span className="truncate">
+                        {activeSourceDoc ? activeSourceDoc.split("/").pop() : "Source Reader"}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {activeSourceDoc ? (
+                        <Button
+                          variant="ghost"
+                          size="chip"
+                          onClick={handleInsertCitation}
+                          aria-label="Copy citation pill to note or composer"
+                          className="text-ui-2xs text-primary hover:bg-primary/10 px-2 py-0.5 rounded-sm"
+                          title="Copy citation pill to note or composer"
+                        >
+                          Cite Page
+                        </Button>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  {/* Pane A Content Area */}
+                  <div className="flex min-h-0 flex-1 overflow-hidden relative">
+                    {marginMasteryVisible && activeSourceDoc ? (
+                      <div
+                        aria-label="Mastery Status Gutter"
+                        className="w-2.5 shrink-0 border-r border-border/20 bg-muted/10 flex flex-col items-center py-3 gap-3"
+                        title="Margin Mastery Track: Concept stability and recall retention"
+                      >
+                        <div
+                          className="w-1.5 h-12 rounded-full bg-emerald-500/80"
+                          title="High Retention (R > 90%)"
+                        />
+                        <div
+                          className="w-1.5 h-16 rounded-full bg-emerald-500/80"
+                          title="High Retention (R > 90%)"
+                        />
+                        <div
+                          className="w-1.5 h-10 rounded-full bg-amber-500/80"
+                          title="Review Recommended (R ~ 80%)"
+                        />
+                        <div
+                          className="w-1.5 h-14 rounded-full bg-emerald-500/80"
+                          title="High Retention (R > 90%)"
+                        />
+                      </div>
+                    ) : null}
+
+                    {activeSourceDoc ? (
+                      <div className="flex min-h-0 min-w-0 flex-1">
+                        <WorkspaceFilePreview
+                          workspaceRoot={props.workspaceRoot}
+                          filePath={activeSourceDoc}
+                          markdownPreviewEnabled
+                          onReferenceInChat={props.onReferenceInChat}
+                          onAskWhyInChat={props.onAskWhyInChat}
+                          onCommentInChat={props.onCommentInChat}
+                          pptxAnnotations={props.pptxAnnotations}
+                          onPptxCommentInChat={props.onPptxCommentInChat}
+                          onClose={() => handleSelectSourceDoc(null)}
+                        />
+                      </div>
+                    ) : (
+                      <Empty className="h-full flex-1 p-6">
+                        <EmptyMedia variant="icon">
+                          <BookOpenIcon className="size-6 text-primary" />
+                        </EmptyMedia>
+                        <EmptyHeader>
+                          <EmptyTitle className="text-ui font-semibold">
+                            No Document Selected
+                          </EmptyTitle>
+                          <EmptyDescription className="text-ui-xs">
+                            Select lecture slides or reading materials to begin co-reading.
+                          </EmptyDescription>
+                        </EmptyHeader>
+                        {allSourceDocs.length > 0 ? (
+                          <div className="mt-4 flex flex-col gap-1.5 w-full max-w-sm">
+                            <span className="text-ui-2xs font-semibold uppercase tracking-wider text-muted-foreground px-1">
+                              Available Course Materials
+                            </span>
+                            {allSourceDocs.slice(0, 5).map((file) => (
+                              <button
+                                key={file}
+                                type="button"
+                                onClick={() => handleSelectSourceDoc(file)}
+                                className="flex items-center justify-between rounded-md border border-border/40 bg-muted/20 px-2.5 py-1.5 text-left text-ui-xs hover:bg-muted/50 transition-colors"
+                              >
+                                <span className="truncate">{file.split("/").pop()}</span>
+                                <PlayIcon className="size-3 text-muted-foreground shrink-0 ms-1" />
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+                      </Empty>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <StudioEmptyState
-                  spaceIcon={props.spaceIcon}
-                  spaceName={props.spaceName}
-                  hasOutputs={(props.studioOutputs?.length ?? 0) > 0}
-                  onSelectStarterPrompt={props.onSelectStarterPrompt}
-                  onOpenChat={() => setChatPaneVisible(true)}
-                />
-              )
+
+                {/* PANE B: Living Synthesis Canvas & Problem Scratchpad (~45% of center area) */}
+                <div
+                  data-pane="synthesis-canvas"
+                  className="flex min-h-0 min-w-[280px] flex-[4.5] flex-col overflow-hidden bg-background"
+                >
+                  {/* Pane B Header */}
+                  <div className="flex shrink-0 items-center justify-between border-b border-border/30 px-3 py-1.5 bg-muted/15">
+                    <Tabs
+                      value={synthesisMode}
+                      onValueChange={(val) => setSynthesisMode(val as "notes" | "scratchpad")}
+                      className="shrink-0"
+                    >
+                      <TabsList variant="segmented" className="h-7 p-0.5">
+                        <TabsTrigger value="notes" className="px-2.5 py-0.5 gap-1.5 text-ui-xs">
+                          <PageTextIcon className="size-3 text-primary" />
+                          <span>Synthesis Notes</span>
+                        </TabsTrigger>
+                        <TabsTrigger
+                          value="scratchpad"
+                          className="px-2.5 py-0.5 gap-1.5 text-ui-xs"
+                        >
+                          <SparkleIcon className="size-3 text-primary" />
+                          <span>Problem Scratchpad</span>
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
+
+                    {synthesisMode === "scratchpad" ? (
+                      <Button
+                        size="xs"
+                        onClick={handleVerifyCurrentStep}
+                        disabled={!scratchpadText.trim()}
+                        className="gap-1.5 text-ui-xs font-medium shadow-xs"
+                        title="Verify derivation line-by-line without spoiling the solution (Cmd+Enter)"
+                      >
+                        <CheckIcon className="size-3" />
+                        <span>Check Step</span>
+                      </Button>
+                    ) : null}
+                  </div>
+
+                  {/* Pane B Content Area */}
+                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                    {synthesisMode === "notes" ? (
+                      <div className="flex min-h-0 min-w-0 flex-1">
+                        {props.workspaceRoot ? (
+                          <WorkspaceFileEditorPane
+                            workspaceRoot={props.workspaceRoot}
+                            filePath={activeNotePath}
+                            resolvedTheme={editorResolvedTheme}
+                            onClose={() => setSynthesisMode("scratchpad")}
+                          />
+                        ) : (
+                          <Empty className="h-full flex-1 p-6">
+                            <EmptyHeader>
+                              <EmptyTitle className="text-ui font-semibold">
+                                No Note Workspace
+                              </EmptyTitle>
+                              <EmptyDescription className="text-ui-xs">
+                                Open a course to start authoring synthesis notes.
+                              </EmptyDescription>
+                            </EmptyHeader>
+                          </Empty>
+                        )}
+                      </div>
+                    ) : (
+                      /* Problem-Solving Derivation Scratchpad */
+                      <div className="flex min-h-0 flex-1 flex-col p-3 gap-3 overflow-y-auto">
+                        <Card variant="plain" size="sm" className="gap-2">
+                          <CardHeader>
+                            <div className="flex items-center gap-1.5 font-medium text-foreground">
+                              <SparkleIcon className="size-3.5 text-primary shrink-0" />
+                              <CardTitle className="text-ui-xs font-semibold">
+                                Anti-Spoiler Derivation
+                              </CardTitle>
+                            </div>
+                            <CardAction>
+                              <Badge variant="outline" size="sm">
+                                Step-Checked
+                              </Badge>
+                            </CardAction>
+                            <CardDescription className="text-ui-2xs text-muted-foreground">
+                              Work through math or problem steps line-by-line. Mimir checks logic
+                              without giving away the answer.
+                            </CardDescription>
+                          </CardHeader>
+                        </Card>
+
+                        <div className="flex flex-col flex-1 min-h-[180px]">
+                          <Textarea
+                            aria-label="Problem-solving derivation scratchpad"
+                            className="flex-1 resize-none rounded-md border border-border/50 bg-muted/20 p-3 text-ui-sm font-mono text-foreground focus-visible:ring-1 focus-visible:ring-primary"
+                            value={scratchpadText}
+                            onChange={(e) => setScratchpadText(e.target.value)}
+                            placeholder="Type your derivation steps here...&#10;&#10;Step 1: Write down the governing equation...&#10;Step 2: Substitute given initial conditions...&#10;&#10;Press 'Check Step' (Cmd+Enter) to verify."
+                            onKeyDown={(e) => {
+                              if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+                                e.preventDefault();
+                                handleVerifyCurrentStep();
+                              }
+                            }}
+                          />
+                        </div>
+
+                        {scratchpadSubmittedStep ? (
+                          <div className="rounded-md border border-primary/30 bg-primary/5 p-2.5 text-ui-xs text-foreground flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between font-semibold text-primary">
+                              <span>Step Submitted for Verification</span>
+                              <Badge variant="secondary" size="sm">
+                                Tier 1 Nudge
+                              </Badge>
+                            </div>
+                            <p className="text-ui-2xs text-muted-foreground">
+                              The Socratic Companion is evaluating your derivation against{" "}
+                              {activeSourceDoc ?? "course materials"}.
+                            </p>
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             ) : (
               <>
                 {/* Keep the diff panel mounted while browsing files: unmounting it

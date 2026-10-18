@@ -1,12 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildStepVerificationPrompt,
   clampEditorChatPaneWidth,
   EDITOR_CENTER_PANE_MAX_WIDTH,
   EDITOR_CENTER_PANE_MIN_WIDTH,
   EDITOR_CHAT_PANE_DEFAULT_WIDTH,
   EDITOR_CHAT_PANE_MAX_WIDTH,
   EDITOR_CHAT_PANE_MIN_WIDTH,
+  formatSourceCitationPill,
   resolveEditorPaneBounds,
   shouldAcceptEditorChatPaneWidth,
 } from "./EditorWorkspaceView.logic";
@@ -94,5 +96,24 @@ describe("shouldAcceptEditorChatPaneWidth", () => {
     expect(
       shouldAcceptEditorChatPaneWidth({ nextWidth: EDITOR_CHAT_PANE_MIN_WIDTH - 1, rowWidth }),
     ).toBe(false);
+  });
+});
+
+describe("buildStepVerificationPrompt", () => {
+  it("constructs Socratic step verification prompt with source file", () => {
+    const prompt = buildStepVerificationPrompt("Step 1: E = mc^2", "Lecture_04.pdf");
+    expect(prompt).toContain("Verify my problem-solving steps line-by-line against Lecture_04.pdf");
+    expect(prompt).toContain("Tier 1 conceptual nudge");
+    expect(prompt).toContain("Step 1: E = mc^2");
+  });
+});
+
+describe("formatSourceCitationPill", () => {
+  it("formats citation with page or slide", () => {
+    expect(formatSourceCitationPill("Syllabus.pdf", 4)).toBe("[Source: Syllabus.pdf, p. 4]");
+  });
+
+  it("formats citation without page", () => {
+    expect(formatSourceCitationPill("Readings.md")).toBe("[Source: Readings.md]");
   });
 });

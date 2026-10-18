@@ -148,11 +148,6 @@ const EditorWorkspaceView = lazy(() =>
     default: module.EditorWorkspaceView,
   })),
 );
-const StudioWorkspaceView = lazy(() =>
-  import("../StudioWorkspaceView").then((module) => ({
-    default: module.StudioWorkspaceView,
-  })),
-);
 const DockTerminalPane = lazy(() => import("./DockTerminalPane"));
 const GitPanel = lazy(() => import("./GitPanel"));
 const DockExplorerPane = lazy(() =>
@@ -321,9 +316,9 @@ export function SingleChatSurface(props: {
   }, [props.search.editorFilePath, props.threadId]);
   const railActiveItem = useRailShellStore((store) => store.activeItem);
   const isEditorView =
-    props.search.view === "editor" || (!props.search.view && railActiveItem === "spaces");
-  const isStudioView =
-    props.search.view === "studio" || (!props.search.view && railActiveItem === "studio");
+    props.search.view === "editor" ||
+    props.search.view === "studio" ||
+    (!props.search.view && (railActiveItem === "spaces" || railActiveItem === "studio"));
   const editorViewActive = isEditorView;
   useEffect(() => {
     if (!editorViewActive) {
@@ -1181,68 +1176,6 @@ export function SingleChatSurface(props: {
     ],
   );
 
-  if (isStudioView) {
-    return (
-      <WorkspaceFileOpenerContext.Provider value={editorFileOpener}>
-        <div
-          className={cn(CHAT_MAIN_VIEWPORT_SHELL_CLASS_NAME, CHAT_MAIN_CONTENT_SURFACE_CLASS_NAME)}
-        >
-          <Suspense fallback={<ChatMountLoader />}>
-            <StudioWorkspaceView
-              workspaceRoot={workspaceRoot}
-              course={activeProject ?? null}
-              threadId={props.threadId}
-              chatPanel={
-                <SidebarInset
-                  className="min-h-0 min-w-0 overflow-hidden overscroll-y-none text-foreground"
-                  surfaceClassName={CHAT_BACKGROUND_CLASS_NAME}
-                >
-                  <DeferredChatView
-                    threadId={props.threadId}
-                    paneScopeId={EDITOR_CHAT_PANE_SCOPE_ID}
-                    deferMount={false}
-                    surfaceMode="split"
-                    presentationMode="editor"
-                    isFocusedPane
-                    panelState={editorChatPanelState}
-                    onToggleDiff={handleEditorToggleDiff}
-                    onToggleBrowser={noopChatSurfaceAction}
-                    onOpenBrowserUrl={noopChatSurfaceAction}
-                    onOpenTurnDiff={handleEditorOpenTurnDiff}
-                  />
-                </SidebarInset>
-              }
-              sourceFiles={resolvedStudioOutputs.entries.map((e) => e.relativePath)}
-              initialSourceFile={selectedEditorFilePath}
-              onSelectSourceFile={(filePath) => {
-                void navigate({
-                  to: "/$threadId",
-                  params: { threadId: props.threadId },
-                  replace: true,
-                  search: (previous) => ({
-                    ...previous,
-                    view: "studio",
-                    ...(filePath ? { editorFilePath: filePath } : {}),
-                  }),
-                });
-              }}
-              onReferenceInChat={handleReferenceInChat}
-              onAskWhyInChat={handleAskWhyInChat}
-              onCommentInChat={handleCommentInChat}
-              pptxAnnotations={draftPptxAnnotations}
-              onPptxCommentInChat={handlePptxCommentInChat}
-              onStartStudySession={(prompt) => {
-                if (prompt) {
-                  appendComposerPromptText(props.threadId, prompt);
-                }
-              }}
-            />
-          </Suspense>
-        </div>
-      </WorkspaceFileOpenerContext.Provider>
-    );
-  }
-
   if (isEditorView) {
     return (
       <WorkspaceFileOpenerContext.Provider value={editorFileOpener}>
@@ -1252,6 +1185,11 @@ export function SingleChatSurface(props: {
           <Suspense fallback={<ChatMountLoader />}>
             <EditorWorkspaceView
               workspaceRoot={workspaceRoot}
+              threadId={props.threadId}
+              initialSurface={
+                props.search.view === "studio" || railActiveItem === "studio" ? "studio" : undefined
+              }
+              sourceFiles={resolvedStudioOutputs.entries.map((e) => e.relativePath)}
               projectName={activeProject?.name ?? null}
               currentProjectId={activeProject?.id ?? null}
               projectOptions={editorProjectOptions}

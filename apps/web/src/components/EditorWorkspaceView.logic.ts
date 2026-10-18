@@ -80,3 +80,25 @@ export function shouldAcceptEditorChatPaneWidth(input: {
   }
   return input.rowWidth - input.nextWidth >= bounds.centerMinWidth;
 }
+
+export const EDITOR_STUDIO_SOURCE_MIN_WIDTH = 280;
+export const EDITOR_STUDIO_SYNTHESIS_MIN_WIDTH = 260;
+
+/** Formats a Markdown source citation pill for living notes. */
+export function formatSourceCitationPill(
+  sourceFileName: string,
+  pageOrSlide?: number | string,
+): string {
+  if (pageOrSlide !== undefined && pageOrSlide !== null && String(pageOrSlide).trim() !== "") {
+    return `[Source: ${sourceFileName}, p. ${pageOrSlide}]`;
+  }
+  return `[Source: ${sourceFileName}]`;
+}
+
+/** Builds the anti-spoiler step verification prompt for Socratic tutoring. */
+export function buildStepVerificationPrompt(stepText: string, sourceFileName?: string): string {
+  const sourceContext = sourceFileName
+    ? ` against ${sourceFileName}`
+    : " against our course materials";
+  return `Verify my problem-solving steps line-by-line${sourceContext}. Do not give away the solution or future steps. If there is an error in my logic, math, or assumptions, diagnose where it went wrong and give me a Tier 1 conceptual nudge to guide my reasoning:\n\n${stepText.trim()}`;
+}

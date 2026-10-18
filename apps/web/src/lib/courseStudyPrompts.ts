@@ -6,7 +6,9 @@ export type CourseStudyIntent =
   | "explain"
   | "review-inbox"
   | "practice-quiz"
-  | "breakdown-assignment";
+  | "breakdown-assignment"
+  | "feynman"
+  | "step-verifier";
 
 export interface CourseStudyActionConfig {
   readonly id: CourseStudyIntent;
@@ -55,12 +57,34 @@ export const COURSE_STUDY_INTENTS: Readonly<Record<CourseStudyIntent, CourseStud
     defaultPrompt:
       "Help me understand this assignment. Break down the requirements into manageable milestones and outline a step-by-step approach without doing the work for me.",
   },
+  feynman: {
+    id: "feynman",
+    title: "Feynman Teach-Back",
+    badge: "Misconceptions",
+    description:
+      "Explain a concept in your own words. Mimir checks against course slides for gaps.",
+    placeholder: "e.g., Hodgkin-Huxley gating, Goldman-Hodgkin-Katz equation",
+    defaultPrompt:
+      "I will explain a core concept in my own words. Evaluate my explanation: highlight what is accurate, point out missing boundary conditions from our course materials, and identify any misconceptions.",
+  },
+  "step-verifier": {
+    id: "step-verifier",
+    title: "Step-by-Step Problem Check",
+    badge: "3-Tier Hints",
+    description:
+      "Work through a problem line-by-line with progressive hints without spoiling the final answer.",
+    placeholder: "e.g., Problem Set 2 Question 3, Nernst potential derivation",
+    defaultPrompt:
+      "I am working through a problem step-by-step. Check each step as I write it. If I make an error, do not spoil the answer—give me a Tier 1 conceptual nudge first.",
+  },
 };
 
 export const COURSE_STUDY_ACTIONS: ReadonlyArray<CourseStudyActionConfig> = [
   COURSE_STUDY_INTENTS.explain,
-  COURSE_STUDY_INTENTS["review-inbox"],
   COURSE_STUDY_INTENTS["practice-quiz"],
+  COURSE_STUDY_INTENTS.feynman,
+  COURSE_STUDY_INTENTS["step-verifier"],
+  COURSE_STUDY_INTENTS["review-inbox"],
   COURSE_STUDY_INTENTS["breakdown-assignment"],
 ];
 
@@ -90,5 +114,15 @@ export function buildCourseStudyPrompt(intent: CourseStudyIntent, topic?: string
       return trimmed
         ? `Help me understand this assignment for "${trimmed}". Break down the requirements into manageable milestones and outline a step-by-step approach without doing the work for me.`
         : COURSE_STUDY_INTENTS["breakdown-assignment"].defaultPrompt;
+
+    case "feynman":
+      return trimmed
+        ? `I will explain the concept of "${trimmed}" in my own words. Evaluate my explanation: highlight what is accurate, point out missing nuances from our course materials, and identify any misconceptions.`
+        : COURSE_STUDY_INTENTS.feynman.defaultPrompt;
+
+    case "step-verifier":
+      return trimmed
+        ? `I am working through a problem on "${trimmed}" step-by-step. Check each step as I write it. If I make an error, do not spoil the answer—give me a Tier 1 conceptual nudge first.`
+        : COURSE_STUDY_INTENTS["step-verifier"].defaultPrompt;
   }
 }

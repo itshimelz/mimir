@@ -213,6 +213,7 @@ import {
   studioProjectOutputsQueryOptions,
   studioThreadOutputsQueryOptions,
 } from "../lib/serverReactQuery";
+import { projectListDirectoriesQueryOptions } from "../lib/projectReactQuery";
 import {
   onNativeApiServerCapabilitiesChange,
   readNativeApi,
@@ -5112,6 +5113,14 @@ export default function Sidebar() {
     threadIsPending: editorStudioOutputs.isPending,
   });
 
+  const courseRootFilesQuery = useQuery(
+    projectListDirectoriesQueryOptions({
+      cwd: courseProject?.cwd ?? null,
+      includeFiles: true,
+      enabled: Boolean(courseProject?.cwd),
+    }),
+  );
+
   const handleSelectWorkspaceFile = useCallback(
     (filePath: string) => {
       const targetThreadId =
@@ -6368,7 +6377,12 @@ export default function Sidebar() {
       );
     }
 
-    const realCourseFiles = resolvedStudioOutputs.entries.map((e) => e.relativePath);
+    const rootFiles =
+      courseRootFilesQuery.data?.entries?.filter((e) => e.kind === "file")?.map((e) => e.path) ??
+      [];
+    const realCourseFiles = Array.from(
+      new Set([...rootFiles, ...resolvedStudioOutputs.entries.map((e) => e.relativePath)]),
+    );
 
     if (railActiveItem === "home") {
       return (
@@ -6380,10 +6394,10 @@ export default function Sidebar() {
             void navigate({ to: "/mastery" });
           }}
           onResumeReading={(filePath) => {
+            selectRailPanelItem("studio");
             if (filePath) {
               handleSelectWorkspaceFile(filePath);
             } else {
-              selectRailPanelItem("spaces");
               void navigate({
                 to: "/editor",
                 search: { view: "editor" },

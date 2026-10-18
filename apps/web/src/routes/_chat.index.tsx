@@ -144,11 +144,25 @@ function ChatIndexRouteView() {
     await handleNewCourseStudyThread({ ...(initialPrompt ? { initialPrompt } : {}) });
   };
 
-  const handleOpenEditor = () => {
+  const handleOpenEditor = (filePath?: string) => {
     useRailShellStore.getState().selectPanelItem("spaces");
     void navigate({
       to: "/editor",
-      search: { view: "editor" },
+      search: {
+        view: "editor",
+        ...(filePath ? { editorFilePath: filePath } : {}),
+      },
+    });
+  };
+
+  const handleOpenStudio = (filePath?: string) => {
+    useRailShellStore.getState().selectPanelItem("studio");
+    void navigate({
+      to: "/editor",
+      search: {
+        view: "editor",
+        ...(filePath ? { editorFilePath: filePath } : {}),
+      },
     });
   };
 
@@ -165,6 +179,7 @@ function ChatIndexRouteView() {
         onStartStudySession={handleStartStudySession}
         onSwitchCourse={handleSwitchCourse}
         onOpenEditor={handleOpenEditor}
+        onOpenStudio={handleOpenStudio}
       />
     );
   }
@@ -233,6 +248,7 @@ function ChatIndexRouteView() {
           onStartStudySession={handleStartStudySession}
           onSwitchCourse={handleSwitchCourse}
           onOpenEditor={handleOpenEditor}
+          onOpenStudio={handleOpenStudio}
         />
       }
     />

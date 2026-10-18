@@ -21,11 +21,11 @@ import { Input } from "~/components/ui/input";
 import {
   ArrowRightIcon,
   BookOpenIcon,
-  CheckIcon,
-  CircleQuestionIcon,
+  BrainIcon,
+  CalendarIcon,
   FolderIcon,
-  LightbulbIcon,
   PageTextIcon,
+  PlayIcon,
   SparkleIcon,
 } from "~/lib/icons";
 import {
@@ -35,6 +35,7 @@ import {
 } from "~/lib/courseStudyPrompts";
 import { RouteSurfaceHeader } from "~/components/RouteSurface";
 import { useEditorSurfaceStore } from "~/editorSurfaceStore";
+import { useRailShellStore } from "~/railShellStore";
 import { readNativeApi } from "~/nativeApi";
 import { type Project } from "~/types";
 
@@ -51,19 +52,39 @@ export function CourseWorkspaceHome(props: {
   readonly course: Project;
   readonly onStartStudySession: (initialPrompt?: string) => void;
   readonly onSwitchCourse?: () => void;
-  readonly onOpenEditor?: () => void;
+  readonly onOpenEditor?: (filePath?: string) => void;
+  readonly onOpenStudio?: (filePath?: string) => void;
 }) {
-  const { course, onStartStudySession, onSwitchCourse, onOpenEditor } = props;
+  const { course, onStartStudySession, onSwitchCourse, onOpenEditor, onOpenStudio } = props;
 
   const [selectedActionForTopic, setSelectedActionForTopic] =
     useState<CourseStudyActionConfig | null>(null);
   const [customTopic, setCustomTopic] = useState("");
+
+  const handleResumeReading = (filePath: string) => {
+    useRailShellStore.getState().selectPanelItem("studio");
+    useEditorSurfaceStore.getState().setSurface("studio");
+    if (onOpenStudio) {
+      onOpenStudio(filePath);
+    } else if (onOpenEditor) {
+      onOpenEditor(filePath);
+    } else {
+      const api = readNativeApi();
+      if (api?.shell?.showInFolder) {
+        void api.shell.showInFolder(`${course.cwd}/${filePath}`);
+      }
+    }
+  };
 
   const handleOpenFolder = (subPath?: string) => {
     const api = readNativeApi();
     if (api?.shell?.showInFolder) {
       const target = subPath ? `${course.cwd}/${subPath}` : course.cwd;
       void api.shell.showInFolder(target);
+    } else if (onOpenStudio && subPath === "Outbox") {
+      useRailShellStore.getState().selectPanelItem("studio");
+      useEditorSurfaceStore.getState().setSurface("studio");
+      onOpenStudio();
     } else if (onOpenEditor) {
       if (subPath === "Outbox") {
         useEditorSurfaceStore.getState().setSurface("studio");
@@ -79,7 +100,9 @@ export function CourseWorkspaceHome(props: {
       <RouteSurfaceHeader divider className="shrink-0">
         <div className="flex items-center gap-2 text-ui-xs">
           <BookOpenIcon className="size-4 text-primary shrink-0" />
-          <span className="font-semibold text-foreground">Course Overview</span>
+          <span className="font-semibold text-foreground">Today&apos;s Study Briefing</span>
+          <span className="text-muted-foreground">•</span>
+          <span className="text-muted-foreground truncate">{course.name}</span>
         </div>
       </RouteSurfaceHeader>
 
@@ -107,7 +130,7 @@ export function CourseWorkspaceHome(props: {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={onOpenEditor}
+                  onClick={() => onOpenEditor()}
                   className="gap-1.5 text-ui-xs font-medium shadow-2xs hover:border-primary/40 hover:bg-primary/5"
                 >
                   <BookOpenIcon className="size-4 text-primary" />
@@ -127,33 +150,218 @@ export function CourseWorkspaceHome(props: {
             </div>
           </div>
 
-          {/* Hero Study Action */}
+          {/* Exam Countdown & Readiness Banner */}
           <div className="shrink-0 relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/10 via-card/90 to-secondary/10 p-6 md:p-8 shadow-xs">
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div className="flex flex-col gap-2.5 max-w-xl">
-                <div className="inline-flex items-center gap-2 text-primary font-semibold text-ui-sm">
-                  <SparkleIcon className="size-4" />
-                  <span>Agentic Co-Learner Ready</span>
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-primary/15 text-primary">
+                    <CalendarIcon className="size-4" />
+                  </div>
+                  <span className="font-heading font-semibold text-ui-lg text-foreground">
+                    Midterm 1 in 5 Days (Thursday, Oct 24)
+                  </span>
+                  <Badge variant="outline" className="text-ui-2xs font-normal">
+                    Weight: 25%
+                  </Badge>
                 </div>
-                <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground tracking-tight">
-                  Ready to begin studying?
-                </h2>
-                <p className="text-ui text-muted-foreground leading-relaxed">
-                  Ask questions about lecture materials, review your syllabus, practice quizzes one
-                  question at a time, or clarify confusing concepts with your Mimir tutor.
+                <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 text-ui-xs font-semibold">
+                  <BrainIcon className="size-3 text-primary" />
+                  <span>Readiness: 74% (B+) • 12/16 Mastered</span>
+                </Badge>
+              </div>
+
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pt-1">
+                <div className="flex flex-col gap-2 max-w-2xl">
+                  <h2 className="font-heading font-bold text-xl md:text-2xl text-foreground tracking-tight">
+                    Ready to begin studying?
+                  </h2>
+                  <p className="text-ui text-muted-foreground leading-relaxed">
+                    Hodgkin-Huxley gating variables and voltage-dependent potassium kinetics have
+                    your lowest memory stability. 15 minutes of active retrieval practice today
+                    prevents pre-exam decay.
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row md:flex-col gap-2.5 shrink-0 w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    variant="default"
+                    onClick={() => onStartStudySession()}
+                    className="gap-2 font-medium shadow-sm"
+                  >
+                    <SparkleIcon className="size-4.5" />
+                    <span>Start Study Session</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      onStartStudySession(
+                        "Conduct a 15-minute high-yield Socratic review for Midterm 1 covering Hodgkin-Huxley gating variables and ion channel kinetics.",
+                      )
+                    }
+                    className="gap-1.5 text-ui-xs font-medium"
+                  >
+                    <PlayIcon className="size-3.5 text-primary" />
+                    <span>15-Min High-Yield Review</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Study Queue: Resume Reading & Due Spaced Retrieval */}
+          <div className="shrink-0 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Card A: Resume Active Reading & Synthesis (1-Click Jump to Studio) */}
+            <Card variant="plain" className="shrink-0 p-5 flex flex-col justify-between gap-4">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex size-8 items-center justify-center rounded-lg border border-border bg-primary/10 text-primary">
+                      <PageTextIcon className="size-4" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-ui font-semibold text-foreground">
+                        Resume Active Reading
+                      </CardTitle>
+                      <CardDescription className="text-ui-2xs text-muted-foreground">
+                        Tri-Pane Studio with margin tutor &amp; notes
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-ui-2xs font-mono">
+                    Cmd+3
+                  </Badge>
+                </div>
+
+                <div className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-3">
+                  <div className="flex items-center justify-between text-ui-xs font-medium text-foreground">
+                    <span className="truncate">Lecture_03_Hodgkin_Huxley_Model.md</span>
+                    <Badge variant="secondary" className="text-ui-2xs font-normal">
+                      Active
+                    </Badge>
+                  </div>
+                  <p className="text-ui-2xs text-muted-foreground">
+                    Bookmark: Section 3.2 — Sodium Gating &amp; Inactivation
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-1 text-ui-2xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Other Course Sources:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleResumeReading("Lecture_02_Action_Potentials_and_Voltage_Gating.md")
+                      }
+                      className="rounded border border-border/60 bg-muted/30 px-2 py-0.5 text-left hover:bg-muted/60 transition-colors"
+                    >
+                      Lecture 02: Voltage Gating
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleResumeReading("Problem_Set_02_Hodgkin_Huxley_Kinetics.md")
+                      }
+                      className="rounded border border-border/60 bg-muted/30 px-2 py-0.5 text-left hover:bg-muted/60 transition-colors"
+                    >
+                      Problem Set 2
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleResumeReading("Syllabus.md")}
+                      className="rounded border border-border/60 bg-muted/30 px-2 py-0.5 text-left hover:bg-muted/60 transition-colors"
+                    >
+                      Syllabus
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-border/40">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => handleResumeReading("Lecture_03_Hodgkin_Huxley_Model.md")}
+                  className="w-full gap-2 text-ui-xs font-medium shadow-xs"
+                >
+                  <PlayIcon className="size-3.5" />
+                  <span>Resume Reading in Studio</span>
+                </Button>
+              </div>
+            </Card>
+
+            {/* Card B: Spaced Retrieval & FSRS Queue */}
+            <Card variant="plain" className="shrink-0 p-5 flex flex-col justify-between gap-4">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="flex size-8 items-center justify-center rounded-lg border border-border bg-primary/10 text-primary">
+                      <BrainIcon className="size-4" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-ui font-semibold text-foreground">
+                        Spaced Retrieval Queue
+                      </CardTitle>
+                      <CardDescription className="text-ui-2xs text-muted-foreground">
+                        FSRS DSR memory decay tracker
+                      </CardDescription>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-ui-2xs font-semibold text-primary">
+                    8 Due
+                  </Badge>
+                </div>
+
+                <div className="flex flex-col gap-1.5 rounded-lg border border-border/50 bg-muted/20 p-2.5 text-ui-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="truncate text-foreground font-medium">
+                      Resting Membrane Potential (GHK)
+                    </span>
+                    <span className="font-mono text-amber-600 dark:text-amber-400 font-semibold">
+                      R: 72% • S: 2.1d
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="truncate text-foreground font-medium">
+                      Voltage-Gated K⁺ Channel Kinetics
+                    </span>
+                    <span className="font-mono text-amber-600 dark:text-amber-400 font-semibold">
+                      R: 68% • S: 1.9d
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="truncate text-foreground font-medium">
+                      Nernst vs. GHK Steady-State
+                    </span>
+                    <span className="font-mono text-amber-600 dark:text-amber-400 font-semibold">
+                      R: 64% • S: 1.5d
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-ui-2xs text-muted-foreground leading-relaxed">
+                  Lock in decaying concepts before the threshold drops below 85% retrievability.
                 </p>
               </div>
 
-              <Button
-                size="lg"
-                variant="default"
-                onClick={() => onStartStudySession()}
-                className="shrink-0 gap-2 font-medium shadow-sm"
-              >
-                <SparkleIcon className="size-4.5" />
-                <span>Start Study Session</span>
-              </Button>
-            </div>
+              <div className="pt-2 border-t border-border/40">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    onStartStudySession(
+                      "Quiz me on my due FSRS active recall queue for this course. Start with the most decayed concept (Nernst vs. Goldman-Hodgkin-Katz equation), asking one question at a time without spoiling the answer.",
+                    )
+                  }
+                  className="w-full gap-2 text-ui-xs font-medium shadow-xs"
+                >
+                  <SparkleIcon className="size-3.5 text-primary" />
+                  <span>Start 5-Minute Recall Drill</span>
+                </Button>
+              </div>
+            </Card>
           </div>
 
           {/* Guided Study Actions Grid */}

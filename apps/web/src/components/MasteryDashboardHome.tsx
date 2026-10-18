@@ -54,7 +54,7 @@ export function MasteryDashboardHome(props: MasteryDashboardHomeProps) {
       </RouteSurfaceHeader>
 
       <div className="flex min-h-0 flex-1 w-full flex-col overflow-y-auto">
-        <div className="flex w-full max-w-4xl flex-col p-6 md:p-8 mx-auto gap-6">
+        <div className="@container flex w-full max-w-4xl flex-col p-6 md:p-8 mx-auto gap-6">
           {/* Header */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -80,8 +80,9 @@ export function MasteryDashboardHome(props: MasteryDashboardHomeProps) {
               Retrieval Drills
             </span>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 @md:grid-cols-2 @xl:grid-cols-3 gap-4">
               <Card
+                key="quiz"
                 variant="plain"
                 interactive
                 onClick={onStartQuizDrill}
@@ -105,6 +106,7 @@ export function MasteryDashboardHome(props: MasteryDashboardHomeProps) {
               </Card>
 
               <Card
+                key="feynman"
                 variant="plain"
                 interactive
                 onClick={onStartFeynmanChallenge}
@@ -128,6 +130,7 @@ export function MasteryDashboardHome(props: MasteryDashboardHomeProps) {
               </Card>
 
               <Card
+                key="simulation"
                 variant="plain"
                 interactive
                 onClick={onStartExamSimulation}
@@ -153,8 +156,8 @@ export function MasteryDashboardHome(props: MasteryDashboardHomeProps) {
           </div>
 
           {/* Retention Progress Card */}
-          <Card variant="muted" size="sm" className="gap-2 p-4">
-            <CardHeader className="p-0">
+          <Card variant="muted" size="sm" className="gap-2">
+            <CardHeader>
               <CardTitle className="text-ui-xs font-semibold">Mastery Status</CardTitle>
               <CardDescription className="text-ui-xs text-muted-foreground">
                 Your topic mastery heatmap and stability metrics will populate as you complete

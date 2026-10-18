@@ -13,7 +13,14 @@ import {
   AddPlusIcon,
 } from "~/lib/icons";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import {
   Empty,
@@ -61,24 +68,24 @@ export function TodayBriefingFlyout(props: TodayBriefingFlyoutProps) {
   const displayFiles = recentFiles.slice(0, 3);
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-2.5 overflow-y-auto px-2 py-1.5">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto px-2.5 py-2">
       {/* 1. Daily Active Recall Card */}
-      <Card variant="plain" size="sm" className="gap-2">
-        <CardHeader className="p-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 font-medium text-foreground">
-              <BrainIcon className="size-3.5 text-primary shrink-0" />
-              <CardTitle className="text-ui-xs font-semibold">Active Recall</CardTitle>
-            </div>
+      <Card variant="plain" size="sm" className="gap-2.5">
+        <CardHeader>
+          <div className="flex items-center gap-1.5 font-medium text-foreground">
+            <BrainIcon className="size-3.5 text-primary shrink-0" />
+            <CardTitle className="text-ui-xs font-semibold">Active Recall</CardTitle>
+          </div>
+          <CardAction>
             <Badge variant="outline" size="sm">
               Practice
             </Badge>
-          </div>
+          </CardAction>
           <CardDescription className="text-ui-2xs text-muted-foreground">
             Test concept comprehension with guided turn-by-turn prompts.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent>
           <Button
             size="sm"
             className="w-full gap-1.5 text-ui font-medium shadow-xs"
@@ -91,21 +98,21 @@ export function TodayBriefingFlyout(props: TodayBriefingFlyoutProps) {
       </Card>
 
       {/* 2. Reading Materials */}
-      <Card variant="plain" size="sm" className="gap-2">
-        <CardHeader className="p-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 font-medium text-foreground">
-              <PageTextIcon className="size-3.5 text-primary shrink-0" />
-              <CardTitle className="text-ui-xs font-semibold">Course Materials</CardTitle>
-            </div>
-            {displayFiles.length > 0 ? (
+      <Card variant="plain" size="sm" className="gap-2.5">
+        <CardHeader>
+          <div className="flex items-center gap-1.5 font-medium text-foreground">
+            <PageTextIcon className="size-3.5 text-primary shrink-0" />
+            <CardTitle className="text-ui-xs font-semibold">Course Materials</CardTitle>
+          </div>
+          {displayFiles.length > 0 ? (
+            <CardAction>
               <Badge variant="secondary" size="sm">
                 {displayFiles.length}
               </Badge>
-            ) : null}
-          </div>
+            </CardAction>
+          ) : null}
         </CardHeader>
-        <CardContent className="p-0 flex flex-col gap-1.5">
+        <CardContent className="flex flex-col gap-1.5">
           {displayFiles.length > 0 ? (
             displayFiles.map((file) => {
               const fileName = file.split("/").pop() ?? file;
@@ -114,12 +121,12 @@ export function TodayBriefingFlyout(props: TodayBriefingFlyoutProps) {
                   key={file}
                   type="button"
                   onClick={() => onResumeReading(file)}
-                  className="flex items-center justify-between rounded-md border border-border/40 bg-muted/30 px-2 py-1.5 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex items-center justify-between rounded-md border border-border/40 bg-muted/30 px-2.5 py-1.5 text-left transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   <span className="truncate text-ui-xs font-medium text-foreground">
                     {fileName}
                   </span>
-                  <PlayIcon className="size-3 text-muted-foreground shrink-0" />
+                  <PlayIcon className="size-3 text-muted-foreground shrink-0 ms-1.5" />
                 </button>
               );
             })
@@ -133,18 +140,18 @@ export function TodayBriefingFlyout(props: TodayBriefingFlyoutProps) {
 
       {/* 3. Mastery Progress Link */}
       <Card variant="plain" size="sm" className="gap-2">
-        <CardHeader className="p-0">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-ui-xs font-semibold">Mastery & Diagnostics</CardTitle>
+        <CardHeader>
+          <CardTitle className="text-ui-xs font-semibold">Mastery & Diagnostics</CardTitle>
+          <CardAction>
             <Button
               variant="link"
               size="chip"
               onClick={onOpenMastery}
-              className="text-ui-2xs p-0 text-primary hover:underline h-auto"
+              className="text-ui-2xs text-primary hover:underline h-auto p-0"
             >
               View →
             </Button>
-          </div>
+          </CardAction>
           <CardDescription className="text-ui-2xs text-muted-foreground">
             View topic diagnostics, retention curves, and exam prep drills.
           </CardDescription>

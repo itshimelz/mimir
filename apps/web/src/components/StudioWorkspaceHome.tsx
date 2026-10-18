@@ -6,7 +6,14 @@
 import type { Project } from "~/types";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { RouteSurfaceHeader } from "~/components/RouteSurface";
 import {
   Empty,
@@ -89,7 +96,7 @@ export function StudioWorkspaceHome(props: StudioWorkspaceHomeProps) {
       </RouteSurfaceHeader>
 
       <div className="flex min-h-0 flex-1 w-full flex-col overflow-y-auto">
-        <div className="flex w-full max-w-4xl flex-col p-6 md:p-8 mx-auto gap-6">
+        <div className="@container flex w-full max-w-4xl flex-col p-6 md:p-8 mx-auto gap-6">
           {/* Header */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -126,7 +133,7 @@ export function StudioWorkspaceHome(props: StudioWorkspaceHomeProps) {
           </div>
 
           {/* Pedagogical Intent Launchers */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 @md:grid-cols-2 gap-4">
             {PEDAGOGICAL_MODES.map((mode) => (
               <Card
                 key={mode.id}
@@ -136,12 +143,12 @@ export function StudioWorkspaceHome(props: StudioWorkspaceHomeProps) {
                 className="justify-between"
               >
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-ui-lg">{mode.name}</CardTitle>
+                  <CardTitle className="text-ui-lg">{mode.name}</CardTitle>
+                  <CardAction>
                     <Badge variant="secondary" size="sm">
                       {mode.badge}
                     </Badge>
-                  </div>
+                  </CardAction>
                   <CardDescription className="text-ui-xs leading-relaxed">
                     {mode.desc}
                   </CardDescription>

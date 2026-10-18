@@ -193,7 +193,7 @@ function AppRailButton({ item }: { item: AppRailItem }) {
       {item.badge ? (
         <span
           aria-hidden
-          className="app-rail-badge pointer-events-none absolute top-1 right-1 size-1.5 rounded-full"
+          className="app-rail-badge pointer-events-none absolute top-1 end-1 size-1.5 rounded-full"
         />
       ) : null}
     </div>

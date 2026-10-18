@@ -6,7 +6,14 @@
 import type { Project } from "~/types";
 import { BrainIcon, SparkleIcon, PlayIcon } from "~/lib/icons";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
 import {
   Empty,
@@ -43,24 +50,24 @@ export function MasteryFlyout(props: MasteryFlyoutProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-2.5 overflow-y-auto px-2 py-1.5">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto px-2.5 py-2">
       {/* 1. Mastery Status Card & Full Dashboard Action */}
-      <Card variant="plain" size="sm" className="gap-2">
-        <CardHeader className="p-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 font-medium text-foreground">
-              <BrainIcon className="size-3.5 text-primary shrink-0" />
-              <CardTitle className="text-ui-xs font-semibold">Mastery Engine</CardTitle>
-            </div>
+      <Card variant="plain" size="sm" className="gap-2.5">
+        <CardHeader>
+          <div className="flex items-center gap-1.5 font-medium text-foreground">
+            <BrainIcon className="size-3.5 text-primary shrink-0" />
+            <CardTitle className="text-ui-xs font-semibold">Mastery Engine</CardTitle>
+          </div>
+          <CardAction>
             <Badge variant="outline" size="sm">
               FSRS
             </Badge>
-          </div>
+          </CardAction>
           <CardDescription className="text-ui-2xs text-muted-foreground">
             Tracks concept difficulty, memory stability, and retrievability.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent>
           <Button
             size="sm"
             className="w-full gap-1.5 text-ui font-medium shadow-xs"
@@ -73,14 +80,14 @@ export function MasteryFlyout(props: MasteryFlyoutProps) {
       </Card>
 
       {/* 2. Interactive Pedagogical Practice Actions */}
-      <Card variant="plain" size="sm" className="gap-2">
-        <CardHeader className="p-0">
+      <Card variant="plain" size="sm" className="gap-2.5">
+        <CardHeader>
           <CardTitle className="text-ui-xs font-semibold">Active Retrieval Drills</CardTitle>
           <CardDescription className="text-ui-2xs text-muted-foreground">
             Turn-by-turn guided sessions designed to reinforce long-term memory.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0 flex flex-col gap-1.5">
+        <CardContent className="flex flex-col gap-1.5">
           <Button
             variant="outline"
             size="sm"

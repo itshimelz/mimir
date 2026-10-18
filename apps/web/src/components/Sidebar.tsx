@@ -6443,7 +6443,7 @@ export default function Sidebar() {
     return (
       <SidebarGroup className="flex h-full min-h-0 flex-1 flex-col overflow-hidden px-1.5 py-1">
         {/* Course Workspace Tabs: Modules Tree, Raw Files, Deliverables */}
-        <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-1 shrink-0">
+        <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg mb-2 shrink-0">
           <button
             type="button"
             className={cn(
@@ -6486,7 +6486,7 @@ export default function Sidebar() {
             <SparkleIcon className="size-3.5 shrink-0" />
             <span>Outbox</span>
             {resolvedStudioOutputs.entries.length > 0 ? (
-              <span className="ml-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.2 text-ui-2xs font-semibold">
+              <span className="ms-0.5 rounded-full bg-primary/10 text-primary px-1.5 py-0.5 text-ui-2xs font-semibold">
                 {resolvedStudioOutputs.entries.length}
               </span>
             ) : null}

@@ -20,7 +20,7 @@ import {
 import { cn } from "~/lib/utils";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Card, CardAction, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Empty,
   EmptyDescription,
@@ -108,25 +108,25 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col overflow-y-auto px-1.5 py-1">
+    <div className="flex h-full min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto px-2 py-1.5">
       {/* 1. Syllabus Roadmap Card */}
-      <Card variant="plain" size="sm" className="mb-2 gap-1.5">
-        <CardHeader className="p-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 font-medium text-foreground">
-              <BookOpenIcon className="size-3.5 text-primary shrink-0" />
-              <CardTitle className="text-ui-xs font-semibold">Syllabus & Roadmap</CardTitle>
-            </div>
-            {tree.syllabus.fileName ? (
+      <Card variant="plain" size="sm" className="gap-2">
+        <CardHeader>
+          <div className="flex items-center gap-1.5 font-medium text-foreground">
+            <BookOpenIcon className="size-3.5 text-primary shrink-0" />
+            <CardTitle className="text-ui-xs font-semibold">Syllabus & Roadmap</CardTitle>
+          </div>
+          {tree.syllabus.fileName ? (
+            <CardAction>
               <Badge variant="outline" size="sm">
                 {tree.syllabus.fileName}
               </Badge>
-            ) : null}
-          </div>
+            </CardAction>
+          ) : null}
           {tree.syllabus.nextMilestone ? (
             <div className="mt-1 flex items-center justify-between text-ui-2xs text-muted-foreground">
               <span className="truncate">{tree.syllabus.nextMilestone.name}</span>
-              <span className="font-semibold text-primary shrink-0">
+              <span className="font-semibold text-primary shrink-0 ms-1">
                 {tree.syllabus.nextMilestone.date}
               </span>
             </div>
@@ -135,14 +135,14 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
       </Card>
 
       {/* 2. Modules / Weekly Tree */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between px-1 text-ui-2xs font-semibold uppercase tracking-wider text-muted-foreground">
           <span>Weekly Knowledge Modules</span>
           <Button
             variant="ghost"
             size="chip"
             onClick={() => onStartNewStudySession()}
-            className="flex items-center gap-1 text-primary hover:text-primary h-auto p-0"
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-primary hover:bg-muted/50 hover:text-primary transition-colors"
             title="Start new study session"
           >
             <AddPlusIcon className="size-3" />
@@ -161,7 +161,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
               <button
                 type="button"
                 onClick={() => toggleWeek(mod.weekNumber)}
-                className="flex w-full items-center justify-between gap-2 p-2 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-md transition-colors"
+                className="flex w-full items-center justify-between gap-2 px-2.5 py-2 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded-md transition-colors"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   <ChevronDownIcon
@@ -177,7 +177,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0 ms-1">
                   {mod.sourceStack.length > 0 ? (
                     <Badge variant="secondary" size="sm">
                       {mod.sourceStack.length}
@@ -193,9 +193,9 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                   isExpanded ? DISCLOSURE_SHELL_OPEN_CLASS : DISCLOSURE_SHELL_CLOSED_CLASS,
                 )}
               >
-                <div className={cn(DISCLOSURE_INNER_CLASS, "flex flex-col gap-2 p-2 pt-0")}>
+                <div className={cn(DISCLOSURE_INNER_CLASS, "flex flex-col gap-2 px-2.5 pb-2.5")}>
                   {/* Canonical Source Stack */}
-                  <div className="flex flex-col gap-1 rounded bg-muted/30 p-1.5">
+                  <div className="flex flex-col gap-1 rounded-md bg-muted/30 p-2">
                     <span className="text-ui-2xs font-medium text-muted-foreground">
                       Source Stack ({mod.sourceStack.length})
                     </span>
@@ -210,7 +210,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                             key={src.id}
                             type="button"
                             onClick={() => onOpenSourceItem(src)}
-                            className="flex items-center gap-1.5 rounded px-1.5 py-1 text-left text-ui-xs hover:bg-muted/60 transition-colors"
+                            className="flex items-center gap-2 rounded px-2 py-1 text-left text-ui-xs hover:bg-muted/60 transition-colors"
                           >
                             {renderSourceKindIcon(src.kind)}
                             <span className="truncate flex-1 text-foreground">{src.name}</span>
@@ -221,8 +221,8 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                   </div>
 
                   {/* Living Synthesis Note */}
-                  <div className="flex items-center justify-between rounded bg-muted/30 p-1.5 text-ui-xs">
-                    <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex items-center justify-between rounded-md bg-muted/30 px-2 py-1.5 text-ui-xs">
+                    <div className="flex items-center gap-2 min-w-0">
                       <PageTextIcon className="size-3.5 text-primary shrink-0" />
                       <span className="truncate text-foreground font-medium">
                         {mod.synthesisNote
@@ -238,7 +238,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                           mod.synthesisNote?.path ?? `Outbox/Notes/Week_${mod.weekNumber}_Notes.md`,
                         )
                       }
-                      className="text-ui-2xs font-semibold text-primary hover:underline shrink-0 h-auto p-0"
+                      className="text-ui-2xs font-semibold text-primary hover:underline shrink-0 h-auto p-0 ms-1.5"
                     >
                       {mod.synthesisNote ? "Open" : "Create"}
                     </Button>
@@ -246,8 +246,8 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
 
                   {/* Anchored Study Sessions */}
                   {mod.studySessions.length > 0 ? (
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-ui-2xs font-medium text-muted-foreground px-1">
+                    <div className="flex flex-col gap-0.5 pt-0.5">
+                      <span className="text-ui-2xs font-medium text-muted-foreground px-2">
                         Study Sessions ({mod.studySessions.length})
                       </span>
                       {mod.studySessions.map((session) => (
@@ -255,7 +255,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
                           key={session.threadId}
                           type="button"
                           onClick={() => onOpenStudySession(session.threadId)}
-                          className="flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left text-ui-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                          className="flex items-center gap-2 rounded px-2 py-1 text-left text-ui-xs text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
                         >
                           <ChatBubbleIcon className="size-3 text-muted-foreground shrink-0" />
                           <span className="truncate">{session.title}</span>
@@ -271,15 +271,15 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
       </div>
 
       {/* 3. Course Library Drawers */}
-      <div className="mt-3 flex flex-col gap-1 border-t border-border/60 pt-2">
+      <div className="mt-4 flex flex-col gap-1.5 border-t border-border/30 pt-3">
         <span className="px-1 text-ui-2xs font-semibold uppercase tracking-wider text-muted-foreground">
           Course Library
         </span>
-        <div className="grid grid-cols-2 gap-1.5">
+        <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
             onClick={() => onOpenLibraryFolder("Inbox")}
-            className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted/20 p-2 text-left hover:bg-muted/50 transition-colors"
+            className="flex items-center gap-2 rounded-md border border-border/40 bg-muted/20 p-2 text-left hover:bg-muted/50 transition-colors"
           >
             <FolderIcon className="size-3.5 text-primary shrink-0" />
             <div className="flex flex-col min-w-0">
@@ -293,7 +293,7 @@ export function CourseKnowledgeTree(props: CourseKnowledgeTreeProps) {
           <button
             type="button"
             onClick={() => onOpenLibraryFolder("Outbox")}
-            className="flex items-center gap-1.5 rounded-md border border-border/40 bg-muted/20 p-2 text-left hover:bg-muted/50 transition-colors"
+            className="flex items-center gap-2 rounded-md border border-border/40 bg-muted/20 p-2 text-left hover:bg-muted/50 transition-colors"
           >
             <SparkleIcon className="size-3.5 text-primary shrink-0" />
             <div className="flex flex-col min-w-0">
